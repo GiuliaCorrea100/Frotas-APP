@@ -1,8 +1,9 @@
 import React, { ChangeEvent, useState } from "react";
 import logoUNIR from "../assets/logoUNIR.png";
-import { loginUser } from '../api/authService';
+//import { loginUser } from '../api/authService';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import axiosConnect from '../services/axiosConnect'; // Importando a instância do axios centralizado
 
 const PaginaDeLogin: React.FC = () => {
   // Tipagem dos estados
@@ -30,7 +31,7 @@ const PaginaDeLogin: React.FC = () => {
     setCpfError(cpf.length !== 11);
   };
 
-  const handlePasswordChange = (event: ChangeEvent<HTMLInputElement>): void => {
+  const handlePassword = (event: ChangeEvent<HTMLInputElement>): void => {
     const newPassword = event.target.value;
     setPassword(newPassword);
     setPasswordError(newPassword.trim() === ""); // Validação de senha não vazia
@@ -40,8 +41,16 @@ const PaginaDeLogin: React.FC = () => {
   const handleSubmit = async (): Promise<void> => {
     if (isFormValid) {
       try {
-        const userData = await loginUser({ cpf, password });
-        console.log("Login realizado com sucesso!", userData);
+       
+        const response = await axiosConnect.post('/auth/login', {
+          username: cpf,
+          password: password,
+        });
+
+        const { token, userName, idPermissao } = response.data;
+        login(token, userName, idPermissao);
+
+        console.log("Login realizado com sucesso!", response.data);
         // Redirecionar para a página principal ou dashboard
         navigate('/menu');
       } catch (error) {
@@ -78,7 +87,7 @@ const PaginaDeLogin: React.FC = () => {
             type="password"
             placeholder="Senha"
             value={password}
-            onChange={handlePasswordChange}
+            onChange={handlePassword}
             className={`${passwordError ? "input-error" : ""}`}
           />
         </div>
