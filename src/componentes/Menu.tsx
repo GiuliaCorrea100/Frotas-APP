@@ -4,13 +4,16 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const Menu: React.FC = () => {
-  const { isAuthenticated, cpf, logout, idPermissao } = useAuth();
+  const { isAuthenticated, cpf, logout, permissao } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login"); // Redireciona para a página de login após logout
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/", { replace: true });
   };
+
+  console.log(cpf,permissao);
 
   return (
     <AppBar position="static">
@@ -25,11 +28,12 @@ const Menu: React.FC = () => {
         </Typography>
 
         {/* Exibe informações do usuário se autenticado */}
-        {isAuthenticated && cpf && (
+        {isAuthenticated && cpf &&  permissao && (
           <Box sx={{ mr: 2 }}>
             <Typography variant="subtitle2">CPF: {cpf}</Typography>
+            <Typography variant="subtitle2">ID Permissão: {permissao}</Typography>
             <Typography variant="caption" display="block">
-              Permissão: {idPermissao}
+              {Number(permissao) === 2 ? "Administrador" : "Usuário Regular"}
             </Typography>
           </Box>
         )}
@@ -37,15 +41,22 @@ const Menu: React.FC = () => {
         {/* Botões visíveis apenas quando autenticado */}
         {isAuthenticated && (
           <>
-            <Button color="inherit" component={Link} to="/ListaCarros">
-              Lista de Carros
-            </Button>
-            <Button color="inherit" component={Link} to="/ListaMotoristas">
-              Lista de Motoristas
-            </Button>
-            <Button color="inherit" component={Link} to="/ListaMultas">
-              Lista de Multas
-            </Button>
+            {/* Botões visíveis apenas para administradores (idPermissao === "2") */}
+            {Number(permissao) === 2 && (
+              <>
+                <Button color="inherit" component={Link} to="/ListaCarros">
+                  Lista de Carros
+                </Button>
+                <Button color="inherit" component={Link} to="/ListaMotoristas">
+                  Lista de Motoristas
+                </Button>
+                <Button color="inherit" component={Link} to="/ListaMultas">
+                  Lista de Multas
+                </Button>
+              </>
+            )}
+
+            {/* Botão Sair visível para todos os usuários autenticados */}
             <Button color="inherit" onClick={handleLogout}>
               Sair
             </Button>
@@ -54,7 +65,7 @@ const Menu: React.FC = () => {
 
         {/* Botão de login visível apenas quando não autenticado */}
         {!isAuthenticated && (
-          <Button color="inherit" component={Link} to="/login">
+          <Button color="inherit" component={Link} to="/">
             Login
           </Button>
         )}

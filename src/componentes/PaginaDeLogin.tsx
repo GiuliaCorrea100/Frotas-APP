@@ -47,8 +47,9 @@ const PaginaDeLogin: React.FC = () => {
           password: password,
         });
 
-        const { token, userName, idPermissao } = response.data;
-        login(token, userName, idPermissao);
+        const { token, username, permissao } = response.data;
+        login(token, username, permissao);
+        // console.log(idPermissao);
 
         console.log("Login realizado com sucesso!", response.data);
         // Redirecionar para a página principal ou dashboard
@@ -59,6 +60,7 @@ const PaginaDeLogin: React.FC = () => {
       }
     }
   };
+
 
   return (
     <div className="login-container">
