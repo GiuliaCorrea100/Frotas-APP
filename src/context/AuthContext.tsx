@@ -64,7 +64,8 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     const login = (token: string, cpf: string, permissao: string) => {
       localStorage.setItem('token', token);
       localStorage.setItem('cpf', cpf);
-      localStorage.setItem('idPermissao', permissao);
+      localStorage.setItem('permissao', permissao); 
+
 
       setToken(token);
       setCpf(cpf);

@@ -16,6 +16,8 @@ import ListaMulta from './componentes/Listagem/ListaMulta';
 
 import Menu from './componentes/Menu';
 
+import Unauthorized from './componentes/Unauthorized';
+
 import { AuthProvider } from './context/AuthContext';
 
 import PrivateRoute from './componentes/PrivateRoute';
@@ -29,22 +31,27 @@ const App: React.FC = () => {
         {/*rota publica*/}
         <Route path="/" element={<PaginaDeLogin />} />
 
-        {/*rotas protegidas*/}
-        {/* Rota para pagina de Cadastro */}
-        <Route element={<PrivateRoute />}>
-        <Route path="/CadastroMotorista" element={<CadastroMotorista />} />
-        <Route path="/CadastroMotorista2" element={<CadastroMotorista2 />} />
-        <Route path="/CadastroMulta" element={<CadastroMulta />} />
-        <Route path="/CadastroCarro" element={<CadastroCarro />} />
+        {/*rotas de administrador*/}
+        <Route element={<PrivateRoute requiredPermission={2} />}>
+          <Route path="/CadastroMotorista" element={<CadastroMotorista />} />
+          <Route path="/CadastroMotorista2" element={<CadastroMotorista2 />} />
+          <Route path="/CadastroMulta" element={<CadastroMulta />} />
+          <Route path="/CadastroCarro" element={<CadastroCarro />} />
+          <Route path="/ListaMultas" element={<ListaMulta />} />
+          <Route path="/ListaMotoristas" element={<ListaMotorista />} />
+        </Route>
 
-        {/* Rotas para pagina de listagem */}
-        <Route path="/ListaMultas" element={<ListaMulta />} />
-        <Route path="/ListaMotoristas" element={<ListaMotorista />} />
+
+        {/* Rotas usuario comum */}
         <Route path="/ListaCarros" element={<ListaCarros />} />
+
+        {/* Rota para acesso negado */}
+        <Route path="/unauthorized" element={<Unauthorized />} />
 
         {/* Rota para o Menu */}
         <Route path="/menu" element={<Menu />} />
-        </Route>
+        
+        
       </Routes>
     </Router>
     </AuthProvider>

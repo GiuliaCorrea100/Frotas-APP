@@ -1,18 +1,25 @@
 import { useAuth } from '../context/AuthContext';
 import { Navigate, Outlet } from 'react-router-dom';
-/*
-Se o usuário ESTIVER logado (isAuthenticated === true):
 
-Mostra a página solicitada (<Outlet /> representa a rota filha)
+type PrivateRouteProps = {
+  requiredPermission?: number; // Ex: 1 = usuário, 2 = admin
+};
 
-Se o usuário NÃO ESTIVER logado:
+const PrivateRoute = ({ requiredPermission }: PrivateRouteProps) => {
+  const { isAuthenticated, permissao } = useAuth();
 
-Redireciona para /login automaticamente
-*/
-const PrivateRoute = () => {
-  const { isAuthenticated } = useAuth();
-  
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (
+    requiredPermission !== undefined &&
+    Number(permissao) < requiredPermission
+  ) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  return <Outlet />;
 };
 
 export default PrivateRoute;
