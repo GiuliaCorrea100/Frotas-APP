@@ -6,11 +6,12 @@ import { decodeToken } from '../utils/jwtDecodeHelper';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  login: (cpf: string, password: string, permissao: string) => void;
+  login: (cpf: string, password: string, permissao: string, nome: string) => void;
   logout: () => void;
   cpf: string | null;
   token: string | null;
   permissao: string | null; 
+  nome: string | null;
 
 }
 
@@ -23,18 +24,21 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const [cpf, setCpf] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [permissao, setPermissao] = useState<string | null>(null);
+  const [nome, setNome] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
     const storedCpf = localStorage.getItem('cpf');
     const storedPermissao = localStorage.getItem('permissao');
+    const storedNome = localStorage.getItem('nome');
 
     //manter logado mesmo após refresh
     if (storedToken && storedCpf && storedPermissao) {
       setToken(storedToken);
       setCpf(storedCpf);
       setPermissao(storedPermissao);
+      setNome(storedNome);
       setIsAuthenticated(true);
     }
     setIsLoading(false);
@@ -61,15 +65,17 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   }, [token]);
 
 
-    const login = (token: string, cpf: string, permissao: string) => {
+    const login = (token: string, cpf: string, permissao: string, nome: string) => {
       localStorage.setItem('token', token);
       localStorage.setItem('cpf', cpf);
       localStorage.setItem('permissao', permissao); 
+      localStorage.setItem('nome', nome);
 
 
       setToken(token);
       setCpf(cpf);
       setPermissao(permissao);
+      setNome(nome);
       setIsAuthenticated(true);
   };
 
@@ -77,16 +83,18 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       localStorage.removeItem('token');
       localStorage.removeItem('cpf');
       localStorage.removeItem('permissao');
+      localStorage.removeItem('nome');
 
       setToken(null);
       setCpf(null);
       setPermissao(null);
+      setNome(null);
       setIsAuthenticated(false);
   };
 
     return (
     <AuthContext.Provider
-      value={{ isAuthenticated, login, logout, cpf, token, permissao }}
+      value={{ isAuthenticated, login, logout, cpf, token, permissao, nome }}
     >
       {!isLoading && children}
     </AuthContext.Provider>
@@ -102,4 +110,3 @@ const useAuth = (): AuthContextType => {
 };
 
 export { AuthProvider, useAuth };
-

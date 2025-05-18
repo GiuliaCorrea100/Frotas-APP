@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const Menu: React.FC = () => {
-  const { isAuthenticated, cpf, logout, permissao } = useAuth();
+  const { isAuthenticated, cpf, logout, permissao, nome } = useAuth();
   const navigate = useNavigate();
 
 
@@ -13,7 +13,7 @@ const Menu: React.FC = () => {
     navigate("/", { replace: true });
   };
 
-  console.log(cpf,permissao);
+  console.log(cpf,permissao, nome);
 
   return (
     <AppBar position="static">
@@ -28,10 +28,11 @@ const Menu: React.FC = () => {
         </Typography>
 
         {/* Exibe informações do usuário se autenticado */}
-        {isAuthenticated && cpf &&  permissao && (
+        {isAuthenticated && cpf &&  permissao && nome && (
           <Box sx={{ mr: 2 }}>
             <Typography variant="subtitle2">CPF: {cpf}</Typography>
             <Typography variant="subtitle2">ID Permissão: {permissao}</Typography>
+            <Typography variant="subtitle2">nome:  {nome}</Typography>
             <Typography variant="caption" display="block">
               {Number(permissao) === 2 ? "Administrador" : "Usuário Regular"}
             </Typography>
