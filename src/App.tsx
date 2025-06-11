@@ -18,6 +18,8 @@ import Menu from './componentes/Menu';
 
 import Unauthorized from './componentes/Unauthorized';
 
+import ListaAdministrador from './componentes/Administradores';
+
 import { AuthProvider } from './context/AuthContext';
 
 import PrivateRoute from './componentes/PrivateRoute';
@@ -44,6 +46,7 @@ const App: React.FC = () => {
 
         {/* Rotas usuario comum */}
         <Route path="/ListaCarros" element={<ListaCarros />} />
+        <Route path="/Administradores" element={<ListaAdministrador />} />
 
         {/* Rota para acesso negado */}
         <Route path="/unauthorized" element={<Unauthorized />} />

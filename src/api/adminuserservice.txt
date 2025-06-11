@@ -1,0 +1,72 @@
+import api from "../config/axiosConfig";
+import axiosConnect from "../services/axiosConnect";
+
+// DTO combinado com permissao, nome e email
+export interface AdminUserDto {
+  idPessoa: number;
+  idPessoaSingu: number;
+  permissao: number;
+  nome: string;
+  email: string;
+}
+
+interface UserDto {
+  idPessoa: number;
+  idPessoaSingu: number;
+  permissao: number;
+}
+
+interface UserSinguDto {
+  idPessoa: number;
+  nome: string;
+  email: string;
+}
+
+export class AdminUserService {
+  static async buscarTodos(): Promise<AdminUserDto[]> {
+    const respUsers = await api.get<UserDto[]>("/usuarios");
+
+    const users = respUsers.data.filter((user) => user.permissao === 2);
+
+    const combinados: AdminUserDto[] = await Promise.all(
+      users.map(async (user) => {
+        try {
+          const resp = await api.get<UserSinguDto>(
+            `/usersingu/buscar-id/${user.idPessoa}`
+          );
+
+          return {
+            idPessoa: user.idPessoa,
+            idPessoaSingu: user.idPessoaSingu,
+            permissao: user.permissao,
+            nome: resp.data.nome,
+            email: resp.data.email,
+          };
+        } catch (err) {
+          return {
+            idPessoa: user.idPessoa,
+            idPessoaSingu: user.idPessoaSingu,
+            permissao: user.permissao,
+            nome: "-",
+            email: "-",
+          };
+        }
+      })
+    );
+
+    return combinados;
+  }
+
+  static async confirmarCadastro(idPessoa: number): Promise<void> {
+    try {
+      console.log(
+        "Enviando PATCH para mudar permissão de idUsuario:",
+        idPessoa
+      );
+      await api.patch(`/usuarios/mudar-permissao/${idPessoa}`);
+    } catch (error) {
+      console.error("Erro ao confirmar cadastro", error);
+      throw error;
+    }
+  }
+}
