@@ -1,17 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import { Add, Cancel } from '@mui/icons-material';
 import {
   Box,
+  Button,
+  TextField,
+  Typography,
+  useTheme,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
-  Button,
   Autocomplete,
   CircularProgress,
-  Typography,
-} from '@mui/material';
+} from "@mui/material";
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { useEffect, useState } from 'react';
 import { AdminUserService } from '../api/AdminUserService';
 import Menu from './Menu';
 import axiosConnect from '../services/axiosConnect';
@@ -24,7 +26,8 @@ interface AdminUserDto {
   email: string;
 }
 
-const ListaAdministradores: React.FC = () => {
+export default function ListaAdministradores() {
+  const theme = useTheme();
   const [admins, setAdmins] = useState<AdminUserDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -32,7 +35,7 @@ const ListaAdministradores: React.FC = () => {
   const [NomeAdmin, setNomeAdmin] = useState('');
   const [usuariosDisponiveis, setUsuariosDisponiveis] = useState<any[]>([]);
   const [showModalCadastro, setShowModalCadastro] = useState(false);
-  const [showModalConfirmar, setShowModalConfirmar ] = useState (false);
+  const [showModalConfirmar, setShowModalConfirmar] = useState(false);
   const [SelectedUsuario, setSelectedUsuario] = useState<any>(null);
   const [SelectedAdmin, setSelectedAdmin] = useState<any>(null);
   const [erroVinculo, setErroVinculo] = useState<string | null>(null);
@@ -88,12 +91,20 @@ const ListaAdministradores: React.FC = () => {
       setSelectedAdmin(null);
       return;
     }
-
     setSelectedAdmin(usuario);
   };
 
   const colunas: GridColDef[] = [
-    { field: 'nome', headerName: 'Nome', flex: 1 },
+    { 
+      field: 'nome', 
+      headerName: 'Nome', 
+      flex: 1,
+      renderCell: (params) => (
+        <Typography fontWeight="bold">
+          {params.value}
+        </Typography>
+      )
+    },
     { field: 'email', headerName: 'E-mail', flex: 1 },
     {
       field: 'acoes',
@@ -102,13 +113,25 @@ const ListaAdministradores: React.FC = () => {
       sortable: false,
       filterable: false,
       renderCell: (params) => (
-        <Button
-          variant="outlined"
-          size="small"
-          color="error"
-          onClick={() => handleAbrirModalConfirmar(params.row)}>
-          Revogar
-        </Button>
+        <Box 
+          display="flex" 
+          justifyContent="center" 
+          width="100%"
+        >
+          <Button
+            variant="outlined"
+            size="small"
+            color="error"
+            startIcon={<Cancel />}
+            onClick={() => handleAbrirModalConfirmar(params.row)}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 600
+            }}
+          >
+            Revogar
+          </Button>
+        </Box>
       ),
     },
   ];
@@ -116,14 +139,27 @@ const ListaAdministradores: React.FC = () => {
   return (
     <>
       <Menu />
-      <Box className="lista-administradores" sx={{ padding: 4 }}>
-        <h1 style={{ marginTop: '32px', marginBottom: '16px' }}>
-          Administradores
-        </h1>
-
-        <Box display="flex" justifyContent="flex-end" mb={2}>
-          <Button variant="outlined" onClick={handleAbriModalNovoAdmin}>
-            + Novo Administrador
+      <Box sx={{ 
+        p: 3,
+        backgroundColor: theme.palette.background.default,
+        minHeight: '100vh'
+      }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+          <Typography variant="h5" fontWeight="bold" color="textPrimary">
+            Administradores
+          </Typography>
+          
+          <Button 
+            variant="contained"
+            onClick={handleAbriModalNovoAdmin}
+            startIcon={<Add />}
+            sx={{ 
+              textTransform: 'none',
+              fontWeight: 600,
+              boxShadow: theme.shadows[2]
+            }}
+          >
+            Novo Administrador
           </Button>
         </Box>
 
@@ -139,13 +175,56 @@ const ListaAdministradores: React.FC = () => {
           }}
           pageSizeOptions={[10, 20, 30, 50, 100]}
           autoHeight
+          sx={{
+            '& .MuiDataGrid-cell': {
+              borderBottom: `1px solid ${theme.palette.divider}`,
+              py: 1.5,
+            },
+            '& .MuiDataGrid-columnHeaders': {
+              backgroundColor: theme.palette.mode === 'dark' 
+                ? theme.palette.grey[800] 
+                : theme.palette.grey[100],
+              fontWeight: 'bold',
+              borderRadius: 1,
+              borderBottom: `2px solid ${theme.palette.divider}`
+            },
+            '& .MuiDataGrid-row': {
+              '&:hover': {
+                backgroundColor: theme.palette.action.hover,
+              },
+              '&.Mui-selected': {
+                backgroundColor: theme.palette.action.selected,
+                '&:hover': {
+                  backgroundColor: theme.palette.action.selected,
+                }
+              }
+            },
+            '& .MuiDataGrid-footerContainer': {
+              borderTop: `1px solid ${theme.palette.divider}`,
+            },
+            boxShadow: theme.shadows[1],
+            borderRadius: 2,
+            border: 'none',
+            backgroundColor: theme.palette.background.paper
+          }}
+          rowSelection={false}
         />
       </Box>
 
       {/* Modal de Adicionar novo Administrador */}
-      <Dialog open={showModalCadastro} onClose={() => setShowModalCadastro(false)}
-        fullWidth maxWidth="md">
-        <DialogTitle>Novo Administrador</DialogTitle>
+      <Dialog 
+        open={showModalCadastro} 
+        onClose={() => setShowModalCadastro(false)}
+        fullWidth 
+        maxWidth="md"
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            p: 1
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>Novo Administrador</DialogTitle>
         <DialogContent>
           <Autocomplete
             options={usuariosDisponiveis}
@@ -164,9 +243,11 @@ const ListaAdministradores: React.FC = () => {
                 label="Buscar Usuário"
                 placeholder="Digite pelo menos 3 caracteres"
                 fullWidth
-                margin="dense"
-                inputProps={{
-                  ...params.inputProps,
+                margin="normal"
+                variant="outlined"
+                sx={{ mt: 2 }}
+                InputProps={{
+                  ...params.InputProps,
                   endAdornment: (
                     <>
                       {loadingAdmin ? <CircularProgress color="inherit" size={20} /> : null}
@@ -178,37 +259,35 @@ const ListaAdministradores: React.FC = () => {
             )}
           />
           {erroVinculo && (
-            <Box sx={{ color: 'red', mt: 1 }}>{erroVinculo}</Box>
+            <Typography color="error" sx={{ mt: 1 }}>{erroVinculo}</Typography>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowModalCadastro(false)} color="secondary">
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button 
+            onClick={() => setShowModalCadastro(false)} 
+            variant="outlined"
+            sx={{ borderRadius: 2 }}
+          >
             Cancelar
           </Button>
           <Button
             onClick={async () => {
               if (SelectedAdmin) {
                 try {
-                  //chamando a função de alterar permissão
                   await AdminUserService.confirmarCadastro(SelectedAdmin.idPessoa);
-                  alert("Permissão alterada para 2 com sucesso!");
-
-                  //atualizando a lista
                   const dadosAtualizados = await AdminUserService.buscarTodos();
                   setAdmins(dadosAtualizados);
-
-                  //fechando o modal
                   setShowModalCadastro(false);
                   setSelectedAdmin(null);
-                  
                 } catch (error) {
-                  alert("Erro ao alterar permissão. Tente novamente.");
+                  setErroVinculo("Erro ao alterar permissão. Tente novamente.");
                 }
               } else {
                 setErroVinculo("Selecione um usuário antes de confirmar.");
               }
             }}
-            color="secondary"
+            variant="contained"
+            sx={{ borderRadius: 2 }}
           >
             Confirmar
           </Button>
@@ -216,15 +295,30 @@ const ListaAdministradores: React.FC = () => {
       </Dialog>
       
       {/* Modal de confirmar a ação de revogar permissão de admnistrador */}
-      <Dialog open={showModalConfirmar} onClose={() => setShowModalConfirmar(false)} fullWidth maxWidth="xs">
-        <DialogTitle>Revogar permissão</DialogTitle>
+      <Dialog 
+        open={showModalConfirmar} 
+        onClose={() => setShowModalConfirmar(false)} 
+        fullWidth 
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            p: 1
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>Revogar permissão</DialogTitle>
         <DialogContent>
           <Typography>
-            Você está prestes a revogar a permissão de Administrador de {SelectedUsuario?.nome}
+            Você está prestes a revogar a permissão de Administrador de <strong>{SelectedUsuario?.nome}</strong>
           </Typography>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowModalConfirmar(false)} color="secondary">
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button 
+            onClick={() => setShowModalConfirmar(false)} 
+            variant="outlined"
+            sx={{ borderRadius: 2 }}
+          >
             Cancelar
           </Button>
           <Button 
@@ -232,29 +326,22 @@ const ListaAdministradores: React.FC = () => {
               if (SelectedUsuario) {
                 try {
                   await AdminUserService.confirmarCadastro(SelectedUsuario.idPessoaSingu);
-                  alert(`Permissão de ${SelectedUsuario.nome} revogada com sucesso!`);
-                  
-                  // Atualizar a lista
                   const dadosAtualizados = await AdminUserService.buscarTodos();
                   setAdmins(dadosAtualizados);
-                  
                   setShowModalConfirmar(false);
                 } catch (error) {
-                  alert("Erro ao revogar permissão. Tente novamente.");
                   console.error(error);
                 }
               }
-            }} 
-            color="error"
+            }}
+            variant="contained"
+            color="primary"
+            sx={{ borderRadius: 2 }}
           >
-            Confirmar 
+            Confirmar
           </Button>
         </DialogActions>
       </Dialog>
-
-
     </>
   );
 };
-
-export default ListaAdministradores;
