@@ -9,6 +9,7 @@ import {
   Button,
   Autocomplete,
   CircularProgress,
+  Typography,
 } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { AdminUserService } from '../api/AdminUserService';
@@ -31,6 +32,8 @@ const ListaAdministradores: React.FC = () => {
   const [NomeAdmin, setNomeAdmin] = useState('');
   const [usuariosDisponiveis, setUsuariosDisponiveis] = useState<any[]>([]);
   const [showModalCadastro, setShowModalCadastro] = useState(false);
+  const [showModalConfirmar, setShowModalConfirmar ] = useState (false);
+  const [SelectedUsuario, setSelectedUsuario] = useState<any>(null);
   const [SelectedAdmin, setSelectedAdmin] = useState<any>(null);
   const [erroVinculo, setErroVinculo] = useState<string | null>(null);
   const [loadingAdmin, setLoadingAdmin] = useState(false);
@@ -57,6 +60,11 @@ const ListaAdministradores: React.FC = () => {
     setShowModalCadastro(true);
   };
 
+  const handleAbrirModalConfirmar = (usuario: AdminUserDto) => {
+    setSelectedUsuario(usuario);
+    setShowModalConfirmar(true);
+  }
+
   const buscarUsuario = async (nome: string) => {
     if (nome.length < 3) {
       setUsuariosDisponiveis([]);
@@ -75,33 +83,50 @@ const ListaAdministradores: React.FC = () => {
     }
   };
 
-  
-
   const handleSelecionarUsuario = (usuario: any) => {
     if (!usuario) {
       setSelectedAdmin(null);
       return;
     }
 
-    console.log("Usuario recebido em handleSelecionarUsuario:", usuario);
-    console.log("usuario.idUsuario:", usuario?.idPessoa);
-
     setSelectedAdmin(usuario);
-};
+  };
 
   const colunas: GridColDef[] = [
     { field: 'nome', headerName: 'Nome', flex: 1 },
     { field: 'email', headerName: 'E-mail', flex: 1 },
+    {
+      field: 'acoes',
+      headerName: 'Controle de acesso',
+      flex: 0.5,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <Button
+          variant="outlined"
+          size="small"
+          color="error"
+          onClick={() => handleAbrirModalConfirmar(params.row)}>
+          Revogar
+        </Button>
+      ),
+    },
   ];
 
   return (
     <>
       <Menu />
-      <Box className="lista-administradores" sx={{ padding: 2 }}>
-        <h1>Administradores</h1>
-        <Button variant="contained" onClick={handleAbriModalNovoAdmin}>
-          Novo Admin
-        </Button>
+      <Box className="lista-administradores" sx={{ padding: 4 }}>
+        <h1 style={{ marginTop: '32px', marginBottom: '16px' }}>
+          Administradores
+        </h1>
+
+        <Box display="flex" justifyContent="flex-end" mb={2}>
+          <Button variant="outlined" onClick={handleAbriModalNovoAdmin}>
+            + Novo Administrador
+          </Button>
+        </Box>
+
         <DataGrid
           rows={admins}
           columns={colunas}
@@ -112,13 +137,14 @@ const ListaAdministradores: React.FC = () => {
               paginationModel: { pageSize: 10, page: 0 },
             },
           }}
-          pageSizeOptions={[5, 10, 20]}
+          pageSizeOptions={[10, 20, 30, 50, 100]}
           autoHeight
         />
       </Box>
 
-      {/* Modal de cadastro com autocomplete */}
-      <Dialog open={showModalCadastro} onClose={() => setShowModalCadastro(false)}>
+      {/* Modal de Adicionar novo Administrador */}
+      <Dialog open={showModalCadastro} onClose={() => setShowModalCadastro(false)}
+        fullWidth maxWidth="md">
         <DialogTitle>Novo Administrador</DialogTitle>
         <DialogContent>
           <Autocomplete
@@ -131,7 +157,6 @@ const ListaAdministradores: React.FC = () => {
               buscarUsuario(value);
             }}
             onChange={(_, value) => handleSelecionarUsuario(value)}
-
             filterOptions={(x) => x}
             renderInput={(params) => (
               <TextField
@@ -161,24 +186,73 @@ const ListaAdministradores: React.FC = () => {
             Cancelar
           </Button>
           <Button
-                onClick={async () => {
-                  if (SelectedAdmin) {
-                    try {
-                      await AdminUserService.confirmarCadastro(SelectedAdmin.idPessoa);
-                      alert("Permissão alterada para 2 com sucesso!");
-                      // atualize a lista/estado se quiser refletir a mudança
-                    } catch (error) {
-                      alert("Erro ao alterar permissão. Tente novamente.");
-                    }
-                  } else {
-                    setErroVinculo("Selecione um usuário antes de confirmar.");
-                  }
-                }}
-                color="secondary">
-          Confirmar
-        </Button>
+            onClick={async () => {
+              if (SelectedAdmin) {
+                try {
+                  //chamando a função de alterar permissão
+                  await AdminUserService.confirmarCadastro(SelectedAdmin.idPessoa);
+                  alert("Permissão alterada para 2 com sucesso!");
+
+                  //atualizando a lista
+                  const dadosAtualizados = await AdminUserService.buscarTodos();
+                  setAdmins(dadosAtualizados);
+
+                  //fechando o modal
+                  setShowModalCadastro(false);
+                  setSelectedAdmin(null);
+                  
+                } catch (error) {
+                  alert("Erro ao alterar permissão. Tente novamente.");
+                }
+              } else {
+                setErroVinculo("Selecione um usuário antes de confirmar.");
+              }
+            }}
+            color="secondary"
+          >
+            Confirmar
+          </Button>
         </DialogActions>
       </Dialog>
+      
+      {/* Modal de confirmar a ação de revogar permissão de admnistrador */}
+      <Dialog open={showModalConfirmar} onClose={() => setShowModalConfirmar(false)} fullWidth maxWidth="xs">
+        <DialogTitle>Revogar permissão</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Você está prestes a revogar a permissão de Administrador de {SelectedUsuario?.nome}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowModalConfirmar(false)} color="secondary">
+            Cancelar
+          </Button>
+          <Button 
+            onClick={async () => {
+              if (SelectedUsuario) {
+                try {
+                  await AdminUserService.confirmarCadastro(SelectedUsuario.idPessoaSingu);
+                  alert(`Permissão de ${SelectedUsuario.nome} revogada com sucesso!`);
+                  
+                  // Atualizar a lista
+                  const dadosAtualizados = await AdminUserService.buscarTodos();
+                  setAdmins(dadosAtualizados);
+                  
+                  setShowModalConfirmar(false);
+                } catch (error) {
+                  alert("Erro ao revogar permissão. Tente novamente.");
+                  console.error(error);
+                }
+              }
+            }} 
+            color="error"
+          >
+            Confirmar 
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+
     </>
   );
 };
