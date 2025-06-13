@@ -6,12 +6,13 @@ import { decodeToken } from '../utils/jwtDecodeHelper';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  login: (cpf: string, password: string, permissao: string, nome: string) => void;
+  login: (cpf: string, password: string, permissao: string, nome: string, email: string) => void;
   logout: () => void;
   cpf: string | null;
   token: string | null;
   permissao: string | null; 
   nome: string | null;
+  email: string | null;
 
 }
 
@@ -25,6 +26,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const [token, setToken] = useState<string | null>(null);
   const [permissao, setPermissao] = useState<string | null>(null);
   const [nome, setNome] = useState<string | null>(null);
+  const [email, setEmail ] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -32,6 +34,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     const storedCpf = localStorage.getItem('cpf');
     const storedPermissao = localStorage.getItem('permissao');
     const storedNome = localStorage.getItem('nome');
+    const storedEmail = localStorage.getItem('email');
 
     //manter logado mesmo após refresh
     if (storedToken && storedCpf && storedPermissao) {
@@ -39,6 +42,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       setCpf(storedCpf);
       setPermissao(storedPermissao);
       setNome(storedNome);
+      setEmail(storedEmail);
       setIsAuthenticated(true);
     }
     setIsLoading(false);
@@ -65,17 +69,19 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   }, [token]);
 
 
-    const login = (token: string, cpf: string, permissao: string, nome: string) => {
+    const login = (token: string, cpf: string, permissao: string, nome: string, email: string) => {
       localStorage.setItem('token', token);
       localStorage.setItem('cpf', cpf);
       localStorage.setItem('permissao', permissao); 
       localStorage.setItem('nome', nome);
+      localStorage.setItem('email', email);
 
 
       setToken(token);
       setCpf(cpf);
       setPermissao(permissao);
       setNome(nome);
+      setEmail(email);
       setIsAuthenticated(true);
   };
 
@@ -84,17 +90,19 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       localStorage.removeItem('cpf');
       localStorage.removeItem('permissao');
       localStorage.removeItem('nome');
+      localStorage.removeItem('email');
 
       setToken(null);
       setCpf(null);
       setPermissao(null);
       setNome(null);
+      setEmail(null);
       setIsAuthenticated(false);
   };
 
     return (
     <AuthContext.Provider
-      value={{ isAuthenticated, login, logout, cpf, token, permissao, nome }}
+      value={{ isAuthenticated, login, logout, cpf, token, permissao, nome, email }}
     >
       {!isLoading && children}
     </AuthContext.Provider>

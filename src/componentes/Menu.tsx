@@ -1,10 +1,10 @@
 import React from "react";
-import { AppBar, Button, Toolbar, Typography, Box } from "@mui/material";
+import { AppBar, Button, Toolbar, Typography, Box, Tooltip } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const Menu: React.FC = () => {
-  const { isAuthenticated, cpf, logout, permissao, nome } = useAuth();
+  const { isAuthenticated, cpf, logout, permissao, nome, email } = useAuth();
   const navigate = useNavigate();
 
 
@@ -13,7 +13,7 @@ const Menu: React.FC = () => {
     navigate("/", { replace: true });
   };
 
-  console.log(cpf,permissao, nome);
+  
 
   return (
     <AppBar position="static">
@@ -26,18 +26,6 @@ const Menu: React.FC = () => {
         >
           FROTAS UNIR
         </Typography>
-
-        {/* Exibe informações do usuário se autenticado */}
-        {isAuthenticated && cpf &&  permissao && nome && (
-          <Box sx={{ mr: 2 }}>
-            <Typography variant="subtitle2">CPF: {cpf}</Typography>
-            <Typography variant="subtitle2">ID Permissão: {permissao}</Typography>
-            <Typography variant="subtitle2">nome:  {nome}</Typography>
-            <Typography variant="caption" display="block">
-              {Number(permissao) === 2 ? "Administrador" : "Usuário Regular"}
-            </Typography>
-          </Box>
-        )}
 
         {/* Botões visíveis apenas quando autenticado */}
         {isAuthenticated && (
@@ -54,8 +42,31 @@ const Menu: React.FC = () => {
                 <Button color="inherit" component={Link} to="/ListaMultas">
                   Lista de Multas
                 </Button>
+                <Button color="inherit" component={Link} to="/Administradores">
+                  Administradores
+                </Button>
               </>
             )}
+
+            {isAuthenticated && cpf && permissao && nome && email && (
+            <Tooltip
+              title={
+                <Box>
+                  <Typography variant="subtitle2">Nome: {nome}</Typography>
+                  <Typography variant="body2">CPF: {cpf}</Typography>
+                  <Typography variant="body2">email: {email}</Typography>
+                  <Typography variant="body2">
+                    Permissão: {Number(permissao) === 2 ? "Administrador" : "Usuário Regular"}
+                  </Typography>
+                </Box>
+              }
+              arrow
+            >
+              <Button color="inherit" component={Link} to="/ListaCarros">
+                {nome}
+              </Button>
+            </Tooltip>
+        )}
 
             {/* Botão Sair visível para todos os usuários autenticados */}
             <Button color="inherit" onClick={handleLogout}>
