@@ -47,8 +47,8 @@ const PaginaDeLogin: React.FC = () => {
           password: password,
         });
 
-        const { token, username, permissao, nome } = response.data;
-        login(token, username, permissao, nome);
+        const { token, username, permissao, nome, email } = response.data;
+        login(token, username, permissao, nome, email);
         // console.log(idPermissao);
 
         console.log("Login realizado com sucesso!", response.data);
