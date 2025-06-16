@@ -14,6 +14,12 @@ import ListaCarros from './componentes/Listagem/ListaCarros';
 import ListaMotorista from './componentes/Listagem/ListaMotorista';
 import ListaMulta from './componentes/Listagem/ListaMulta';
 
+//import ListaCorridas from './componentes/Listagem/ListaCorridas';
+import CadastrarCorrida from './componentes/cadastros/CadastrarCorrida';
+import IniciarCorrida from './componentes/cadastros/IniciarCorrida';
+import NaCorrida from './componentes/cadastros/NaCorrida';
+import ColocarTombo from './componentes/cadastros/ColocarTombo';
+
 import Menu from './componentes/Menu';
 
 import Unauthorized from './componentes/Unauthorized';
@@ -23,6 +29,7 @@ import ListaAdministrador from './componentes/Administradores';
 import { AuthProvider } from './context/AuthContext';
 
 import PrivateRoute from './componentes/PrivateRoute';
+import ListaCorrida from './componentes/Listagem/ListaCorrida';
 
 const App: React.FC = () => {
   return (
@@ -35,18 +42,31 @@ const App: React.FC = () => {
 
         {/*rotas de administrador*/}
         <Route element={<PrivateRoute requiredPermission={2} />}>
+          {/*Paginas de Cadastro*/}
           <Route path="/CadastroMotorista" element={<CadastroMotorista />} />
           <Route path="/CadastroMotorista2" element={<CadastroMotorista2 />} />
           <Route path="/CadastroMulta" element={<CadastroMulta />} />
           <Route path="/CadastroCarro" element={<CadastroCarro />} />
+          <Route path="/CadastrarCorrida" element={<CadastrarCorrida />} />
+
+          {/*Paginas de Cadastro*/}
           <Route path="/ListaMultas" element={<ListaMulta />} />
           <Route path="/ListaMotoristas" element={<ListaMotorista />} />
+          <Route path="/Administradores" element={<ListaAdministrador />} />
+          <Route path="/ListaCarros" element={<ListaCarros />} />
+          <Route path="/ListaCorrida" element={<ListaCorrida />} />
+          
+          {/*Paginas de Corridas */}
+          {/*ALTERAR DEPOIS, PARA QUE NAO POSSAM SER ACESSADOS VIA URL*/}
+          <Route path="/IniciarCorrida" element={<IniciarCorrida />} />
+          <Route path="/NaCorrida" element={<NaCorrida />} />
+          <Route path="/ColocarTombo" element={<ColocarTombo />} />
         </Route>
 
 
         {/* Rotas usuario comum */}
-        <Route path="/ListaCarros" element={<ListaCarros />} />
-        <Route path="/Administradores" element={<ListaAdministrador />} />
+        
+        
 
         {/* Rota para acesso negado */}
         <Route path="/unauthorized" element={<Unauthorized />} />
