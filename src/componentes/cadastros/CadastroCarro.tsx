@@ -1,23 +1,59 @@
-import React, { ChangeEvent, FormEvent, useState } from "react";
+import {
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+  Typography,
+} from "@mui/material";
+import React, { FormEvent, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { CarrosDto, CarrosService } from "../../api/carrosService";
+import { TipoCombustivel, TipoCombustivelService } from "../../api/tipoCombustivelService";
 import Menu from "../Menu";
-
-// tipo do carro
-type Carro = {
-  placa: string;
-  odometro: string;
-  modelo: string;
-};
 
 const CadastroCarro: React.FC = () => {
   const [placa, setPlaca] = useState<string>("");
   const [odometro, setOdometro] = useState<string>("");
   const [modelo, setModelo] = useState<string>("");
+  const [ano, setAno] = useState("");
+  const [tombo, setTombo] = useState<string>("");
+  const [localidadeFisica, setLocalidadeFisica] = useState<string>("");
   const [cadastroConcluido, setCadastroConcluido] = useState<boolean>(false);
+const [tipoCombustivelSelecionado, setTipoCombustivelSelecionado] = useState<TipoCombustivel | null>(null);
+  const [tiposCombustivelDisponiveis, setTiposCombustivelDisponiveis] = useState<TipoCombustivel[]>([]);
+  const [erroTipoCombustivel, setErroTipoCombustivel] = useState<string>("");
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const buscarTipos = async () => {
+      try {
+        const tipos = await TipoCombustivelService.listar();
+        setTiposCombustivelDisponiveis(tipos.data);
+      } catch (error) {
+        console.error("Erro ao carregar tipos de combustível:", error);
+      }
+    };
+    buscarTipos();
+  }, []);
+
+  const handleSelectChange = (e: SelectChangeEvent) => {
+  const idSelecionado = e.target.value;
+  const tipoSelecionado = tiposCombustivelDisponiveis.find(
+    tipo => tipo.id_tipo_combustivel?.toString() === idSelecionado
+  );
+  
+  if (tipoSelecionado) {
+    setTipoCombustivelSelecionado(tipoSelecionado);
+    setErroTipoCombustivel("");
+  }
+};
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
 
-    if (!placa || !odometro || !modelo) {
+    if (!placa || !odometro || !modelo || !ano || !tombo || !localidadeFisica || !tipoCombustivelSelecionado) {
       alert("Preencha todos os campos!");
       return;
     }
@@ -27,27 +63,42 @@ const CadastroCarro: React.FC = () => {
       return;
     }
 
-    // Aqui você poderia salvar os dados no backend ou em um estado global
-    setCadastroConcluido(true);
+    const novoCarro: CarrosDto = {
+      placa,
+      odometro,
+      modelo,
+      ano: Number(ano),
+      tombo: Number(tombo),
+      qrCode: "",
+      localidade_fisica: localidadeFisica,
+      situacao: "DISPONIVEL",
+      ativo: true,
+      tipo_combustivel: tipoCombustivelSelecionado,
+    };
+
+    try {
+      const carroCadastrado = await CarrosService.criar(novoCarro);
+      setCadastroConcluido(true);
+      navigate('/ListaCarros', {
+        state: {
+          carroCadastrado,
+          situacaoFiltro: "DISPONIVEL",
+          filtroAtivo: true
+        }
+      });
+    } catch (error) {
+      alert("Erro ao cadastrar veículo.");
+      console.error(error);
+    }
   };
 
   const formatarPlaca = (valor: string): string => {
-    let placaFormatada = valor.toUpperCase().replace(/[^A-Za-z0-9]/g, "");
-
-    if (placaFormatada.length > 3) {
-      placaFormatada = placaFormatada.slice(0, 3) + placaFormatada.slice(3);
-    }
-    if (placaFormatada.length > 4) {
-      placaFormatada = placaFormatada.slice(0, 4) + placaFormatada.slice(4);
-    }
-
-    return placaFormatada;
+    return valor.toUpperCase().replace(/[^A-Za-z0-9]/g, "").slice(0, 7);
   };
 
   return (
     <div className="pagina">
       <Menu />
-
       <div className="cadastro-container">
         <header className="header">
           <h2>Cadastro de Veículo</h2>
@@ -61,9 +112,7 @@ const CadastroCarro: React.FC = () => {
                 type="text"
                 id="placa"
                 value={placa}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  setPlaca(formatarPlaca(e.target.value))
-                }
+                onChange={(e) => setPlaca(formatarPlaca(e.target.value))}
                 placeholder="AAA0A00"
                 maxLength={7}
               />
@@ -75,11 +124,8 @@ const CadastroCarro: React.FC = () => {
                 type="number"
                 id="odometro"
                 value={odometro}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  setOdometro(e.target.value)
-                }
+                onChange={(e) => setOdometro(e.target.value)}
                 min="0"
-                step="1"
               />
             </div>
 
@@ -89,12 +135,62 @@ const CadastroCarro: React.FC = () => {
                 type="text"
                 id="modelo"
                 value={modelo}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  setModelo(e.target.value)
-                }
+                onChange={(e) => setModelo(e.target.value)}
                 placeholder="Ex: Onix 1.0"
               />
             </div>
+
+            <div className="form-group">
+              <label htmlFor="ano">Ano do Veículo</label>
+              <input
+                type="number"
+                value={ano}
+                onChange={(e) => setAno(e.target.value)}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="tombo">Tombo</label>
+              <input
+                type="number"
+                id="tombo"
+                value={tombo}
+                onChange={(e) => setTombo(e.target.value)}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="localidadeFisica">Localidade Física</label>
+              <input
+                type="text"
+                id="localidadeFisica"
+                value={localidadeFisica}
+                onChange={(e) => setLocalidadeFisica(e.target.value)}
+                placeholder="Ex: Porto Velho"
+              />
+            </div>
+
+            <FormControl fullWidth margin="normal" error={!!erroTipoCombustivel}>
+            <InputLabel>Tipo de Combustível</InputLabel>
+            <Select
+                  value={tipoCombustivelSelecionado?.id_tipo_combustivel?.toString() || ""}
+                  onChange={handleSelectChange}
+                  label="Tipo de Combustível"
+                >
+                  {tiposCombustivelDisponiveis.map((tipo) => (
+                    <MenuItem
+                      key={tipo.id_tipo_combustivel}
+                      value={tipo.id_tipo_combustivel?.toString()}
+                    >
+                      {tipo.nome}
+                    </MenuItem>
+                  ))}
+                </Select>
+
+            {erroTipoCombustivel && (
+              <Typography color="error">{erroTipoCombustivel}</Typography>
+            )}
+          </FormControl>
 
             <button type="submit" className="button-main">
               Concluir cadastro
@@ -107,6 +203,9 @@ const CadastroCarro: React.FC = () => {
               <p><strong>Placa:</strong> {placa}</p>
               <p><strong>Odômetro:</strong> {odometro} km</p>
               <p><strong>Modelo:</strong> {modelo}</p>
+              <p><strong>Ano:</strong> {ano}</p>
+              <p><strong>Tombo:</strong> {tombo}</p>
+              <p><strong>Localidade Física:</strong> {localidadeFisica}</p>
             </div>
             <button
               className="button-main"
@@ -115,6 +214,10 @@ const CadastroCarro: React.FC = () => {
                 setPlaca("");
                 setOdometro("");
                 setModelo("");
+                setAno("");
+                setTombo("");
+                setLocalidadeFisica("");
+                setTipoCombustivelSelecionado(null);
               }}
             >
               Voltar para o menu
