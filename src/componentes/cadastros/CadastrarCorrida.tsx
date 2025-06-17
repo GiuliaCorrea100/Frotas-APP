@@ -26,7 +26,6 @@ interface LocationState {
 interface MotoristaOption {
   idPessoa: number;
   nome: string;
-  login: string;
 }
 
 export default function CadastrarCorrida() {
@@ -109,7 +108,7 @@ export default function CadastrarCorrida() {
 
         <Autocomplete
           options={motoristaOptions}
-          getOptionLabel={(option) => `${option.nome} (${option.login})`}
+          getOptionLabel={(option) => `${option.nome}`}
           onInputChange={(_, value) => buscarMotoristas(value)}
           onChange={(_, value) => {
             setCorrida(prev => ({
