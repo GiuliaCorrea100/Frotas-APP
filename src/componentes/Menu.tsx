@@ -56,6 +56,14 @@ const Menu: React.FC = () => {
                 <Button 
                   color="inherit" 
                   component={Link} 
+                  to="/ColocarTombo"
+                  sx={{ fontFamily: "inherit" }}
+                >
+                  Cadastro Corrida
+                </Button>
+                <Button 
+                  color="inherit" 
+                  component={Link} 
                   to="/ListaCarros"
                   sx={{ fontFamily: "inherit" }}
                 >
