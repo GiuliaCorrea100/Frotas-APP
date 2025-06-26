@@ -84,14 +84,14 @@ const handleSubmit = async () => {
       const corridaParaEnviar = {
         ...corrida,
         itinerario: '',
-        tomboCarro: carroInfo.tombo,
         dataInicio: new Date(corrida.dataInicio),
         dataTermino: corrida.dataTermino ? new Date(corrida.dataTermino) : null,
         odometroInicio: corrida.odometroInicio,
         distanciaKm: "0",
         // Agora o TypeScript sabe que 'corrida.motoristaIdPessoaSingu' é um 'number' aqui.
         numeroIdMotorista: corrida.motoristaIdPessoaSingu,
-        idCarros: carroInfo.idCarro
+        idCarros: carroInfo.idCarro,
+        idMotorista: corrida.motoristaId,
       };
 
       console.log("OBJETO FINAL ENVIADO PARA A API:", corridaParaEnviar);

@@ -8,12 +8,12 @@ interface CorridaBackend {
   dataTermino: string | Date | null;
   distanciaKm?: string | null;
   itinerario: string;
-  tomboCarro: string;
   odometroInicio?: string;
   odometroFim?: number | null;
   numeroIdMotorista: number;
   nomeMotorista?: string;
   idCarros: number;
+  placaVeiculo?: string;
 }
 
 export interface CorridaFrontend {
@@ -22,7 +22,6 @@ export interface CorridaFrontend {
   dataTermino: string | null;
   distanciaKm: string;
   itinerario: string;
-  tomboCarro: string;
   numeroIdMotorista: number;
   nomeMotorista?: string;
   placaVeiculo?: string;
@@ -35,7 +34,6 @@ export const createCorrida = async (
   try {
     const payload = {
       ...corridaData,
-      tomboCarro: corridaData.tomboCarro,
       dataInicio:
         corridaData.dataInicio instanceof Date
           ? corridaData.dataInicio.toISOString()
@@ -88,7 +86,6 @@ function formatCorrida(corrida: CorridaBackend): CorridaFrontend {
   return {
     idCorrida: corrida.idCorrida || 0,
     itinerario: corrida.itinerario,
-    tomboCarro: corrida.tomboCarro,
     dataInicio:
       corrida.dataInicio instanceof Date
         ? corrida.dataInicio.toISOString()
@@ -101,7 +98,8 @@ function formatCorrida(corrida: CorridaBackend): CorridaFrontend {
     numeroIdMotorista: corrida.numeroIdMotorista,
 
     nomeMotorista: (corrida as any).nomeMotorista || "Desconhecido",
-    placaVeiculo: (corrida as any).placaVeiculo || "Não informada",
+    placaVeiculo: corrida.placaVeiculo || "Não informada",
+
     modeloVeiculo: (corrida as any).modeloVeiculo || "Não informado",
   };
 }
