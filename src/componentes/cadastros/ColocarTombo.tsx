@@ -5,6 +5,7 @@ import Menu from "../Menu";
 import { Button, Box, TextField, Typography } from "@mui/material";
 
 interface CarroInfo {
+  idCarro: number; // giulia adicionou
   placa: string;
   odometro: string;
   modelo: string;
@@ -35,6 +36,7 @@ const ColocarTombo: React.FC = () => {
       const carroEncontrado = response.data;
       
       setCarro({
+        idCarro: carroEncontrado.idCarros,
         placa: carroEncontrado.placa,
         odometro: carroEncontrado.odometro,
         modelo: carroEncontrado.modelo,

@@ -12,6 +12,7 @@ import { createCorrida } from '../../api/corridaService';
 import Menu from "../Menu";
 
 interface CarroInfo {
+  idCarro: number;
   placa: string;
   odometro: string;
   modelo: string;
@@ -24,8 +25,9 @@ interface LocationState {
 }
 
 interface MotoristaOption {
-  idPessoa: number;
+  idUsuario: number;
   nome: string;
+  idPessoaSingu: number; //acesso ao idpessoasingu
 }
 
 export default function CadastrarCorrida() {
@@ -38,7 +40,8 @@ export default function CadastrarCorrida() {
     dataTermino: '',
     odometroInicio: carroInfo.odometro || '',
     motoristaId: null as number | null,
-    motoristaNome: ''
+    motoristaNome: '',
+    motoristaIdPessoaSingu: null as number | null // acesso idpessoasinguu
   });
 
   const [motoristaOptions, setMotoristaOptions] = useState<MotoristaOption[]>([]);
@@ -59,15 +62,20 @@ export default function CadastrarCorrida() {
     }
 
     try {
-  const response = await axios.get(`http://localhost:3000/usersingu/buscarPorNome/${nome}`);
+      const response = await axios.get(`http://localhost:3000/usuarios/buscar-por-nome/${nome}`);
       setMotoristaOptions(response.data);
     } catch (error) {
       setMotoristaOptions([]);
     }
   };
 
-  const handleSubmit = async () => {
-    if (!corrida.motoristaId) {
+  // Em CadastrarCorrida.tsx
+
+const handleSubmit = async () => {
+    // ANTES: if (!corrida.motoristaId)
+    // CORRIGIDO: Verifique a propriedade que será usada, 'motoristaIdPessoaSingu'.
+    // Isso garante para o TypeScript que, após esta linha, o valor não é nulo.
+    if (!corrida.motoristaIdPessoaSingu) {
       alert('Selecione um motorista válido');
       return;
     }
@@ -76,14 +84,19 @@ export default function CadastrarCorrida() {
       const corridaParaEnviar = {
         ...corrida,
         itinerario: '',
-        tombo_carro: carroInfo.tombo,
+        tomboCarro: carroInfo.tombo,
         dataInicio: new Date(corrida.dataInicio),
         dataTermino: corrida.dataTermino ? new Date(corrida.dataTermino) : null,
         odometroInicio: corrida.odometroInicio,
         distanciaKm: "0",
-        numeroIdMotorista: corrida.motoristaId
+        // Agora o TypeScript sabe que 'corrida.motoristaIdPessoaSingu' é um 'number' aqui.
+        numeroIdMotorista: corrida.motoristaIdPessoaSingu,
+        idCarros: carroInfo.idCarro
       };
 
+      console.log("OBJETO FINAL ENVIADO PARA A API:", corridaParaEnviar);
+
+      // A chamada agora é segura e o erro de tipo desaparecerá.
       await createCorrida(corridaParaEnviar);
       navigate('/ListaCorrida');
     } catch (error) {
@@ -113,11 +126,12 @@ export default function CadastrarCorrida() {
           onChange={(_, value) => {
             setCorrida(prev => ({
               ...prev,
-              motoristaId: value?.idPessoa || null,
-              motoristaNome: value?.nome || ''
+              motoristaId: value?.idUsuario || null,
+              motoristaNome: value?.nome || '',
+              motoristaIdPessoaSingu: value?.idPessoaSingu || null // acesso a idpessoasingu
             }));
           }}
-          isOptionEqualToValue={(option, value) => option.idPessoa === value.idPessoa}
+          isOptionEqualToValue={(option, value) => option.idUsuario === value.idUsuario}
           noOptionsText="Digite pelo menos 3 caracteres para buscar"
           renderInput={(params) => (
             <TextField
