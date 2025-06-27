@@ -27,7 +27,6 @@ interface LocationState {
 interface MotoristaOption {
   idUsuario: number;
   nome: string;
-  idPessoaSingu: number; //acesso ao idpessoasingu
 }
 
 export default function CadastrarCorrida() {
@@ -39,9 +38,7 @@ export default function CadastrarCorrida() {
     dataInicio: '',
     dataTermino: '',
     odometroInicio: carroInfo.odometro || '',
-    motoristaId: null as number | null,
-    motoristaNome: '',
-    motoristaIdPessoaSingu: null as number | null // acesso idpessoasinguu
+    motoristaId: null as number | null, // acesso idpessoasinguu
   });
 
   const [motoristaOptions, setMotoristaOptions] = useState<MotoristaOption[]>([]);
@@ -75,7 +72,7 @@ const handleSubmit = async () => {
     // ANTES: if (!corrida.motoristaId)
     // CORRIGIDO: Verifique a propriedade que será usada, 'motoristaIdPessoaSingu'.
     // Isso garante para o TypeScript que, após esta linha, o valor não é nulo.
-    if (!corrida.motoristaIdPessoaSingu) {
+    if (!corrida.motoristaId) {
       alert('Selecione um motorista válido');
       return;
     }
@@ -89,7 +86,6 @@ const handleSubmit = async () => {
         odometroInicio: corrida.odometroInicio,
         distanciaKm: "0",
         // Agora o TypeScript sabe que 'corrida.motoristaIdPessoaSingu' é um 'number' aqui.
-        numeroIdMotorista: corrida.motoristaIdPessoaSingu,
         idCarros: carroInfo.idCarro,
         idMotorista: corrida.motoristaId,
       };
@@ -127,8 +123,6 @@ const handleSubmit = async () => {
             setCorrida(prev => ({
               ...prev,
               motoristaId: value?.idUsuario || null,
-              motoristaNome: value?.nome || '',
-              motoristaIdPessoaSingu: value?.idPessoaSingu || null // acesso a idpessoasingu
             }));
           }}
           isOptionEqualToValue={(option, value) => option.idUsuario === value.idUsuario}
