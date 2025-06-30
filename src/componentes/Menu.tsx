@@ -96,6 +96,16 @@ const Menu: React.FC = () => {
               </Box>
             )}
 
+            {/* Botão para histórico de corridas do motorista logado */}
+            <Button 
+                  color="inherit" 
+                  component={Link} 
+                  to="/HistoricoIndividual"
+                  sx={{ fontFamily: "inherit" }}
+                >
+                  Histórico de Corridas
+            </Button>
+
             {/* Botão do perfil do usuário */}
             {nome && (
               <>
