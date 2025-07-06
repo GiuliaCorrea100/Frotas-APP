@@ -9,48 +9,63 @@ import {
   DialogContent,
   DialogActions,
   Box,
-  CircularProgress // Adicionado para um feedback visual de carregamento
+  CircularProgress,
+  Paper,
 } from "@mui/material";
+import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import MenuGrid from "./MenuGrid";
 import axiosConnect from "../services/axiosConnect";
 import { jwtDecode } from 'jwt-decode';
 
-// A interface do payload do token permanece a mesma
+// --- DEFINIÇÃO DOS TIPOS VINDOS DA API ---
+
 interface JwtPayload {
-  sub: number; // idUsuario
+  sub: number; 
   login: string;
   permissao: number;
   iat: number;
   exp: number;
 }
 
+// ✅ INTERFACE ATUALIZADA para compatibilidade com as novas colunas
+interface Corrida {
+  idCorrida: number;
+  dataInicio: string; 
+  itinerario: string;
+  placaVeiculo?: string;
+  // Campos adicionados para corresponder à tela de listagem
+  nomeMotorista?: string;
+  dataTermino?: string | null;
+}
+
+interface MotoristaDashboard {
+  corridaDeHoje: Corrida | null;
+  proximasCorridas: Corrida[];
+}
+
 const Menu: React.FC = () => {
   const { isAuthenticated, cpf, logout, permissao, nome, email } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
+  const location = useLocation(); 
   const [showModalDadosPerfil, setShowModalDadosPerfil] = useState(false);
-  const [hasCorridaAgendadaHoje, setHasCorridaAgendadaHoje] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState<MotoristaDashboard | null>(null);
 
   const handleLogout = async () => {
     await logout();
     navigate("/", { replace: true });
   };
 
-  const handleAbrirModalDadosPerfil = () => {
-    setShowModalDadosPerfil(true);
-  };
-
-  const handleFecharModalDadosPerfil = () => {
-    setShowModalDadosPerfil(false);
-  };
+  const handleAbrirModalDadosPerfil = () => setShowModalDadosPerfil(true);
+  const handleFecharModalDadosPerfil = () => setShowModalDadosPerfil(false);
 
   useEffect(() => {
-    const verificarCorrida = async () => {
+    const carregarDadosDoDashboard = async () => {
+      setLoading(true);
       const token = localStorage.getItem('token');
-      if (!token) {
+      if (!token || !isAuthenticated) {
         setLoading(false);
         return;
       }
@@ -60,25 +75,119 @@ const Menu: React.FC = () => {
         const idUsuario = decodedToken?.sub;
 
         if (idUsuario) {
-          const response = await axiosConnect.get(`/corrida/verificar-agendada/${idUsuario}`);
-          setHasCorridaAgendadaHoje(response.data);
+          const response = await axiosConnect.get<MotoristaDashboard>(`/corrida/motorista-dashboard/${idUsuario}`);
+          setDashboardData(response.data);
         }
       } catch (error) {
-        console.error("Erro ao verificar corridas ou decodificar token:", error);
-        // Opcional: Tratar o erro de forma visual para o usuário
+        console.error("Erro ao carregar dados do dashboard:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    if (isAuthenticated) {
-      // Chama a função se o usuário estiver autenticado
-      verificarCorrida();
-    } else {
-      // Se não estiver autenticado, apenas para de carregar
-      setLoading(false);
+    carregarDadosDoDashboard();
+  }, [isAuthenticated]);
+
+  // ✅ FUNÇÃO DE FORMATAÇÃO DE DATA ADICIONADA (a mesma de ListaCorridas.tsx)
+  const formatDate = (dateString: string | null | undefined) => {
+    // Se a data for nula ou indefinida (como em dataTermino de corridas agendadas), mostra 'Em andamento'
+    if (!dateString) return 'Em andamento'; 
+    try {
+      const date = new Date(dateString);
+      return isNaN(date.getTime()) ? 'Data inválida' : date.toLocaleString('pt-BR');
+    } catch {
+      return 'Data inválida';
     }
-  }, [isAuthenticated]); // O hook reage apenas à mudança no status de autenticação
+  };
+
+  // ✅ COLUNAS ATUALIZADAS PARA CORRESPONDER À TELA DE LISTAGEM
+  const columns: GridColDef<Corrida>[] = [
+    { 
+      field: 'nomeMotorista',
+      headerName: 'Motorista', 
+      flex: 1,
+      // Como o nome do motorista é o do próprio usuário logado, usamos o valor do contexto de autenticação
+      renderCell: (params: GridRenderCellParams) => (
+        <Link to={`/corrida/${params.row.idCorrida}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+          {nome} 
+        </Link>
+      )
+    },
+    { 
+      field: 'placaVeiculo',
+      headerName: 'Veículo', 
+      flex: 1,
+      renderCell: (params: GridRenderCellParams) => (
+        <Link to={`/corrida/${params.row.idCorrida}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+          {params.value || 'Não especificado'}
+        </Link>
+      )
+    },
+    { 
+      field: 'dataInicio', 
+      headerName: 'Data/Hora Início', // Cabeçalho padronizado
+      flex: 1,
+      renderCell: (params) => formatDate(params.value as string)
+    },
+    { 
+      field: 'dataTermino', 
+      headerName: 'Data/Hora Término', // Cabeçalho padronizado
+      flex: 1,
+      // A função formatDate já trata o caso de dataTermino ser nulo para corridas agendadas
+      renderCell: (params) => formatDate(params.value as string | null)
+    },
+  ];
+
+  const renderContent = () => {
+    if (loading) {
+      return <CircularProgress />;
+    }
+
+    if (!isAuthenticated || !dashboardData) {
+      return null;
+    }
+
+    if (dashboardData.corridaDeHoje) {
+      return <MenuGrid />;
+    }
+    
+    if (dashboardData.proximasCorridas.length > 0) {
+      return (
+        <Box sx={{ p: { xs: 1, md: 3 }, width: '100%', maxWidth: '900px', mt: 2 }}>
+          <Typography variant="h5" gutterBottom align="center">
+            Suas Próximas Corridas Agendadas
+          </Typography>
+          <Paper sx={{ height: 450, width: '100%', mt: 2 }}>
+            <DataGrid
+              rows={dashboardData.proximasCorridas}
+              columns={columns}
+              getRowId={(row) => row.idCorrida}
+              initialState={{
+                pagination: { paginationModel: { pageSize: 5 } },
+              }}
+              pageSizeOptions={[5, 10, 25]}
+              disableRowSelectionOnClick
+              localeText={{ noRowsLabel: "Nenhuma corrida futura agendada." }}
+              sx={{
+                '& .MuiDataGrid-cell': {
+                  whiteSpace: 'normal !important',
+                  wordWrap: 'break-word !important',
+                  display: 'flex',
+                  alignItems: 'center',
+                },
+              }}
+            />
+          </Paper>
+        </Box>
+      );
+    }
+    
+    return (
+      <Typography variant="h6" sx={{ mt: 4 }}>
+        Nenhuma corrida agendada.
+      </Typography>
+    );
+  };
 
   return (
     <>
@@ -86,23 +195,16 @@ const Menu: React.FC = () => {
         <Toolbar>
           <Typography
             variant="h6"
-            sx={{ 
-              flexGrow: 1, 
-              textDecoration: "none", 
-              color: "inherit",
-              fontFamily: "inherit"
-            }}
+            sx={{ flexGrow: 1, textDecoration: "none", color: "inherit", fontFamily: "inherit" }}
             component={Link}
             to={isAuthenticated ? "/menu" : "/"}
           >
             FROTAS UNIR
           </Typography>
-
-          {/* O restante do seu JSX para a AppBar permanece igual */}
           {isAuthenticated && (
             <>
               {Number(permissao) === 2 && (
-                <Box sx={{ display: 'flex', gap: 1 }}>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                   <Button color="inherit" component={Link} to="/ListaCorrida" sx={{ fontFamily: "inherit" }}>
                     Painel Corrida
                   </Button>
@@ -125,9 +227,7 @@ const Menu: React.FC = () => {
               </Button>
               {nome && (
                 <>
-                  <Button color="inherit" onClick={handleAbrirModalDadosPerfil} sx={{ fontFamily: "inherit" }}>
-                    {nome}
-                  </Button>
+                  <Button color="inherit" onClick={handleAbrirModalDadosPerfil} sx={{ fontFamily: "inherit" }}>{nome}</Button>
                   <Dialog open={showModalDadosPerfil} onClose={handleFecharModalDadosPerfil} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: 2, p: 2 } }}>
                     <DialogTitle sx={{ fontSize: '1.25rem', p: 2 }}>Seus Dados</DialogTitle>
                     <DialogContent sx={{ p: 2 }}>
@@ -139,37 +239,25 @@ const Menu: React.FC = () => {
                       </Box>
                     </DialogContent>
                     <DialogActions sx={{ p: 2 }}>
-                      <Button onClick={handleFecharModalDadosPerfil} variant="contained" sx={{ borderRadius: 1, textTransform: 'none', px: 3 }}>
-                        Fechar
-                      </Button>
+                      <Button onClick={handleFecharModalDadosPerfil} variant="contained" sx={{ borderRadius: 1, textTransform: 'none', px: 3 }}>Fechar</Button>
                     </DialogActions>
                   </Dialog>
                 </>
               )}
-              <Button color="inherit" onClick={handleLogout} sx={{ fontFamily: "inherit" }}>
-                Sair
-              </Button>
+              <Button color="inherit" onClick={handleLogout} sx={{ fontFamily: "inherit" }}>Sair</Button>
             </>
           )}
           {!isAuthenticated && (
-            <Button color="inherit" component={Link} to="/" sx={{ fontFamily: "inherit" }}>
-              Login
-            </Button>
+            <Button color="inherit" component={Link} to="/" sx={{ fontFamily: "inherit" }}>Login</Button>
           )}
         </Toolbar>
       </AppBar>
 
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 4, minHeight: '100px' }}>
-        {loading ? (
-          <CircularProgress />
-        ) : isAuthenticated && hasCorridaAgendadaHoje &&  location.pathname === "/menu" ? (
-          <MenuGrid />
-        ) : isAuthenticated && location.pathname === "/menu" ? (
-          <Typography variant="h6" sx={{ mt: 4 }}>
-            Nenhuma corrida agendada para hoje.
-          </Typography>
-        ) : null}
-      </Box>
+      {location.pathname === '/menu' && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', width: '100%', mt: 4, p: 2 }}>
+          {renderContent()}
+        </Box>
+      )}
     </>
   );
 };
