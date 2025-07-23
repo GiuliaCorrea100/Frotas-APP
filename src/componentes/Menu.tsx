@@ -67,15 +67,7 @@ const Menu: React.FC = () => {
                   to="/ListaCarros"
                   sx={{ fontFamily: "inherit" }}
                 >
-                  Lista de Carros
-                </Button>
-                <Button 
-                  color="inherit" 
-                  component={Link} 
-                  to="/ListaMotoristas"
-                  sx={{ fontFamily: "inherit" }}
-                >
-                  Lista de Motoristas
+                  Veículos
                 </Button>
                 <Button 
                   color="inherit" 
@@ -83,7 +75,7 @@ const Menu: React.FC = () => {
                   to="/ListaMultas"
                   sx={{ fontFamily: "inherit" }}
                 >
-                  Lista de Multas
+                  Multas
                 </Button>
                 <Button 
                   color="inherit" 
@@ -103,7 +95,7 @@ const Menu: React.FC = () => {
                   to="/HistoricoIndividual"
                   sx={{ fontFamily: "inherit" }}
                 >
-                  Histórico de Corridas
+                  Relatórios
             </Button>
 
             {/* Botão do perfil do usuário */}

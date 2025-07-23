@@ -129,7 +129,7 @@ export default function ListaCorridas() {
           case 'AGENDADA':
             color = theme.palette.info.main;
             break;
-          case 'EM ANDAMENTO':
+          case 'ANDAMENTO':
             color = theme.palette.warning.main;
             break;
           case 'FINALIZADA':
@@ -206,7 +206,7 @@ export default function ListaCorridas() {
               boxShadow: theme.shadows[2]
             }}
           >
-            + Nova Corrida
+            + Agendar Corrida
           </Button>
         </Box>
 
@@ -219,7 +219,7 @@ export default function ListaCorridas() {
         }}>
           {[
             { label: 'AGENDADA', value: 'AGENDADA', count: qtdAgendadas, color: theme.palette.info.main },
-            { label: 'EM ANDAMENTO', value: 'EM ANDAMENTO', count: qtdEmAndamento, color: theme.palette.warning.main },
+            { label: 'EM ANDAMENTO', value: 'ANDAMENTO', count: qtdEmAndamento, color: theme.palette.warning.main },
             { label: 'FINALIZADA', value: 'FINALIZADA', count: qtdFinalizadas, color: theme.palette.success.main },
             { label: 'TODOS', value: 'TODOS', count: corridas.length, color: theme.palette.text.secondary }
           ].map((tab) => (
