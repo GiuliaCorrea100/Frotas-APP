@@ -38,7 +38,7 @@ export default function CadastrarCorrida() {
     dataInicio: '',
     dataTermino: '',
     odometroInicio: carroInfo.odometro || '',
-    motoristaId: null as number | null, // acesso idpessoasinguu
+    motoristaId: null as number | null,
   });
 
   const [motoristaOptions, setMotoristaOptions] = useState<MotoristaOption[]>([]);
@@ -52,7 +52,6 @@ export default function CadastrarCorrida() {
   };
 
   const buscarMotoristas = async (nome: string) => {
-    console.log("função");
     if (nome.length < 3) {
       setMotoristaOptions([]);
       return;
@@ -66,12 +65,7 @@ export default function CadastrarCorrida() {
     }
   };
 
-  // Em CadastrarCorrida.tsx
-
-const handleSubmit = async () => {
-    // ANTES: if (!corrida.motoristaId)
-    // CORRIGIDO: Verifique a propriedade que será usada, 'motoristaIdPessoaSingu'.
-    // Isso garante para o TypeScript que, após esta linha, o valor não é nulo.
+  const handleSubmit = async () => {
     if (!corrida.motoristaId) {
       alert('Selecione um motorista válido');
       return;
@@ -85,19 +79,20 @@ const handleSubmit = async () => {
         dataTermino: corrida.dataTermino ? new Date(corrida.dataTermino) : null,
         odometroInicio: corrida.odometroInicio,
         distanciaKm: "0",
-        // Agora o TypeScript sabe que 'corrida.motoristaIdPessoaSingu' é um 'number' aqui.
         idCarros: carroInfo.idCarro,
         idMotorista: corrida.motoristaId,
         situacao: 'AGENDADA',
       };
 
-      console.log("OBJETO FINAL ENVIADO PARA A API:", corridaParaEnviar);
-
-      // A chamada agora é segura e o erro de tipo desaparecerá.
       await createCorrida(corridaParaEnviar);
       navigate('/ListaCorrida');
-    } catch (error) {
-      alert(error instanceof Error ? error.message : 'Erro ao cadastrar corrida');
+
+    } catch (error: any) {
+      if (axios.isAxiosError(error) && error.response?.status === 409) {
+        alert('Já existe uma corrida agendada para esse usuário nesse dia!');
+      } else {
+        alert(error.message || 'Erro ao cadastrar corrida');
+      }
     }
   };
 

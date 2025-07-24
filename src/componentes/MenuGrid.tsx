@@ -3,10 +3,10 @@ import { Box, Typography, Paper, ButtonBase } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 const menuItems = [
-  { label: "Iniciar Percurso", image: "placeholder-image.png", alt: "Iniciar Percurso", path: "/IniciarPercurso" },
-  { label: "Finalizar Percurso", image: "placeholder-image.png", alt: "Finalizar Percurso", path: "/FinalizarPercurso" },
-  { label: "Abastecimento", image: "placeholder-image.png", alt: "Abastecimento", path: "/Abastecimento" },
-  { label: "Ocorrências", image: "placeholder-image.png", alt: "Ocorrências", path: "/Ocorrencias" },
+  { label: "Iniciar Percurso", path: "/IniciarPercurso" },
+  { label: "Finalizar Percurso", path: "/FinalizarPercurso" },
+  { label: "Abastecimento", path: "/Abastecimento" },
+  { label: "Ocorrências", path: "/Ocorrencias" },
 ];
 
 const MenuGrid = () => {
@@ -18,8 +18,6 @@ const MenuGrid = () => {
 
   return (
     <Box sx={{ p: 4, maxWidth: 800, mx: "auto" }}>
-      
-      {/* Cabeçalho da Corrida */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h5" fontWeight="bold" gutterBottom>
           Corrida:
@@ -29,7 +27,6 @@ const MenuGrid = () => {
         </Typography>
       </Box>
 
-      {/* Grid de Botões */}
       <Box
         sx={{
           display: "grid",
@@ -55,14 +52,13 @@ const MenuGrid = () => {
                   transform: "scale(1.03)",
                   boxShadow: 6,
                 },
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: '120px'
               }}
             >
-              <img
-                src={item.image}
-                alt={item.alt}
-                style={{ width: "100px", height: "100px", objectFit: "contain" }}
-              />
-              <Typography sx={{ mt: 2, fontWeight: "bold" }}>
+              <Typography sx={{ fontWeight: "bold" }}>
                 {item.label}
               </Typography>
             </Paper>
