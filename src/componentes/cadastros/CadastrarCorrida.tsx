@@ -88,6 +88,7 @@ const handleSubmit = async () => {
         // Agora o TypeScript sabe que 'corrida.motoristaIdPessoaSingu' é um 'number' aqui.
         idCarros: carroInfo.idCarro,
         idMotorista: corrida.motoristaId,
+        situacao: 'AGENDADA',
       };
 
       console.log("OBJETO FINAL ENVIADO PARA A API:", corridaParaEnviar);
