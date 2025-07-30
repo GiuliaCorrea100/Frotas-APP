@@ -137,12 +137,7 @@ const Menu: React.FC = () => {
                         <Typography sx={{ minWidth: 80 }}>CPF:</Typography>
                         <Typography fontWeight="medium">{cpf}</Typography>
                       </Box>
-                      <Box sx={{ display: 'flex' }}>
-                        <Typography sx={{ minWidth: 80 }}>Permissão:</Typography>
-                        <Typography fontWeight="medium">
-                          {permissao === "2" ? "Usuário" : "Administrador"}
-                        </Typography>
-                      </Box>
+                      
                     </Box>
                   </DialogContent>
                   <DialogActions sx={{ p: 2 }}>
