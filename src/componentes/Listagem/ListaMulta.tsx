@@ -1,136 +1,171 @@
-// ListaMulta.tsx
-import { Button } from "@mui/material";
-import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
+import { Add } from '@mui/icons-material';
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import * as React from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from "react-router-dom";
-
 import Menu from '../Menu';
+import { listarMultas } from '../../api/multaService';
 
 interface Multa {
-  id: number;
-  numero: string;
-  placa: string;
-  data: string;
+  idMultas: number;
+  codInfracao: string;
+  placaVeiculo: string;
+  data: Date;
   valor: string;
-  motivo: string;
-  situacao: string;
+  classInfracao: string;
+  numAutoInfracao: number;
 }
 
-const multasFake: Multa[] = [
-  {
-    id: 1,
-    numero: 'M-2025001',
-    placa: 'ABC-1234',
-    data: '2025-03-10',
-    valor: 'R$ 150,00',
-    motivo: 'Excesso de velocidade (75km/h em via de 50km/h)',
-    situacao: 'Em aberto',
-  },
-  {
-    id: 2,
-    numero: 'M-2025002',
-    placa: 'XYZ-9876',
-    data: '2025-02-22',
-    valor: 'R$ 200,00',
-    motivo: 'Avanço de sinal vermelho',
-    situacao: 'Paga',
-  },
-  {
-    id: 3,
-    numero: 'M-2025003',
-    placa: 'QWE-4567',
-    data: '2025-01-15',
-    valor: 'R$ 95,23',
-    motivo: 'Estacionamento em local proibido',
-    situacao: 'Em aberto',
-  },
-  {
-    id: 4,
-    numero: 'M-2025004',
-    placa: 'KLM-8888',
-    data: '2024-12-30',
-    valor: 'R$ 180,00',
-    motivo: 'Dirigir usando celular',
-    situacao: 'Paga',
-  },
-  {
-    id: 5,
-    numero: 'M-2025005',
-    placa: 'UIO-1597',
-    data: '2025-03-01',
-    valor: 'R$ 250,00',
-    motivo: 'Transitar na contramão',
-    situacao: 'Em aberto',
-  },
-  {
-    id: 6,
-    numero: 'M-2025006',
-    placa: 'GHJ-3344',
-    data: '2025-02-10',
-    valor: 'R$ 130,50',
-    motivo: 'Veículo sem licenciamento',
-    situacao: 'Paga',
-  },
-  {
-    id: 7,
-    numero: 'M-2025007',
-    placa: 'JKL-7766',
-    data: '2025-03-25',
-    valor: 'R$ 160,75',
-    motivo: 'Farol desligado à noite',
-    situacao: 'Em aberto',
-  },
-];
+export default function ListaMulta() {
+  const theme = useTheme();
+  const [busca, setBusca] = useState("");
+  const [multas, setMultas] = useState<Multa[]>([]);
+  const [loading, setLoading] = useState(false);
 
-const columns: GridColDef[] = [
-  { field: 'numero', headerName: 'Nº da Multa', flex: 1 },
-  { field: 'placa', headerName: 'Placa', flex: 1 },
-  { field: 'data', headerName: 'Data', flex: 1 },
-  { field: 'valor', headerName: 'Valor', flex: 1 },
-  { field: 'motivo', headerName: 'Motivo', flex: 2 },
-  { field: 'situacao', headerName: 'Situação', flex: 1 },
-];
+  useEffect(() => {
+    const carregarMultas = async () => {
+      setLoading(true);
+      try {
+        const dados = await listarMultas();
+        setMultas(dados);
+      } catch (error) {
+        console.error("Erro ao carregar multas:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-export default function ListaMulta(): React.JSX.Element {
-  const [busca, setBusca] = React.useState<string>("");
+    carregarMultas();
+  }, []);
 
-  const dadosFiltrados = multasFake.filter((multa) =>
+  const dadosFiltrados = multas.filter((multa) =>
     Object.values(multa).some((valor) =>
       String(valor).toLowerCase().includes(busca.toLowerCase())
     )
   );
 
+  const columns: GridColDef[] = [
+    { field: 'codInfracao', headerName: 'Código Infração', flex: 1 },
+    { 
+      field: 'placaVeiculo', 
+      headerName: 'Placa', 
+      flex: 1,
+      renderCell: (params) => (
+        <Typography fontWeight="bold">
+          {params.value}
+        </Typography>
+      )
+    },
+    { field: 'data', headerName: 'Data da Infração', flex: 1 },
+    { field: 'valor', headerName: 'Valor', flex: 1 },
+    { field: 'classInfracao', headerName: 'Classificação', flex: 2 },
+    { field: 'numAutoInfracao', headerName: 'Número do auto da infração', flex: 1 },
+  ];
+
   return (
     <>
       <Menu />
-      <Box className="lista-container">
-        <h1>
-          Listagem de Multa
-        </h1>
-        <Button color='inherit' component={Link} to="/CadastroMulta">
-          + Cadastrar Multa
-        </Button>
-        <TextField
-          label="Buscar multa"
-          variant="outlined"
-          size="small"
-          fullWidth
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          sx={{ mb: 2 }}
-        />
+      <Box sx={{ 
+        p: 3,
+        backgroundColor: theme.palette.background.default,
+        minHeight: '100vh'
+      }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+          <Typography variant="h5" fontWeight="bold" color="textPrimary">
+            Listagem de Multas
+          </Typography>
+          
+          <Button 
+            variant="contained"
+            component={Link} 
+            to="/CadastroMulta"
+            startIcon={<Add />}
+            sx={{ 
+              textTransform: 'none',
+              fontWeight: 600,
+              boxShadow: theme.shadows[2]
+            }}
+          >
+            Cadastrar Multa
+          </Button>
+        </Box>
+
+        <Box sx={{ 
+          width: '100%',
+          mb: 3,
+          borderBottom: 1,
+          borderColor: 'divider',
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center'
+        }}>
+          <TextField
+            placeholder="Buscar multas..."
+            variant="outlined"
+            size="small"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            sx={{ 
+              width: 250,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                backgroundColor: theme.palette.background.paper
+              }
+            }}
+          />
+        </Box>
+
         <DataGrid
           rows={dadosFiltrados}
           columns={columns}
-          autoHeight
+          loading={loading}
+          getRowId={(row) => row.idMultas}
           initialState={{
             pagination: {
-              paginationModel: { pageSize: 5, page: 0 },
+              paginationModel: { pageSize: 10, page: 0 },
             },
           }}
-          pageSizeOptions={[5, 10, 20]}
+          pageSizeOptions={[10, 20, 30, 50, 100]}
+          autoHeight
+          sx={{
+            '& .MuiDataGrid-cell': {
+              borderBottom: `1px solid ${theme.palette.divider}`,
+              py: 1.5,
+            },
+            '& .MuiDataGrid-columnHeaders': {
+              backgroundColor: theme.palette.mode === 'dark' 
+                ? theme.palette.grey[800] 
+                : theme.palette.grey[100],
+              fontWeight: 'bold',
+              borderRadius: 1,
+              borderBottom: `2px solid ${theme.palette.divider}`
+            },
+            '& .MuiDataGrid-row': {
+              '&:hover': {
+                backgroundColor: theme.palette.action.hover,
+              },
+              '&.Mui-selected': {
+                backgroundColor: theme.palette.action.selected,
+                '&:hover': {
+                  backgroundColor: theme.palette.action.selected,
+                }
+              }
+            },
+            '& .MuiDataGrid-footerContainer': {
+              borderTop: `1px solid ${theme.palette.divider}`,
+            },
+            boxShadow: theme.shadows[1],
+            borderRadius: 2,
+            border: 'none',
+            backgroundColor: theme.palette.background.paper
+          }}
+          rowSelection={false}
         />
       </Box>
     </>

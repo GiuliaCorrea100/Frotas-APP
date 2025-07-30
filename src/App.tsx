@@ -30,6 +30,7 @@ import { AuthProvider } from './context/AuthContext';
 
 import PrivateRoute from './componentes/PrivateRoute';
 import ListaCorrida from './componentes/Listagem/ListaCorrida';
+import HistoricoIndividual from './componentes/Listagem/HistoricoIndividual';
 
 const App: React.FC = () => {
   return (
@@ -65,7 +66,7 @@ const App: React.FC = () => {
 
 
         {/* Rotas usuario comum */}
-        
+        <Route path="/HistoricoIndividual" element={<HistoricoIndividual/>} />
         
 
         {/* Rota para acesso negado */}
