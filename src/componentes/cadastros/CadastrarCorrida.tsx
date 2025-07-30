@@ -6,7 +6,10 @@ import {
   Box,
   Button,
   TextField,
-  Typography
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogActions
 } from "@mui/material";
 import { createCorrida } from '../../api/corridaService';
 import Menu from "../Menu";
@@ -43,6 +46,14 @@ export default function CadastrarCorrida() {
 
   const [motoristaOptions, setMotoristaOptions] = useState<MotoristaOption[]>([]);
 
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [alertOpen, setAlertOpen] = useState(false);
+
+  const showAlert = (message: string) => {
+    setAlertMessage(message);
+    setAlertOpen(true);
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setCorrida(prev => ({
@@ -67,7 +78,7 @@ export default function CadastrarCorrida() {
 
   const handleSubmit = async () => {
     if (!corrida.motoristaId) {
-      alert('Selecione um motorista válido');
+      showAlert('Selecione um motorista válido');
       return;
     }
 
@@ -89,9 +100,9 @@ export default function CadastrarCorrida() {
 
     } catch (error: any) {
       if (axios.isAxiosError(error) && error.response?.status === 409) {
-        alert('Já existe uma corrida agendada para esse usuário nesse dia!');
+        showAlert('Já existe uma corrida agendada para esse usuário nesse dia!');
       } else {
-        alert(error.message || 'Erro ao cadastrar corrida');
+        showAlert(error.message || 'Erro ao cadastrar corrida');
       }
     }
   };
@@ -166,6 +177,13 @@ export default function CadastrarCorrida() {
           Cadastrar Corrida
         </Button>
       </Box>
+
+      <Dialog open={alertOpen} onClose={() => setAlertOpen(false)}>
+        <DialogTitle>{alertMessage}</DialogTitle>
+        <DialogActions>
+          <Button onClick={() => setAlertOpen(false)}>OK</Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
