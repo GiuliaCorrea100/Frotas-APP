@@ -25,6 +25,7 @@ import Menu from './componentes/Menu';
 import Unauthorized from './componentes/Unauthorized';
 
 import ListaAdministrador from './componentes/Administradores';
+import Ocorrencias from        './componentes/Ocorrencias';
 
 import { AuthProvider } from './context/AuthContext';
 
@@ -61,6 +62,7 @@ const App: React.FC = () => {
           <Route path="/IniciarCorrida" element={<IniciarCorrida />} />
           <Route path="/NaCorrida" element={<NaCorrida />} />
           <Route path="/ColocarTombo" element={<ColocarTombo />} />
+          <Route path="/Ocorrencias" element={<Ocorrencias/>} />
         </Route>
 
 
