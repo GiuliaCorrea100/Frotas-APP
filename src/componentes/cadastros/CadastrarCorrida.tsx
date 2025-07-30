@@ -1,3 +1,5 @@
+// src/components/CadastrarCorrida.tsx
+
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
@@ -37,8 +39,11 @@ export default function CadastrarCorrida() {
   const [corrida, setCorrida] = useState({
     dataInicio: '',
     dataTermino: '',
-    odometroInicio: carroInfo.odometro || '',
-    motoristaId: null as number | null, // acesso idpessoasinguu
+    itinerario: '',
+    distanciaKm: '0',
+    chaveEmprestada: false,
+    situacao: 'AGENDADA',
+    motoristaId: null as number | null,
   });
 
   const [motoristaOptions, setMotoristaOptions] = useState<MotoristaOption[]>([]);
@@ -52,7 +57,6 @@ export default function CadastrarCorrida() {
   };
 
   const buscarMotoristas = async (nome: string) => {
-    console.log("função");
     if (nome.length < 3) {
       setMotoristaOptions([]);
       return;
@@ -66,39 +70,49 @@ export default function CadastrarCorrida() {
     }
   };
 
-  // Em CadastrarCorrida.tsx
+ const handleSubmit = async () => {
+  if (!corrida.motoristaId) {
+    alert('Selecione um motorista válido');
+    return;
+  }
 
-const handleSubmit = async () => {
-    // ANTES: if (!corrida.motoristaId)
-    // CORRIGIDO: Verifique a propriedade que será usada, 'motoristaIdPessoaSingu'.
-    // Isso garante para o TypeScript que, após esta linha, o valor não é nulo.
-    if (!corrida.motoristaId) {
-      alert('Selecione um motorista válido');
-      return;
+  if (!corrida.dataInicio) {
+    alert('Informe a data/hora de início da corrida');
+    return;
+  }
+
+  if (
+    corrida.dataTermino &&
+    corrida.dataTermino < corrida.dataInicio
+  ) {
+    alert('Data/hora de término não pode ser anterior à data/hora de início');
+    return;
+  }
+
+  try {
+    const corridaParaEnviar = {
+      dataInicio: new Date(corrida.dataInicio),
+      dataTermino: corrida.dataTermino ? new Date(corrida.dataTermino) : null,
+      itinerario: "",
+      distanciaKm: "",
+      idMotorista: corrida.motoristaId!,
+      situacao: "AGENDADA",
+      chaveEmprestada: false,
+      idCarros: carroInfo.idCarro,
+    };
+
+    console.log("OBJETO FINAL ENVIADO PARA A API:", corridaParaEnviar);
+
+    await createCorrida(corridaParaEnviar);
+    navigate('/ListaCorrida');
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      alert(error.response?.data?.message || 'Erro ao cadastrar corrida');
+    } else {
+      alert('Erro ao cadastrar corrida');
     }
-
-    try {
-      const corridaParaEnviar = {
-        ...corrida,
-        itinerario: '',
-        dataInicio: new Date(corrida.dataInicio),
-        dataTermino: corrida.dataTermino ? new Date(corrida.dataTermino) : null,
-        odometroInicio: corrida.odometroInicio,
-        distanciaKm: "0",
-        // Agora o TypeScript sabe que 'corrida.motoristaIdPessoaSingu' é um 'number' aqui.
-        idCarros: carroInfo.idCarro,
-        idMotorista: corrida.motoristaId,
-      };
-
-      console.log("OBJETO FINAL ENVIADO PARA A API:", corridaParaEnviar);
-
-      // A chamada agora é segura e o erro de tipo desaparecerá.
-      await createCorrida(corridaParaEnviar);
-      navigate('/ListaCorrida');
-    } catch (error) {
-      alert(error instanceof Error ? error.message : 'Erro ao cadastrar corrida');
-    }
-  };
+  }
+};
 
   return (
     <>

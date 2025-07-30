@@ -56,10 +56,10 @@ const Menu: React.FC = () => {
                 <Button 
                   color="inherit" 
                   component={Link} 
-                  to="/ColocarTombo"
+                  to="/ListaCorrida"
                   sx={{ fontFamily: "inherit" }}
                 >
-                  Cadastro Corrida
+                  Painel Corrida
                 </Button>
                 <Button 
                   color="inherit" 
@@ -67,15 +67,7 @@ const Menu: React.FC = () => {
                   to="/ListaCarros"
                   sx={{ fontFamily: "inherit" }}
                 >
-                  Lista de Carros
-                </Button>
-                <Button 
-                  color="inherit" 
-                  component={Link} 
-                  to="/ListaMotoristas"
-                  sx={{ fontFamily: "inherit" }}
-                >
-                  Lista de Motoristas
+                  Veículos
                 </Button>
                 <Button 
                   color="inherit" 
@@ -83,7 +75,7 @@ const Menu: React.FC = () => {
                   to="/ListaMultas"
                   sx={{ fontFamily: "inherit" }}
                 >
-                  Lista de Multas
+                  Multas
                 </Button>
                 <Button 
                   color="inherit" 
@@ -95,6 +87,16 @@ const Menu: React.FC = () => {
                 </Button>
               </Box>
             )}
+
+            {/* Botão para histórico de corridas do motorista logado */}
+            <Button 
+                  color="inherit" 
+                  component={Link} 
+                  to="/HistoricoIndividual"
+                  sx={{ fontFamily: "inherit" }}
+                >
+                  Relatórios
+            </Button>
 
             {/* Botão do perfil do usuário */}
             {nome && (
