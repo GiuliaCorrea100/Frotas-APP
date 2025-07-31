@@ -36,3 +36,14 @@ export const cadastrarMulta = async (dados: DadosMultaFrontend) => {
     throw error;
   }
 };
+
+// Função para buscar todas as multas
+export const listarMultas = async () => {
+  try {
+    const response = await api.get("/multas");
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao listar multas:", error);
+    throw error;
+  }
+};

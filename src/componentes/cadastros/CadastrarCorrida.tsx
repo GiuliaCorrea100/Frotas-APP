@@ -1,3 +1,5 @@
+// src/components/CadastrarCorrida.tsx
+
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
@@ -40,7 +42,10 @@ export default function CadastrarCorrida() {
   const [corrida, setCorrida] = useState({
     dataInicio: '',
     dataTermino: '',
-    odometroInicio: carroInfo.odometro || '',
+    itinerario: '',
+    distanciaKm: '0',
+    chaveEmprestada: false,
+    situacao: 'AGENDADA',
     motoristaId: null as number | null,
   });
 
@@ -76,36 +81,49 @@ export default function CadastrarCorrida() {
     }
   };
 
-  const handleSubmit = async () => {
-    if (!corrida.motoristaId) {
-      showAlert('Selecione um motorista válido');
-      return;
+ const handleSubmit = async () => {
+  if (!corrida.motoristaId) {
+    alert('Selecione um motorista válido');
+    return;
+  }
+
+  if (!corrida.dataInicio) {
+    alert('Informe a data/hora de início da corrida');
+    return;
+  }
+
+  if (
+    corrida.dataTermino &&
+    corrida.dataTermino < corrida.dataInicio
+  ) {
+    alert('Data/hora de término não pode ser anterior à data/hora de início');
+    return;
+  }
+
+  try {
+    const corridaParaEnviar = {
+      dataInicio: new Date(corrida.dataInicio),
+      dataTermino: corrida.dataTermino ? new Date(corrida.dataTermino) : null,
+      itinerario: "",
+      distanciaKm: "",
+      idMotorista: corrida.motoristaId!,
+      situacao: "AGENDADA",
+      chaveEmprestada: false,
+      idCarros: carroInfo.idCarro,
+    };
+
+    console.log("OBJETO FINAL ENVIADO PARA A API:", corridaParaEnviar);
+
+    await createCorrida(corridaParaEnviar);
+    navigate('/ListaCorrida');
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      alert(error.response?.data?.message || 'Erro ao cadastrar corrida');
+    } else {
+      alert('Erro ao cadastrar corrida');
     }
-
-    try {
-      const corridaParaEnviar = {
-        ...corrida,
-        itinerario: '',
-        dataInicio: new Date(corrida.dataInicio),
-        dataTermino: corrida.dataTermino ? new Date(corrida.dataTermino) : null,
-        odometroInicio: corrida.odometroInicio,
-        distanciaKm: "0",
-        idCarros: carroInfo.idCarro,
-        idMotorista: corrida.motoristaId,
-        situacao: 'AGENDADA',
-      };
-
-      await createCorrida(corridaParaEnviar);
-      navigate('/ListaCorrida');
-
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.status === 409) {
-        showAlert('Já existe uma corrida agendada para esse usuário nesse dia!');
-      } else {
-        showAlert(error.message || 'Erro ao cadastrar corrida');
-      }
-    }
-  };
+  }
+};
 
   return (
     <>

@@ -1,19 +1,18 @@
 import axios from "axios";
+import api from "../config/axiosConfig";
 
 const API_URL = "http://localhost:3000/corrida";
 
-interface CorridaBackend {
+export interface CorridaBackend {
   idCorrida?: number;
   dataInicio: string | Date;
   dataTermino: string | Date | null;
   distanciaKm?: string | null;
   itinerario: string;
-  odometroInicio?: string;
-  odometroFim?: number | null;
   idMotorista: number;
-  nomeMotorista?: string;
+  situacao: string;
+  chaveEmprestada: boolean;
   idCarros: number;
-  placaVeiculo?: string;
 }
 
 export interface CorridaFrontend {
@@ -25,7 +24,8 @@ export interface CorridaFrontend {
   idMotorista: number;
   nomeMotorista?: string;
   placaVeiculo?: string;
-  modeloVeiculo?: string;
+  situacao?: string;
+  chaveEmprestada: boolean;
 }
 
 export const createCorrida = async (
@@ -42,7 +42,6 @@ export const createCorrida = async (
         corridaData.dataTermino instanceof Date
           ? corridaData.dataTermino.toISOString()
           : corridaData.dataTermino,
-      idMotorista: corridaData.idMotorista,
     };
 
     console.log("Enviando para o backend:", payload);
@@ -98,8 +97,52 @@ function formatCorrida(corrida: CorridaBackend): CorridaFrontend {
     idMotorista: corrida.idMotorista,
 
     nomeMotorista: (corrida as any).nomeMotorista || "Desconhecido",
-    placaVeiculo: corrida.placaVeiculo || "Não informada",
-
-    modeloVeiculo: (corrida as any).modeloVeiculo || "Não informado",
+    chaveEmprestada: corrida.chaveEmprestada ?? false,
+    placaVeiculo: (corrida as any).placaVeiculo || "Não informada",
+    situacao: corrida.situacao || "Desconhecida",
   };
+}
+
+export class CorridaService {
+  static async confirmarLiberarChave(
+    idCorrida: number,
+    idMotorista: number,
+    senha: string
+  ): Promise<void> {
+    try {
+      console.log("buscando pessoa no banco singu");
+      const { data } = await api.get(`/usuarios/buscar-singu/${idMotorista}`);
+
+      const idSingu = data;
+      console.log("idSingu:", idSingu);
+
+      console.log("enviando senha e id para ver se são compatíveis");
+      const { data: senhaValida } = await api.get(
+        `/usersingu/conferir-senha/${idSingu}/${senha}`
+      );
+
+      if (senhaValida === true) {
+        console.log("enviando patch para mudar o estado da chave");
+        await api.patch(`/corrida/emprestar-chave/${idCorrida}`);
+        console.log("chave emprestada com sucesso APP");
+      } else {
+        console.error("Senha inválida!");
+        throw new Error("Senha inválida!");
+      }
+    } catch (error) {
+      console.error("Erro ao emprestar chave", error);
+      throw error;
+    }
+  }
+
+  static async confirmarReceberChave(idCorrida: number): Promise<void> {
+    try {
+      console.log("enviando patch para mudar o estado da chave");
+      await api.patch(`/corrida/emprestar-chave/${idCorrida}`);
+      console.log("chave emprestada com sucesso APP");
+    } catch (error) {
+      console.error("Erro ao emprestar chave", error);
+      throw error;
+    }
+  }
 }

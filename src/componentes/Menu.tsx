@@ -190,14 +190,148 @@ const Menu: React.FC = () => {
   };
 
   return (
-    <>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography
-            variant="h6"
-            sx={{ flexGrow: 1, textDecoration: "none", color: "inherit", fontFamily: "inherit" }}
-            component={Link}
-            to={isAuthenticated ? "/menu" : "/"}
+    <AppBar position="static">
+      <Toolbar>
+        <Typography
+          variant="h6"
+          sx={{ 
+            flexGrow: 1, 
+            textDecoration: "none", 
+            color: "inherit",
+            fontFamily: "inherit" // Mantém a fonte padrão
+          }}
+          component={Link}
+          to={isAuthenticated ? "/menu" : "/"}
+        >
+          FROTAS UNIR
+        </Typography>
+
+        {isAuthenticated && (
+          <>
+            {/* Botões visíveis apenas para administradores */}
+            {Number(permissao) === 2 && (
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button 
+                  color="inherit" 
+                  component={Link} 
+                  to="/ListaCorrida"
+                  sx={{ fontFamily: "inherit" }}
+                >
+                  Painel Corrida
+                </Button>
+                <Button 
+                  color="inherit" 
+                  component={Link} 
+                  to="/ListaCarros"
+                  sx={{ fontFamily: "inherit" }}
+                >
+                  Veículos
+                </Button>
+                <Button 
+                  color="inherit" 
+                  component={Link} 
+                  to="/ListaMultas"
+                  sx={{ fontFamily: "inherit" }}
+                >
+                  Multas
+                </Button>
+                <Button 
+                  color="inherit" 
+                  component={Link} 
+                  to="/Administradores"
+                  sx={{ fontFamily: "inherit" }}
+                >
+                  Administradores
+                </Button>
+              </Box>
+            )}
+
+            {/* Botão para histórico de corridas do motorista logado */}
+            <Button 
+                  color="inherit" 
+                  component={Link} 
+                  to="/HistoricoIndividual"
+                  sx={{ fontFamily: "inherit" }}
+                >
+                  Relatórios
+            </Button>
+
+            {/* Botão do perfil do usuário */}
+            {nome && (
+              <>
+                <Button 
+                  color="inherit" 
+                  onClick={handleAbrirModalDadosPerfil}
+                  sx={{ fontFamily: "inherit" }}
+                >
+                  {nome}
+                </Button>
+
+                {/* Modal de Dados do Perfil */}
+                <Dialog
+                  open={showModalDadosPerfil}
+                  onClose={handleFecharModalDadosPerfil}
+                  fullWidth
+                  maxWidth="sm"
+                  PaperProps={{
+                    sx: {
+                      borderRadius: 2,
+                      p: 2
+                    }
+                  }}
+                >
+                  <DialogTitle sx={{ fontSize: '1.25rem', p: 2 }}>Seus Dados</DialogTitle>
+                  <DialogContent sx={{ p: 2 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <Box sx={{ display: 'flex' }}>
+                        <Typography sx={{ minWidth: 80 }}>Nome:</Typography>
+                        <Typography fontWeight="medium">{nome}</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex' }}>
+                        <Typography sx={{ minWidth: 80 }}>Email:</Typography>
+                        <Typography fontWeight="medium">{email}</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex' }}>
+                        <Typography sx={{ minWidth: 80 }}>CPF:</Typography>
+                        <Typography fontWeight="medium">{cpf}</Typography>
+                      </Box>
+                      
+                    </Box>
+                  </DialogContent>
+                  <DialogActions sx={{ p: 2 }}>
+                    <Button
+                      onClick={handleFecharModalDadosPerfil}
+                      variant="contained"
+                      sx={{
+                        borderRadius: 1,
+                        textTransform: 'none',
+                        px: 3
+                      }}
+                    >
+                      Fechar
+                    </Button>
+                  </DialogActions>
+                </Dialog>
+              </>
+            )}
+
+            {/* Botão Sair */}
+            <Button 
+              color="inherit" 
+              onClick={handleLogout}
+              sx={{ fontFamily: "inherit" }}
+            >
+              Sair
+            </Button>
+          </>
+        )}
+
+        {!isAuthenticated && (
+          <Button 
+            color="inherit" 
+            component={Link} 
+            to="/"
+            sx={{ fontFamily: "inherit" }}
           >
             FROTAS UNIR
           </Typography>
