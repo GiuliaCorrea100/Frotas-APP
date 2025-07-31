@@ -8,7 +8,10 @@ import {
   Box,
   Button,
   TextField,
-  Typography
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogActions
 } from "@mui/material";
 import { createCorrida } from '../../api/corridaService';
 import Menu from "../Menu";
@@ -47,6 +50,14 @@ export default function CadastrarCorrida() {
   });
 
   const [motoristaOptions, setMotoristaOptions] = useState<MotoristaOption[]>([]);
+
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [alertOpen, setAlertOpen] = useState(false);
+
+  const showAlert = (message: string) => {
+    setAlertMessage(message);
+    setAlertOpen(true);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -184,6 +195,13 @@ export default function CadastrarCorrida() {
           Cadastrar Corrida
         </Button>
       </Box>
+
+      <Dialog open={alertOpen} onClose={() => setAlertOpen(false)}>
+        <DialogTitle>{alertMessage}</DialogTitle>
+        <DialogActions>
+          <Button onClick={() => setAlertOpen(false)}>OK</Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
