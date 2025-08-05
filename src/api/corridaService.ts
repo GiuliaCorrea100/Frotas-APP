@@ -49,9 +49,9 @@ export const createCorrida = async (
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || error.message);
+      throw error;
     }
-    throw error;
+      throw error;
   }
 };
 
