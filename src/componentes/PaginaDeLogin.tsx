@@ -1,12 +1,10 @@
 import React, { ChangeEvent, useState } from "react";
 import logoUNIR from "../assets/logoUNIR.png";
-//import { loginUser } from '../api/authService';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import axiosConnect from '../services/axiosConnect'; // Importando a instância do axios centralizado
+import axiosConnect from '../services/axiosConnect';
 
 const PaginaDeLogin: React.FC = () => {
-  // Tipagem dos estados
   const navigate = useNavigate();
   const { login } = useAuth();
   const [cpf, setCpf] = useState<string>("");
@@ -14,15 +12,12 @@ const PaginaDeLogin: React.FC = () => {
   const [password, setPassword] = useState<string>("");
   const [passwordError, setPasswordError] = useState<boolean>(false);
 
-  // Validação do formulário
   const isFormValid: boolean = cpf.length === 11 && password.trim() !== "";
 
-  // Função de manipulação do campo CPF
   const handleCPF = (event: ChangeEvent<HTMLInputElement>): void => {
     let cpf = event.target.value;
-    cpf = cpf.replace(/\D/g, ""); 
+    cpf = cpf.replace(/\D/g, "");
 
-    // Limita o CPF para 11 caracteres
     if (cpf.length > 11) {
       cpf = cpf.slice(0, 11);
     }
@@ -34,14 +29,12 @@ const PaginaDeLogin: React.FC = () => {
   const handlePassword = (event: ChangeEvent<HTMLInputElement>): void => {
     const newPassword = event.target.value;
     setPassword(newPassword);
-    setPasswordError(newPassword.trim() === ""); // Validação de senha não vazia
+    setPasswordError(newPassword.trim() === "");
   };
 
-  // Função para submeter o formulário
   const handleSubmit = async (): Promise<void> => {
     if (isFormValid) {
       try {
-       
         const response = await axiosConnect.post('/auth/login', {
           username: cpf,
           password: password,
@@ -49,10 +42,8 @@ const PaginaDeLogin: React.FC = () => {
 
         const { token, username, permissao, nome, email } = response.data;
         login(token, username, permissao, nome, email);
-        // console.log(idPermissao);
 
         console.log("Login realizado com sucesso!", response.data);
-        // Redirecionar para a página principal ou dashboard
         navigate('/menu');
       } catch (error) {
         console.error("Erro ao realizar login:", error);
@@ -61,14 +52,17 @@ const PaginaDeLogin: React.FC = () => {
     }
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>): void => {
+    if (event.key === "Enter" && isFormValid) {
+      handleSubmit();
+    }
+  };
 
   return (
     <div className="login-container">
       <div className="login-box">
-        {/* Logo da UNIR */}
         <img src={logoUNIR} alt="Logo" className="login-logo" />
 
-        {/* Campo CPF */}
         <div className="input-group">
           <div className="input-wrapper">
             <input
@@ -76,31 +70,31 @@ const PaginaDeLogin: React.FC = () => {
               placeholder="CPF"
               value={cpf}
               onChange={handleCPF}
+              onKeyDown={handleKeyDown}
               className={`${cpfError ? "input-error" : ""}`}
             />
           </div>
           {cpfError && <span className="error-message">CPF deve ter 11 dígitos.</span>}
         </div>
 
-        {/* Campo Senha */}
         <div className="input-group">
-        <div className="input-wrapper">
-          <input
-            type="password"
-            placeholder="Senha"
-            value={password}
-            onChange={handlePassword}
-            className={`${passwordError ? "input-error" : ""}`}
-          />
+          <div className="input-wrapper">
+            <input
+              type="password"
+              placeholder="Senha"
+              value={password}
+              onChange={handlePassword}
+              onKeyDown={handleKeyDown}
+              className={`${passwordError ? "input-error" : ""}`}
+            />
+          </div>
+          {passwordError && <span className="error-message">Senha não pode ser vazia.</span>}
         </div>
-        {passwordError && <span className="error-message">Senha não pode ser vazia.</span>}
-      </div>
-      
-        {/* Botão de Login */}
+
         <button
           className="button-main"
           onClick={handleSubmit}
-          disabled={!isFormValid} // Desabilita o botão se o formulário não for válido
+          disabled={!isFormValid}
         >
           Entrar
         </button>

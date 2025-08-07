@@ -219,7 +219,6 @@ export default function ListaCorridas() {
           </Button>
         </Box>
 
-        {/* Filtros por situação */}
         <Box sx={{
           display: 'flex',
           gap: 1,
@@ -329,7 +328,6 @@ export default function ListaCorridas() {
         />
       </Box>
 
-      {/* Modal Liberar Chave */}
       <Dialog
         open={showModalLiberarChave}
         onClose={() => setShowModalLiberarChave(false)}
@@ -373,7 +371,7 @@ export default function ListaCorridas() {
                   const dadosAtualizados = await getCorridas();
                   setCorridas(dadosAtualizados);
                   setShowModalLiberarChave(false);
-                  setSenhaLiberarChave(''); //limpando o campo de senha após enviar a api
+                  setSenhaLiberarChave('');
                 } catch (error) {
                   console.error(error);
                 }
@@ -388,7 +386,6 @@ export default function ListaCorridas() {
         </DialogActions>
       </Dialog>
 
-      {/* Modal Receber Chave */}
       <Dialog
         open={showModalReceberChave}
         onClose={() => setShowModalReceberChave(false)}
