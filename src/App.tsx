@@ -15,10 +15,10 @@ import ListaMotorista from './componentes/Listagem/ListaMotorista';
 import ListaMulta from './componentes/Listagem/ListaMulta';
 
 //import ListaCorridas from './componentes/Listagem/ListaCorridas';
-import CadastrarCorrida from './componentes/cadastros/CadastrarCorrida';
-import IniciarCorrida from './componentes/cadastros/IniciarCorrida';
-import NaCorrida from './componentes/cadastros/NaCorrida';
-import ColocarTombo from './componentes/cadastros/ColocarTombo';
+import CadastrarCorrida from './componentes/cadastros/corrida/CadastrarCorrida';
+import IniciarCorrida from './componentes/cadastros/corrida/IniciarCorrida';
+import NaCorrida from './componentes/cadastros/corrida/NaCorrida';
+import ColocarTombo from './componentes/cadastros/corrida/ColocarTombo';
 
 import Menu from './componentes/Menu';
 
@@ -30,7 +30,7 @@ import Ocorrencias from        './componentes/Ocorrencias';
 import { AuthProvider } from './context/AuthContext';
 
 import PrivateRoute from './componentes/PrivateRoute';
-import ListaCorrida from './componentes/Listagem/ListaCorrida';
+import ListaCorrida from './componentes/Listagem/painelCorrida/ListaCorrida';
 import HistoricoIndividual from './componentes/Listagem/HistoricoIndividual';
 
 const App: React.FC = () => {

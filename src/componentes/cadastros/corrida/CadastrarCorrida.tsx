@@ -13,8 +13,8 @@ import {
   DialogTitle,
   DialogActions
 } from "@mui/material";
-import { createCorrida } from '../../api/corridaService';
-import Menu from "../Menu";
+import { createCorrida } from '../../../api/corridaService';
+import Menu from "../../Menu";
 
 interface CarroInfo {
   idCarro: number;

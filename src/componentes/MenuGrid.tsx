@@ -1,19 +1,32 @@
-import React from "react";
+import React, { useState } from "react";
 import { Box, Typography, Paper, ButtonBase } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import CadastrarOcorrencia from "./cadastros/corrida/modais/ocorrenciasModal";
 
 const menuItems = [
   { label: "Iniciar Percurso", path: "/IniciarPercurso" },
   { label: "Finalizar Percurso", path: "/FinalizarPercurso" },
   { label: "Abastecimento", path: "/Abastecimento" },
-  { label: "Ocorrências", path: "/Ocorrencias" },
+  { label: "Ocorrências", path: "#abrirModal" },
 ];
 
-const MenuGrid = () => {
+type MenuGridProps = {
+  idCorrida: number;
+};
+
+const MenuGrid = ( { idCorrida }: MenuGridProps ) => {
   const navigate = useNavigate();
+  const [modalAberto, setModalAberto] = useState(false);
+
+
+  const fecharModal = () => setModalAberto(false);
 
   const handleClick = (path: string) => {
-    navigate(path);
+    if (path === "#abrirModal") {
+      setModalAberto(true);
+    } else {
+      navigate(path);
+    }
   };
 
   return (
@@ -65,6 +78,15 @@ const MenuGrid = () => {
           </ButtonBase>
         ))}
       </Box>
+
+      <CadastrarOcorrencia open={modalAberto} onClose={fecharModal} corrida={idCorrida}
+        onSuccess={() => {
+          console.log("Ocorrência salva com sucesso!");
+        }}
+        onError={(erro) => {
+          console.error("Erro ao salvar ocorrência:", erro);
+        }}
+      />
     </Box>
   );
 };

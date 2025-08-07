@@ -12,8 +12,8 @@ import {
   useTheme
 } from "@mui/material";
 import { DataGrid, GridColDef} from '@mui/x-data-grid';
-import { CorridaFrontend, getCorridas, CorridaService } from '../../api/corridaService';
-import Menu from "../Menu";
+import { CorridaFrontend, getCorridas, CorridaService } from '../../../api/corridaService';
+import Menu from "../../Menu";
 
 const formatDate = (dateString: string | null) => {
   if (!dateString) return 'Em andamento';
@@ -156,6 +156,14 @@ export default function ListaCorridas() {
         return (
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Button
+              variant="outlined"
+              color = "warning" 
+              size="small"
+              onClick={() => handleAbrirModalReceberChave(corrida)}
+            >
+              Editar
+            </Button>
+            <Button
               variant="contained"
               color="primary"
               size="small"
@@ -177,6 +185,7 @@ export default function ListaCorridas() {
             >
               Receber Chave
             </Button>
+            
           </Box>
         );
       }

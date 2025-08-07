@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios, { AxiosError  } from 'axios';
-import Menu from "../Menu";
+import Menu from "../../Menu";
 
 interface CarroInfo {
   placa: string;

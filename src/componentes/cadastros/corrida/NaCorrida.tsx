@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Menu from "../Menu";
+import Menu from "../../Menu";
 
 interface CarroInfo {
   modelo: string;
