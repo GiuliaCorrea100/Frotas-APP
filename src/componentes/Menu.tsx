@@ -138,8 +138,12 @@ const Menu: React.FC = () => {
       return null;
     }
 
+    // if (dashboardData.corridaDeHoje) {
+    //   return <MenuGrid />;
+    // }
+
     if (dashboardData.corridaDeHoje) {
-      return <MenuGrid />;
+      return <MenuGrid idCorrida={dashboardData.corridaDeHoje.idCorrida} />;
     }
     
     if (dashboardData.proximasCorridas.length > 0) {
