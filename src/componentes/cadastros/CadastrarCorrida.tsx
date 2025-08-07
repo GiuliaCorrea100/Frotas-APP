@@ -1,5 +1,3 @@
-// src/components/CadastrarCorrida.tsx
-
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
@@ -77,53 +75,68 @@ export default function CadastrarCorrida() {
       const response = await axios.get(`http://localhost:3000/usuarios/buscar-por-nome/${nome}`);
       setMotoristaOptions(response.data);
     } catch (error) {
+      console.error("Erro ao buscar motoristas:", error);
       setMotoristaOptions([]);
     }
   };
 
- const handleSubmit = async () => {
-  if (!corrida.motoristaId) {
-    alert('Selecione um motorista válido');
-    return;
-  }
-
-  if (!corrida.dataInicio) {
-    alert('Informe a data/hora de início da corrida');
-    return;
-  }
-
-  if (
-    corrida.dataTermino &&
-    corrida.dataTermino < corrida.dataInicio
-  ) {
-    alert('Data/hora de término não pode ser anterior à data/hora de início');
-    return;
-  }
-
-  try {
-    const corridaParaEnviar = {
-      dataInicio: new Date(corrida.dataInicio),
-      dataTermino: corrida.dataTermino ? new Date(corrida.dataTermino) : null,
-      itinerario: "",
-      distanciaKm: "",
-      idMotorista: corrida.motoristaId!,
-      situacao: "AGENDADA",
-      chaveEmprestada: false,
-      idCarros: carroInfo.idCarro,
-    };
-
-    console.log("OBJETO FINAL ENVIADO PARA A API:", corridaParaEnviar);
-
-    await createCorrida(corridaParaEnviar);
-    navigate('/ListaCorrida');
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      alert(error.response?.data?.message || 'Erro ao cadastrar corrida');
-    } else {
-      alert('Erro ao cadastrar corrida');
+  const handleSubmit = async () => {
+    if (!corrida.motoristaId) {
+      showAlert('Selecione um motorista válido');
+      return;
     }
-  }
-};
+
+    if (!corrida.dataInicio) {
+      showAlert('Informe a data/hora de início da corrida');
+      return;
+    }
+
+    if (
+      corrida.dataTermino &&
+      new Date(corrida.dataTermino) < new Date(corrida.dataInicio)
+    ) {
+      showAlert('A data/hora de término não pode ser anterior à data/hora de início');
+      return;
+    }
+
+    try {
+      const corridaParaEnviar = {
+        dataInicio: new Date(corrida.dataInicio),
+        dataTermino: corrida.dataTermino ? new Date(corrida.dataTermino) : null,
+        itinerario: "",
+        distanciaKm: "",
+        idMotorista: corrida.motoristaId!,
+        situacao: "AGENDADA",
+        chaveEmprestada: false,
+        idCarros: carroInfo.idCarro,
+      };
+
+      await createCorrida(corridaParaEnviar);
+      
+      showAlert('Corrida cadastrada com sucesso!');
+      
+      setTimeout(() => {
+          navigate('/ListaCorrida');
+      }, 1500);
+
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        if (error.response.status === 409) {
+          if (error.response.data.message.includes('carro')) {
+            showAlert("Este carro já está agendado para outra corrida nesse período.");
+          } else {
+            showAlert("Usuário já tem corrida agendada para essa data.");
+          }
+        } else {
+          const errorMessage = error.response.data?.message || 'Erro ao cadastrar a corrida.';
+          showAlert(errorMessage);
+        }
+      } else {
+        showAlert('Ocorreu um erro de comunicação. Tente novamente mais tarde.');
+        console.error("Erro não relacionado à API:", error);
+      }
+    }
+  };
 
   return (
     <>

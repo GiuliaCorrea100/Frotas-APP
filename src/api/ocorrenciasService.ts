@@ -32,4 +32,15 @@ export class OcorrenciaService {
       throw err;
     }
   }
+
+  static async buscarPorCorrida(idCorrida: number): Promise<OcorrenciaDto | null> {
+    try {
+      const response = await api.get<OcorrenciaDto>(`/ocorrencias/buscar-por-corrida/${idCorrida}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Erro ao buscar ocorrência para corrida ${idCorrida}:`, error);
+      return null;
+    }
+  }
+
 }
