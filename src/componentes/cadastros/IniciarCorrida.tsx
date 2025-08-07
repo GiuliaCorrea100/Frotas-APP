@@ -27,7 +27,6 @@ const IniciarCorrida: React.FC = () => {
     setCarro(null);
 
     try {
-      // Ajuste a URL conforme necessário para seu backend
       const response = await axios.get(`http://localhost:3000/carros/por-tombo/${tombo}`);
       
       const carroEncontrado = response.data;
@@ -40,7 +39,7 @@ const IniciarCorrida: React.FC = () => {
       });
 
     } catch (error) {
-        const err = error as AxiosError; // Adicione esta linha para tipar o erro
+        const err = error as AxiosError;
         if (err.response?.status === 404) {
             setError('Carro não encontrado com este tombo');
         } else {
@@ -67,7 +66,6 @@ const IniciarCorrida: React.FC = () => {
     };
     
     navigate('/NaCorrida', { state: { corridaInfo } });
-    //alert(`Corrida iniciada para o carro ${carro?.modelo} - ${carro?.placa}`);
   };
 
   return (
@@ -112,7 +110,6 @@ const IniciarCorrida: React.FC = () => {
       {carro && (
         <button
           onClick={handleIniciarCorrida}
-          //padronizar no arquivo css
           style={{ width: '100%', padding: '10px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', fontSize: '16px' }}
         >
           Iniciar Corrida
