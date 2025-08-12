@@ -12,10 +12,10 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import  AbastecimentoService  from '../../api/abastecimentoService';
-import { CorridaFrontend, getCorridas } from '../../api/corridaService';
-import { TipoCombustivel, TipoCombustivelService } from '../../api/tipoCombustivelService';
-import Menu from "../Menu";
+import  AbastecimentoService  from '../../../api/abastecimentoService';
+import { CorridaFrontend, getCorridas } from '../../../api/corridaService';
+import { TipoCombustivel, TipoCombustivelService } from '../../../api/tipoCombustivelService';
+import Menu from "../../Menu";
 
 const CadastroAbastecimento: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -61,8 +61,8 @@ const CadastroAbastecimento: React.FC = () => {
     if (!formData.cod_pagamento) newErrors.cod_pagamento = 'Código de pagamento é obrigatório';
     if (!formData.preco_final) newErrors.preco_final = 'Preço final é obrigatório';
     if (!formData.data_abastecimento) newErrors.data_abastecimento = 'Data é obrigatória';
-    if (!formData.tipo_combustivel_id) newErrors.tipo_combustivel_id = 'Tipo de combustível obrigatório';
-    if (!formData.id_corrida) newErrors.id_corrida = 'Corrida obrigatória';
+   // if (!formData.tipo_combustivel_id) newErrors.tipo_combustivel_id = 'Tipo de combustível obrigatório';
+   // if (!formData.id_corrida) newErrors.id_corrida = 'Corrida obrigatória';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -75,14 +75,15 @@ const CadastroAbastecimento: React.FC = () => {
     litros: Number(formData.litros),
     codPagamento: Number(formData.cod_pagamento),
     precoFinal: Number(formData.preco_final),
-    id_tipo_combustivel: String(formData.tipo_combustivel_id),
-    id_corrida: String(formData.id_corrida),
     dataAbastecimento: formData.data_abastecimento, 
     valorUnitarioLitro: Number(formData.valor_unitario_litro),
     valorMedioLitro: Number(formData.valor_medio_litro),
     valorUnitario: Number(formData.valor_unitario),
     valorMedio: Number(formData.valor_medio),
     justificativaAlteracao: formData.justificativa_alteracao || '',
+
+    tipo_combustivel: Number(formData.tipo_combustivel_id),
+    corrida: formData.id_corrida ? Number(formData.id_corrida) : null,
 };
 
     try {

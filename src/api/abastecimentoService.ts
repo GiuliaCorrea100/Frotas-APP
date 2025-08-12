@@ -11,6 +11,27 @@ export interface Abastecimento {
   valorUnitario: number;
   valorMedio: number;
   justificativaAlteracao?: string;
+  
+  // Relacionamentos
+  tipo_combustivel: TipoCombustivel; 
+  corrida: Corrida;
+}
+
+export interface TipoCombustivel {
+  id_tipo_combustivel?: number;
+  nome: string;
+}
+
+export interface Corrida {
+  idCorrida?: number;
+  dataInicio: string | Date;
+  dataTermino: string | Date | null;
+  distanciaKm?: string | null;
+  itinerario: string;
+  idMotorista: number;
+  situacao: string; // "PENDENTE", "CONCLUIDA"
+  chaveEmprestada: boolean;
+  idCarros: number;
 }
 
 export class AbastecimentoService {
@@ -18,6 +39,7 @@ export class AbastecimentoService {
 
   async BuscarTodosAbastecimentos(params?: {
     tipoCombustivel?: string;
+    expand?: boolean; // <- parâmetro para dizer ao back-end que queremos as relações
   }): Promise<Abastecimento[]> {
     try {
       const response = await api.get(this.API, { params });
@@ -27,9 +49,14 @@ export class AbastecimentoService {
     }
   }
 
-  async BuscarAbastecimentoPorId(id: number): Promise<Abastecimento> {
+  async BuscarAbastecimentoPorId(
+    id: number,
+    expand = true // por padrão, já buscar com relação
+  ): Promise<Abastecimento> {
     try {
-      const response = await api.get(`${this.API}/${id}`);
+      const response = await api.get(`${this.API}/${id}`, {
+        params: expand ? { expand: true } : {}
+      });
       return response.data;
     } catch (error) {
       throw error;
@@ -37,7 +64,10 @@ export class AbastecimentoService {
   }
 
   async cadastrarAbastecimento(
-    abastecimento: Abastecimento
+    abastecimento: Omit<Abastecimento, "tipo_combustivel" | "corrida"> & {
+      tipo_combustivel: number; // ao cadastrar, envia apenas ID
+      corrida: number;
+    }
   ): Promise<Abastecimento> {
     try {
       const response = await api.post(this.API, abastecimento);
@@ -49,7 +79,7 @@ export class AbastecimentoService {
 
   async AtualizarAbastecimento(
     id: number,
-    abastecimento: Abastecimento
+    abastecimento: Partial<Abastecimento>
   ): Promise<void> {
     try {
       await api.put(`${this.API}/${id}`, abastecimento);
