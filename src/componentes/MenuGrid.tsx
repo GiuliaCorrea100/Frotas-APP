@@ -2,6 +2,21 @@ import React from "react";
 import { Box, Typography, Paper, ButtonBase } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
+// Adicionando a interface Corrida para tipar o prop
+interface Corrida {
+  idCorrida: number;
+  dataInicio: string;
+  itinerario: string;
+  placaVeiculo?: string;
+  nomeMotorista?: string;
+  dataTermino?: string | null;
+}
+
+// Adicionando a interface para os props do componente
+interface MenuGridProps {
+  corrida: Corrida;
+}
+
 const menuItems = [
   { label: "Iniciar Percurso", path: "/IniciarPercurso" },
   { label: "Finalizar Percurso", path: "/FinalizarPercurso" },
@@ -9,7 +24,17 @@ const menuItems = [
   { label: "Ocorrências", path: "/Ocorrencias" },
 ];
 
-const MenuGrid = () => {
+// Função auxiliar para formatar datas (pode ser movida para um arquivo de utilitários)
+const formatDate = (dateString: string) => {
+  try {
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? 'Data inválida' : date.toLocaleString('pt-BR');
+  } catch {
+    return 'Data inválida';
+  }
+};
+
+const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
   const navigate = useNavigate();
 
   const handleClick = (path: string) => {
@@ -23,7 +48,10 @@ const MenuGrid = () => {
           Corrida:
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
-          Porto Velho - Ariquemes
+          {corrida.itinerario || 'Itinerário não especificado'}
+        </Typography>
+        <Typography variant="subtitle2" color="text.secondary">
+          De {formatDate(corrida.dataInicio)} até {corrida.dataTermino ? formatDate(corrida.dataTermino) : 'em andamento'}
         </Typography>
       </Box>
 

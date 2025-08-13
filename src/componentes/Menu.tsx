@@ -37,7 +37,7 @@ interface Corrida {
 }
 
 interface MotoristaDashboard {
-  corridaDeHoje: Corrida | null;
+  corridaDeHoje: Corrida | null; // Esta propriedade pode não ser mais usada diretamente no render, mas pode ser útil para outras lógicas.
   proximasCorridas: Corrida[];
 }
 
@@ -133,13 +133,30 @@ const Menu: React.FC = () => {
     if (loading) {
       return <CircularProgress />;
     }
-
+  
     if (!isAuthenticated || !dashboardData) {
       return null;
     }
-
-    if (dashboardData.corridaDeHoje) {
-      return <MenuGrid />;
+  
+    // Verifica se há corrida em andamento (data atual está entre inicio e termino)
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0); // Remove a parte do tempo para comparar apenas datas
+  
+    const corridaEmAndamento = dashboardData.proximasCorridas.find(corrida => {
+      const inicio = new Date(corrida.dataInicio);
+      inicio.setHours(0, 0, 0, 0);
+      
+      const termino = corrida.dataTermino ? new Date(corrida.dataTermino) : null;
+      if (termino) termino.setHours(0, 0, 0, 0);
+  
+      return (
+        hoje >= inicio && 
+        (!termino || hoje <= termino)
+      );
+    });
+  
+    if (corridaEmAndamento) {
+      return <MenuGrid corrida={corridaEmAndamento} />;
     }
     
     if (dashboardData.proximasCorridas.length > 0) {
