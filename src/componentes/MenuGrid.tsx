@@ -2,7 +2,6 @@ import React from "react";
 import { Box, Typography, Paper, ButtonBase } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-// Adicionando a interface Corrida para tipar o prop
 interface Corrida {
   idCorrida: number;
   dataInicio: string;
@@ -12,7 +11,6 @@ interface Corrida {
   dataTermino?: string | null;
 }
 
-// Adicionando a interface para os props do componente
 interface MenuGridProps {
   corrida: Corrida;
 }
@@ -24,7 +22,6 @@ const menuItems = [
   { label: "Ocorrências", path: "/Ocorrencias" },
 ];
 
-// Função auxiliar para formatar datas (pode ser movida para um arquivo de utilitários)
 const formatDate = (dateString: string) => {
   try {
     const date = new Date(dateString);

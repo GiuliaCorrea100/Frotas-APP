@@ -40,7 +40,7 @@ export default function CadastrarCorrida() {
   const [corrida, setCorrida] = useState({
     dataInicio: '',
     dataTermino: '',
-    itinerario: '',
+    local_de_saida: '',
     distanciaKm: '0',
     chaveEmprestada: false,
     situacao: 'AGENDADA',
@@ -51,7 +51,8 @@ export default function CadastrarCorrida() {
   const [errors, setErrors] = useState({
     dataInicio: false,
     dataTermino: false,
-    motorista: false
+    motorista: false,
+    local_de_saida: false
   });
 
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
@@ -107,7 +108,8 @@ export default function CadastrarCorrida() {
     const newErrors = {
       dataInicio: false,
       dataTermino: false,
-      motorista: false
+      motorista: false,
+      local_de_saida: false
     };
 
     if (!corrida.motoristaId) {
@@ -125,10 +127,15 @@ export default function CadastrarCorrida() {
       hasError = true;
     }
 
+    if (!corrida.local_de_saida) {
+      newErrors.local_de_saida = true;
+      hasError = true;
+    }
+
     setErrors(newErrors);
 
     if (hasError) {
-      showAlert('Preencha todos os campos obrigatórios: Motorista, Data Início e Data Término');
+      showAlert('Preencha todos os campos obrigatórios: Local de Saida, Motorista, Data Início e Data Término');
       return;
     }
 
@@ -142,7 +149,7 @@ export default function CadastrarCorrida() {
       const corridaParaEnviar = {
         dataInicio: new Date(corrida.dataInicio),
         dataTermino: new Date(corrida.dataTermino),
-        itinerario: "",
+        local_de_saida: corrida.local_de_saida,
         distanciaKm: "",
         idMotorista: corrida.motoristaId!,
         situacao: "AGENDADA",
@@ -194,6 +201,18 @@ export default function CadastrarCorrida() {
           <p><strong>Ano:</strong> {carroInfo.ano}</p>
         </Box>
 
+        <TextField
+          name="local_de_saida"
+          label="Local de Saída"
+          value={corrida.local_de_saida}
+          onChange={handleChange}
+          fullWidth
+          required
+          error={errors.local_de_saida}
+          helperText={errors.local_de_saida ? "Informe o local de saída" : ""}
+          sx={{ mb: 2 }}
+        />
+
         <Autocomplete
           options={motoristaOptions}
           getOptionLabel={(option) => `${option.nome}`}
@@ -221,7 +240,7 @@ export default function CadastrarCorrida() {
 
         <TextField
           name="dataInicio"
-          label="Data Início *"
+          label="Data Início"
           type="date"
           InputLabelProps={{ shrink: true }}
           value={corrida.dataInicio}
@@ -238,7 +257,7 @@ export default function CadastrarCorrida() {
 
         <TextField
           name="dataTermino"
-          label="Data Término *"
+          label="Data Término"
           type="date"
           InputLabelProps={{ shrink: true }}
           value={corrida.dataTermino}
