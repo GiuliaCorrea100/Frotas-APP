@@ -48,6 +48,11 @@ export default function CadastrarCorrida() {
   });
 
   const [motoristaOptions, setMotoristaOptions] = useState<MotoristaOption[]>([]);
+  const [errors, setErrors] = useState({
+    dataInicio: false,
+    dataTermino: false,
+    motorista: false
+  });
 
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [alertOpen, setAlertOpen] = useState(false);
@@ -63,6 +68,8 @@ export default function CadastrarCorrida() {
       ...prev,
       [name]: value
     }));
+    // Limpa o erro quando o usuário começa a digitar
+    setErrors(prev => ({ ...prev, [name]: false }));
   };
 
   const buscarMotoristas = async (nome: string) => {
@@ -81,28 +88,45 @@ export default function CadastrarCorrida() {
   };
 
   const handleSubmit = async () => {
+    let hasError = false;
+    const newErrors = {
+      dataInicio: false,
+      dataTermino: false,
+      motorista: false
+    };
+
     if (!corrida.motoristaId) {
-      showAlert('Selecione um motorista válido');
-      return;
+      newErrors.motorista = true;
+      hasError = true;
     }
 
     if (!corrida.dataInicio) {
-      showAlert('Informe a data/hora de início da corrida');
+      newErrors.dataInicio = true;
+      hasError = true;
+    }
+
+    if (!corrida.dataTermino) {
+      newErrors.dataTermino = true;
+      hasError = true;
+    }
+
+    setErrors(newErrors);
+
+    if (hasError) {
+      showAlert('Preencha todos os campos obrigatórios: Motorista, Data Início e Data Término');
       return;
     }
 
-    if (
-      corrida.dataTermino &&
-      new Date(corrida.dataTermino) < new Date(corrida.dataInicio)
-    ) {
-      showAlert('A data/hora de término não pode ser anterior à data/hora de início');
+    if (new Date(corrida.dataTermino) < new Date(corrida.dataInicio)) {
+      showAlert('A data de término não pode ser anterior à data de início');
+      setErrors(prev => ({ ...prev, dataTermino: true }));
       return;
     }
 
     try {
       const corridaParaEnviar = {
         dataInicio: new Date(corrida.dataInicio),
-        dataTermino: corrida.dataTermino ? new Date(corrida.dataTermino) : null,
+        dataTermino: new Date(corrida.dataTermino),
         itinerario: "",
         distanciaKm: "",
         idMotorista: corrida.motoristaId!,
@@ -162,6 +186,7 @@ export default function CadastrarCorrida() {
               ...prev,
               motoristaId: value?.idUsuario || null,
             }));
+            setErrors(prev => ({ ...prev, motorista: false }));
           }}
           isOptionEqualToValue={(option, value) => option.idUsuario === value.idUsuario}
           noOptionsText="Digite pelo menos 3 caracteres para buscar"
@@ -170,6 +195,8 @@ export default function CadastrarCorrida() {
               {...params}
               label="Motorista"
               required
+              error={errors.motorista}
+              helperText={errors.motorista ? "Selecione um motorista" : ""}
               sx={{ mb: 2 }}
             />
           )}
@@ -177,25 +204,36 @@ export default function CadastrarCorrida() {
 
         <TextField
           name="dataInicio"
-          label="Data/Hora Início"
-          type="datetime-local"
+          label="Data Início *"
+          type="date"
           InputLabelProps={{ shrink: true }}
           value={corrida.dataInicio}
           onChange={handleChange}
           fullWidth
           required
+          error={errors.dataInicio}
+          helperText={errors.dataInicio ? "Informe a data de início" : ""}
           sx={{ mb: 2 }}
+          inputProps={{
+            min: new Date().toISOString().split('T')[0]
+          }}
         />
 
         <TextField
           name="dataTermino"
-          label="Data/Hora Término"
-          type="datetime-local"
+          label="Data Término *"
+          type="date"
           InputLabelProps={{ shrink: true }}
           value={corrida.dataTermino}
           onChange={handleChange}
           fullWidth
+          required
+          error={errors.dataTermino}
+          helperText={errors.dataTermino ? "Informe a data de término" : ""}
           sx={{ mb: 2 }}
+          inputProps={{
+            min: corrida.dataInicio || new Date().toISOString().split('T')[0]
+          }}
         />
 
         <Button
