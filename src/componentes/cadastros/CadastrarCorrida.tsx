@@ -68,7 +68,6 @@ export default function CadastrarCorrida() {
       ...prev,
       [name]: value
     }));
-    // Limpa o erro quando o usuário começa a digitar
     setErrors(prev => ({ ...prev, [name]: false }));
   };
 
@@ -84,6 +83,22 @@ export default function CadastrarCorrida() {
     } catch (error) {
       console.error("Erro ao buscar motoristas:", error);
       setMotoristaOptions([]);
+    }
+  };
+
+  const atualizarSituacaoCarro = async (idCarro: number, situacao: string) => {
+    try {
+      const carroAtual = await axios.get(`http://localhost:3000/carros/${idCarro}`);
+      
+      const dadosAtualizados = {
+        ...carroAtual.data,
+        situacao: situacao
+      };
+
+      await axios.put(`http://localhost:3000/carros/${idCarro}`, dadosAtualizados);
+    } catch (error) {
+      console.error("Erro ao atualizar situação do carro:", error);
+      throw error;
     }
   };
 
@@ -135,6 +150,8 @@ export default function CadastrarCorrida() {
         idCarros: carroInfo.idCarro,
       };
 
+      await atualizarSituacaoCarro(carroInfo.idCarro, "RESERVADO");
+      
       await createCorrida(corridaParaEnviar);
       
       showAlert('Corrida cadastrada com sucesso!');
