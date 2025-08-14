@@ -32,16 +32,18 @@ export const createCorrida = async (
   corridaData: Omit<CorridaBackend, "idCorrida">
 ) => {
   try {
+    // Modificação aplicada aqui para tratar o dataTermino nulo
     const payload = {
       ...corridaData,
       dataInicio:
         corridaData.dataInicio instanceof Date
-          ? corridaData.dataInicio.toISOString()
-          : corridaData.dataInicio,
-      dataTermino:
-        corridaData.dataTermino instanceof Date
-          ? corridaData.dataTermino.toISOString()
-          : corridaData.dataTermino,
+          ? corridaData.dataInicio.toISOString().split("T")[0]
+          : corridaData.dataInicio.split("T")[0],
+      dataTermino: corridaData.dataTermino
+        ? corridaData.dataTermino instanceof Date
+          ? corridaData.dataTermino.toISOString().split("T")[0]
+          : corridaData.dataTermino.split("T")[0]
+        : null,
     };
 
     console.log("Enviando para o backend:", payload);
@@ -51,7 +53,7 @@ export const createCorrida = async (
     if (axios.isAxiosError(error)) {
       throw error;
     }
-      throw error;
+    throw error;
   }
 };
 
@@ -95,7 +97,6 @@ function formatCorrida(corrida: CorridaBackend): CorridaFrontend {
         : corrida.dataTermino,
     distanciaKm: corrida.distanciaKm || "0",
     idMotorista: corrida.idMotorista,
-
     nomeMotorista: (corrida as any).nomeMotorista || "Desconhecido",
     chaveEmprestada: corrida.chaveEmprestada ?? false,
     placaVeiculo: (corrida as any).placaVeiculo || "Não informada",

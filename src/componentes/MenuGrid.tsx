@@ -44,9 +44,6 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
         <Typography variant="h5" fontWeight="bold" gutterBottom>
           Corrida:
         </Typography>
-        <Typography variant="subtitle1" color="text.secondary">
-          {corrida.itinerario || 'Itinerário não especificado'}
-        </Typography>
         <Typography variant="subtitle2" color="text.secondary">
           De {formatDate(corrida.dataInicio)} até {corrida.dataTermino ? formatDate(corrida.dataTermino) : 'em andamento'}
         </Typography>
