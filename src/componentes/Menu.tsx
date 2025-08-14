@@ -20,7 +20,7 @@ import axiosConnect from "../services/axiosConnect";
 import { jwtDecode } from 'jwt-decode';
 
 interface JwtPayload {
-  sub: number; 
+  sub: number;
   login: string;
   permissao: number;
   iat: number;
@@ -29,7 +29,7 @@ interface JwtPayload {
 
 interface Corrida {
   idCorrida: number;
-  dataInicio: string; 
+  dataInicio: string;
   itinerario: string;
   placaVeiculo?: string;
   nomeMotorista?: string;
@@ -37,14 +37,14 @@ interface Corrida {
 }
 
 interface MotoristaDashboard {
-  corridaDeHoje: Corrida | null; // Esta propriedade pode não ser mais usada diretamente no render, mas pode ser útil para outras lógicas.
+  corridaDeHoje: Corrida | null;
   proximasCorridas: Corrida[];
 }
 
 const Menu: React.FC = () => {
   const { isAuthenticated, cpf, logout, permissao, nome, email } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation(); 
+  const location = useLocation();
   const [showModalDadosPerfil, setShowModalDadosPerfil] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<MotoristaDashboard | null>(null);
@@ -85,7 +85,7 @@ const Menu: React.FC = () => {
   }, [isAuthenticated]);
 
   const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return 'Em andamento'; 
+    if (!dateString) return 'Em andamento';
     try {
       const date = new Date(dateString);
       return isNaN(date.getTime()) ? 'Data inválida' : date.toLocaleString('pt-BR');
@@ -95,19 +95,19 @@ const Menu: React.FC = () => {
   };
 
   const columns: GridColDef<Corrida>[] = [
-    { 
+    {
       field: 'nomeMotorista',
-      headerName: 'Motorista', 
+      headerName: 'Motorista',
       flex: 1,
       renderCell: (params: GridRenderCellParams) => (
         <Link to={`/corrida/${params.row.idCorrida}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-          {nome} 
+          {nome}
         </Link>
       )
     },
-    { 
+    {
       field: 'placaVeiculo',
-      headerName: 'Veículo', 
+      headerName: 'Veículo',
       flex: 1,
       renderCell: (params: GridRenderCellParams) => (
         <Link to={`/corrida/${params.row.idCorrida}`} style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -115,14 +115,14 @@ const Menu: React.FC = () => {
         </Link>
       )
     },
-    { 
-      field: 'dataInicio', 
+    {
+      field: 'dataInicio',
       headerName: 'Data/Hora Início',
       flex: 1,
       renderCell: (params) => formatDate(params.value as string)
     },
-    { 
-      field: 'dataTermino', 
+    {
+      field: 'dataTermino',
       headerName: 'Data/Hora Término',
       flex: 1,
       renderCell: (params) => formatDate(params.value as string | null)
@@ -133,32 +133,30 @@ const Menu: React.FC = () => {
     if (loading) {
       return <CircularProgress />;
     }
-  
+
     if (!isAuthenticated || !dashboardData) {
       return null;
     }
-  
-    // Verifica se há corrida em andamento (data atual está entre inicio e termino)
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0); // Remove a parte do tempo para comparar apenas datas
-  
-    const corridaEmAndamento = dashboardData.proximasCorridas.find(corrida => {
-      const inicio = new Date(corrida.dataInicio);
-      inicio.setHours(0, 0, 0, 0);
-      
-      const termino = corrida.dataTermino ? new Date(corrida.dataTermino) : null;
-      if (termino) termino.setHours(0, 0, 0, 0);
-  
+
+    if (dashboardData.corridaDeHoje) {
+      return <MenuGrid corrida={dashboardData.corridaDeHoje} />;
+    }
+
+    const agora = new Date();
+
+    const corridaHoje = dashboardData.proximasCorridas.find(corrida => {
+      const dataInicio = new Date(corrida.dataInicio);
       return (
-        hoje >= inicio && 
-        (!termino || hoje <= termino)
+        dataInicio.getFullYear() === agora.getFullYear() &&
+        dataInicio.getMonth() === agora.getMonth() &&
+        dataInicio.getDate() === agora.getDate()
       );
     });
-  
-    if (corridaEmAndamento) {
-      return <MenuGrid corrida={corridaEmAndamento} />;
+
+    if (corridaHoje) {
+      return <MenuGrid corrida={corridaHoje} />;
     }
-    
+
     if (dashboardData.proximasCorridas.length > 0) {
       return (
         <Box sx={{ p: { xs: 1, md: 3 }, width: '100%', maxWidth: '900px', mt: 2 }}>
@@ -189,7 +187,7 @@ const Menu: React.FC = () => {
         </Box>
       );
     }
-    
+
     return (
       <Typography variant="h6" sx={{ mt: 4 }}>
         Nenhuma corrida agendada.
@@ -203,9 +201,9 @@ const Menu: React.FC = () => {
         <Toolbar>
           <Typography
             variant="h6"
-            sx={{ 
-              flexGrow: 1, 
-              textDecoration: "none", 
+            sx={{
+              flexGrow: 1,
+              textDecoration: "none",
               color: "inherit",
               fontFamily: "inherit"
             }}
@@ -219,33 +217,33 @@ const Menu: React.FC = () => {
             <>
               {Number(permissao) === 2 && (
                 <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button 
-                    color="inherit" 
-                    component={Link} 
+                  <Button
+                    color="inherit"
+                    component={Link}
                     to="/ListaCorrida"
                     sx={{ fontFamily: "inherit" }}
                   >
                     Painel Corrida
                   </Button>
-                  <Button 
-                    color="inherit" 
-                    component={Link} 
+                  <Button
+                    color="inherit"
+                    component={Link}
                     to="/ListaCarros"
                     sx={{ fontFamily: "inherit" }}
                   >
                     Veículos
                   </Button>
-                  <Button 
-                    color="inherit" 
-                    component={Link} 
+                  <Button
+                    color="inherit"
+                    component={Link}
                     to="/ListaMultas"
                     sx={{ fontFamily: "inherit" }}
                   >
                     Multas
                   </Button>
-                  <Button 
-                    color="inherit" 
-                    component={Link} 
+                  <Button
+                    color="inherit"
+                    component={Link}
                     to="/Administradores"
                     sx={{ fontFamily: "inherit" }}
                   >
@@ -254,9 +252,9 @@ const Menu: React.FC = () => {
                 </Box>
               )}
 
-              <Button 
-                color="inherit" 
-                component={Link} 
+              <Button
+                color="inherit"
+                component={Link}
                 to="/HistoricoIndividual"
                 sx={{ fontFamily: "inherit" }}
               >
@@ -265,8 +263,8 @@ const Menu: React.FC = () => {
 
               {nome && (
                 <>
-                  <Button 
-                    color="inherit" 
+                  <Button
+                    color="inherit"
                     onClick={handleAbrirModalDadosPerfil}
                     sx={{ fontFamily: "inherit" }}
                   >
@@ -319,8 +317,8 @@ const Menu: React.FC = () => {
                 </>
               )}
 
-              <Button 
-                color="inherit" 
+              <Button
+                color="inherit"
                 onClick={handleLogout}
                 sx={{ fontFamily: "inherit" }}
               >
@@ -330,9 +328,9 @@ const Menu: React.FC = () => {
           )}
 
           {!isAuthenticated && (
-            <Button 
-              color="inherit" 
-              component={Link} 
+            <Button
+              color="inherit"
+              component={Link}
               to="/"
               sx={{ fontFamily: "inherit" }}
             >
