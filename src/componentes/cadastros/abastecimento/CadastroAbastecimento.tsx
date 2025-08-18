@@ -12,10 +12,10 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import  AbastecimentoService  from '../../../api/abastecimentoService';
 import { CorridaFrontend, getCorridas } from '../../../api/corridaService';
 import { TipoCombustivel, TipoCombustivelService } from '../../../api/tipoCombustivelService';
 import Menu from "../../Menu";
+import AbastecimentoService  from '../../../api/abastecimentoService';
 
 const CadastroAbastecimento: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -71,24 +71,32 @@ const CadastroAbastecimento: React.FC = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    const dadosParaCadastro = {
-    litros: Number(formData.litros),
-    codPagamento: Number(formData.cod_pagamento),
-    precoFinal: Number(formData.preco_final),
-    dataAbastecimento: formData.data_abastecimento, 
-    valorUnitarioLitro: Number(formData.valor_unitario_litro),
-    valorMedioLitro: Number(formData.valor_medio_litro),
-    valorUnitario: Number(formData.valor_unitario),
-    valorMedio: Number(formData.valor_medio),
-    justificativaAlteracao: formData.justificativa_alteracao || '',
+    if (!formData.id_corrida) {
+      setErrors((prev: any) => ({
+        ...prev,
+        id_corrida: 'Corrida obrigatória'
+      }));
+      setLoading(false);
+      return;
+    }
 
-    tipo_combustivel: Number(formData.tipo_combustivel_id),
-    corrida: formData.id_corrida ? Number(formData.id_corrida) : null,
-};
+    const dadosParaCadastro = {
+      litros: formData.litros,
+      codPagamento: formData.cod_pagamento,
+      precoFinal: formData.preco_final,
+      dataAbastecimento: formData.data_abastecimento,
+      valorUnitarioLitro: formData.valor_unitario_litro,
+      valorMedioLitro: formData.valor_medio_litro,
+      valorUnitario: formData.valor_unitario,
+      valorMedio: formData.valor_medio,
+      justificativaAlteracao: formData.justificativa_alteracao || '',
+      tipo_combustivel: Number(formData.tipo_combustivel_id),
+      corrida: Number(formData.id_corrida),
+    };
 
     try {
       setLoading(true);
-     // await AbastecimentoService.cadastrarAbastecimento(dadosParaCadastro);
+      await AbastecimentoService.cadastrarAbastecimento(dadosParaCadastro); // Use a instância
       setSuccessMessage('Cadastro realizado com sucesso!');
       navigate('/ListaAbastecimento');
     } catch (error) {

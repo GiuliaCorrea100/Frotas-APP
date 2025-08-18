@@ -33,6 +33,7 @@ import PrivateRoute from './componentes/PrivateRoute';
 import ListaCorrida from './componentes/Listagem/painelCorrida/ListaCorrida';
 import HistoricoIndividual from './componentes/Listagem/HistoricoIndividual';
 import ListaAbastecimentos from './componentes/Listagem/painelAbastecimento/ListaAbastecimento';
+import CadastroAbastecimento from './componentes/cadastros/abastecimento/CadastroAbastecimento';
 
 const App: React.FC = () => {
   return (
@@ -51,6 +52,7 @@ const App: React.FC = () => {
           <Route path="/CadastroMulta" element={<CadastroMulta />} />
           <Route path="/CadastroCarro" element={<CadastroCarro />} />
           <Route path="/CadastrarCorrida" element={<CadastrarCorrida />} />
+          <Route path="/CadastroAbastecimento" element={<CadastroAbastecimento />} />
 
           {/*Paginas de Cadastro*/}
           <Route path="/ListaMultas" element={<ListaMulta />} />

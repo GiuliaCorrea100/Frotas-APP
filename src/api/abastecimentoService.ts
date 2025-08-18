@@ -35,6 +35,9 @@ export interface Corrida {
 }
 
 export class AbastecimentoService {
+  static cadastrarAbastecimento(dadosParaCadastro: { litros: number; codPagamento: number; precoFinal: number; dataAbastecimento: string; valorUnitarioLitro: number; valorMedioLitro: number; valorUnitario: number; valorMedio: number; justificativaAlteracao: string; tipo_combustivel: number; corrida: number | null; }) {
+    throw new Error('Method not implemented.');
+  }
   private readonly API = "/abastecimento";
 
   async BuscarTodosAbastecimentos(params?: {
@@ -77,6 +80,7 @@ export class AbastecimentoService {
   ): Promise<Abastecimento> {
     try {
       const response = await api.post(this.API, abastecimento);
+      console.log("AbastecimentoService - cadastrarAbastecimento", response.data);
       return response.data;
     } catch (error) {
       throw error;
