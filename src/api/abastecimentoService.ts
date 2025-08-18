@@ -27,7 +27,7 @@ export interface Corrida {
   dataInicio: string | Date;
   dataTermino: string | Date | null;
   distanciaKm?: string | null;
-  itinerario: string;
+  
   idMotorista: number;
   situacao: string; // "PENDENTE", "CONCLUIDA"
   chaveEmprestada: boolean;
@@ -39,11 +39,16 @@ export class AbastecimentoService {
 
   async BuscarTodosAbastecimentos(params?: {
     tipoCombustivel?: string;
+    corrida?: string;
+    
     expand?: boolean; // <- parâmetro para dizer ao back-end que queremos as relações
   }): Promise<Abastecimento[]> {
     try {
       const response = await api.get(this.API, { params });
+    //  console.log("AbastecimentoService - BuscarTodosAbastecimentos", response.data);
+
       return response.data;
+
     } catch (error) {
       throw error;
     }
@@ -57,6 +62,7 @@ export class AbastecimentoService {
       const response = await api.get(`${this.API}/${id}`, {
         params: expand ? { expand: true } : {}
       });
+    //  console.log("AbastecimentoService - BuscarAbastecimentoPorId", response.data);
       return response.data;
     } catch (error) {
       throw error;

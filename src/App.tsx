@@ -32,6 +32,7 @@ import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './componentes/PrivateRoute';
 import ListaCorrida from './componentes/Listagem/painelCorrida/ListaCorrida';
 import HistoricoIndividual from './componentes/Listagem/HistoricoIndividual';
+import ListaAbastecimentos from './componentes/Listagem/painelAbastecimento/ListaAbastecimento';
 
 const App: React.FC = () => {
   return (
@@ -54,6 +55,8 @@ const App: React.FC = () => {
           {/*Paginas de Cadastro*/}
           <Route path="/ListaMultas" element={<ListaMulta />} />
           <Route path="/ListaMotoristas" element={<ListaMotorista />} />
+          <Route path="/ListaAbastecimento" element={<ListaAbastecimentos />} />
+
           <Route path="/Administradores" element={<ListaAdministrador />} />
           <Route path="/ListaCarros" element={<ListaCarros />} />
           <Route path="/ListaCorrida" element={<ListaCorrida />} />

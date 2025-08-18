@@ -88,7 +88,7 @@ const CadastroAbastecimento: React.FC = () => {
 
     try {
       setLoading(true);
-      await AbastecimentoService.cadastrarAbastecimento(dadosParaCadastro);
+     // await AbastecimentoService.cadastrarAbastecimento(dadosParaCadastro);
       setSuccessMessage('Cadastro realizado com sucesso!');
       navigate('/ListaAbastecimento');
     } catch (error) {
@@ -161,7 +161,7 @@ const CadastroAbastecimento: React.FC = () => {
               <Select name="id_corrida" value={formData.id_corrida} onChange={handleSelectChange} label="Corrida">
                 {corridas.map((corrida) => (
                   <MenuItem key={corrida.idCorrida} value={corrida.idCorrida}>
-                    {corrida.itinerario}
+                    {`#${corrida.idCorrida} - ${new Date(corrida.dataInicio).toLocaleDateString()} - ${corrida.placaVeiculo} - ${corrida.nomeMotorista}`}
                   </MenuItem>
                 ))}
               </Select>

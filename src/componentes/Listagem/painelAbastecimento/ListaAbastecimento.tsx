@@ -8,16 +8,16 @@ import {
   Tooltip,
   Typography,
   useTheme,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormHelperText,
 } from "@mui/material";
-
 import {
-  DataGrid,
   GridColDef,
-  GridRenderCellParams,
-  GridValueFormatterParams,
-  GridValueGetterParams
+  DataGrid,
 } from "@mui/x-data-grid";
-
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import AbastecimentoService, { Abastecimento } from "../../../api/abastecimentoService";
@@ -35,9 +35,15 @@ export default function ListaAbastecimentos() {
   const [busca, setBusca] = useState("");
   const [filtroCombustivel, setFiltroCombustivel] = useState<string>("TODOS");
 
-  // Estados para o modal de exclusão
-  const [modalAberto, setModalAberto] = useState(false);
-  const [abastecimentoParaDeletar, setAbastecimentoParaDeletar] = useState<Abastecimento | null>(null);
+  // Estados para os modais
+  const [modalDeletarAberto, setModalDeletarAberto] = useState(false);
+  const [modalEditarAberto, setModalEditarAberto] = useState(false);
+  const [abastecimentoSelecionado, setAbastecimentoSelecionado] = useState<Abastecimento | null>(null);
+  const [justificativa, setJustificativa] = useState("");
+  const [erros, setErros] = useState({
+    justificativa: false,
+    tipoCombustivel: false,
+  });
 
   // Calcula contadores de combustível
   const contadores = useMemo(() => {
@@ -93,24 +99,24 @@ export default function ListaAbastecimentos() {
     });
   }, [abastecimentos, busca, filtroCombustivel]);
 
-  // Funções para controlar o modal de exclusão
-  const handleAbrirModal = (abastecimento: Abastecimento) => {
-    setAbastecimentoParaDeletar(abastecimento);
-    setModalAberto(true);
+  // Funções para controlar o modal de deletar
+  const handleAbrirModalDeletar = (abastecimento: Abastecimento) => {
+    setAbastecimentoSelecionado(abastecimento);
+    setModalDeletarAberto(true);
   };
 
-  const handleFecharModal = () => {
-    setModalAberto(false);
-    setAbastecimentoParaDeletar(null);
+  const handleFecharModalDeletar = () => {
+    setModalDeletarAberto(false);
+    setAbastecimentoSelecionado(null);
   };
 
   const handleConfirmarDelete = async () => {
-    if (!abastecimentoParaDeletar?.idAbastecimento) return;
+    if (!abastecimentoSelecionado?.idAbastecimento) return;
 
     try {
-      await AbastecimentoService.DeletarAbastecimento(abastecimentoParaDeletar.idAbastecimento);
+      await AbastecimentoService.DeletarAbastecimento(abastecimentoSelecionado.idAbastecimento);
       alert("Abastecimento deletado com sucesso!");
-      handleFecharModal();
+      handleFecharModalDeletar();
       await carregarDados();
     } catch (error) {
       console.error("Erro ao deletar abastecimento:", error);
@@ -118,88 +124,166 @@ export default function ListaAbastecimentos() {
     }
   };
 
-  // Definição das colunas da tabela
-  // ... importações ...
+  // Funções para controlar o modal de editar
+  const handleAbrirModalEditar = (abastecimento: Abastecimento) => {
+    setAbastecimentoSelecionado(abastecimento);
+    setJustificativa("");
+    setErros({ justificativa: false, tipoCombustivel: false });
+    setModalEditarAberto(true);
+  };
 
-const columns: GridColDef<Abastecimento>[] = [
-  { 
-    field: 'idAbastecimento', 
-    headerName: 'ID', 
-    width: 80, 
-    renderCell: params => <Typography fontWeight="bold">{params.value}</Typography>
-  },
-  {
-    field: 'combustivel',
+  const handleFecharModalEditar = () => {
+    setModalEditarAberto(false);
+    setAbastecimentoSelecionado(null);
+    setJustificativa("");
+  };
+
+  const handleEditarAbastecimento = async () => {
+    if (!abastecimentoSelecionado) return;
+
+    // Validação
+    const novosErros = {
+      justificativa: !justificativa,
+      tipoCombustivel: !abastecimentoSelecionado.tipo_combustivel?.id_tipo_combustivel,
+    };
+
+    setErros(novosErros);
+
+    if (novosErros.justificativa || novosErros.tipoCombustivel) {
+      return;
+    }
+
+    try {
+      const dadosAtualizacao = {
+        ...abastecimentoSelecionado,
+        justificativaAlteracao: justificativa,
+        tipo_combustivel: abastecimentoSelecionado.tipo_combustivel
+      };
+
+      await AbastecimentoService.AtualizarAbastecimento(
+        abastecimentoSelecionado.idAbastecimento!,
+        dadosAtualizacao
+      );
+
+      alert("Abastecimento atualizado com sucesso!");
+      handleFecharModalEditar();
+      await carregarDados();
+    } catch (error) {
+      console.error("Erro ao atualizar abastecimento:", error);
+      alert("Erro ao atualizar o abastecimento.");
+    }
+  };
+
+  const handleChangeTipoCombustivel = (id: number) => {
+    if (!abastecimentoSelecionado) return;
+
+    const tipoSelecionado = tiposCombustivel.find(tc => tc.id_tipo_combustivel === id);
+    
+    if (tipoSelecionado) {
+      setAbastecimentoSelecionado({
+        ...abastecimentoSelecionado,
+        tipo_combustivel: tipoSelecionado
+      });
+    }
+
+    setErros({ ...erros, tipoCombustivel: false });
+  };
+
+  const columns: GridColDef<Abastecimento>[] = [
+    { 
+      field: 'idAbastecimento', 
+      headerName: 'ID', 
+      width: 80, 
+      renderCell: (params) => <Typography>{params.value}</Typography>
+    },
+     {
+    field: 'id_tipo_combustivel',
     headerName: 'Combustível',
     flex: 1,
-    // Corrigido: usando valueGetter com tipagem adequada
-    valueGetter: (params: GridValueGetterParams<Abastecimento>) => 
-      params.row.tipo_combustivel?.nome || 'N/A'
+    renderCell: (params) => {
+    const tipo = tiposCombustivel.find(tc => tc.id_tipo_combustivel === params.value);
+    return <Typography>{tipo ? tipo.nome : 'N/A'}</Typography>;
+    }
   },
-  { 
-    field: 'litros', 
-    headerName: 'Litros', 
-    flex: 1, 
-    type: 'number' 
-  },
-  { 
-    field: 'precoFinal', 
-    headerName: 'Preço Final', 
-    flex: 1, 
-    type: 'number', 
-    // Corrigido: usando valueFormatter com tipagem adequada
-    valueFormatter: (params: GridValueFormatterParams<number>) => 
-      params.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-  },
-  { 
-    field: 'dataAbastecimento', 
-    headerName: 'Data', 
+    { 
+      field: 'litros', 
+      headerName: 'Litros', 
+      flex: 1,
+      renderCell: (params) => (
+        <Typography>{params.value?.toLocaleString('pt-BR') || '0'}</Typography>
+      )
+    },
+    {
+      field: 'precoFinal',
+      headerName: 'Preço Final',
+      flex: 1,
+      renderCell: (params) => {
+        const value = parseFloat(params.value);
+        const formatted = isNaN(value) 
+          ? 'N/A' 
+          : value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        return <Typography>{formatted}</Typography>;
+      }
+    },
+    { 
+      field: 'dataAbastecimento', 
+      headerName: 'Data', 
+      flex: 1,
+      renderCell: (params) => {
+        let dateText = 'N/A';
+        if (params.value) {
+          try {
+            dateText = new Date(params.value).toLocaleDateString('pt-BR');
+          } catch {
+            dateText = 'Data inválida';
+          }
+        }
+        return <Typography>{dateText}</Typography>;
+      }
+    },
+    {
+    field: 'id_corrida',
+    headerName: 'Corrida',
     flex: 1,
-    // Corrigido: usando valueFormatter com tipagem adequada
-    valueFormatter: (params: GridValueFormatterParams<string>) => 
-      new Date(params.value).toLocaleDateString()
+    renderCell: (params) => {
+      return (
+        <Typography>
+          {params.value || 'N/A'}
+        </Typography>
+      );
+    }
   },
-  { 
-    field: 'idCorrida', 
-    headerName: 'ID Corrida', 
-    flex: 1, 
-    // Corrigido: usando valueGetter com tipagem adequada
-    valueGetter: (params: GridValueGetterParams<Abastecimento>) => 
-      params.row.corrida?.idCorrida || 'N/A' 
-  },
-  {
-    field: 'acoes',
-    headerName: 'Ações',
-    flex: 1,
-    headerAlign: 'center',
-    align: 'center',
-    sortable: false,
-    // Corrigido: usando renderCell com tipagem adequada
-    renderCell: (params: GridRenderCellParams<Abastecimento>) => (
-      <Box display="flex" gap={1}>
-        <Tooltip title="Editar Abastecimento">
-          <IconButton
-            color="primary"
-            size="small"
-            component={Link}
-            to={`/EditarAbastecimento/${params.id}`}
-          >
-            <Edit fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Deletar Abastecimento">
-          <IconButton
-            color="error"
-            size="small"
-            onClick={() => handleAbrirModal(params.row)}
-          >
-            <Delete fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      </Box>
-    )
-  }
-];
+    {
+      field: 'acoes',
+      headerName: 'Ações',
+      flex: 1,
+      headerAlign: 'center',
+      align: 'center',
+      sortable: false,
+      renderCell: (params) => (
+        <Box display="flex" gap={1}>
+          <Tooltip title="Editar Abastecimento">
+            <IconButton
+              color="primary"
+              size="small"
+              onClick={() => handleAbrirModalEditar(params.row)}
+            >
+              <Edit fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Deletar Abastecimento">
+            <IconButton
+              color="error"
+              size="small"
+              onClick={() => handleAbrirModalDeletar(params.row)}
+            >
+              <Delete fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      )
+    }
+  ];
 
   return (
     <>
@@ -271,7 +355,7 @@ const columns: GridColDef<Abastecimento>[] = [
       </Box>
 
       {/* Modal de Confirmação para Deletar */}
-      <Modal open={modalAberto} onClose={handleFecharModal}>
+      <Modal open={modalDeletarAberto} onClose={handleFecharModalDeletar}>
         <Box
           sx={{
             position: 'absolute',
@@ -290,14 +374,82 @@ const columns: GridColDef<Abastecimento>[] = [
           </Typography>
           <Typography>
             Tem certeza de que deseja deletar o abastecimento ID: 
-            <strong> {abastecimentoParaDeletar?.idAbastecimento}</strong>?
+            <strong> {abastecimentoSelecionado?.idAbastecimento}</strong>?
           </Typography>
           <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
-            <Button onClick={handleFecharModal} variant="outlined">
+            <Button onClick={handleFecharModalDeletar} variant="outlined">
               Cancelar
             </Button>
             <Button onClick={handleConfirmarDelete} variant="contained" color="error">
               Deletar
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+
+      {/* Modal para Editar Tipo de Combustível */}
+      <Modal open={modalEditarAberto} onClose={handleFecharModalEditar}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 400,
+            bgcolor: 'background.paper',
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+          }}
+        >
+          <Typography variant="h6" component="h2" mb={2}>
+            Editar Abastecimento ID: {abastecimentoSelecionado?.idAbastecimento}
+          </Typography>
+
+          <FormControl fullWidth margin="normal" error={erros.tipoCombustivel}>
+            <InputLabel id="tipo-combustivel-label">Tipo de Combustível</InputLabel>
+            <Select
+              labelId="tipo-combustivel-label"
+              value={abastecimentoSelecionado?.tipo_combustivel?.id_tipo_combustivel || ''}
+              label="Tipo de Combustível"
+              onChange={(e) => handleChangeTipoCombustivel(Number(e.target.value))}
+            >
+              {tiposCombustivel.map((tipo) => (
+                <MenuItem key={tipo.id_tipo_combustivel} value={tipo.id_tipo_combustivel}>
+                  {tipo.nome}
+                </MenuItem>
+              ))}
+            </Select>
+            {erros.tipoCombustivel && (
+              <FormHelperText>Selecione um tipo de combustível</FormHelperText>
+            )}
+          </FormControl>
+
+          <TextField
+            label="Justificativa da Alteração"
+            multiline
+            rows={4}
+            fullWidth
+            margin="normal"
+            value={justificativa}
+            onChange={(e) => {
+              setJustificativa(e.target.value);
+              setErros({ ...erros, justificativa: false });
+            }}
+            error={erros.justificativa}
+            helperText={erros.justificativa ? "Campo obrigatório" : ""}
+          />
+
+          <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
+            <Button onClick={handleFecharModalEditar} variant="outlined">
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleEditarAbastecimento} 
+              variant="contained" 
+              color="primary"
+            >
+              Salvar Alterações
             </Button>
           </Box>
         </Box>
