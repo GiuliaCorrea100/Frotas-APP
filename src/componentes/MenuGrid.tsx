@@ -13,6 +13,8 @@ import {
   Button,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { atualizarSituacaoCorrida } from '../api/corridaService';
+
 
 const API_URL = "http://localhost:3000/percurso";
 
@@ -134,6 +136,8 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
         localOrigem: corrida.local_de_saida || "",
       });
 
+      await atualizarSituacaoCorrida(corrida.idCorrida, 'ANDAMENTO');
+
       setIsCorridaIniciada(true);
       localStorage.setItem(`corrida_${corrida.idCorrida}_iniciada`, 'true');
 
@@ -155,6 +159,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
       }
     }
   };
+
 
   return (
     <Box sx={{ p: 4, maxWidth: 800, mx: "auto" }}>

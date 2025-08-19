@@ -32,7 +32,6 @@ export const createCorrida = async (
   corridaData: Omit<CorridaBackend, "idCorrida">
 ) => {
   try {
-    // Modificação aplicada aqui para tratar o dataTermino nulo
     const payload = {
       ...corridaData,
       dataInicio:
@@ -82,6 +81,18 @@ export const getCorridas = async (): Promise<CorridaFrontend[]> => {
     throw error;
   }
 };
+
+export const atualizarSituacaoCorrida = async (idCorrida: number, situacao: string): Promise<void> => {
+  try {
+    await axios.patch(`${API_URL}/${idCorrida}/situacao`, { situacao });
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || error.message);
+    }
+    throw error;
+  }
+};
+
 
 function formatCorrida(corrida: CorridaBackend): CorridaFrontend {
   return {
