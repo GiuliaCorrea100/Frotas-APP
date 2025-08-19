@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -48,6 +48,8 @@ export default function ListaCorridas() {
   const [corridaParaEditar, setCorridaParaEditar] = useState<CorridaFrontend | null>(null);
 
   const [filtroSituacao, setFiltroSituacao] = useState<string>('TODOS');
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const carregarCorridas = async () => {
@@ -176,6 +178,15 @@ export default function ListaCorridas() {
                 || ((corrida.situacao === "FINALIZADA") && (corrida.chaveEmprestada === false))}
             >
               Editar
+            </Button>
+            <Button
+              variant="contained"
+              color="success"
+              size="small"
+              onClick={() => navigate(`/DetalhesCorrida/${corrida.idCorrida}`)}
+              
+            >
+              Detalhes
             </Button>
             <Button
               variant="contained"
