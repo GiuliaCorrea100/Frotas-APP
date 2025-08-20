@@ -213,6 +213,7 @@ export default function ListaAbastecimentos() {
         <Typography>{params.value?.toLocaleString('pt-BR') || '0'}</Typography>
       )
     },
+
     {
       field: 'precoFinal',
       headerName: 'Preço Final',
@@ -225,6 +226,56 @@ export default function ListaAbastecimentos() {
         return <Typography>{formatted}</Typography>;
       }
     },
+    {
+      field: 'valorUnitarioLitro',
+      headerName: 'Valor Unitário por Litro',
+      flex: 1,
+      renderCell: (params) => {
+        const value = parseFloat(params.value);
+        const formatted = isNaN(value) 
+          ? 'N/A' 
+          : value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        return <Typography>{formatted}</Typography>;
+      }
+    }, 
+
+    {
+      field: 'valorMedioLitro',
+      headerName: 'Valor Médio por Litro',
+      flex: 1,
+      renderCell: (params) => {
+        const value = parseFloat(params.value);
+        const formatted = isNaN(value) 
+          ? 'N/A' 
+          : value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        return <Typography>{formatted}</Typography>;
+      }
+    }, 
+{
+      field: 'valorUnitario',
+      headerName: 'Valor Unitário',
+      flex: 1,
+      renderCell: (params) => {
+        const value = parseFloat(params.value);
+        const formatted = isNaN(value) 
+          ? 'N/A' 
+          : value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        return <Typography>{formatted}</Typography>;
+      }
+    }, 
+
+    {
+      field: 'valorMedioLitro',
+      headerName: 'Valor Médio',
+      flex: 1,
+      renderCell: (params) => {
+        const value = parseFloat(params.value);
+        const formatted = isNaN(value) 
+          ? 'N/A' 
+          : value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        return <Typography>{formatted}</Typography>;
+      }
+    }, 
     { 
       field: 'dataAbastecimento', 
       headerName: 'Data', 
@@ -253,6 +304,18 @@ export default function ListaAbastecimentos() {
       );
     }
   },
+  {
+      field: 'justificativaAlteracao',
+      headerName: 'Justificativa de Alteração',
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <Typography>
+            {params.value || 'N/A'}
+          </Typography>
+        );
+      }
+    }, 
     {
       field: 'acoes',
       headerName: 'Ações',

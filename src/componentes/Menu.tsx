@@ -255,6 +255,15 @@ const Menu: React.FC = () => {
                 to="/HistoricoIndividual"
                 sx={{ fontFamily: "inherit" }}
               >
+                Historico Individual
+              </Button>
+
+               <Button 
+                color="inherit" 
+                component={Link} 
+                to="/Relatorios"
+                sx={{ fontFamily: "inherit" }}
+              >
                 Relatórios
               </Button>
 

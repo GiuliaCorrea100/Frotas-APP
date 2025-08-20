@@ -29,10 +29,13 @@ import Ocorrencias from        './componentes/Ocorrencias';
 
 import { AuthProvider } from './context/AuthContext';
 
+import Relatorios  from './componentes/Relatorios/Relatorios';
+
 import PrivateRoute from './componentes/PrivateRoute';
 import ListaCorrida from './componentes/Listagem/painelCorrida/ListaCorrida';
 import HistoricoIndividual from './componentes/Listagem/HistoricoIndividual';
 import ListaAbastecimentos from './componentes/Listagem/painelAbastecimento/ListaAbastecimento';
+
 import CadastroAbastecimento from './componentes/cadastros/abastecimento/CadastroAbastecimento';
 
 const App: React.FC = () => {
@@ -72,9 +75,15 @@ const App: React.FC = () => {
         </Route>
 
 
+        
+        {/*  Relatórios */}
+        <Route path="/Relatorios" element={<Relatorios />} />
+
         {/* Rotas usuario comum */}
         <Route path="/HistoricoIndividual" element={<HistoricoIndividual/>} />
-        
+
+
+      
 
         {/* Rota para acesso negado */}
         <Route path="/unauthorized" element={<Unauthorized />} />

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Paper, FormControl, InputLabel, Select,
-  MenuItem, Button, useTheme, Menu
+  MenuItem, Button, useTheme
 } from '@mui/material';
 import {
   LocalGasStation, DirectionsCar, AttachMoney, TrendingUp, 
-  TrendingDown, Download, Speed, Menu as MenuIcon
+  TrendingDown, Download, Speed
 } from '@mui/icons-material';
 import { DataGrid } from '@mui/x-data-grid';
 import { ptBR } from '@mui/x-data-grid/locales';
@@ -92,7 +92,6 @@ const Relatorios: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   
   // Estado para os dados das informações gerais
   const [informacoesGerais, setInformacoesGerais] = useState({
@@ -137,42 +136,6 @@ const Relatorios: React.FC = () => {
     porCategoria: [] as {categoria: string, valor: number}[],
     detalhado: [] as any[],
   });
-
-  const menuItems = [
-    { 
-      label: 'VISÃO GERAL', 
-      value: 0,
-      icon: <Speed fontSize="small" />,
-    },
-    { 
-      label: 'ABASTECIMENTOS', 
-      value: 1,
-      icon: <LocalGasStation fontSize="small" />,
-    },
-    { 
-      label: 'VEÍCULOS', 
-      value: 2,
-      icon: <DirectionsCar fontSize="small" />,
-    },
-    { 
-      label: 'FINANCEIRO', 
-      value: 3,
-      icon: <AttachMoney fontSize="small" />,
-    },
-  ];
-
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleMenuItemClick = (value: number) => {
-    setActiveTab(value);
-    handleMenuClose();
-  };
 
   // Carrega os dados com base na tab ativa
   useEffect(() => {
@@ -267,7 +230,7 @@ const Relatorios: React.FC = () => {
         setVeiculosData(mockData);
       } catch (err) {
         console.error('Erro ao carregar dados dos veículos:', err);
-        setError('Erro ao carregar dados dos veículos. Tette novamente mais tarde.');
+        setError('Erro ao carregar dados dos veículos. Tente novamente mais tarde.');
       } finally {
         setLoading(false);
       }
@@ -296,7 +259,7 @@ const Relatorios: React.FC = () => {
           ],
           detalhado: [
             { id: 1, data: '15/06/2023', tipo: 'Abastecimento', categoria: 'Combustível', veiculo: 'Fiat Toro', descricao: 'Abastecimento gasolina', valor: 315.00, fornecedor: 'Posto Ipiranga' },
-            { id: 2, data: '10/06/2023', tipo: 'Manutenção', categoria: 'Revisão', veiculo: 'VW Gol', descricao: 'Troca de óleo e filtros', valor: 450.00, fornecedor: 'Oficina Central' }
+            { id: 2, data: '10/06/2023', tipo: 'Manutenção', categoria: 'Revisão', veiculo: 'VW Gol', descricao: 'Troca de óleo và filtros', valor: 450.00, fornecedor: 'Oficina Central' }
           ]
         };
         setFinanceiroData(mockData);
@@ -321,67 +284,87 @@ const Relatorios: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Cabeçalho com Menu e filtros */}
+      {/* Cabeçalho com tabs e filtros */}
       <Box sx={{ 
         width: '100%',
         mb: 3,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
         borderBottom: 1,
         borderColor: 'divider',
-        pb: 2
+        position: 'relative'
       }}>
-        {/* Botão do Menu */}
-        <Box>
-          <Button
-            aria-controls="relatorios-menu"
-            aria-haspopup="true"
-            onClick={handleMenuOpen}
-            startIcon={<MenuIcon />}
-            sx={{
-              color: 'text.primary',
-              fontWeight: 'medium',
-              textTransform: 'none',
-              fontSize: '1rem'
-            }}
-          >
-            {menuItems.find(item => item.value === activeTab)?.label || 'Relatórios'}
-          </Button>
-          <Menu
-            id="relatorios-menu"
-            anchorEl={anchorEl}
-            keepMounted
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-            PaperProps={{
-              sx: {
-                mt: 1,
-                minWidth: 200
-              }
-            }}
-          >
-            {menuItems.map((item) => (
-              <MenuItem
-                key={item.value}
-                onClick={() => handleMenuItemClick(item.value)}
-                selected={activeTab === item.value}
-                sx={{
-                  fontWeight: activeTab === item.value ? 600 : 400,
-                  color: activeTab === item.value ? 'primary.main' : 'text.primary'
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  {item.icon}
-                  {item.label}
-                </Box>
-              </MenuItem>
-            ))}
-          </Menu>
+        {/* Container das abas com scroll horizontal */}
+        <Box sx={{
+          display: 'flex',
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+          '&::-webkit-scrollbar': { display: 'none' }
+        }}>
+          {[
+            { 
+              label: 'VISÃO GERAL', 
+              value: 0,
+              icon: <Speed fontSize="small" />,
+              activeColor: '#1976d2'
+            },
+            { 
+              label: 'ABASTECIMENTOS', 
+              value: 1,
+              icon: <LocalGasStation fontSize="small" />,
+              activeColor: '#1976d2'
+            },
+            { 
+              label: 'VEÍCULOS', 
+              value: 2,
+              icon: <DirectionsCar fontSize="small" />,
+              activeColor: '#1976d2'
+            },
+            { 
+              label: 'FINANCEIRO', 
+              value: 3,
+              icon: <AttachMoney fontSize="small" />,
+              activeColor: '#1976d2'
+            },
+          ].map((tab) => (
+            <Button
+              key={tab.value}
+              disableRipple
+              onClick={() => setActiveTab(tab.value)}
+              startIcon={tab.icon}
+              sx={{
+                minWidth: 'fit-content',
+                px: 3,
+                py: 1.5,
+                borderRadius: 0,
+                borderBottom: activeTab === tab.value ? 2 : 0,
+                borderColor: tab.activeColor,
+                color: activeTab === tab.value ? 
+                  (theme.palette.mode === 'dark' ? '#90caf9' : tab.activeColor) : 
+                  'text.primary',
+                fontWeight: activeTab === tab.value ? 600 : 400,
+                fontSize: '0.875rem',
+                textTransform: 'none',
+                position: 'relative',
+                whiteSpace: 'nowrap',
+                '&:hover': {
+                  backgroundColor: 'transparent',
+                  color: theme.palette.mode === 'dark' ? '#90caf9' : tab.activeColor
+                }
+              }}
+            >
+              {tab.label}
+            </Button>
+          ))}
         </Box>
 
         {/* Filtros e botão de exportação */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{
+          position: 'absolute',
+          right: 0,
+          bottom: 10,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2
+        }}>
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <InputLabel>Ano</InputLabel>
             <Select 
