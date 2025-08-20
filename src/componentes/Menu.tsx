@@ -142,21 +142,6 @@ const Menu: React.FC = () => {
       return <MenuGrid corrida={dashboardData.corridaDeHoje} />;
     }
 
-    const agora = new Date();
-
-    const corridaHoje = dashboardData.proximasCorridas.find(corrida => {
-      const dataInicio = new Date(corrida.dataInicio);
-      return (
-        dataInicio.getFullYear() === agora.getFullYear() &&
-        dataInicio.getMonth() === agora.getMonth() &&
-        dataInicio.getDate() === agora.getDate()
-      );
-    });
-
-    if (corridaHoje) {
-      return <MenuGrid corrida={corridaHoje} />;
-    }
-
     if (dashboardData.proximasCorridas.length > 0) {
       return (
         <Box sx={{ p: { xs: 1, md: 3 }, width: '100%', maxWidth: '900px', mt: 2 }}>

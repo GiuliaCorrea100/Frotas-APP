@@ -167,6 +167,13 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
         <Typography variant="h5" fontWeight="bold" gutterBottom>
           Corrida:
         </Typography>
+        <Typography 
+          variant="body2" 
+          color={isCorridaIniciada ? "success.main" : "text.secondary"}
+          sx={{ mb: 2 }}
+        >
+          Situação: {isCorridaIniciada ? "EM ANDAMENTO" : "AGENDADA"}
+        </Typography>
         <Typography variant="subtitle2" color="text.secondary">
           De {formatDate(corrida.dataInicio)} até{" "}
           {corrida.dataTermino ? formatDate(corrida.dataTermino) : "em andamento"}
