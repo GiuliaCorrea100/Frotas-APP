@@ -34,6 +34,7 @@ interface Corrida {
   placaVeiculo?: string;
   nomeMotorista?: string;
   dataTermino?: string | null;
+  situacao?: string;
 }
 
 interface MotoristaDashboard {
@@ -138,7 +139,10 @@ const Menu: React.FC = () => {
       return null;
     }
 
-    if (dashboardData.corridaDeHoje) {
+    if (dashboardData.corridaDeHoje &&
+        (dashboardData.corridaDeHoje.situacao === 'ANDAMENTO' ||
+         dashboardData.corridaDeHoje.situacao === 'AGENDADA' ||
+         dashboardData.corridaDeHoje.situacao === 'FINALIZADA')) {
       return <MenuGrid corrida={dashboardData.corridaDeHoje} />;
     }
 
