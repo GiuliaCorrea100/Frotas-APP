@@ -90,6 +90,7 @@ interface Corrida {
   nomeMotorista?: string;
   dataTermino?: string | null;
   local_de_saida?: string;
+  situacao?: string;
 }
 
 interface MenuGridProps {
@@ -119,6 +120,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [finalizeSuccessModalOpen, setFinalizeSuccessModalOpen] = useState(false);
   const [isCorridaIniciada, setIsCorridaIniciada] = useState(false);
+  const [isCorridaFinalizada, setIsCorridaFinalizada] = useState(corrida.situacao === 'FINALIZADA');
   const [destino, setDestino] = useState("");
   const [odometro, setOdometro] = useState("");
   const [odometroFinal, setOdometroFinal] = useState("");
@@ -139,7 +141,15 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
       setIsCorridaIniciada(true);
       carregarPercursoAtual();
     }
-  }, [corrida.idCorrida]);
+
+    if (corrida.situacao === 'FINALIZADA') {
+      setIsCorridaFinalizada(true);
+    }
+  }, [corrida.idCorrida, corrida.situacao]);
+
+  const isIniciarDisabled = isCorridaFinalizada ? false : isCorridaIniciada;
+  const isFinalizarDisabled = isCorridaFinalizada ? true : !isCorridaIniciada;
+  const isOutrosBotoesDisabled = isCorridaFinalizada ? false : false;
 
   const handleClick = (path: string, label: string) => {
     if (label === "Iniciar Percurso") {
@@ -187,6 +197,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
 
       setPercursoAtual(percursoCriado);
       setIsCorridaIniciada(true);
+      setIsCorridaFinalizada(false);
       localStorage.setItem(`corrida_${corrida.idCorrida}_iniciada`, 'true');
 
       handleCloseIniciarModal();
@@ -222,6 +233,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
       await atualizarSituacaoCorrida(corrida.idCorrida, 'FINALIZADA');
   
       setIsCorridaIniciada(false);
+      setIsCorridaFinalizada(true);
       localStorage.removeItem(`corrida_${corrida.idCorrida}_iniciada`);
       setPercursoAtual(null);
   
@@ -246,10 +258,14 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
         </Typography>
         <Typography 
           variant="body2" 
-          color={isCorridaIniciada ? "success.main" : "text.secondary"}
-          sx={{ mb: 2 }}
+          color={
+            isCorridaFinalizada ? "success.main" : 
+            isCorridaIniciada ? "warning.main" : "text.secondary"
+          }
+          sx={{ mb: 2, fontWeight: 'bold' }}
         >
-          Situação: {isCorridaIniciada ? "EM ANDAMENTO" : "AGENDADA"}
+          Situação: {isCorridaFinalizada ? "FINALIZADA" : 
+                      isCorridaIniciada ? "EM ANDAMENTO" : "AGENDADA"}
         </Typography>
         <Typography variant="subtitle2" color="text.secondary">
           De {formatDate(corrida.dataInicio)} até{" "}
@@ -270,8 +286,11 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
             onClick={() => handleClick(item.path, item.label)}
             sx={{ borderRadius: 3, width: "100%" }}
             disabled={
-              (item.label === "Iniciar Percurso" && isCorridaIniciada) ||
-              (item.label === "Finalizar Percurso" && !isCorridaIniciada)
+              (item.label === "Iniciar Percurso" && isIniciarDisabled) ||
+              (item.label === "Finalizar Percurso" && isFinalizarDisabled) ||
+              (item.label !== "Iniciar Percurso" && 
+               item.label !== "Finalizar Percurso" && 
+               isOutrosBotoesDisabled)
             }
           >
             <Paper
@@ -283,8 +302,11 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
                 borderRadius: 3,
                 transition: "transform 0.2s, box-shadow 0.2s",
                 "&:hover": !(
-                  (item.label === "Iniciar Percurso" && isCorridaIniciada) ||
-                  (item.label === "Finalizar Percurso" && !isCorridaIniciada)
+                  (item.label === "Iniciar Percurso" && isIniciarDisabled) ||
+                  (item.label === "Finalizar Percurso" && isFinalizarDisabled) ||
+                  (item.label !== "Iniciar Percurso" && 
+                   item.label !== "Finalizar Percurso" && 
+                   isOutrosBotoesDisabled)
                 )
                   ? { transform: "scale(1.03)", boxShadow: 6 }
                   : {},
@@ -293,8 +315,11 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
                 justifyContent: "center",
                 minHeight: "120px",
                 opacity: (
-                  (item.label === "Iniciar Percurso" && isCorridaIniciada) ||
-                  (item.label === "Finalizar Percurso" && !isCorridaIniciada)
+                  (item.label === "Iniciar Percurso" && isIniciarDisabled) ||
+                  (item.label === "Finalizar Percurso" && isFinalizarDisabled) ||
+                  (item.label !== "Iniciar Percurso" && 
+                   item.label !== "Finalizar Percurso" && 
+                   isOutrosBotoesDisabled)
                 ) ? 0.6 : 1,
               }}
             >
