@@ -72,6 +72,7 @@ const App: React.FC = () => {
         {/* Rotas usuario comum */}
         <Route path="/HistoricoIndividual" element={<HistoricoIndividual/>} />
         
+        
 
         {/* Rota para acesso negado */}
         <Route path="/unauthorized" element={<Unauthorized />} />

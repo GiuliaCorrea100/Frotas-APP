@@ -15,6 +15,8 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { CorridaFrontend, CorridaDto, getCorridas, CorridaService } from '../../../api/corridaService';
 import Menu from "../../Menu";
 import SalvarEdicaoCorrida from "./modais/editarPainelCorrida";
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import ModeEditIcon from '@mui/icons-material/ModeEdit';
 
 const formatDate = (dateString: string | null) => {
   if (!dateString) return 'Em andamento';

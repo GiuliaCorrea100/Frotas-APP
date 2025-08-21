@@ -1,13 +1,13 @@
 import api from "../config/axiosConfig";
 
 export interface OcorrenciaDto {
-  idOcorrencias?: number;
+  idOcorrencia: number;
   descricao: string;
   idCorrida: number;
 }
 
 interface OcorrenciaBackend {
-  idOcorrencias?: number;
+  idOcorrencia?: number;
   descricao: string;
   idCorrida: number;
 }
@@ -33,14 +33,35 @@ export class OcorrenciaService {
     }
   }
 
-  static async buscarPorCorrida(idCorrida: number): Promise<OcorrenciaDto | null> {
+  // static async buscarPorCorrida(
+  //   idCorrida: number
+  // ): Promise<OcorrenciaDto | null> {
+  //   try {
+  //     const response = await api.get<OcorrenciaDto>(
+  //       `/ocorrencias/buscar-por-corrida/${idCorrida}`
+  //     );
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error(
+  //       `Erro ao buscar ocorrência para corrida ${idCorrida}:`,
+  //       error
+  //     );
+  //     return null;
+  //   }
+  // }
+
+  static async buscarPorCorrida(idCorrida: number): Promise<OcorrenciaDto[]> {
     try {
-      const response = await api.get<OcorrenciaDto>(`/ocorrencias/buscar-por-corrida/${idCorrida}`);
+      const response = await api.get<OcorrenciaDto[]>(
+        `/ocorrencias/buscar-por-corrida/${idCorrida}`
+      );
       return response.data;
     } catch (error) {
-      console.error(`Erro ao buscar ocorrência para corrida ${idCorrida}:`, error);
-      return null;
+      console.error(
+        `Erro ao buscar ocorrências para corrida ${idCorrida}:`,
+        error
+      );
+      return [];
     }
   }
-
 }

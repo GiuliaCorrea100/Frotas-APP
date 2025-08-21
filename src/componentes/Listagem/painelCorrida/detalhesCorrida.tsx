@@ -10,111 +10,68 @@ import {
   Stack,
   Button,
 } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
 import Menu from "../../Menu";
 import { CorridaFrontend, getCorridaById } from "../../../api/corridaService";
-import { OcorrenciaDto, OcorrenciaService } from "../../../api/ocorrenciasService";
+import { OcorrenciaDto,OcorrenciaService } from "../../../api/ocorrenciasService";
 import { GridColDef } from "@mui/x-data-grid";
-import ModalEditarOcorrencia from "./modais/editarOcorrencias";
-import { Add } from "@mui/icons-material";
-import CadastrarOcorrencia from "../../cadastros/corrida/modais/ocorrenciasModal";
 
 const DetalhesRequisicao: React.FC = () => {
   const theme = useTheme();
   const { id } = useParams<{ id: string }>();
   const [corrida, setCorrida] = useState<CorridaFrontend | null>(null);
   const [loading, setLoading] = useState(true);
-  const [ocorrencias, setOcorrencias] = useState<OcorrenciaDto[]>([]);
 
-  const [modalAberto, setModalAberto] = useState(false);
-  const [ocorrenciaSelecionada, setOcorrenciaSelecionada] = useState<OcorrenciaDto | null>(null);
-  const [percursoSelecionado, setPercursoSelecionado] = useState<OcorrenciaDto | null>(null);
-  const [abastecimentoSelecionado, setAbastecimentoSelecionado] = useState<OcorrenciaDto | null>(null);
-  
   const navigate = useNavigate();
 
   useEffect(() => {
-    carregarDados();
+    if (id) {
+      getCorridaById(Number(id))
+        .then((res) => setCorrida(res))
+        .catch((err) => console.error("Erro ao carregar corrida:", err))
+        .finally(() => setLoading(false));
+    }
   }, [id]);
 
-  const carregarDados = async () => {
-    try {
-      setLoading(true);
-      if (id) {
-        const [corridaData, ocorrenciasData] = await Promise.all([
-          getCorridaById(Number(id)),
-          OcorrenciaService.buscarPorCorrida(Number(id))
-        ]);
-        setCorrida(corridaData);
-        if (Array.isArray(ocorrenciasData)) {
-          setOcorrencias(ocorrenciasData);
-        } else if (ocorrenciasData) {
-          setOcorrencias([ocorrenciasData]);
-        }
-      }
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   const columnsOcorrencias: GridColDef<OcorrenciaDto>[] = [
-    {
-      field: 'descricao',
-      headerName: 'Descrição',
-      flex: 1,
-      renderCell: (params) => (
-        <Typography fontWeight="bold">{params.value}</Typography>
-      )
-    },
-    {
-      field: 'acoes',
-      headerName: 'Ações',
-      flex: 1,
-      sortable: false,
-      filterable: false,
-      renderCell: (params) => {
-        const ocorrencia = params.row;
-        return (
-          <Box sx={{ display: 'flex', gap: 1 }}>
+      {
+        field: 'descricao',
+        headerName: 'Descrição',
+        flex: 1,
+        renderCell: (params) => (
+          <Typography fontWeight="bold">{params.value}</Typography>
+        )
+      },
+      {
+        field: 'acoes',
+        headerName: 'Ações',
+        flex: 1,
+        sortable: false,
+        filterable: false,
+        renderCell: (params) => {
+          const ocorrencia = params.row;
+          return(
+            <Box sx={{ display: 'flex', gap: 1 }}>
             <Button
               variant="outlined"
               color="warning"
               size="small"
-              onClick={() => handleAbrirModalEditarOcorrencia(ocorrencia)}
+              //onClick={() => handleAbrirModalEditarOcorrencia(ocorrencia)}
             >
               Editar
             </Button>
-          </Box>
-        );
+            </Box>
+          );
+        }
       }
-    }
   ]
-
-  const handleAbrirModalEditarOcorrencia = (ocorrencia: OcorrenciaDto) => {
-    setOcorrenciaSelecionada(ocorrencia);
-    setModalAberto(true);
-  };
-
-  const handleFecharModal = () => {
-    setModalAberto(false);
-    setOcorrenciaSelecionada(null);
-  };
-
-  const fecharModal = () => {
-    setModalAberto(false);
-  }
 
 
   return (
     <>
       <Menu />
-      
-      {/* Card de Informações Básicas */}
-      <Card
+        <Card
         sx={{
-          margin: 2,
+          height: "100%",
           boxShadow: theme.shadows[1],
           border: "1px solid",
           borderColor: "divider",
@@ -196,10 +153,9 @@ const DetalhesRequisicao: React.FC = () => {
         </CardContent>
       </Card>
       
-      {/* Card de Ocorrências */}
       <Card
         sx={{
-          margin: 2,
+          height: "100%",
           boxShadow: theme.shadows[1],
           border: "1px solid",
           borderColor: "divider",
@@ -217,45 +173,34 @@ const DetalhesRequisicao: React.FC = () => {
           }}
         />
         <CardContent>
-          <Button 
-              variant="contained"
-              //onClick={handleAbriModalNovoAdmin}
-              startIcon={<Add />}
-              sx={{ 
-                textTransform: 'none',
-                fontWeight: 600,
-                boxShadow: theme.shadows[2]
-              }}
-            >
-              Nova Ocorrencia
-            </Button>
           {loading ? (
             <Typography variant="body2" color="text.secondary">
-              Carregando ocorrências...
+              Carregando informações da corrida...
             </Typography>
-          ) : ocorrencias.length > 0 ? (
-            <Box sx={{ height: 400, width: '100%' }}>
-              <DataGrid
-                rows={ocorrencias}
-                columns={columnsOcorrencias}
-                paginationModel={{ page: 0, pageSize: 5 }}
-                pageSizeOptions={[5]}
-                disableRowSelectionOnClick
-                getRowId={(row) => row.idOcorrencia}
-              />
-            </Box>
+          ) : corrida ? (
+            <Stack spacing={1.5}>
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  Descrição:
+                </Typography>
+                <Typography variant="body1">{corrida.nomeMotorista}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Data registro:
+                </Typography>
+                <Typography variant="body1">{corrida.placaVeiculo}</Typography>
+              </Box>
+            </Stack>
           ) : (
-            <Typography variant="body2" color="text.secondary">
-              Nenhuma ocorrência cadastrada para esta corrida.
+            <Typography variant="body2" color="error">
+              Corrida não encontrada.
             </Typography>
           )}
         </CardContent>
       </Card>
 
-      
       <Card
         sx={{
-          margin: 2,
+          height: "100%",
           boxShadow: theme.shadows[1],
           border: "1px solid",
           borderColor: "divider",
@@ -273,15 +218,27 @@ const DetalhesRequisicao: React.FC = () => {
           }}
         />
         <CardContent>
-          <Typography variant="body2" color="text.secondary">
-            {loading ? "Carregando..." : "Nenhum abastecimento cadastrado."}
-          </Typography>
+          {loading ? (
+            <Typography variant="body2" color="text.secondary">
+              Carregando informações da corrida...
+            </Typography>
+          ) : corrida ? (
+            <Stack spacing={1.5}>
+              <Box>
+                {/* aqui vão as informações do abastecimento */}
+              </Box>
+            </Stack>
+          ) : (
+            <Typography variant="body2" color="error">
+              Não existem abastecimentos cadastrados.
+            </Typography>
+          )}
         </CardContent>
       </Card>
 
       <Card
         sx={{
-          margin: 2,
+          height: "100%",
           boxShadow: theme.shadows[1],
           border: "1px solid",
           borderColor: "divider",
@@ -299,35 +256,26 @@ const DetalhesRequisicao: React.FC = () => {
           }}
         />
         <CardContent>
-          <Typography variant="body2" color="text.secondary">
-            {loading ? "Carregando..." : "Nenhum percurso cadastrado."}
-          </Typography>
+          {loading ? (
+            <Typography variant="body2" color="text.secondary">
+              Carregando informações da corrida...
+            </Typography>
+          ) : corrida ? (
+            <Stack spacing={1.5}>
+              <Box>
+                {/* aqui vão as informações dos percursos cadastrados */}
+              </Box>
+            </Stack>
+          ) : (
+            <Typography variant="body2" color="error">
+              Não existem abastecimentos cadastrados.
+            </Typography>
+          )}
         </CardContent>
       </Card>
       
-      <ModalEditarOcorrencia
-        open={modalAberto}
-        ocorrencia={ocorrenciaSelecionada}
-        onClose={handleFecharModal}
-        onSuccess={async (msg) => {
-          console.log(msg);
-          await carregarDados(); 
-        }}
-        onError={(err) => {
-          console.error(err);
-        }}
-      />
-
-      {/* <CadastrarOcorrencia open={modalAberto} onClose={fecharModal} corrida={corrida?.idCorrida}
-        onSuccess={() => {
-          console.log("Ocorrência salva com sucesso!");
-        }}
-        onError={(erro) => {
-          console.error("Erro ao salvar ocorrência:", erro);
-        }}
-      /> */}
-
     </>
+    
   );
 };
 
