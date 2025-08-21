@@ -24,7 +24,7 @@ export interface PercursoBackend {
   saidaOdometro: number;
   saidaHora?: Date;
   chegadaHora?: Date;
-  chegadaodometro?: number; // Corrigido para corresponder ao backend
+  chegadaodometro?: number;
   localOrigem?: string;
 }
 
@@ -213,18 +213,18 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
       alert("Não foi possível encontrar o percurso atual ou o odômetro não foi preenchido.");
       return;
     }
-
+  
     try {
       await finalizarPercurso(percursoAtual.idPercurso, {
         chegadaOdometro: parseFloat(odometroFinal)
       });
-
+  
       await atualizarSituacaoCorrida(corrida.idCorrida, 'FINALIZADA');
-
+  
       setIsCorridaIniciada(false);
       localStorage.removeItem(`corrida_${corrida.idCorrida}_iniciada`);
       setPercursoAtual(null);
-
+  
       handleCloseFinalizarModal();
       setFinalizeSuccessModalOpen(true);
     } catch (error: unknown) {
