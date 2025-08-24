@@ -13,6 +13,7 @@ import {
   Button,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { atualizarSituacaoCorrida } from "../api/corridaService";
 
 const API_URL = "http://localhost:3000/percurso";
 
@@ -94,6 +95,7 @@ interface Corrida {
 
 interface MenuGridProps {
   corrida: Corrida;
+  onCorridaUpdate?: (corridaAtualizada: Corrida) => void;
 }
 
 const menuItems = [
@@ -112,7 +114,7 @@ const formatDate = (dateString: string) => {
   }
 };
 
-const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
+const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
   const navigate = useNavigate();
   const [modalIniciarOpen, setModalIniciarOpen] = useState(false);
   const [modalFinalizarOpen, setModalFinalizarOpen] = useState(false);
@@ -124,6 +126,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
   const [odometroFinal, setOdometroFinal] = useState("");
   const [percursoAtual, setPercursoAtual] = useState<PercursoBackend | null>(null);
   const [percursosAtivosCount, setPercursosAtivosCount] = useState(0);
+  const [corridaLocal, setCorridaLocal] = useState<Corrida>(corrida);
 
   const buscarPercursosDaCorrida = async () => {
     try {
@@ -159,6 +162,10 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
     carregarDadosCorrida();
   }, [corrida.idCorrida]);
 
+  useEffect(() => {
+    setCorridaLocal(corrida);
+  }, [corrida]);
+
   const isIniciarDisabled = isCorridaIniciada;
   const isFinalizarDisabled = !isCorridaIniciada;
   const isOutrosBotoesDisabled = false;
@@ -191,9 +198,20 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
       await iniciarPercurso({
         localDestino: destino,
         odometroInicial: parseFloat(odometro),
-        idCorrida: corrida.idCorrida,
-        localOrigem: corrida.local_de_saida || "",
+        idCorrida: corridaLocal.idCorrida,
+        localOrigem: corridaLocal.local_de_saida || "",
       });
+      
+      if (corridaLocal.situacao === 'AGENDADA') {
+        await atualizarSituacaoCorrida(corridaLocal.idCorrida, 'ANDAMENTO');
+        
+        const corridaAtualizada = { ...corridaLocal, situacao: 'ANDAMENTO' };
+        setCorridaLocal(corridaAtualizada);
+        
+        if (onCorridaUpdate) {
+          onCorridaUpdate(corridaAtualizada);
+        }
+      }
       
       await buscarPercursosDaCorrida();
 
@@ -239,17 +257,17 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
         <Typography
           variant="body2"
           color={
-            corrida.situacao === 'FINALIZADA' ? "success.main" :
+            corridaLocal.situacao === 'FINALIZADA' ? "success.main" :
             percursosAtivosCount > 0 ? "warning.main" : "text.secondary"
           }
           sx={{ mb: 2, fontWeight: 'bold' }}
         >
-          Situação: {corrida.situacao} 
+          Situação: {corridaLocal.situacao} 
           {percursosAtivosCount > 0 && ` (${percursosAtivosCount} percurso(s) ativo(s))`}
         </Typography>
         <Typography variant="subtitle2" color="text.secondary">
-          De {formatDate(corrida.dataInicio)} até{" "}
-          {corrida.dataTermino ? formatDate(corrida.dataTermino) : "em andamento"}
+          De {formatDate(corridaLocal.dataInicio)} até{" "}
+          {corridaLocal.dataTermino ? formatDate(corridaLocal.dataTermino) : "em andamento"}
         </Typography>
       </Box>
 
@@ -331,7 +349,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
           <Box sx={{ mt: 2 }}>
             <TextField
               label="Local de Saída"
-              value={corrida.local_de_saida || "Não informado"}
+              value={corridaLocal.local_de_saida || "Não informado"}
               fullWidth
               sx={{ mb: 2 }}
               InputProps={{
