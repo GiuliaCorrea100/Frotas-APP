@@ -82,6 +82,16 @@ export const getCorridas = async (): Promise<CorridaFrontend[]> => {
   }
 };
 
+export const buscarCorridaPorId = async (idCorrida: number): Promise<CorridaBackend> => {
+  try {
+    const response = await axios.get(`${API_URL}/${idCorrida}`);
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao buscar corrida:", error);
+    throw error;
+  }
+};
+
 export const atualizarSituacaoCorrida = async (idCorrida: number, situacao: string): Promise<void> => {
   try {
     await axios.patch(`${API_URL}/${idCorrida}/situacao`, { situacao });
@@ -92,7 +102,6 @@ export const atualizarSituacaoCorrida = async (idCorrida: number, situacao: stri
     throw error;
   }
 };
-
 
 function formatCorrida(corrida: CorridaBackend): CorridaFrontend {
   return {

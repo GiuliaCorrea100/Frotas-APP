@@ -13,7 +13,6 @@ import {
   Button,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { atualizarSituacaoCorrida } from '../api/corridaService';
 
 const API_URL = "http://localhost:3000/percurso";
 
@@ -23,7 +22,7 @@ export interface PercursoBackend {
   localDestino: string;
   saidaOdometro: number;
   saidaHora?: Date;
-  chegadaHora?: Date;
+  chegadaHora?: Date | null;
   chegadaodometro?: number;
   localOrigem?: string;
 }
@@ -120,36 +119,49 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [finalizeSuccessModalOpen, setFinalizeSuccessModalOpen] = useState(false);
   const [isCorridaIniciada, setIsCorridaIniciada] = useState(false);
-  const [isCorridaFinalizada, setIsCorridaFinalizada] = useState(corrida.situacao === 'FINALIZADA');
   const [destino, setDestino] = useState("");
   const [odometro, setOdometro] = useState("");
   const [odometroFinal, setOdometroFinal] = useState("");
   const [percursoAtual, setPercursoAtual] = useState<PercursoBackend | null>(null);
+  const [percursosAtivosCount, setPercursosAtivosCount] = useState(0);
+
+  const buscarPercursosDaCorrida = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/corrida/${corrida.idCorrida}`);
+      const percursos: PercursoBackend[] = response.data;
+
+      const countResponse = await axios.get(`${API_URL}/corrida/${corrida.idCorrida}/ativos/count`);
+      setPercursosAtivosCount(countResponse.data);
+
+      const percursoAtivo = percursos.find((percurso) => !percurso.chegadaHora);
+      setPercursoAtual(percursoAtivo || null);
+      setIsCorridaIniciada(!!percursoAtivo);
+
+    } catch (error) {
+      console.error("Nenhum percurso encontrado ou erro ao buscar:", error);
+      setPercursoAtual(null);
+      setIsCorridaIniciada(false);
+      setPercursosAtivosCount(0);
+    }
+  };
 
   useEffect(() => {
-    const carregarPercursoAtual = async () => {
+    const carregarDadosCorrida = async () => {
       try {
-        const response = await axios.get(`${API_URL}/corrida/${corrida.idCorrida}`);
-        setPercursoAtual(response.data);
+        await buscarPercursosDaCorrida();
       } catch (error) {
-        console.error("Erro ao carregar percurso atual:", error);
+        console.error("Erro ao carregar dados da corrida:", error);
+        setIsCorridaIniciada(false);
+        setPercursosAtivosCount(0);
       }
     };
 
-    const corridaStatus = localStorage.getItem(`corrida_${corrida.idCorrida}_iniciada`);
-    if (corridaStatus === "true") {
-      setIsCorridaIniciada(true);
-      carregarPercursoAtual();
-    }
+    carregarDadosCorrida();
+  }, [corrida.idCorrida]);
 
-    if (corrida.situacao === 'FINALIZADA') {
-      setIsCorridaFinalizada(true);
-    }
-  }, [corrida.idCorrida, corrida.situacao]);
-
-  const isIniciarDisabled = isCorridaFinalizada ? false : isCorridaIniciada;
-  const isFinalizarDisabled = isCorridaFinalizada ? true : !isCorridaIniciada;
-  const isOutrosBotoesDisabled = isCorridaFinalizada ? false : false;
+  const isIniciarDisabled = isCorridaIniciada;
+  const isFinalizarDisabled = !isCorridaIniciada;
+  const isOutrosBotoesDisabled = false;
 
   const handleClick = (path: string, label: string) => {
     if (label === "Iniciar Percurso") {
@@ -161,23 +173,13 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
     }
   };
 
-  const handleCloseIniciarModal = () => {
-    setModalIniciarOpen(false);
-  };
-
+  const handleCloseIniciarModal = () => setModalIniciarOpen(false);
   const handleCloseFinalizarModal = () => {
     setModalFinalizarOpen(false);
     setOdometroFinal("");
   };
-
-  const handleSuccessClose = () => {
-    setSuccessModalOpen(false);
-  };
-
-  const handleFinalizeSuccessClose = () => {
-    setFinalizeSuccessModalOpen(false);
-    navigate('/menu');
-  };
+  const handleSuccessClose = () => setSuccessModalOpen(false);
+  const handleFinalizeSuccessClose = () => setFinalizeSuccessModalOpen(false);
 
   const handleIniciarCorrida = async () => {
     if (!destino || !odometro) {
@@ -186,19 +188,14 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
     }
 
     try {
-      const percursoCriado = await iniciarPercurso({
+      await iniciarPercurso({
         localDestino: destino,
         odometroInicial: parseFloat(odometro),
         idCorrida: corrida.idCorrida,
         localOrigem: corrida.local_de_saida || "",
       });
-
-      await atualizarSituacaoCorrida(corrida.idCorrida, 'ANDAMENTO');
-
-      setPercursoAtual(percursoCriado);
-      setIsCorridaIniciada(true);
-      setIsCorridaFinalizada(false);
-      localStorage.setItem(`corrida_${corrida.idCorrida}_iniciada`, 'true');
+      
+      await buscarPercursosDaCorrida();
 
       handleCloseIniciarModal();
       setDestino("");
@@ -206,16 +203,8 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
       setSuccessModalOpen(true);
     } catch (error: unknown) {
       console.error("Erro ao iniciar percurso:", error);
-      
-      if (error instanceof Error) {
-        if (error.message.includes('já foi iniciada')) {
-          setIsCorridaIniciada(true);
-          localStorage.setItem(`corrida_${corrida.idCorrida}_iniciada`, 'true');
-        }
-        alert(error.message || "Ocorreu um erro ao iniciar o percurso");
-      } else {
-        alert("Ocorreu um erro desconhecido ao iniciar o percurso");
-      }
+      const message = error instanceof Error ? error.message : "Ocorreu um erro desconhecido";
+      alert(message);
     }
   };
 
@@ -224,29 +213,20 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
       alert("Não foi possível encontrar o percurso atual ou o odômetro não foi preenchido.");
       return;
     }
-  
+
     try {
       await finalizarPercurso(percursoAtual.idPercurso, {
         chegadaOdometro: parseFloat(odometroFinal)
       });
-  
-      await atualizarSituacaoCorrida(corrida.idCorrida, 'FINALIZADA');
-  
-      setIsCorridaIniciada(false);
-      setIsCorridaFinalizada(true);
-      localStorage.removeItem(`corrida_${corrida.idCorrida}_iniciada`);
-      setPercursoAtual(null);
-  
+      
+      await buscarPercursosDaCorrida();
+
       handleCloseFinalizarModal();
       setFinalizeSuccessModalOpen(true);
     } catch (error: unknown) {
       console.error("Erro ao finalizar percurso:", error);
-      
-      if (error instanceof Error) {
-        alert(error.message || "Ocorreu um erro ao finalizar o percurso");
-      } else {
-        alert("Ocorreu um erro desconhecido ao finalizar o percurso");
-      }
+      const message = error instanceof Error ? error.message : "Ocorreu um erro desconhecido";
+      alert(message);
     }
   };
 
@@ -256,16 +236,16 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
         <Typography variant="h5" fontWeight="bold" gutterBottom>
           Corrida:
         </Typography>
-        <Typography 
-          variant="body2" 
+        <Typography
+          variant="body2"
           color={
-            isCorridaFinalizada ? "success.main" : 
-            isCorridaIniciada ? "warning.main" : "text.secondary"
+            corrida.situacao === 'FINALIZADA' ? "success.main" :
+            percursosAtivosCount > 0 ? "warning.main" : "text.secondary"
           }
           sx={{ mb: 2, fontWeight: 'bold' }}
         >
-          Situação: {isCorridaFinalizada ? "FINALIZADA" : 
-                      isCorridaIniciada ? "EM ANDAMENTO" : "AGENDADA"}
+          Situação: {corrida.situacao} 
+          {percursosAtivosCount > 0 && ` (${percursosAtivosCount} percurso(s) ativo(s))`}
         </Typography>
         <Typography variant="subtitle2" color="text.secondary">
           De {formatDate(corrida.dataInicio)} até{" "}
@@ -288,8 +268,8 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
             disabled={
               (item.label === "Iniciar Percurso" && isIniciarDisabled) ||
               (item.label === "Finalizar Percurso" && isFinalizarDisabled) ||
-              (item.label !== "Iniciar Percurso" && 
-               item.label !== "Finalizar Percurso" && 
+              (item.label !== "Iniciar Percurso" &&
+               item.label !== "Finalizar Percurso" &&
                isOutrosBotoesDisabled)
             }
           >
@@ -301,29 +281,36 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
                 textAlign: "center",
                 borderRadius: 3,
                 transition: "transform 0.2s, box-shadow 0.2s",
-                "&:hover": !(
-                  (item.label === "Iniciar Percurso" && isIniciarDisabled) ||
-                  (item.label === "Finalizar Percurso" && isFinalizarDisabled) ||
-                  (item.label !== "Iniciar Percurso" && 
-                   item.label !== "Finalizar Percurso" && 
-                   isOutrosBotoesDisabled)
-                )
-                  ? { transform: "scale(1.03)", boxShadow: 6 }
-                  : {},
+                "&:hover": { 
+                    transform: "scale(1.03)", 
+                    boxShadow: isIniciarDisabled && item.label === "Iniciar Percurso" ? 4 : 6,
+                    cursor: isIniciarDisabled && item.label === "Iniciar Percurso" ? "not-allowed" : "pointer"
+                },
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 minHeight: "120px",
                 opacity: (
                   (item.label === "Iniciar Percurso" && isIniciarDisabled) ||
-                  (item.label === "Finalizar Percurso" && isFinalizarDisabled) ||
-                  (item.label !== "Iniciar Percurso" && 
-                   item.label !== "Finalizar Percurso" && 
-                   isOutrosBotoesDisabled)
+                  (item.label === "Finalizar Percurso" && isFinalizarDisabled)
                 ) ? 0.6 : 1,
+                backgroundColor: (
+                  (item.label === "Iniciar Percurso" && isIniciarDisabled) ||
+                  (item.label === "Finalizar Percurso" && isFinalizarDisabled)
+                ) ? "action.disabledBackground" : "background.paper"
               }}
             >
-              <Typography sx={{ fontWeight: "bold" }}>{item.label}</Typography>
+              <Typography 
+                sx={{ 
+                  fontWeight: "bold",
+                  color: (
+                    (item.label === "Iniciar Percurso" && isIniciarDisabled) ||
+                    (item.label === "Finalizar Percurso" && isFinalizarDisabled)
+                  ) ? "text.disabled" : "text.primary"
+                }}
+              >
+                {item.label}
+              </Typography>
             </Paper>
           </ButtonBase>
         ))}
@@ -332,14 +319,25 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
       <Dialog open={modalIniciarOpen} onClose={handleCloseIniciarModal} fullWidth>
         <DialogTitle>
           <Typography component="div" fontWeight="bold" sx={{ fontSize: "1.25rem" }}>
-            Iniciar Percurso
+            Iniciar Novo Percurso
           </Typography>
+          {percursosAtivosCount > 0 && (
+            <Typography variant="body2" color="warning.main">
+              Existe(m) {percursosAtivosCount} percurso(s) ativo(s) nesta corrida
+            </Typography>
+          )}
         </DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2 }}>
-            <Typography variant="body1" sx={{ mb: 2 }}>
-              <strong>Local de Saída:</strong> {corrida.local_de_saida || "Não informado"}
-            </Typography>
+            <TextField
+              label="Local de Saída"
+              value={corrida.local_de_saida || "Não informado"}
+              fullWidth
+              sx={{ mb: 2 }}
+              InputProps={{
+                readOnly: true,
+              }}
+            />
             <TextField
               label="Local de Destino"
               value={destino}
@@ -429,7 +427,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida }) => {
       </Dialog>
 
       <Dialog open={successModalOpen} onClose={handleSuccessClose}>
-        <DialogTitle>Corrida iniciada com sucesso</DialogTitle>
+        <DialogTitle>Percurso iniciado com sucesso</DialogTitle>
         <DialogActions>
           <Button onClick={handleSuccessClose}>OK</Button>
         </DialogActions>
