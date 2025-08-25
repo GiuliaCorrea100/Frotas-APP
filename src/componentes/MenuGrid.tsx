@@ -2,28 +2,33 @@ import React, { useState } from "react";
 import { Box, Typography, Paper, ButtonBase } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import CadastrarOcorrencia from "./cadastros/corrida/modais/ocorrenciasModal";
+import AbastecimentoModal from "./cadastros/abastecimento/ModalCadastroAbastecimento"; 
+import { CorridaFrontend } from "../api/corridaService";
 
 const menuItems = [
   { label: "Iniciar Percurso", path: "/IniciarPercurso" },
   { label: "Finalizar Percurso", path: "/FinalizarPercurso" },
-  { label: "Abastecimento", path: "/Abastecimento" },
-  { label: "Ocorrências", path: "#abrirModal" },
+  { label: "Abastecimento", path: "#abastecimentoModal" },
+  { label: "Ocorrências", path: "#ocorrenciaModal" },
 ];
 
 type MenuGridProps = {
-  idCorrida: number;
+  corrida: CorridaFrontend | null;
 };
 
-const MenuGrid = ( { idCorrida }: MenuGridProps ) => {
+const MenuGrid = ({ corrida }: MenuGridProps) => {
   const navigate = useNavigate();
-  const [modalAberto, setModalAberto] = useState(false);
+  const [ocorrenciaModalAberto, setOcorrenciaModalAberto] = useState(false);
+  const [abastecimentoModalAberto, setAbastecimentoModalAberto] = useState(false);
 
-
-  const fecharModal = () => setModalAberto(false);
+  const fecharOcorrenciaModal = () => setOcorrenciaModalAberto(false);
+  const fecharAbastecimentoModal = () => setAbastecimentoModalAberto(false);
 
   const handleClick = (path: string) => {
-    if (path === "#abrirModal") {
-      setModalAberto(true);
+    if (path === "#ocorrenciaModal") {
+      setOcorrenciaModalAberto(true);
+    } else if (path === "#abastecimentoModal") {
+      setAbastecimentoModalAberto(true);
     } else {
       navigate(path);
     }
@@ -79,7 +84,11 @@ const MenuGrid = ( { idCorrida }: MenuGridProps ) => {
         ))}
       </Box>
 
-      <CadastrarOcorrencia open={modalAberto} onClose={fecharModal} corrida={idCorrida}
+      <CadastrarOcorrencia 
+      <CadastrarOcorrencia 
+        open={ocorrenciaModalAberto} 
+        onClose={fecharOcorrenciaModal} 
+        corrida={corrida}
         onSuccess={() => {
           console.log("Ocorrência salva com sucesso!");
         }}
@@ -87,7 +96,18 @@ const MenuGrid = ( { idCorrida }: MenuGridProps ) => {
           console.error("Erro ao salvar ocorrência:", erro);
         }}
       />
-    </Box>
+
+      <AbastecimentoModal
+        open={abastecimentoModalAberto}
+        onClose={fecharAbastecimentoModal}
+        corrida={corrida}
+        onSuccess={() => {
+          console.log("Abastecimento cadastrado com sucesso!");
+        }}
+        onError={(erro: any) => {
+          console.error("Erro ao cadastrar abastecimento:", erro);
+        }}
+      />
   );
 };
 

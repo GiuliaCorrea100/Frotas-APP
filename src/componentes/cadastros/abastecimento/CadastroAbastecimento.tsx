@@ -147,6 +147,7 @@ const CadastroAbastecimento: React.FC = () => {
       valorUnitario: formData.valor_unitario ? parseFloat(formData.valor_unitario) : 0,
       valorMedio: formData.valor_medio ? parseFloat(formData.valor_medio) : 0,
       justificativaAlteracao: formData.justificativa_alteracao || '',
+      
       tipo_combustivel: parseInt(formData.tipo_combustivel_id),
       corrida: parseInt(formData.id_corrida),
     };

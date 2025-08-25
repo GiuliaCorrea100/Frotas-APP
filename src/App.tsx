@@ -36,6 +36,7 @@ import ListaCorrida from './componentes/Listagem/painelCorrida/ListaCorrida';
 import HistoricoIndividual from './componentes/Listagem/HistoricoIndividual';
 import ListaAbastecimentos from './componentes/Listagem/painelAbastecimento/ListaAbastecimento';
 
+import AbastecimentoModal from './componentes/cadastros/abastecimento/ModalCadastroAbastecimento'; 
 import CadastroAbastecimento from './componentes/cadastros/abastecimento/CadastroAbastecimento';
 
 const App: React.FC = () => {
@@ -55,7 +56,9 @@ const App: React.FC = () => {
           <Route path="/CadastroMulta" element={<CadastroMulta />} />
           <Route path="/CadastroCarro" element={<CadastroCarro />} />
           <Route path="/CadastrarCorrida" element={<CadastrarCorrida />} />
-          <Route path="/CadastroAbastecimento" element={<CadastroAbastecimento />} />
+          <Route path="/CadastrarAbastecimento" element={<CadastroAbastecimento />} />
+
+         {/* <Route path="/AbastecimentoModal" element={<AbastecimentoModal /> } />  */}
 
           {/*Paginas de Cadastro*/}
           <Route path="/ListaMultas" element={<ListaMulta />} />
@@ -75,15 +78,12 @@ const App: React.FC = () => {
         </Route>
 
 
-        
-        {/*  Relatórios */}
+      
+        {/*  Relatórios      /> */}
         <Route path="/Relatorios" element={<Relatorios />} />
-
         {/* Rotas usuario comum */}
         <Route path="/HistoricoIndividual" element={<HistoricoIndividual/>} />
 
-
-      
 
         {/* Rota para acesso negado */}
         <Route path="/unauthorized" element={<Unauthorized />} />
