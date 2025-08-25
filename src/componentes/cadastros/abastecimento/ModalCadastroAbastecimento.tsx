@@ -39,7 +39,7 @@ const modalStyle = {
 interface AbastecimentoModalProps {
   open: boolean;
   onClose: () => void;
-  corridaId?: number; // ID da corrida pré-selecionada (se houver)
+  corridaId?: number;
   onSuccess?: () => void;
 }
 
@@ -69,22 +69,29 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
   const [tiposCombustivel, setTiposCombustivel] = useState<TipoCombustivel[]>([]);
   const [corridas, setCorridas] = useState<CorridaFrontend[]>([]);
   const [corridaSelecionada, setCorridaSelecionada] = useState<CorridaFrontend | null>(null);
+  const [carregandoTipos, setCarregandoTipos] = useState(true);
 
   useEffect(() => {
-    // Carregar tipos de combustível
-    TipoCombustivelService.listar()
-      .then((res) => {
-        if (Array.isArray(res.data)) {
-          setTiposCombustivel(res.data);
-        }
-      })
-      .catch((err) => console.error('Erro ao buscar tipos de combustível:', err));
+    if (open) {
+      // Carregar tipos de combustível apenas quando o modal abrir
+      setCarregandoTipos(true);
+      TipoCombustivelService.listar()
+        .then((res) => {
+          if (Array.isArray(res.data)) {
+            setTiposCombustivel(res.data);
+          } else {
+            console.error("Formato inválido de resposta:", res);
+          }
+        })
+        .catch((err) => console.error('Erro ao buscar tipos de combustível:', err))
+        .finally(() => setCarregandoTipos(false));
 
-    // Carregar corridas
-    getCorridas()
-      .then((res) => setCorridas(res))
-      .catch((err) => console.error('Erro ao buscar corridas:', err));
-  }, []);
+      // Carregar corridas
+      getCorridas()
+        .then((res) => setCorridas(res))
+        .catch((err) => console.error('Erro ao buscar corridas:', err));
+    }
+  }, [open]);
 
   // Atualizar informações da corrida selecionada
   useEffect(() => {
@@ -160,6 +167,16 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
     
     if (!validateForm()) return;
 
+    // Encontrar o tipo de combustível selecionado
+    const tipoCombustivelSelecionado = tiposCombustivel.find(
+      tipo => tipo.id_tipo_combustivel === parseInt(formData.tipo_combustivel_id)
+    );
+
+    if (!tipoCombustivelSelecionado) {
+      setErrors({ submit: 'Tipo de combustível inválido' });
+      return;
+    }
+
     const dadosParaCadastro = {
       litros: parseFloat(formData.litros),
       codPagamento: parseInt(formData.cod_pagamento),
@@ -170,10 +187,11 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       valorUnitario: formData.valor_unitario ? parseFloat(formData.valor_unitario) : 0,
       valorMedio: formData.valor_medio ? parseFloat(formData.valor_medio) : 0,
       justificativaAlteracao: formData.justificativa_alteracao || '',
-      
-      tipo_combustivel: parseInt(formData.tipo_combustivel_id),
+      tipo_combustivel: tipoCombustivelSelecionado.id_tipo_combustivel as number,
       corrida: parseInt(formData.id_corrida),
     };
+
+    console.log('Dados enviados para cadastro:', dadosParaCadastro);
 
     try {
       setLoading(true);
@@ -401,11 +419,15 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                 onChange={handleSelectChange}
                 label="Tipo de Combustível"
               >
-                {tiposCombustivel.map((tipo) => (
-                  <MenuItem key={tipo.id_tipo_combustivel} value={tipo.id_tipo_combustivel}>
-                    {tipo.nome}
-                  </MenuItem>
-                ))}
+                {carregandoTipos ? (
+                  <MenuItem value="">Carregando tipos de combustível...</MenuItem>
+                ) : (
+                  tiposCombustivel.map((tipo) => (
+                    <MenuItem key={tipo.id_tipo_combustivel} value={tipo.id_tipo_combustivel}>
+                      {tipo.nome}
+                    </MenuItem>
+                  ))
+                )}
               </Select>
               {errors.tipo_combustivel_id && (
                 <Typography variant="caption" color="error" sx={{ ml: 2 }}>
@@ -431,11 +453,15 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                 onChange={handleSelectChange}
                 label="Corrida"
               >
-                {corridas.map((corrida) => (
-                  <MenuItem key={corrida.idCorrida} value={corrida.idCorrida}>
-                    {`#${corrida.idCorrida} - ${new Date(corrida.dataInicio).toLocaleDateString()} - ${corrida.placaVeiculo} - ${corrida.nomeMotorista}`}
-                  </MenuItem>
-                ))}
+                {corridas.length === 0 ? (
+                  <MenuItem value="">Carregando corridas...</MenuItem>
+                ) : (
+                  corridas.map((corrida) => (
+                    <MenuItem key={corrida.idCorrida} value={corrida.idCorrida}>
+                      {`#${corrida.idCorrida} - ${new Date(corrida.dataInicio).toLocaleDateString()} - ${corrida.placaVeiculo} - ${corrida.nomeMotorista}`}
+                    </MenuItem>
+                  ))
+                )}
               </Select>
               {errors.id_corrida && (
                 <Typography variant="caption" color="error" sx={{ ml: 2 }}>

@@ -2,33 +2,32 @@ import React, { useState } from "react";
 import { Box, Typography, Paper, ButtonBase } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import CadastrarOcorrencia from "./cadastros/corrida/modais/ocorrenciasModal";
-import AbastecimentoModal from "./cadastros/abastecimento/ModalCadastroAbastecimento"; 
-import { CorridaFrontend } from "../api/corridaService";
+import AbastecimentoModal from "./cadastros/abastecimento/ModalCadastroAbastecimento"; // Importe o modal de abastecimento
 
 const menuItems = [
   { label: "Iniciar Percurso", path: "/IniciarPercurso" },
   { label: "Finalizar Percurso", path: "/FinalizarPercurso" },
-  { label: "Abastecimento", path: "#abastecimentoModal" },
-  { label: "Ocorrências", path: "#ocorrenciaModal" },
+  { label: "Abastecimento", path: "#abrirModalAbastecimento" },
+  { label: "Ocorrências", path: "#abrirModalOcorrencia" },
 ];
 
 type MenuGridProps = {
-  corrida: CorridaFrontend | null;
+  idCorrida: number;
 };
 
-const MenuGrid = ({ corrida }: MenuGridProps) => {
+const MenuGrid = ( { idCorrida }: MenuGridProps ) => {
   const navigate = useNavigate();
-  const [ocorrenciaModalAberto, setOcorrenciaModalAberto] = useState(false);
-  const [abastecimentoModalAberto, setAbastecimentoModalAberto] = useState(false);
+  const [modalOcorrenciaAberto, setModalOcorrenciaAberto] = useState(false);
+  const [modalAbastecimentoAberto, setModalAbastecimentoAberto] = useState(false);
 
-  const fecharOcorrenciaModal = () => setOcorrenciaModalAberto(false);
-  const fecharAbastecimentoModal = () => setAbastecimentoModalAberto(false);
+  const fecharModalOcorrencia = () => setModalOcorrenciaAberto(false);
+  const fecharModalAbastecimento = () => setModalAbastecimentoAberto(false);
 
   const handleClick = (path: string) => {
-    if (path === "#ocorrenciaModal") {
-      setOcorrenciaModalAberto(true);
-    } else if (path === "#abastecimentoModal") {
-      setAbastecimentoModalAberto(true);
+    if (path === "#abrirModalOcorrencia") {
+      setModalOcorrenciaAberto(true);
+    } else if (path === "#abrirModalAbastecimento") {
+      setModalAbastecimentoAberto(true);
     } else {
       navigate(path);
     }
@@ -84,11 +83,11 @@ const MenuGrid = ({ corrida }: MenuGridProps) => {
         ))}
       </Box>
 
+      {/* Modal de Ocorrências */}
       <CadastrarOcorrencia 
-      <CadastrarOcorrencia 
-        open={ocorrenciaModalAberto} 
-        onClose={fecharOcorrenciaModal} 
-        corrida={corrida}
+        open={modalOcorrenciaAberto} 
+        onClose={fecharModalOcorrencia} 
+        corrida={idCorrida}
         onSuccess={() => {
           console.log("Ocorrência salva com sucesso!");
         }}
@@ -97,17 +96,16 @@ const MenuGrid = ({ corrida }: MenuGridProps) => {
         }}
       />
 
+      {/* Modal de Abastecimento */}
       <AbastecimentoModal
-        open={abastecimentoModalAberto}
-        onClose={fecharAbastecimentoModal}
-        corrida={corrida}
+        open={modalAbastecimentoAberto}
+        onClose={fecharModalAbastecimento}
+        corridaId={idCorrida} // Passando o ID da corrida para o modal
         onSuccess={() => {
           console.log("Abastecimento cadastrado com sucesso!");
         }}
-        onError={(erro: any) => {
-          console.error("Erro ao cadastrar abastecimento:", erro);
-        }}
       />
+    </Box>
   );
 };
 
