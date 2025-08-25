@@ -35,6 +35,12 @@ export interface Corrida {
 }
 
 export class AbastecimentoService {
+  static BuscarTodosAbastecimentos(arg0: { expand: boolean; }) {
+    throw new Error('Method not implemented.');
+  }
+  static buscarAbastecimentoPorId(arg0: { expand: boolean; }) {
+    throw new Error('Method not implemented.');
+  }
   static cadastrarAbastecimento(dadosParaCadastro: { litros: number; codPagamento: number; precoFinal: number; dataAbastecimento: string; valorUnitarioLitro: number; valorMedioLitro: number; valorUnitario: number; valorMedio: number; justificativaAlteracao: string; tipo_combustivel: number; corrida: number | null; }) {
     throw new Error('Method not implemented.');
   }
