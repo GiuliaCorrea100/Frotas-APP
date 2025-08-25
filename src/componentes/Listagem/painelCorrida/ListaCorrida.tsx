@@ -11,6 +11,7 @@ import {
   DialogActions,
   useTheme
 } from "@mui/material";
+import CreateIcon from '@mui/icons-material/Create';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { CorridaFrontend, CorridaDto, getCorridas, CorridaService } from '../../../api/corridaService';
 import Menu from "../../Menu";
@@ -178,17 +179,16 @@ export default function ListaCorridas() {
               onClick={() => handleAbrirModalEditar(corrida)}
               disabled={((corrida.chaveEmprestada === true) && (corrida.situacao === "FINALIZADA" || corrida.situacao === "ANDAMENTO" || corrida.situacao === "AGENDADA"))
                 || ((corrida.situacao === "FINALIZADA") && (corrida.chaveEmprestada === false))}
+              startIcon={<CreateIcon />}
             >
-              Editar
             </Button>
             <Button
               variant="contained"
               color="success"
               size="small"
               onClick={() => navigate(`/DetalhesCorrida/${corrida.idCorrida}`)}
-              
+              startIcon={<VisibilityIcon />}
             >
-              Detalhes
             </Button>
             <Button
               variant="contained"
@@ -205,8 +205,8 @@ export default function ListaCorridas() {
               color="secondary"
               size="small"
               onClick={() => handleAbrirModalReceberChave(corrida)}
-              disabled={((corrida.chaveEmprestada === false) && (corrida.situacao === "AGENDADA" || corrida.situacao === "ANDAMENTO" || corrida.situacao === "FINALIZADA")) 
-                ||( (corrida.chaveEmprestada === true ) && (corrida.situacao === "AGENDADA" || corrida.situacao === "ANDAMENTO")) }
+              disabled={((corrida.chaveEmprestada === false) && (corrida.situacao === "AGENDADA" || corrida.situacao === "ANDAMENTO" || corrida.situacao === "FINALIZADA"))
+                || ((corrida.chaveEmprestada === true) && (corrida.situacao === "AGENDADA" || corrida.situacao === "ANDAMENTO"))}
             >
               Receber Chave
             </Button>
@@ -410,10 +410,9 @@ export default function ListaCorridas() {
       <SalvarEdicaoCorrida
         open={showModalEditar}
         onClose={() => setShowModalEditar(false)}
-        //corrida={corridaParaEditar ? mapToDto(corridaParaEditar) : null}
         corrida={corridaParaEditar ? {
-        ...mapToDto(corridaParaEditar),
-        dataTermino: mapToDto(corridaParaEditar).dataTermino || new Date()
+          ...mapToDto(corridaParaEditar),
+          dataTermino: mapToDto(corridaParaEditar).dataTermino || new Date()
         } : null}
         onSuccess={async (msg) => {
           console.log(msg);
