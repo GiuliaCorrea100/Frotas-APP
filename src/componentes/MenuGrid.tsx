@@ -166,8 +166,9 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
     setCorridaLocal(corrida);
   }, [corrida]);
 
-  const isIniciarDisabled = isCorridaIniciada;
-  const isFinalizarDisabled = !isCorridaIniciada;
+  const isCorridaFinalizada = corridaLocal.situacao === 'FINALIZADA';
+  const isIniciarDisabled = isCorridaIniciada || isCorridaFinalizada;
+  const isFinalizarDisabled = !isCorridaIniciada || isCorridaFinalizada;
   const isOutrosBotoesDisabled = false;
 
   const handleClick = (path: string, label: string) => {
@@ -237,6 +238,17 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
         chegadaOdometro: parseFloat(odometroFinal)
       });
       
+      if (percursoAtual.localDestino === corridaLocal.local_de_saida) {
+        await atualizarSituacaoCorrida(corridaLocal.idCorrida, 'FINALIZADA');
+        
+        const corridaAtualizada = { ...corridaLocal, situacao: 'FINALIZADA' };
+        setCorridaLocal(corridaAtualizada);
+        
+         if (onCorridaUpdate) {
+          onCorridaUpdate(corridaAtualizada);
+        }
+      }
+      
       await buscarPercursosDaCorrida();
 
       handleCloseFinalizarModal();
@@ -263,7 +275,6 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
           sx={{ mb: 2, fontWeight: 'bold' }}
         >
           Situação: {corridaLocal.situacao} 
-          {percursosAtivosCount > 0 && ` (${percursosAtivosCount} percurso(s) ativo(s))`}
         </Typography>
         <Typography variant="subtitle2" color="text.secondary">
           De {formatDate(corridaLocal.dataInicio)} até{" "}
@@ -299,10 +310,13 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
                 textAlign: "center",
                 borderRadius: 3,
                 transition: "transform 0.2s, box-shadow 0.2s",
-                "&:hover": { 
-                    transform: "scale(1.03)", 
-                    boxShadow: isIniciarDisabled && item.label === "Iniciar Percurso" ? 4 : 6,
-                    cursor: isIniciarDisabled && item.label === "Iniciar Percurso" ? "not-allowed" : "pointer"
+                "&:hover": {
+                  transform: isCorridaFinalizada ? "none" : "scale(1.03)",
+                  boxShadow: (isIniciarDisabled && item.label === "Iniciar Percurso") || 
+                             (isFinalizarDisabled && item.label === "Finalizar Percurso") ? 4 : 6,
+                  cursor: (isIniciarDisabled && item.label === "Iniciar Percurso") ||
+                          (isFinalizarDisabled && item.label === "Finalizar Percurso") ? 
+                          "not-allowed" : "pointer"
                 },
                 display: "flex",
                 alignItems: "center",
