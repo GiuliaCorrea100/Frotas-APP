@@ -8,7 +8,7 @@ export interface CorridaBackend {
   dataInicio: string | Date;
   dataTermino: string | Date | null;
   distanciaKm?: string | null;
-  local_de_saida: string;
+  
   idMotorista: number;
   situacao: string;
   chaveEmprestada: boolean;
@@ -20,7 +20,6 @@ export interface CorridaFrontend {
   dataInicio: string;
   dataTermino: string | null;
   distanciaKm: string;
-  local_de_saida: string;
   idMotorista: number;
   nomeMotorista?: string;
   placaVeiculo?: string;
@@ -119,7 +118,6 @@ export const atualizarSituacaoCorrida = async (idCorrida: number, situacao: stri
 function formatCorrida(corrida: CorridaBackend): CorridaFrontend {
   return {
     idCorrida: corrida.idCorrida || 0,
-    local_de_saida: corrida.local_de_saida,
     dataInicio:
       corrida.dataInicio instanceof Date
         ? corrida.dataInicio.toISOString()

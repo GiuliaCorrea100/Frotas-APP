@@ -13,110 +13,14 @@ import {
   Button,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { atualizarSituacaoCorrida } from "../api/corridaService";
-
-const API_URL = "http://localhost:3000/percurso";
-
-export interface PercursoBackend {
-  idPercurso?: number;
-  idCorrida: number;
-  localDestino: string;
-  saidaOdometro: number;
-  saidaHora?: Date;
-  chegadaHora?: Date | null;
-  chegadaodometro?: number;
-  localOrigem?: string;
-}
-
-export const iniciarPercurso = async (data: {
-  localDestino: string;
-  odometroInicial: number;
-  idCorrida: number;
-  localOrigem?: string;
-}) => {
-  if (!data.localDestino || isNaN(data.odometroInicial)) {
-    throw new Error("Dados inválidos");
-  }
-
-  try {
-    const payload = {
-      idCorrida: data.idCorrida,
-      saidaOdometro: data.odometroInicial,
-      localDestino: data.localDestino,
-      localOrigem: data.localOrigem || ""
-    };
-
-    const response = await axios.post(API_URL, payload);
-    return response.data as PercursoBackend;
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const errorMessage = error.response?.data?.error || error.response?.data?.message || "Erro no servidor";
-      throw new Error(errorMessage);
-    }
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error("Erro desconhecido ao iniciar percurso");
-  }
-};
-
-export const finalizarPercurso = async (idPercurso: number, data: {
-  chegadaOdometro: number;
-}) => {
-  if (isNaN(data.chegadaOdometro)) {
-    throw new Error("Odômetro inválido");
-  }
-
-  try {
-    const response = await axios.put(`${API_URL}/${idPercurso}/finalizar`, data);
-    return response.data as PercursoBackend;
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const errorMessage = error.response?.data?.error || error.response?.data?.message || "Erro no servidor";
-      throw new Error(errorMessage);
-    }
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error("Erro desconhecido ao finalizar percurso");
-  }
-};
-
-export const buscarUltimoPercursoFinalizado = async (idCorrida: number): Promise<PercursoBackend | null> => {
-  try {
-    const response = await axios.get(`${API_URL}/corrida/${idCorrida}/ultimo-finalizado`);
-    return response.data as PercursoBackend;
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.status === 404) {
-      return null;
-    }
-    console.error("Erro ao buscar último percurso finalizado:", error);
-    throw error;
-  }
-};
-
-
-interface Corrida {
-  idCorrida: number;
-  dataInicio: string;
-  itinerario: string;
-  placaVeiculo?: string;
-  nomeMotorista?: string;
-  dataTermino?: string | null;
-  local_de_saida?: string;
-  situacao?: string;
-}
-
-interface MenuGridProps {
-  corrida: Corrida;
-  onCorridaUpdate?: (corridaAtualizada: Corrida) => void;
-}
+import CadastrarOcorrencia from "./cadastros/corrida/modais/ocorrenciasModal";
+import AbastecimentoModal from "./cadastros/abastecimento/ModalCadastroAbastecimento"; // Importe o modal de abastecimento
 
 const menuItems = [
   { label: "Iniciar Percurso", path: "/IniciarPercurso" },
   { label: "Finalizar Percurso", path: "/FinalizarPercurso" },
-  { label: "Abastecimento", path: "/Abastecimento" },
-  { label: "Ocorrências", path: "/Ocorrencias" },
+  { label: "Abastecimento", path: "#abrirModalAbastecimento" },
+  { label: "Ocorrências", path: "#abrirModalOcorrencia" },
 ];
 
 const formatDate = (dateString: string) => {
@@ -130,75 +34,17 @@ const formatDate = (dateString: string) => {
 
 const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
   const navigate = useNavigate();
-  const [modalIniciarOpen, setModalIniciarOpen] = useState(false);
-  const [modalFinalizarOpen, setModalFinalizarOpen] = useState(false);
-  const [successModalOpen, setSuccessModalOpen] = useState(false);
-  const [finalizeSuccessModalOpen, setFinalizeSuccessModalOpen] = useState(false);
-  const [isCorridaIniciada, setIsCorridaIniciada] = useState(false);
-  const [destino, setDestino] = useState("");
-  const [odometro, setOdometro] = useState("");
-  const [odometroFinal, setOdometroFinal] = useState("");
-  const [percursoAtual, setPercursoAtual] = useState<PercursoBackend | null>(null);
-  const [percursosAtivosCount, setPercursosAtivosCount] = useState(0);
-  const [corridaLocal, setCorridaLocal] = useState<Corrida>(corrida);
-  const [ultimoDestino, setUltimoDestino] = useState("");
+  const [modalOcorrenciaAberto, setModalOcorrenciaAberto] = useState(false);
+  const [modalAbastecimentoAberto, setModalAbastecimentoAberto] = useState(false);
 
-  const buscarPercursosDaCorrida = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/corrida/${corrida.idCorrida}`);
-      const percursos: PercursoBackend[] = response.data;
+  const fecharModalOcorrencia = () => setModalOcorrenciaAberto(false);
+  const fecharModalAbastecimento = () => setModalAbastecimentoAberto(false);
 
-      const countResponse = await axios.get(`${API_URL}/corrida/${corrida.idCorrida}/ativos/count`);
-      setPercursosAtivosCount(countResponse.data);
-
-      const percursoAtivo = percursos.find((percurso) => !percurso.chegadaHora);
-      setPercursoAtual(percursoAtivo || null);
-      setIsCorridaIniciada(!!percursoAtivo);
-
-    } catch (error) {
-      console.error("Nenhum percurso encontrado ou erro ao buscar:", error);
-      setPercursoAtual(null);
-      setIsCorridaIniciada(false);
-      setPercursosAtivosCount(0);
-    }
-  };
-
-  useEffect(() => {
-    const carregarDadosCorrida = async () => {
-      try {
-        await buscarPercursosDaCorrida();
-        
-        const ultimoPercurso = await buscarUltimoPercursoFinalizado(corrida.idCorrida);
-        if (ultimoPercurso) {
-          setUltimoDestino(ultimoPercurso.localDestino);
-        } else {
-          setUltimoDestino(corrida.local_de_saida || "");
-        }
-      } catch (error) {
-        console.error("Erro ao carregar dados da corrida:", error);
-        setIsCorridaIniciada(false);
-        setPercursosAtivosCount(0);
-        setUltimoDestino(corrida.local_de_saida || "");
-      }
-    };
-
-    carregarDadosCorrida();
-  }, [corrida.idCorrida, corrida.local_de_saida]);
-
-  useEffect(() => {
-    setCorridaLocal(corrida);
-  }, [corrida]);
-
-  const isCorridaFinalizada = corridaLocal.situacao === 'FINALIZADA';
-  const isIniciarDisabled = isCorridaIniciada || isCorridaFinalizada;
-  const isFinalizarDisabled = !isCorridaIniciada || isCorridaFinalizada;
-  const isOutrosBotoesDisabled = false;
-
-  const handleClick = (path: string, label: string) => {
-    if (label === "Iniciar Percurso") {
-      setModalIniciarOpen(true);
-    } else if (label === "Finalizar Percurso") {
-      setModalFinalizarOpen(true);
+  const handleClick = (path: string) => {
+    if (path === "#abrirModalOcorrencia") {
+      setModalOcorrenciaAberto(true);
+    } else if (path === "#abrirModalAbastecimento") {
+      setModalAbastecimentoAberto(true);
     } else {
       navigate(path);
     }
@@ -377,129 +223,28 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
         ))}
       </Box>
 
-      <Dialog open={modalIniciarOpen} onClose={handleCloseIniciarModal} fullWidth>
-        <DialogTitle>
-          <Typography component="div" fontWeight="bold" sx={{ fontSize: "1.25rem" }}>
-            Iniciar Novo Percurso
-          </Typography>
-          {percursosAtivosCount > 0 && (
-            <Typography variant="body2" color="warning.main">
-              Existe(m) {percursosAtivosCount} percurso(s) ativo(s) nesta corrida
-            </Typography>
-          )}
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ mt: 2 }}>
-            <TextField
-              label="Local de Saída"
-              value={ultimoDestino || "Não informado"}
-              fullWidth
-              sx={{ mb: 2 }}
-              InputProps={{
-                readOnly: true,
-              }}
-            />
-            <TextField
-              label="Local de Destino"
-              value={destino}
-              onChange={(e) => setDestino(e.target.value)}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Odômetro"
-              value={odometro}
-              onChange={(e) => setOdometro(e.target.value)}
-              fullWidth
-              type="number"
-            />
-          </Box>
-        </DialogContent>
-        <DialogActions
-          sx={{ flexDirection: "column", alignItems: "stretch", gap: 1, px: 3, pb: 2 }}
-        >
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            fullWidth
-            sx={{ py: 1.5, fontWeight: "bold", fontSize: "1.1rem" }}
-            onClick={handleIniciarCorrida}
-            disabled={!destino || !odometro}
-          >
-            INICIAR
-          </Button>
-          <Button
-            color="inherit"
-            size="small"
-            onClick={handleCloseIniciarModal}
-            sx={{ textTransform: "none" }}
-          >
-            Cancelar
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Modal de Ocorrências */}
+      <CadastrarOcorrencia 
+        open={modalOcorrenciaAberto} 
+        onClose={fecharModalOcorrencia} 
+        corrida={idCorrida}
+        onSuccess={() => {
+          console.log("Ocorrência salva com sucesso!");
+        }}
+        onError={(erro) => {
+          console.error("Erro ao salvar ocorrência:", erro);
+        }}
+      />
 
-      <Dialog open={modalFinalizarOpen} onClose={handleCloseFinalizarModal} fullWidth>
-        <DialogTitle>
-          <Typography component="div" fontWeight="bold" sx={{ fontSize: "1.25rem" }}>
-            Finalizar Percurso
-          </Typography>
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="body1" sx={{ mb: 2 }}>
-              <strong>Fim do percurso em:</strong> {percursoAtual?.localDestino || "Destino não encontrado"}
-            </Typography>
-            <TextField
-              label="Odômetro Final"
-              value={odometroFinal}
-              onChange={(e) => setOdometroFinal(e.target.value)}
-              fullWidth
-              type="number"
-              inputProps={{ min: percursoAtual?.saidaOdometro || 0 }}
-              helperText={`Odômetro de saída: ${percursoAtual?.saidaOdometro || 0}`}
-            />
-          </Box>
-        </DialogContent>
-        <DialogActions
-          sx={{ flexDirection: "column", alignItems: "stretch", gap: 1, px: 3, pb: 2 }}
-        >
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            fullWidth
-            sx={{ py: 1.5, fontWeight: "bold", fontSize: "1.1rem" }}
-            onClick={handleFinalizarCorrida}
-            disabled={!odometroFinal}
-          >
-            FINALIZAR PERCURSO
-          </Button>
-          <Button
-            color="inherit"
-            size="small"
-            onClick={handleCloseFinalizarModal}
-            sx={{ textTransform: "none" }}
-          >
-            Cancelar
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={successModalOpen} onClose={handleSuccessClose}>
-        <DialogTitle>Percurso iniciado com sucesso</DialogTitle>
-        <DialogActions>
-          <Button onClick={handleSuccessClose}>OK</Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={finalizeSuccessModalOpen} onClose={handleFinalizeSuccessClose}>
-        <DialogTitle>Percurso finalizado com sucesso</DialogTitle>
-        <DialogActions>
-          <Button onClick={handleFinalizeSuccessClose}>OK</Button>
-        </DialogActions>
-      </Dialog>
+      {/* Modal de Abastecimento */}
+      <AbastecimentoModal
+        open={modalAbastecimentoAberto}
+        onClose={fecharModalAbastecimento}
+        corridaId={idCorrida} // Passando o ID da corrida para o modal
+        onSuccess={() => {
+          console.log("Abastecimento cadastrado com sucesso!");
+        }}
+      />
     </Box>
   );
 };

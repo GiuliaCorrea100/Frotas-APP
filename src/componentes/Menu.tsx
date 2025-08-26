@@ -1,23 +1,23 @@
-import React, { useState, useEffect } from "react";
 import {
   AppBar,
+  Box,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Paper,
   Toolbar,
   Typography,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Box,
-  CircularProgress,
-  Paper,
 } from "@mui/material";
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import MenuGrid from "./MenuGrid";
-import axiosConnect from "../services/axiosConnect";
 import { jwtDecode } from 'jwt-decode';
+import React, { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import axiosConnect from "../services/axiosConnect";
+import MenuGrid from "./MenuGrid";
 
 interface JwtPayload {
   sub: number;
@@ -222,9 +222,17 @@ const Menu: React.FC = () => {
                   >
                     Veículos
                   </Button>
-                  <Button
-                    color="inherit"
-                    component={Link}
+                  <Button 
+                    color="inherit" 
+                    component={Link} 
+                    to="/ListaAbastecimento"
+                    sx={{ fontFamily: "inherit" }}
+                   >
+                    Abastecimento
+                  </Button>
+                  <Button 
+                    color="inherit" 
+                    component={Link} 
                     to="/ListaMultas"
                     sx={{ fontFamily: "inherit" }}
                   >
@@ -245,6 +253,15 @@ const Menu: React.FC = () => {
                 color="inherit"
                 component={Link}
                 to="/HistoricoIndividual"
+                sx={{ fontFamily: "inherit" }}
+              >
+                Historico Individual
+              </Button>
+
+               <Button 
+                color="inherit" 
+                component={Link} 
+                to="/Relatorios"
                 sx={{ fontFamily: "inherit" }}
               >
                 Relatórios
