@@ -40,7 +40,7 @@ export default function CadastrarCorrida() {
   const [corrida, setCorrida] = useState({
     dataInicio: '',
     dataTermino: '',
-    itinerario: '',
+    local_de_saida: '',
     distanciaKm: '0',
     chaveEmprestada: false,
     situacao: 'AGENDADA',
@@ -48,6 +48,12 @@ export default function CadastrarCorrida() {
   });
 
   const [motoristaOptions, setMotoristaOptions] = useState<MotoristaOption[]>([]);
+  const [errors, setErrors] = useState({
+    dataInicio: false,
+    dataTermino: false,
+    motorista: false,
+    local_de_saida: false
+  });
 
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [alertOpen, setAlertOpen] = useState(false);
@@ -63,6 +69,7 @@ export default function CadastrarCorrida() {
       ...prev,
       [name]: value
     }));
+    setErrors(prev => ({ ...prev, [name]: false }));
   };
 
   const buscarMotoristas = async (nome: string) => {
@@ -80,30 +87,69 @@ export default function CadastrarCorrida() {
     }
   };
 
+  const atualizarSituacaoCarro = async (idCarro: number, situacao: string) => {
+    try {
+      const carroAtual = await axios.get(`http://localhost:3000/carros/${idCarro}`);
+      
+      const dadosAtualizados = {
+        ...carroAtual.data,
+        situacao: situacao
+      };
+
+      await axios.put(`http://localhost:3000/carros/${idCarro}`, dadosAtualizados);
+    } catch (error) {
+      console.error("Erro ao atualizar situação do carro:", error);
+      throw error;
+    }
+  };
+
   const handleSubmit = async () => {
+    let hasError = false;
+    const newErrors = {
+      dataInicio: false,
+      dataTermino: false,
+      motorista: false,
+      local_de_saida: false
+    };
+
     if (!corrida.motoristaId) {
-      showAlert('Selecione um motorista válido');
-      return;
+      newErrors.motorista = true;
+      hasError = true;
     }
 
     if (!corrida.dataInicio) {
-      showAlert('Informe a data/hora de início da corrida');
+      newErrors.dataInicio = true;
+      hasError = true;
+    }
+
+    if (!corrida.dataTermino) {
+      newErrors.dataTermino = true;
+      hasError = true;
+    }
+
+    if (!corrida.local_de_saida) {
+      newErrors.local_de_saida = true;
+      hasError = true;
+    }
+
+    setErrors(newErrors);
+
+    if (hasError) {
+      showAlert('Preencha todos os campos obrigatórios: Local de Saida, Motorista, Data Início e Data Término');
       return;
     }
 
-    if (
-      corrida.dataTermino &&
-      new Date(corrida.dataTermino) < new Date(corrida.dataInicio)
-    ) {
-      showAlert('A data/hora de término não pode ser anterior à data/hora de início');
+    if (new Date(corrida.dataTermino) < new Date(corrida.dataInicio)) {
+      showAlert('A data de término não pode ser anterior à data de início');
+      setErrors(prev => ({ ...prev, dataTermino: true }));
       return;
     }
 
     try {
       const corridaParaEnviar = {
         dataInicio: new Date(corrida.dataInicio),
-        dataTermino: corrida.dataTermino ? new Date(corrida.dataTermino) : null,
-        itinerario: "",
+        dataTermino: new Date(corrida.dataTermino),
+        local_de_saida: corrida.local_de_saida,
         distanciaKm: "",
         idMotorista: corrida.motoristaId!,
         situacao: "AGENDADA",
@@ -111,6 +157,8 @@ export default function CadastrarCorrida() {
         idCarros: carroInfo.idCarro,
       };
 
+      await atualizarSituacaoCarro(carroInfo.idCarro, "RESERVADO");
+      
       await createCorrida(corridaParaEnviar);
       
       showAlert('Corrida cadastrada com sucesso!');
@@ -153,6 +201,18 @@ export default function CadastrarCorrida() {
           <p><strong>Ano:</strong> {carroInfo.ano}</p>
         </Box>
 
+        <TextField
+          name="local_de_saida"
+          label="Local de Saída"
+          value={corrida.local_de_saida}
+          onChange={handleChange}
+          fullWidth
+          required
+          error={errors.local_de_saida}
+          helperText={errors.local_de_saida ? "Informe o local de saída" : ""}
+          sx={{ mb: 2 }}
+        />
+
         <Autocomplete
           options={motoristaOptions}
           getOptionLabel={(option) => `${option.nome}`}
@@ -162,6 +222,7 @@ export default function CadastrarCorrida() {
               ...prev,
               motoristaId: value?.idUsuario || null,
             }));
+            setErrors(prev => ({ ...prev, motorista: false }));
           }}
           isOptionEqualToValue={(option, value) => option.idUsuario === value.idUsuario}
           noOptionsText="Digite pelo menos 3 caracteres para buscar"
@@ -170,6 +231,8 @@ export default function CadastrarCorrida() {
               {...params}
               label="Motorista"
               required
+              error={errors.motorista}
+              helperText={errors.motorista ? "Selecione um motorista" : ""}
               sx={{ mb: 2 }}
             />
           )}
@@ -177,25 +240,36 @@ export default function CadastrarCorrida() {
 
         <TextField
           name="dataInicio"
-          label="Data/Hora Início"
-          type="datetime-local"
+          label="Data Início"
+          type="date"
           InputLabelProps={{ shrink: true }}
           value={corrida.dataInicio}
           onChange={handleChange}
           fullWidth
           required
+          error={errors.dataInicio}
+          helperText={errors.dataInicio ? "Informe a data de início" : ""}
           sx={{ mb: 2 }}
+          inputProps={{
+            min: new Date().toISOString().split('T')[0]
+          }}
         />
 
         <TextField
           name="dataTermino"
-          label="Data/Hora Término"
-          type="datetime-local"
+          label="Data Término"
+          type="date"
           InputLabelProps={{ shrink: true }}
           value={corrida.dataTermino}
           onChange={handleChange}
           fullWidth
+          required
+          error={errors.dataTermino}
+          helperText={errors.dataTermino ? "Informe a data de término" : ""}
           sx={{ mb: 2 }}
+          inputProps={{
+            min: corrida.dataInicio || new Date().toISOString().split('T')[0]
+          }}
         />
 
         <Button

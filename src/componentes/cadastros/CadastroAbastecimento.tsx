@@ -160,7 +160,7 @@ const CadastroAbastecimento: React.FC = () => {
               <Select name="id_corrida" value={formData.id_corrida} onChange={handleSelectChange} label="Corrida">
                 {corridas.map((corrida) => (
                   <MenuItem key={corrida.idCorrida} value={corrida.idCorrida}>
-                    {corrida.itinerario}
+                    {corrida.local_de_saida}
                   </MenuItem>
                 ))}
               </Select>
