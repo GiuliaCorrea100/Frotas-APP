@@ -29,9 +29,15 @@ import Ocorrencias from        './componentes/Ocorrencias';
 
 import { AuthProvider } from './context/AuthContext';
 
+import Relatorios  from './componentes/Relatorios/Relatorios';
+
 import PrivateRoute from './componentes/PrivateRoute';
 import ListaCorrida from './componentes/Listagem/painelCorrida/ListaCorrida';
 import HistoricoIndividual from './componentes/Listagem/HistoricoIndividual';
+import ListaAbastecimentos from './componentes/Listagem/painelAbastecimento/ListaAbastecimento';
+
+import AbastecimentoModal from './componentes/cadastros/abastecimento/ModalCadastroAbastecimento'; 
+import CadastroAbastecimento from './componentes/cadastros/abastecimento/CadastroAbastecimento';
 
 const App: React.FC = () => {
   return (
@@ -50,10 +56,15 @@ const App: React.FC = () => {
           <Route path="/CadastroMulta" element={<CadastroMulta />} />
           <Route path="/CadastroCarro" element={<CadastroCarro />} />
           <Route path="/CadastrarCorrida" element={<CadastrarCorrida />} />
+          <Route path="/CadastrarAbastecimento" element={<CadastroAbastecimento />} />
+
+         {/* <Route path="/AbastecimentoModal" element={<AbastecimentoModal /> } />  */}
 
           {/*Paginas de Cadastro*/}
           <Route path="/ListaMultas" element={<ListaMulta />} />
           <Route path="/ListaMotoristas" element={<ListaMotorista />} />
+          <Route path="/ListaAbastecimento" element={<ListaAbastecimentos />} />
+
           <Route path="/Administradores" element={<ListaAdministrador />} />
           <Route path="/ListaCarros" element={<ListaCarros />} />
           <Route path="/ListaCorrida" element={<ListaCorrida />} />
@@ -67,9 +78,12 @@ const App: React.FC = () => {
         </Route>
 
 
+      
+        {/*  Relatórios      /> */}
+        <Route path="/Relatorios" element={<Relatorios />} />
         {/* Rotas usuario comum */}
         <Route path="/HistoricoIndividual" element={<HistoricoIndividual/>} />
-        
+
 
         {/* Rota para acesso negado */}
         <Route path="/unauthorized" element={<Unauthorized />} />
