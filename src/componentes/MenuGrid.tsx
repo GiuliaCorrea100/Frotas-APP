@@ -82,6 +82,20 @@ export const finalizarPercurso = async (idPercurso: number, data: {
   }
 };
 
+export const buscarUltimoPercursoFinalizado = async (idCorrida: number): Promise<PercursoBackend | null> => {
+  try {
+    const response = await axios.get(`${API_URL}/corrida/${idCorrida}/ultimo-finalizado`);
+    return response.data as PercursoBackend;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      return null;
+    }
+    console.error("Erro ao buscar último percurso finalizado:", error);
+    throw error;
+  }
+};
+
+
 interface Corrida {
   idCorrida: number;
   dataInicio: string;
@@ -127,6 +141,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
   const [percursoAtual, setPercursoAtual] = useState<PercursoBackend | null>(null);
   const [percursosAtivosCount, setPercursosAtivosCount] = useState(0);
   const [corridaLocal, setCorridaLocal] = useState<Corrida>(corrida);
+  const [ultimoDestino, setUltimoDestino] = useState("");
 
   const buscarPercursosDaCorrida = async () => {
     try {
@@ -152,15 +167,23 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
     const carregarDadosCorrida = async () => {
       try {
         await buscarPercursosDaCorrida();
+        
+        const ultimoPercurso = await buscarUltimoPercursoFinalizado(corrida.idCorrida);
+        if (ultimoPercurso) {
+          setUltimoDestino(ultimoPercurso.localDestino);
+        } else {
+          setUltimoDestino(corrida.local_de_saida || "");
+        }
       } catch (error) {
         console.error("Erro ao carregar dados da corrida:", error);
         setIsCorridaIniciada(false);
         setPercursosAtivosCount(0);
+        setUltimoDestino(corrida.local_de_saida || "");
       }
     };
 
     carregarDadosCorrida();
-  }, [corrida.idCorrida]);
+  }, [corrida.idCorrida, corrida.local_de_saida]);
 
   useEffect(() => {
     setCorridaLocal(corrida);
@@ -200,7 +223,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
         localDestino: destino,
         odometroInicial: parseFloat(odometro),
         idCorrida: corridaLocal.idCorrida,
-        localOrigem: corridaLocal.local_de_saida || "",
+        localOrigem: ultimoDestino,
       });
       
       if (corridaLocal.situacao === 'AGENDADA') {
@@ -253,6 +276,12 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
 
       handleCloseFinalizarModal();
       setFinalizeSuccessModalOpen(true);
+      
+      const ultimoPercurso = await buscarUltimoPercursoFinalizado(corridaLocal.idCorrida);
+      if (ultimoPercurso) {
+        setUltimoDestino(ultimoPercurso.localDestino);
+      }
+
     } catch (error: unknown) {
       console.error("Erro ao finalizar percurso:", error);
       const message = error instanceof Error ? error.message : "Ocorreu um erro desconhecido";
@@ -363,7 +392,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
           <Box sx={{ mt: 2 }}>
             <TextField
               label="Local de Saída"
-              value={corridaLocal.local_de_saida || "Não informado"}
+              value={ultimoDestino || "Não informado"}
               fullWidth
               sx={{ mb: 2 }}
               InputProps={{

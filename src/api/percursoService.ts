@@ -41,3 +41,16 @@ export const iniciarPercurso = async (data: {
     throw error;
   }
 };
+
+export const buscarUltimoPercursoFinalizado = async (idCorrida: number): Promise<PercursoBackend | null> => {
+  try {
+    const response = await axios.get(`${API_URL}/corrida/${idCorrida}/ultimo-finalizado`);
+    return response.data as PercursoBackend;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      return null;
+    }
+    console.error("Erro ao buscar último percurso finalizado:", error);
+    throw error;
+  }
+};
