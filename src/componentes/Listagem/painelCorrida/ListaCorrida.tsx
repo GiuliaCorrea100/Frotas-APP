@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -12,9 +12,13 @@ import {
   useTheme
 } from "@mui/material";
 import { DataGrid, GridColDef} from '@mui/x-data-grid';
-import { CorridaFrontend, getCorridas, CorridaService } from '../../../api/corridaService';
 import { OcorrenciaService } from '../../../api/ocorrenciasService';
+import CreateIcon from '@mui/icons-material/Create';
+import { CorridaFrontend, CorridaDto, getCorridas, CorridaService } from '../../../api/corridaService';
 import Menu from "../../Menu";
+import SalvarEdicaoCorrida from "./modais/editarPainelCorrida";
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import ModeEditIcon from '@mui/icons-material/ModeEdit';
 
 const formatDate = (dateString: string | null) => {
   if (!dateString) return 'Em andamento';
@@ -25,6 +29,13 @@ const formatDate = (dateString: string | null) => {
     return 'Data inválida';
   }
 };
+
+// Função para converter CorridaFrontend em CorridaDto
+const mapToDto = (c: CorridaFrontend): CorridaDto => ({
+  ...c,
+  dataInicio: new Date(c.dataInicio),
+  dataTermino: c.dataTermino ? new Date(c.dataTermino) : null,
+});
 
 export default function ListaCorridas() {
   const theme = useTheme();
@@ -39,7 +50,12 @@ export default function ListaCorridas() {
   const [selectedCorrida, setSelectedCorrida] = useState<CorridaFrontend | null>(null);
   const [senhaLiberarChave, setSenhaLiberarChave] = useState('');
 
+  const [showModalEditar, setShowModalEditar] = useState(false);
+  const [corridaParaEditar, setCorridaParaEditar] = useState<CorridaFrontend | null>(null);
+
   const [filtroSituacao, setFiltroSituacao] = useState<string>('TODOS');
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const carregarDados = async () => {
@@ -94,15 +110,18 @@ export default function ListaCorridas() {
     setShowModalReceberChave(true);
   };
 
+  const handleAbrirModalEditar = (corrida: CorridaFrontend) => {
+    setCorridaParaEditar(corrida);
+    setShowModalEditar(true);
+  };
+
   const columns: GridColDef<CorridaFrontend>[] = [
     {
       field: 'nomeMotorista',
       headerName: 'Motorista',
       flex: 1,
       renderCell: (params) => (
-        <Typography fontWeight="bold">
-          {params.value}
-        </Typography>
+        <Typography fontWeight="bold">{params.value}</Typography>
       )
     },
     {
@@ -180,14 +199,30 @@ export default function ListaCorridas() {
         return (
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Button
+              variant="outlined"
+              color="warning"
+              size="small"
+              onClick={() => handleAbrirModalEditar(corrida)}
+              disabled={((corrida.chaveEmprestada === true) && (corrida.situacao === "FINALIZADA" || corrida.situacao === "ANDAMENTO" || corrida.situacao === "AGENDADA"))
+                || ((corrida.situacao === "FINALIZADA") && (corrida.chaveEmprestada === false))}
+              startIcon={<CreateIcon />}
+            >
+            </Button>
+            <Button
+              variant="contained"
+              color="success"
+              size="small"
+              onClick={() => navigate(`/DetalhesCorrida/${corrida.idCorrida}`)}
+              startIcon={<VisibilityIcon />}
+            >
+            </Button>
+            <Button
               variant="contained"
               color="primary"
               size="small"
               onClick={() => handleAbrirModalLiberarChave(corrida)}
-              disabled={
-                ((corrida.chaveEmprestada === true) && (corrida.situacao === "FINALIZADA" || corrida.situacao === "ANDAMENTO" || corrida.situacao === "AGENDADA"))
-                || ((corrida.situacao === "FINALIZADA") && (corrida.chaveEmprestada === false))
-              }
+              disabled={((corrida.chaveEmprestada === true) && (corrida.situacao === "FINALIZADA" || corrida.situacao === "ANDAMENTO" || corrida.situacao === "AGENDADA"))
+                || ((corrida.situacao === "FINALIZADA") && (corrida.chaveEmprestada === false))}
             >
               Liberar Chave
             </Button>
@@ -196,8 +231,8 @@ export default function ListaCorridas() {
               color="secondary"
               size="small"
               onClick={() => handleAbrirModalReceberChave(corrida)}
-              disabled={((corrida.chaveEmprestada === false) && (corrida.situacao === "AGENDADA" || corrida.situacao === "ANDAMENTO" || corrida.situacao === "FINALIZADA")) 
-                ||( (corrida.chaveEmprestada === true ) && (corrida.situacao === "AGENDADA" || corrida.situacao === "ANDAMENTO")) }
+              disabled={((corrida.chaveEmprestada === false) && (corrida.situacao === "AGENDADA" || corrida.situacao === "ANDAMENTO" || corrida.situacao === "FINALIZADA"))
+                || ((corrida.chaveEmprestada === true) && (corrida.situacao === "AGENDADA" || corrida.situacao === "ANDAMENTO"))}
             >
               Receber Chave
             </Button>
@@ -210,36 +245,24 @@ export default function ListaCorridas() {
   return (
     <>
       <Menu />
-      <Box sx={{
-        p: 3,
-        backgroundColor: theme.palette.background.default,
-        minHeight: '100vh'
-      }}>
+      <Box sx={{ p: 3, backgroundColor: theme.palette.background.default, minHeight: '100vh' }}>
+        {/* Header */}
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Typography variant="h5" fontWeight="bold" color="textPrimary">
             Listagem de Corridas
           </Typography>
-
           <Button
             component={Link}
             to="/ColocarTombo"
             variant="contained"
-            sx={{
-              textTransform: 'none',
-              fontWeight: 600,
-              boxShadow: theme.shadows[2]
-            }}
+            sx={{ textTransform: 'none', fontWeight: 600, boxShadow: theme.shadows[2] }}
           >
             + Agendar Corrida
           </Button>
         </Box>
 
-        <Box sx={{
-          display: 'flex',
-          gap: 1,
-          mb: 3,
-          flexWrap: 'wrap'
-        }}>
+        {/* Filtros */}
+        <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
           {[
             { label: 'AGENDADA', value: 'AGENDADA', count: qtdAgendadas, color: theme.palette.info.main },
             { label: 'EM ANDAMENTO', value: 'ANDAMENTO', count: qtdEmAndamento, color: theme.palette.warning.main },
@@ -268,9 +291,7 @@ export default function ListaCorridas() {
               <Box sx={{
                 ml: 1,
                 fontWeight: 600,
-                backgroundColor: filtroSituacao === tab.value
-                  ? 'rgba(255,255,255,0.2)'
-                  : theme.palette.grey[200],
+                backgroundColor: filtroSituacao === tab.value ? 'rgba(255,255,255,0.2)' : theme.palette.grey[200],
                 px: 1,
                 borderRadius: 12
               }}>
@@ -280,7 +301,7 @@ export default function ListaCorridas() {
           ))}
         </Box>
 
-        {/* Caixa de busca */}
+        {/* Busca */}
         <Box sx={{ mb: 3 }}>
           <TextField
             placeholder="Buscar corridas..."
@@ -289,51 +310,29 @@ export default function ListaCorridas() {
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             fullWidth
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 2,
-                backgroundColor: theme.palette.background.paper
-              }
-            }}
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, backgroundColor: theme.palette.background.paper } }}
           />
         </Box>
 
+        {/* DataGrid */}
         <DataGrid
           rows={dadosFiltrados}
           columns={columns}
           loading={loading}
           getRowId={(row) => row.idCorrida}
-          initialState={{
-            pagination: {
-              paginationModel: { pageSize: 10, page: 0 },
-            },
-          }}
+          initialState={{ pagination: { paginationModel: { pageSize: 10, page: 0 } } }}
           pageSizeOptions={[5, 10, 20, 50]}
           autoHeight
           sx={{
-            '& .MuiDataGrid-cell': {
-              borderBottom: `1px solid ${theme.palette.divider}`,
-              py: 1.5,
-            },
+            '& .MuiDataGrid-cell': { borderBottom: `1px solid ${theme.palette.divider}`, py: 1.5 },
             '& .MuiDataGrid-columnHeaders': {
-              backgroundColor: theme.palette.mode === 'dark'
-                ? theme.palette.grey[800]
-                : theme.palette.grey[100],
+              backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[100],
               fontWeight: 'bold',
               borderRadius: 1,
               borderBottom: `2px solid ${theme.palette.divider}`
             },
-            '& .MuiDataGrid-row': {
-              '&:hover': {
-                backgroundColor: theme.palette.action.hover,
-              },
-              '&.Mui-selected': {
-                backgroundColor: theme.palette.action.selected,
-              }
-            },
-            '& .MuiDataGrid-footerContainer': {
-              borderTop: `1px solid ${theme.palette.divider}`,
-            },
+            '& .MuiDataGrid-row': { '&:hover': { backgroundColor: theme.palette.action.hover }, '&.Mui-selected': { backgroundColor: theme.palette.action.selected } },
+            '& .MuiDataGrid-footerContainer': { borderTop: `1px solid ${theme.palette.divider}` },
             boxShadow: theme.shadows[1],
             borderRadius: 2,
             border: 'none',
@@ -343,17 +342,14 @@ export default function ListaCorridas() {
         />
       </Box>
 
+      {/* Modais */}
       <Dialog
         open={showModalLiberarChave}
         onClose={() => setShowModalLiberarChave(false)}
         fullWidth
         maxWidth="sm"
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            p: 1
-          }
-        }}>
+        PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
+      >
         <DialogTitle sx={{ fontWeight: 600 }}>Liberar chave</DialogTitle>
         <DialogContent>
           <Typography>
@@ -367,15 +363,10 @@ export default function ListaCorridas() {
             onChange={(e) => setSenhaLiberarChave(e.target.value)}
             fullWidth
             variant="outlined"
-          
           />
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0 }}>
-          <Button
-            onClick={() => setShowModalLiberarChave(false)}
-            variant="outlined"
-            sx={{ borderRadius: 2 }}
-          >
+          <Button onClick={() => setShowModalLiberarChave(false)} variant="outlined" sx={{ borderRadius: 2 }}>
             Cancelar
           </Button>
           <Button
@@ -406,12 +397,8 @@ export default function ListaCorridas() {
         onClose={() => setShowModalReceberChave(false)}
         fullWidth
         maxWidth="sm"
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            p: 1
-          }
-        }}>
+        PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
+      >
         <DialogTitle sx={{ fontWeight: 600 }}>Receber chave</DialogTitle>
         <DialogContent>
           <Typography>
@@ -420,11 +407,7 @@ export default function ListaCorridas() {
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0 }}>
-          <Button
-            onClick={() => setShowModalReceberChave(false)}
-            variant="outlined"
-            sx={{ borderRadius: 2 }}
-          >
+          <Button onClick={() => setShowModalReceberChave(false)} variant="outlined" sx={{ borderRadius: 2 }}>
             Cancelar
           </Button>
           <Button
@@ -448,6 +431,24 @@ export default function ListaCorridas() {
           </Button>
         </DialogActions>
       </Dialog>
+
+
+      <SalvarEdicaoCorrida
+        open={showModalEditar}
+        onClose={() => setShowModalEditar(false)}
+        corrida={corridaParaEditar ? {
+          ...mapToDto(corridaParaEditar),
+          dataTermino: mapToDto(corridaParaEditar).dataTermino || new Date()
+        } : null}
+        onSuccess={async (msg) => {
+          console.log(msg);
+          const dadosAtualizados = await getCorridas();
+          setCorridas(dadosAtualizados);
+        }}
+        onError={(err) => {
+          console.error(err);
+        }}
+      />
     </>
   );
 }

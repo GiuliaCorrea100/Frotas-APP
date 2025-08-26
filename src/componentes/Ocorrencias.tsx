@@ -101,7 +101,7 @@ export default function ListaOcorrencias() {
             rows={dadosFiltrados}
             columns={columns}
             loading={loading}
-            getRowId={(row) => row.idOcorrencias ?? `${row.idCorrida}-${row.descricao}`}
+            getRowId={(row) => row.idOcorrencia ?? `${row.idCorrida}-${row.descricao}`}
             initialState={{
               pagination: {
                 paginationModel: { pageSize: 5, page: 0 },

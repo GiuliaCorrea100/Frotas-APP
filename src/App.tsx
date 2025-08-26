@@ -29,6 +29,7 @@ import { AuthProvider } from './context/AuthContext';
 
 import PrivateRoute from './componentes/PrivateRoute';
 import ListaCorrida from './componentes/Listagem/painelCorrida/ListaCorrida';
+import DetalhesRequisicao from './componentes/Listagem/painelCorrida/detalhes';
 import HistoricoIndividual from './componentes/Listagem/HistoricoIndividual';
 
 const App: React.FC = () => {
@@ -55,6 +56,7 @@ const App: React.FC = () => {
           <Route path="/Administradores" element={<ListaAdministrador />} />
           <Route path="/ListaCarros" element={<ListaCarros />} />
           <Route path="/ListaCorrida" element={<ListaCorrida />} />
+          <Route path="/DetalhesCorrida/:id" element={< DetalhesRequisicao/>} />
           
           {/*Paginas de Corridas */}
           {/*ALTERAR DEPOIS, PARA QUE NAO POSSAM SER ACESSADOS VIA URL*/}
@@ -66,6 +68,7 @@ const App: React.FC = () => {
 
         {/* Rotas usuario comum */}
         <Route path="/HistoricoIndividual" element={<HistoricoIndividual/>} />
+        
         
 
         {/* Rota para acesso negado */}
