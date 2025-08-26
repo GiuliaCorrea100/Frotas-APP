@@ -27,6 +27,19 @@ export interface CorridaFrontend {
   chaveEmprestada: boolean;
 }
 
+export interface CorridaDto {
+  idCorrida: number;
+  dataInicio: Date;
+  dataTermino: Date | null;
+  distanciaKm: string;
+  itinerario: string;
+  idMotorista: number;
+  nomeMotorista?: string;
+  placaVeiculo?: string;
+  situacao?: string;
+  chaveEmprestada: boolean;
+}
+
 export const createCorrida = async (
   corridaData: Omit<CorridaBackend, "idCorrida">
 ) => {
@@ -50,7 +63,7 @@ export const createCorrida = async (
     if (axios.isAxiosError(error)) {
       throw error;
     }
-      throw error;
+    throw error;
   }
 };
 

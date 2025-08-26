@@ -33,6 +33,7 @@ import Relatorios  from './componentes/Relatorios/Relatorios';
 
 import PrivateRoute from './componentes/PrivateRoute';
 import ListaCorrida from './componentes/Listagem/painelCorrida/ListaCorrida';
+import DetalhesRequisicao from './componentes/Listagem/painelCorrida/detalhes';
 import HistoricoIndividual from './componentes/Listagem/HistoricoIndividual';
 import ListaAbastecimentos from './componentes/Listagem/painelAbastecimento/ListaAbastecimento';
 
@@ -68,6 +69,7 @@ const App: React.FC = () => {
           <Route path="/Administradores" element={<ListaAdministrador />} />
           <Route path="/ListaCarros" element={<ListaCarros />} />
           <Route path="/ListaCorrida" element={<ListaCorrida />} />
+          <Route path="/DetalhesCorrida/:id" element={< DetalhesRequisicao/>} />
           
           {/*Paginas de Corridas */}
           {/*ALTERAR DEPOIS, PARA QUE NAO POSSAM SER ACESSADOS VIA URL*/}
@@ -83,7 +85,8 @@ const App: React.FC = () => {
         <Route path="/Relatorios" element={<Relatorios />} />
         {/* Rotas usuario comum */}
         <Route path="/HistoricoIndividual" element={<HistoricoIndividual/>} />
-
+        
+        
 
         {/* Rota para acesso negado */}
         <Route path="/unauthorized" element={<Unauthorized />} />
