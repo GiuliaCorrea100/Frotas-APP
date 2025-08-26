@@ -8,7 +8,7 @@ export interface CorridaBackend {
   dataInicio: string | Date;
   dataTermino: string | Date | null;
   distanciaKm?: string | null;
-  itinerario: string;
+  local_de_saida: string;
   idMotorista: number;
   situacao: string;
   chaveEmprestada: boolean;
@@ -20,7 +20,7 @@ export interface CorridaFrontend {
   dataInicio: string;
   dataTermino: string | null;
   distanciaKm: string;
-  itinerario: string;
+  local_de_saida: string;
   idMotorista: number;
   nomeMotorista?: string;
   placaVeiculo?: string;
@@ -36,12 +36,13 @@ export const createCorrida = async (
       ...corridaData,
       dataInicio:
         corridaData.dataInicio instanceof Date
-          ? corridaData.dataInicio.toISOString()
-          : corridaData.dataInicio,
-      dataTermino:
-        corridaData.dataTermino instanceof Date
-          ? corridaData.dataTermino.toISOString()
-          : corridaData.dataTermino,
+          ? corridaData.dataInicio.toISOString().split("T")[0]
+          : corridaData.dataInicio.split("T")[0],
+      dataTermino: corridaData.dataTermino
+        ? corridaData.dataTermino instanceof Date
+          ? corridaData.dataTermino.toISOString().split("T")[0]
+          : corridaData.dataTermino.split("T")[0]
+        : null,
     };
 
     console.log("Enviando para o backend:", payload);
@@ -51,7 +52,7 @@ export const createCorrida = async (
     if (axios.isAxiosError(error)) {
       throw error;
     }
-      throw error;
+    throw error;
   }
 };
 
@@ -81,10 +82,31 @@ export const getCorridas = async (): Promise<CorridaFrontend[]> => {
   }
 };
 
+export const buscarCorridaPorId = async (idCorrida: number): Promise<CorridaBackend> => {
+  try {
+    const response = await axios.get(`${API_URL}/${idCorrida}`);
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao buscar corrida:", error);
+    throw error;
+  }
+};
+
+export const atualizarSituacaoCorrida = async (idCorrida: number, situacao: string): Promise<void> => {
+  try {
+    await axios.patch(`${API_URL}/${idCorrida}/situacao`, { situacao });
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || error.message);
+    }
+    throw error;
+  }
+};
+
 function formatCorrida(corrida: CorridaBackend): CorridaFrontend {
   return {
     idCorrida: corrida.idCorrida || 0,
-    itinerario: corrida.itinerario,
+    local_de_saida: corrida.local_de_saida,
     dataInicio:
       corrida.dataInicio instanceof Date
         ? corrida.dataInicio.toISOString()
@@ -95,7 +117,6 @@ function formatCorrida(corrida: CorridaBackend): CorridaFrontend {
         : corrida.dataTermino,
     distanciaKm: corrida.distanciaKm || "0",
     idMotorista: corrida.idMotorista,
-
     nomeMotorista: (corrida as any).nomeMotorista || "Desconhecido",
     chaveEmprestada: corrida.chaveEmprestada ?? false,
     placaVeiculo: (corrida as any).placaVeiculo || "Não informada",

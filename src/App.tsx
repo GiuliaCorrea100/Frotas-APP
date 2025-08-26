@@ -1,4 +1,3 @@
-// src/App.tsx
 import '@govbr-ds/core/dist/core.min.css';
 import React from 'react';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
@@ -17,7 +16,6 @@ import ListaMulta from './componentes/Listagem/ListaMulta';
 //import ListaCorridas from './componentes/Listagem/ListaCorridas';
 import CadastrarCorrida from './componentes/cadastros/corrida/CadastrarCorrida';
 import IniciarCorrida from './componentes/cadastros/corrida/IniciarCorrida';
-import NaCorrida from './componentes/cadastros/corrida/NaCorrida';
 import ColocarTombo from './componentes/cadastros/corrida/ColocarTombo';
 
 import Menu from './componentes/Menu';
@@ -61,7 +59,6 @@ const App: React.FC = () => {
           {/*Paginas de Corridas */}
           {/*ALTERAR DEPOIS, PARA QUE NAO POSSAM SER ACESSADOS VIA URL*/}
           <Route path="/IniciarCorrida" element={<IniciarCorrida />} />
-          <Route path="/NaCorrida" element={<NaCorrida />} />
           <Route path="/ColocarTombo" element={<ColocarTombo />} />
           <Route path="/Ocorrencias" element={<Ocorrencias/>} />
         </Route>

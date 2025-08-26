@@ -57,20 +57,6 @@ const ColocarTombo: React.FC = () => {
     }
   };
 
-  const handleIniciarCorrida = () => {
-    const now = new Date();
-    const corridaInfo = {
-      carro: {
-        modelo: carro?.modelo || '',
-        placa: carro?.placa || '',
-        odometro: carro?.odometro || '',
-        ano: carro?.ano
-      },
-      dataInicio: now.toISOString()
-    };
-    navigate('/NaCorrida', { state: { corridaInfo } });
-  };
-
   const handleCadastrarCorrida = () => {
     if (carro) {
       navigate('/CadastrarCorrida', { 
@@ -128,14 +114,6 @@ const ColocarTombo: React.FC = () => {
               Cadastrar!
             </Button>
             
-            <Button
-              variant="contained"
-              color="success"
-              onClick={handleIniciarCorrida}
-              fullWidth
-            >
-              Iniciar Corrida
-            </Button>
           </Box>
         )}
       </Box>

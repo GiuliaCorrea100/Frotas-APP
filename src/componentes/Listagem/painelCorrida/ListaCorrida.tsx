@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import { DataGrid, GridColDef} from '@mui/x-data-grid';
 import { CorridaFrontend, getCorridas, CorridaService } from '../../../api/corridaService';
+import { OcorrenciaService } from '../../../api/ocorrenciasService';
 import Menu from "../../Menu";
 
 const formatDate = (dateString: string | null) => {
@@ -30,6 +31,7 @@ export default function ListaCorridas() {
 
   const [busca, setBusca] = useState('');
   const [corridas, setCorridas] = useState<CorridaFrontend[]>([]);
+  const [ocorrencias, setOcorrencias] = useState<Record<number, string>>({});
   const [loading, setLoading] = useState(true);
 
   const [showModalLiberarChave, setShowModalLiberarChave] = useState(false);
@@ -37,21 +39,33 @@ export default function ListaCorridas() {
   const [selectedCorrida, setSelectedCorrida] = useState<CorridaFrontend | null>(null);
   const [senhaLiberarChave, setSenhaLiberarChave] = useState('');
 
-
   const [filtroSituacao, setFiltroSituacao] = useState<string>('TODOS');
 
   useEffect(() => {
-    const carregarCorridas = async () => {
+    const carregarDados = async () => {
       try {
-        const dados = await getCorridas();
-        setCorridas(dados);
+        const dadosCorridas = await getCorridas();
+        setCorridas(dadosCorridas);
+        
+        const ocorrenciasMap: Record<number, string> = {};
+        for (const corrida of dadosCorridas) {
+          try {
+            const ocorrencia = await OcorrenciaService.buscarPorCorrida(corrida.idCorrida);
+            if (ocorrencia) {
+              ocorrenciasMap[corrida.idCorrida] = ocorrencia.descricao;
+            }
+          } catch (error) {
+            console.error(`Erro ao buscar ocorrência para corrida ${corrida.idCorrida}:`, error);
+          }
+        }
+        setOcorrencias(ocorrenciasMap);
       } catch (error) {
-        console.error("Erro ao carregar corridas:", error);
+        console.error("Erro ao carregar dados:", error);
       } finally {
         setLoading(false);
       }
     };
-    carregarCorridas();
+    carregarDados();
   }, []);
 
   const qtdAgendadas = corridas.filter(c => c.situacao === 'AGENDADA').length;
@@ -120,6 +134,16 @@ export default function ListaCorridas() {
       )
     },
     {
+      field: 'ocorrencia',
+      headerName: 'Ocorrência',
+      flex: 2,
+      renderCell: (params) => (
+        <Typography variant="body2" sx={{ whiteSpace: 'normal', wordWrap: 'break-word' }}>
+          {ocorrencias[params.row.idCorrida] || 'Nenhuma ocorrência registrada'}
+        </Typography>
+      )
+    },
+    {
       field: 'situacao',
       headerName: 'Situação',
       flex: 1,
@@ -156,14 +180,6 @@ export default function ListaCorridas() {
         return (
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Button
-              variant="outlined"
-              color = "warning" 
-              size="small"
-              onClick={() => handleAbrirModalReceberChave(corrida)}
-            >
-              Editar
-            </Button>
-            <Button
               variant="contained"
               color="primary"
               size="small"
@@ -185,7 +201,6 @@ export default function ListaCorridas() {
             >
               Receber Chave
             </Button>
-            
           </Box>
         );
       }
