@@ -11,9 +11,8 @@ import {
   DialogActions,
   useTheme
 } from "@mui/material";
-import { DataGrid, GridColDef} from '@mui/x-data-grid';
-import { OcorrenciaService } from '../../../api/ocorrenciasService';
 import CreateIcon from '@mui/icons-material/Create';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { CorridaFrontend, CorridaDto, getCorridas, CorridaService } from '../../../api/corridaService';
 import Menu from "../../Menu";
 import SalvarEdicaoCorrida from "./modais/editarPainelCorrida";
@@ -42,14 +41,12 @@ export default function ListaCorridas() {
 
   const [busca, setBusca] = useState('');
   const [corridas, setCorridas] = useState<CorridaFrontend[]>([]);
-  const [ocorrencias, setOcorrencias] = useState<Record<number, string>>({});
   const [loading, setLoading] = useState(true);
 
   const [showModalLiberarChave, setShowModalLiberarChave] = useState(false);
   const [showModalReceberChave, setShowModalReceberChave] = useState(false);
   const [selectedCorrida, setSelectedCorrida] = useState<CorridaFrontend | null>(null);
   const [senhaLiberarChave, setSenhaLiberarChave] = useState('');
-
   const [showModalEditar, setShowModalEditar] = useState(false);
   const [corridaParaEditar, setCorridaParaEditar] = useState<CorridaFrontend | null>(null);
 
@@ -58,30 +55,17 @@ export default function ListaCorridas() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const carregarDados = async () => {
+    const carregarCorridas = async () => {
       try {
-        const dadosCorridas = await getCorridas();
-        setCorridas(dadosCorridas);
-        
-        const ocorrenciasMap: Record<number, string> = {};
-        for (const corrida of dadosCorridas) {
-          try {
-            const ocorrencia = await OcorrenciaService.buscarPorCorrida(corrida.idCorrida);
-            if (ocorrencia) {
-              ocorrenciasMap[corrida.idCorrida] = ocorrencia.descricao;
-            }
-          } catch (error) {
-            console.error(`Erro ao buscar ocorrência para corrida ${corrida.idCorrida}:`, error);
-          }
-        }
-        setOcorrencias(ocorrenciasMap);
+        const dados = await getCorridas();
+        setCorridas(dados);
       } catch (error) {
-        console.error("Erro ao carregar dados:", error);
+        console.error("Erro ao carregar corridas:", error);
       } finally {
         setLoading(false);
       }
     };
-    carregarDados();
+    carregarCorridas();
   }, []);
 
   const qtdAgendadas = corridas.filter(c => c.situacao === 'AGENDADA').length;
@@ -149,16 +133,6 @@ export default function ListaCorridas() {
       renderCell: (params) => (
         <Typography variant="body2">
           {formatDate(params.value as string | null)}
-        </Typography>
-      )
-    },
-    {
-      field: 'ocorrencia',
-      headerName: 'Ocorrência',
-      flex: 2,
-      renderCell: (params) => (
-        <Typography variant="body2" sx={{ whiteSpace: 'normal', wordWrap: 'break-word' }}>
-          {ocorrencias[params.row.idCorrida] || 'Nenhuma ocorrência registrada'}
         </Typography>
       )
     },

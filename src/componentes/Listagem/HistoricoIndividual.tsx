@@ -22,79 +22,24 @@ import Menu from "../Menu";
 import { decodeToken } from '../../utils/jwtDecodeHelper';
 import { useAuth } from "../../context/AuthContext";
 
-// Componente de card de estatística
-const StatCard = ({ title, value, icon, trend, subtitle, theme }: { 
-  title: string; 
-  value: string | number; 
-  icon: React.ReactNode; 
-  trend?: 'up' | 'down' | 'neutral';
-  subtitle?: string;
-  theme: any;
-}) => {
-  const trendColor = trend === 'up' ? '#4CAF50' : trend === 'down' ? '#F44336' : '#FF9800';
-  
-  return (
-    <Paper sx={{ 
-      p: 2.5,
-      height: '100%',
-      display: 'flex',
-      alignItems: 'center',
-      gap: 2,
-      border: theme.palette.mode === 'dark' 
-                  ? '1px solid #4C5157' 
-                  : '1px solid #ddd',
-      borderRadius: 2,
-      transition: 'all 0.3s ease',
-    }}>
-      <Box sx={{ 
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: 48,
-        height: 48,
-        borderRadius: '50%',
-        backgroundColor: theme.palette.mode === 'dark' ? 
-          theme.palette.grey[700] : 'white',
-        color: trendColor
-      }}>
-        {icon}
-      </Box>
-      
-      <Box sx={{ flex: 1 }}>
-        <Typography variant="subtitle2" color="text.secondary" sx={{ 
-          fontWeight: 'medium',
-          fontSize: '0.875rem'
-        }}>
-          {title}
-        </Typography>
-        <Typography variant="h5" sx={{ 
-          fontWeight: 'bold',
-          color: theme.palette.text.primary
-        }}>
-          {value}
-        </Typography>
-        {subtitle && (
-          <Typography variant="body2" color="text.secondary">
-            {subtitle}
-          </Typography>
-        )}
-      </Box>
-      
-      {trend && (
-        <Box sx={{ 
-          ml: 'auto',
-          display: 'flex',
-          alignItems: 'center'
-        }}>
-          {trend === 'up' ? (
-            <TrendingUp sx={{ color: trendColor, fontSize: 28 }} />
-          ) : (
-            <TrendingDown sx={{ color: trendColor, fontSize: 28 }} />
-          )}
-        </Box>
-      )}
-    </Paper>
-  );
+const formatDate = (dateString: string | null) => {
+  if (!dateString) return 'Em andamento';
+  try {
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? 'Data inválida' : date.toLocaleString('pt-BR');
+  } catch {
+    return 'Data inválida';
+  }
+};
+
+const formatDistance = (distance: string | null) => {
+  if (!distance) return 'Não informada';
+  try {
+    const num = parseFloat(distance);
+    return isNaN(num) ? 'Formato inválido' : `${num.toFixed(2)} km`;
+  } catch {
+    return 'Formato inválido';
+  }
 };
 
 const getStatusColor = (status: string | undefined) => {
@@ -132,16 +77,8 @@ export default function HistoricoIndividual() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Estado para os dados das informações gerais
-  const [informacoesGerais, setInformacoesGerais] = useState({
-    situacaoVeiculos: [] as {name: string, value: number}[],
-    consumoMensal: [] as {mes: string, litros: number}[],
-    indicadores: {
-      totalAbastecimentos: 0,
-      custoTotal: 0,
-      mediaConsumo: 0
-    }
-  });
+  const [openDetails, setOpenDetails] = useState(false);
+  const [selectedCorrida, setSelectedCorrida] = useState<CorridaFrontend | null>(null);
 
   useEffect(() => {
     const carregarDados = async () => {
@@ -175,33 +112,17 @@ export default function HistoricoIndividual() {
     carregarDados();
   }, []);
 
-  // Estado para os dados dos veículos
-  const [veiculosData, setVeiculosData] = useState({
-    desempenho: [] as {
-      modelo: string;
-      quilometragem: number;
-      consumoMedio: number;
-      custoTotal: number;
-    }[],
-    tabela: [] as {
-      id: number;
-      placa: string;
-      modelo: string;
-      status: string;
-      quilometragem: number;
-      consumoMedio: number;
-      custoTotal: number;
-    }[],
-  });
+  const handleOpenDetails = (corrida: CorridaFrontend) => {
+    setSelectedCorrida(corrida);
+    setOpenDetails(true);
+  };
 
-  // Estado para os dados financeiros
-  const [financeiroData, setFinanceiroData] = useState({
-    custosMensais: [] as {mes: string, valor: number}[],
-    porCategoria: [] as {categoria: string, valor: number}[],
-    detalhado: [] as any[],
-  });
+  const handleCloseDetails = () => {
+    setOpenDetails(false);
+    setSelectedCorrida(null);
+  };
 
-  const menuItems = [
+  const columns: GridColDef<CorridaFrontend>[] = [
     { 
       field: 'placaVeiculo',
       headerName: 'Veículo', 
@@ -346,67 +267,7 @@ export default function HistoricoIndividual() {
                 sortModel: [{ field: 'dataInicio', sort: 'desc' }],
               },
             }}
-          >
-            {menuItems.map((item) => (
-              <MenuItem
-                key={item.value}
-                onClick={() => handleMenuItemClick(item.value)}
-                selected={activeTab === item.value}
-                sx={{
-                  fontWeight: activeTab === item.value ? 600 : 400,
-                  color: activeTab === item.value ? 'primary.main' : 'text.primary'
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  {item.icon}
-                  {item.label}
-                </Box>
-              </MenuItem>
-            ))}
-          </Menu>
-        </Box>
-
-        {/* Filtros e botão de exportação */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Ano</InputLabel>
-            <Select 
-              value={selectedYear} 
-              onChange={(e) => setSelectedYear(Number(e.target.value))}
-              label="Ano"
-            >
-              <MenuItem value={new Date().getFullYear() - 1}>{new Date().getFullYear() - 1}</MenuItem>
-              <MenuItem value={new Date().getFullYear()}>{new Date().getFullYear()}</MenuItem>
-            </Select>
-          </FormControl>
-          
-          {(activeTab === 1 || activeTab === 3) && (
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel>Mês</InputLabel>
-              <Select 
-                value={selectedMonth} 
-                onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                label="Mês"
-              >
-                <MenuItem value={1}>Janeiro</MenuItem>
-                <MenuItem value={2}>Fevereiro</MenuItem>
-                <MenuItem value={3}>Março</MenuItem>
-                <MenuItem value={4}>Abril</MenuItem>
-                <MenuItem value={5}>Maio</MenuItem>
-                <MenuItem value={6}>Junho</MenuItem>
-                <MenuItem value={7}>Julho</MenuItem>
-                <MenuItem value={8}>Agosto</MenuItem>
-                <MenuItem value={9}>Setembro</MenuItem>
-                <MenuItem value={10}>Outubro</MenuItem>
-                <MenuItem value={11}>Novembro</MenuItem>
-                <MenuItem value={12}>Dezembro</MenuItem>
-              </Select>
-            </FormControl>
-          )}
-          
-          <Button 
-            variant="contained" 
-            startIcon={<Download />}
+            pageSizeOptions={[5, 10, 20]}
             sx={{
               '& .MuiDataGrid-cell': {
                 display: 'flex',
@@ -493,6 +354,4 @@ export default function HistoricoIndividual() {
       </Dialog>
     </>
   );
-};
-
-export default Relatorios;
+}

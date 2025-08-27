@@ -8,7 +8,7 @@ export interface CorridaBackend {
   dataInicio: string | Date;
   dataTermino: string | Date | null;
   distanciaKm?: string | null;
-  
+
   idMotorista: number;
   situacao: string;
   chaveEmprestada: boolean;
@@ -32,7 +32,6 @@ export interface CorridaDto {
   dataInicio: Date;
   dataTermino: Date | null;
   distanciaKm: string;
-  itinerario: string;
   idMotorista: number;
   nomeMotorista?: string;
   placaVeiculo?: string;
@@ -94,7 +93,9 @@ export const getCorridas = async (): Promise<CorridaFrontend[]> => {
   }
 };
 
-export const buscarCorridaPorId = async (idCorrida: number): Promise<CorridaBackend> => {
+export const buscarCorridaPorId = async (
+  idCorrida: number
+): Promise<CorridaBackend> => {
   try {
     const response = await axios.get(`${API_URL}/${idCorrida}`);
     return response.data;
@@ -104,7 +105,10 @@ export const buscarCorridaPorId = async (idCorrida: number): Promise<CorridaBack
   }
 };
 
-export const atualizarSituacaoCorrida = async (idCorrida: number, situacao: string): Promise<void> => {
+export const atualizarSituacaoCorrida = async (
+  idCorrida: number,
+  situacao: string
+): Promise<void> => {
   try {
     await axios.patch(`${API_URL}/${idCorrida}/situacao`, { situacao });
   } catch (error) {
