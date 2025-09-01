@@ -188,7 +188,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       valorMedio: formData.valor_medio ? parseFloat(formData.valor_medio) : 0,
       justificativaAlteracao: formData.justificativa_alteracao || '',
       tipoCombustivel: tipoCombustivelSelecionado.id_tipo_combustivel as number, // Corrigido
-      corrida: parseInt(formData.id_corrida), // Corrigido
+      idCorrida: parseInt(formData.id_corrida), // Corrigido
     };
 
     console.log('Dados enviados para cadastro:', dadosParaCadastro);

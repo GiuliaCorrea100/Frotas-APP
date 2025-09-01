@@ -209,7 +209,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
       dataAbastecimento: formData.data_abastecimento,
       valorUnitarioLitro: formData.valor_unitario_litro ? parseFloat(formData.valor_unitario_litro) : undefined,
       tipoCombustivel: parseInt(formData.tipo_combustivel_id),
-      corrida: parseInt(formData.id_corrida),
+      idCorrida: parseInt(formData.id_corrida),
     };
 
     try {

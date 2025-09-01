@@ -46,7 +46,7 @@ export interface AbastecimentoRequest {
   valorMedio?: number;
   justificativaAlteracao?: string;
   tipoCombustivel: number;
-  corrida: number;
+  idCorrida: number;
 }
 
 export class AbastecimentoService {
