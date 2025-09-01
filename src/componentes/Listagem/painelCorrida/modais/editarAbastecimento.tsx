@@ -16,9 +16,11 @@ import {
   IconButton
 } from '@mui/material';
 import { LocalGasStation, Close, AttachMoney, CalendarToday } from '@mui/icons-material';
-import { CorridaFrontend, getCorridas } from '../../../api/corridaService';
-import { TipoCombustivel, TipoCombustivelService } from '../../../api/tipoCombustivelService';
-import AbastecimentoService from '../../../api/abastecimentoService';
+import { TipoCombustivel } from '../../../../api/carrosService';
+import { CorridaFrontend, getCorridas } from '../../../../api/corridaService';
+import { TipoCombustivelService } from '../../../../api/tipoCombustivelService';
+import abastecimentoService, { Abastecimento, AbastecimentoRequest, AbastecimentoService } from '../../../../api/abastecimentoService';
+
 
 // Estilo para o modal
 const modalStyle = {
@@ -36,17 +38,17 @@ const modalStyle = {
   borderRadius: 2
 };
 
-interface AbastecimentoModalProps {
+interface EdicaoAbastecimentoModalProps {
   open: boolean;
   onClose: () => void;
-  corridaId?: number;
+  abastecimentoId?: number;
   onSuccess?: () => void;
 }
 
-const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
+const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
   open,
   onClose,
-  corridaId,
+  abastecimentoId,
   onSuccess
 }) => {
   const [formData, setFormData] = useState({
@@ -55,12 +57,8 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
     preco_final: '',
     data_abastecimento: new Date().toISOString().split('T')[0],
     valor_unitario_litro: '',
-    valor_medio_litro: '',
-    valor_unitario: '',
-    valor_medio: '',
-    justificativa_alteracao: '',
     tipo_combustivel_id: '',
-    id_corrida: corridaId ? corridaId.toString() : '',
+    id_corrida: '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -70,6 +68,13 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
   const [corridas, setCorridas] = useState<CorridaFrontend[]>([]);
   const [corridaSelecionada, setCorridaSelecionada] = useState<CorridaFrontend | null>(null);
   const [carregandoTipos, setCarregandoTipos] = useState(true);
+  const [carregandoAbastecimento, setCarregandoAbastecimento] = useState(false);
+
+  useEffect(() => {
+    if (open && abastecimentoId) {
+      carregarDadosAbastecimento();
+    }
+  }, [open, abastecimentoId]);
 
   useEffect(() => {
     if (open) {
@@ -92,6 +97,31 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
         .catch((err) => console.error('Erro ao buscar corridas:', err));
     }
   }, [open]);
+
+  // Carregar dados do abastecimento para edição
+  const carregarDadosAbastecimento = async () => {
+    if (!abastecimentoId) return;
+
+    try {
+      setCarregandoAbastecimento(true);
+      const abastecimento: Abastecimento = await abastecimentoService.buscarAbastecimentoPorId(abastecimentoId);
+
+      setFormData({
+        litros: abastecimento.litros.toString(),
+        cod_pagamento: abastecimento.codPagamento.toString(),
+        preco_final: abastecimento.precoFinal.toString(),
+        data_abastecimento: abastecimento.dataAbastecimento.split('T')[0],
+        valor_unitario_litro: abastecimento.valorUnitarioLitro?.toString() || '',
+        tipo_combustivel_id: abastecimento.tipoCombustivel.idTipoCombustivel?.toString() || '',
+        id_corrida: abastecimento.corrida.idCorrida?.toString() || '',
+      });
+    } catch (error) {
+      console.error('Erro ao carregar abastecimento:', error);
+      setErrors({ submit: 'Erro ao carregar dados do abastecimento' });
+    } finally {
+      setCarregandoAbastecimento(false);
+    }
+  };
 
   // Atualizar informações da corrida selecionada
   useEffect(() => {
@@ -167,60 +197,35 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
     if (!validateForm()) return;
 
-    // Encontrar o tipo de combustível selecionado
-    const tipoCombustivelSelecionado = tiposCombustivel.find(
-      tipo => tipo.id_tipo_combustivel === parseInt(formData.tipo_combustivel_id)
-    );
-
-    if (!tipoCombustivelSelecionado) {
-      setErrors({ submit: 'Tipo de combustível inválido' });
+    if (!abastecimentoId) {
+      setErrors({ submit: 'ID do abastecimento não informado' });
       return;
     }
 
-    const dadosParaCadastro = {
+    const dadosParaEdicao: Partial<AbastecimentoRequest> = {
       litros: parseFloat(formData.litros),
       codPagamento: parseInt(formData.cod_pagamento),
       precoFinal: parseFloat(formData.preco_final),
       dataAbastecimento: formData.data_abastecimento,
-      valorUnitarioLitro: formData.valor_unitario_litro ? parseFloat(formData.valor_unitario_litro) : 0,
-      valorMedioLitro: formData.valor_medio_litro ? parseFloat(formData.valor_medio_litro) : 0,
-      valorUnitario: formData.valor_unitario ? parseFloat(formData.valor_unitario) : 0,
-      valorMedio: formData.valor_medio ? parseFloat(formData.valor_medio) : 0,
-      justificativaAlteracao: formData.justificativa_alteracao || '',
-      tipoCombustivel: tipoCombustivelSelecionado.id_tipo_combustivel as number, // Corrigido
-      corrida: parseInt(formData.id_corrida), // Corrigido
+      valorUnitarioLitro: formData.valor_unitario_litro ? parseFloat(formData.valor_unitario_litro) : undefined,
+      tipoCombustivel: parseInt(formData.tipo_combustivel_id),
+      corrida: parseInt(formData.id_corrida),
     };
-
-    console.log('Dados enviados para cadastro:', dadosParaCadastro);
 
     try {
       setLoading(true);
-      await AbastecimentoService.cadastrarAbastecimento(dadosParaCadastro);
-      setSuccessMessage('Abastecimento cadastrado com sucesso!');
+      await abastecimentoService.atualizarAbastecimento(abastecimentoId, dadosParaEdicao);
+      setSuccessMessage('Abastecimento atualizado com sucesso!');
 
       setTimeout(() => {
         setSuccessMessage('');
-        setFormData({
-          litros: '',
-          cod_pagamento: '',
-          preco_final: '',
-          data_abastecimento: new Date().toISOString().split('T')[0],
-          valor_unitario_litro: '',
-          valor_medio_litro: '',
-          valor_unitario: '',
-          valor_medio: '',
-          justificativa_alteracao: '',
-          tipo_combustivel_id: '',
-          id_corrida: corridaId ? corridaId.toString() : '',
-        });
-
         if (onSuccess) onSuccess();
         onClose();
       }, 1500);
     } catch (error: any) {
-      console.error('Erro ao cadastrar:', error);
+      console.error('Erro ao editar:', error);
       setErrors({
-        submit: error.response?.data?.message || 'Erro ao cadastrar abastecimento. Tente novamente.'
+        submit: error.response?.data?.message || 'Erro ao atualizar abastecimento. Tente novamente.'
       });
     } finally {
       setLoading(false);
@@ -268,12 +273,8 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       preco_final: '',
       data_abastecimento: new Date().toISOString().split('T')[0],
       valor_unitario_litro: '',
-      valor_medio_litro: '',
-      valor_unitario: '',
-      valor_medio: '',
-      justificativa_alteracao: '',
       tipo_combustivel_id: '',
-      id_corrida: corridaId ? corridaId.toString() : '',
+      id_corrida: '',
     });
     setErrors({});
     setSuccessMessage('');
@@ -284,21 +285,27 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
     <Modal
       open={open}
       onClose={handleClose}
-      aria-labelledby="modal-abastecimento"
-      aria-describedby="modal-cadastro-abastecimento"
+      aria-labelledby="modal-edicao-abastecimento"
+      aria-describedby="modal-edicao-abastecimento"
     >
       <Paper sx={modalStyle}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <LocalGasStation color="primary" sx={{ fontSize: 32, mr: 1 }} />
             <Typography variant="h5" component="h2">
-              Cadastro de Abastecimento
+              Edição de Abastecimento
             </Typography>
           </Box>
           <IconButton onClick={handleClose}>
             <Close />
           </IconButton>
         </Box>
+
+        {carregandoAbastecimento && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            Carregando dados do abastecimento...
+          </Alert>
+        )}
 
         {successMessage && (
           <Alert severity="success" sx={{ mb: 2 }}>
@@ -482,65 +489,6 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
             )}
           </Box>
 
-          <Divider sx={{ my: 2 }} />
-
-          {/* Informações Adicionais */}
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Informações Adicionais (Opcionais)
-            </Typography>
-
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
-              <TextField
-                label="Valor Médio por Litro"
-                name="valor_medio_litro"
-                type="number"
-                value={formData.valor_medio_litro}
-                onChange={handleInputChange}
-                sx={{ flex: '1 1 200px' }}
-                inputProps={{ min: 0, step: 0.001 }}
-                InputProps={{
-                  startAdornment: <InputAdornment position="start">R$</InputAdornment>,
-                }}
-              />
-
-              <TextField
-                label="Valor Unitário"
-                name="valor_unitario"
-                type="number"
-                value={formData.valor_unitario}
-                onChange={handleInputChange}
-                sx={{ flex: '1 1 200px' }}
-                InputProps={{
-                  startAdornment: <InputAdornment position="start">R$</InputAdornment>,
-                }}
-              />
-
-              <TextField
-                label="Valor Médio"
-                name="valor_medio"
-                type="number"
-                value={formData.valor_medio}
-                onChange={handleInputChange}
-                sx={{ flex: '1 1 200px' }}
-                InputProps={{
-                  startAdornment: <InputAdornment position="start">R$</InputAdornment>,
-                }}
-              />
-            </Box>
-
-            <TextField
-              label="Justificativa de Alteração"
-              name="justificativa_alteracao"
-              value={formData.justificativa_alteracao}
-              onChange={handleInputChange}
-              fullWidth
-              multiline
-              rows={3}
-              placeholder="Informe a justificativa para alterações de valores, se aplicável"
-            />
-          </Box>
-
           {/* Botões */}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
             <Button
@@ -553,10 +501,10 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
             <Button
               type="submit"
               variant="contained"
-              disabled={loading}
+              disabled={loading || carregandoAbastecimento}
               startIcon={<AttachMoney />}
             >
-              {loading ? 'Cadastrando...' : 'Cadastrar'}
+              {loading ? 'Atualizando...' : 'Atualizar'}
             </Button>
           </Box>
         </form>
@@ -565,4 +513,4 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
   );
 };
 
-export default AbastecimentoModal;
+export default EdicaoAbastecimentoModal;
