@@ -8,9 +8,9 @@
     "@fontsource/roboto": "^5.2.5",
     "@fortawesome/fontawesome-free": "^5.15.4",
     "@govbr-ds/react-components": "^2.1.0",
-    "@mui/icons-material": "^7.0.2",
-    "@mui/material": "^7.3.1",
-    "@mui/styled-engine-sc": "^7.0.2",
+    "@mui/icons-material": "^7.3.2",
+    "@mui/material": "^7.3.2",
+    "@mui/styled-engine-sc": "^7.3.2",
     "@mui/x-data-grid": "^7.28.3",
     "@mui/x-data-grid-pro": "^7.28.3",
     "@testing-library/dom": "^10.4.0",
@@ -29,7 +29,7 @@
     "react-router-dom": "^7.5.0",
     "react-scripts": "5.0.1",
     "recharts": "^3.1.2",
-    "styled-components": "^6.1.17",
+    "styled-components": "^6.1.19",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
