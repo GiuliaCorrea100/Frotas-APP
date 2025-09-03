@@ -31,7 +31,7 @@ interface Corrida {
   idCorrida: number;
   dataInicio: string; 
   itinerario: string;
-  situacao: 'EM_ANDAMENTO' | 'FINALIZADA' | 'PENDENTE';
+  situacao: 'EM_ANDAMENTO' | 'FINALIZADA' | 'PENDENTE' | 'AGENDADA' | 'ANDAMENTO'; // Tipos ajustados para maior compatibilidade
   placaVeiculo?: string;
   nomeMotorista?: string;
   dataTermino?: string | null;
@@ -140,7 +140,7 @@ const Menu: React.FC = () => {
       return null;
     }
 
-    if (dashboardData.corridaDeHoje) {
+    if (dashboardData.corridaDeHoje && dashboardData.corridaDeHoje.situacao !== 'FINALIZADA') {
       return <MenuGrid corrida={dashboardData.corridaDeHoje} onCorridaUpdate={carregarDadosDoDashboard} />;
     }
     

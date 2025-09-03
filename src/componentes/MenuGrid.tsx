@@ -45,7 +45,8 @@ const menuItems = [
   { label: "Ocorrências", path: "#abrirModalOcorrencia" },
 ];
 
-const formatDate = (dateString: string) => {
+const formatDate = (dateString: string | null) => {
+  if (!dateString) return "data não disponível";
   try {
     const date = new Date(dateString);
     return isNaN(date.getTime()) ? "Data inválida" : date.toLocaleString("pt-BR");
@@ -98,8 +99,10 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
       }
     };
 
-    fetchPercursoStatus();
-  }, [corrida.idCorrida]);
+    if (corrida.situacao !== 'FINALIZADA') {
+      fetchPercursoStatus();
+    }
+  }, [corrida.idCorrida, corrida.situacao]);
   
   useEffect(() => {
       const fetchUltimoDestino = async () => {
@@ -113,13 +116,30 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
               }
           }
       };
-      fetchUltimoDestino();
-  }, [modalIniciarOpen, corrida.idCorrida, corrida.local_de_saida]);
+      
+      if (corrida.situacao !== 'FINALIZADA') {
+        fetchUltimoDestino();
+      }
+  }, [modalIniciarOpen, corrida.idCorrida, corrida.local_de_saida, corrida.situacao]);
 
-  const isCorridaFinalizada = corridaLocal.situacao === 'FINALIZADA';
-  const isIniciarDisabled = isCorridaIniciada || isCorridaFinalizada;
-  const isFinalizarDisabled = !isCorridaIniciada || isCorridaFinalizada;
-  const isOutrosBotoesDisabled = !isCorridaIniciada || isCorridaFinalizada;
+  if (corrida.situacao === 'FINALIZADA') {
+    return (
+      <Box sx={{ p: 4, maxWidth: 800, mx: "auto", textAlign: "center" }}>
+        <Typography variant="h5" fontWeight="bold" gutterBottom>
+          Corrida Finalizada
+        </Typography>
+        <Typography variant="body1" color="success.main" sx={{ mb: 2 }}>
+          Esta corrida foi finalizada em {formatDate(corrida.dataTermino ?? null)}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Nenhuma ação disponível para corridas finalizadas.
+        </Typography>
+      </Box>
+    );
+  }
+
+  const isIniciarDisabled = isCorridaIniciada;
+  const isFinalizarDisabled = !isCorridaIniciada;
 
   const handleClick = (path: string, label: string) => {
     if (label === "Iniciar Percurso") {
@@ -234,7 +254,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
           variant="body2"
           color={
             corridaLocal.situacao === 'FINALIZADA' ? "success.main" :
-            percursosAtivosCount > 0 ? "warning.main" : "text.secondary"
+            corridaLocal.situacao === 'ANDAMENTO' ? "warning.main" : "text.secondary"
           }
           sx={{ mb: 2, fontWeight: 'bold' }}
         >
@@ -256,12 +276,20 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
         {menuItems.map((item) => {
             const isIniciar = item.label === "Iniciar Percurso";
             const isFinalizar = item.label === "Finalizar Percurso";
-            const isOutro = !isIniciar && !isFinalizar;
+            const isAbastecimento = item.label === "Abastecimento";
+            const isOcorrencia = item.label === "Ocorrências";
 
-            const isDisabled = 
-                (isIniciar && isIniciarDisabled) ||
-                (isFinalizar && isFinalizarDisabled) ||
-                (isOutro && isOutrosBotoesDisabled);
+            let isDisabled = false;
+
+            if (isIniciar) {
+                isDisabled = isIniciarDisabled;
+            } else if (isFinalizar) {
+                isDisabled = isFinalizarDisabled;
+            }
+
+            if (isAbastecimento || isOcorrencia) {
+                isDisabled = false;
+            }
 
             return (
               <ButtonBase
@@ -305,7 +333,6 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
         })}
       </Box>
 
-      {/* Seus Modais */}
       <CadastrarOcorrencia 
         open={modalOcorrenciaAberto} 
         onClose={fecharModalOcorrencia} 
