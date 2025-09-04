@@ -13,7 +13,7 @@ import {
 interface ModalIniciarPercursoProps {
   open: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => void; 
   destino: string;
   setDestino: (value: string) => void;
   odometro: string;
@@ -33,8 +33,12 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
   ultimoDestino,
   percursosAtivosCount = 0
 }) => {
+  const handleConfirm = () => {
+    onConfirm();
+  };
+
   return (
-    <Dialog open={open} onClose={onClose} fullWidth>
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>
         <Typography component="div" fontWeight="bold" sx={{ fontSize: "1.25rem" }}>
           Iniciar Novo Percurso
@@ -62,13 +66,16 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
             onChange={(e) => setDestino(e.target.value)}
             fullWidth
             sx={{ mb: 2 }}
+            placeholder="Digite o destino do percurso"
           />
+          
           <TextField
             label="Odômetro"
             value={odometro}
             onChange={(e) => setOdometro(e.target.value)}
             fullWidth
             type="number"
+            inputProps={{ min: 0 }}
           />
         </Box>
       </DialogContent>
@@ -81,10 +88,10 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
           size="large"
           fullWidth
           sx={{ py: 1.5, fontWeight: "bold", fontSize: "1.1rem" }}
-          onClick={onConfirm}
+          onClick={handleConfirm}
           disabled={!destino || !odometro}
         >
-          INICIAR
+          INICIAR PERCURSO
         </Button>
         <Button
           color="inherit"

@@ -21,6 +21,7 @@ import ModalFinalizarPercurso from "./modaisMenu/ModalFinalizarPercurso";
 import ModalSucesso from "./modaisMenu/ModalSucesso";
 import CadastrarOcorrencia from "./cadastros/corrida/modais/ocorrenciasModal";
 import AbastecimentoModal from "./cadastros/abastecimento/ModalCadastroAbastecimento";
+import ModalConfirmacaoUltimoPercurso from "./modaisMenu/ModalConfirmacaoUltimoPercurso";
 
 interface Corrida {
   idCorrida: number;
@@ -59,6 +60,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
   const navigate = useNavigate();
 
   const [modalIniciarOpen, setModalIniciarOpen] = useState(false);
+  const [modalConfirmacaoOpen, setModalConfirmacaoOpen] = useState(false);
   const [modalFinalizarOpen, setModalFinalizarOpen] = useState(false);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [finalizeSuccessModalOpen, setFinalizeSuccessModalOpen] = useState(false);
@@ -75,6 +77,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
   const [odometro, setOdometro] = useState("");
   const [odometroFinal, setOdometroFinal] = useState("");
   const [ultimoDestino, setUltimoDestino] = useState("");
+  const [isUltimoPercurso, setIsUltimoPercurso] = useState(false);
 
   useEffect(() => {
     const fetchPercursoStatus = async () => {
@@ -117,7 +120,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
           }
       };
       
-      if (corrida.situacao !== 'FINALIZADA') {
+      if (corrida.situacao !== 'FINALIZADE') {
         fetchUltimoDestino();
       }
   }, [modalIniciarOpen, corrida.idCorrida, corrida.local_de_saida, corrida.situacao]);
@@ -143,7 +146,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
 
   const handleClick = (path: string, label: string) => {
     if (label === "Iniciar Percurso") {
-      setModalIniciarOpen(true);
+      setModalConfirmacaoOpen(true);
     } else if (label === "Finalizar Percurso") {
       setModalFinalizarOpen(true);
     } else if (path === "#abrirModalAbastecimento") {
@@ -155,7 +158,27 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
     }
   };
 
-  const handleCloseIniciarModal = () => setModalIniciarOpen(false);
+  const handleCloseConfirmacaoModal = () => {
+    setModalConfirmacaoOpen(false);
+  };
+  
+  const handleConfirmacaoUltimoPercurso = (isUltimo: boolean) => {
+    setModalConfirmacaoOpen(false);
+    
+    if (isUltimo) {
+      setDestino(corridaLocal.local_de_saida || "");
+      setIsUltimoPercurso(true);
+    } else {
+      setIsUltimoPercurso(false);
+    }
+    
+    setModalIniciarOpen(true);
+  };
+
+  const handleCloseIniciarModal = () => {
+    setModalIniciarOpen(false);
+    setDestino("");
+  };
   const handleCloseFinalizarModal = () => {
     setModalFinalizarOpen(false);
     setOdometroFinal("");
@@ -194,7 +217,6 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
       setPercursoAtual(percursoAtivo);
 
       handleCloseIniciarModal();
-      setDestino("");
       setOdometro("");
       setSuccessModalOpen(true);
     } catch (error: unknown) {
@@ -215,7 +237,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
         chegadaOdometro: parseFloat(odometroFinal)
       });
       
-      if (percursoAtual.localDestino === corridaLocal.local_de_saida) {
+      if (isUltimoPercurso && percursoAtual.localDestino === corridaLocal.local_de_saida) {
         await atualizarSituacaoCorrida(corridaLocal.idCorrida, 'FINALIZADA');
         
         const corridaAtualizada = { ...corridaLocal, situacao: 'FINALIZADA' };
@@ -228,6 +250,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
       
       setIsCorridaIniciada(false);
       setPercursoAtual(null);
+      setIsUltimoPercurso(false);
 
       handleCloseFinalizarModal();
       setFinalizeSuccessModalOpen(true);
@@ -354,6 +377,13 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
           console.log("Abastecimento cadastrado com sucesso!");
           fecharModalAbastecimento();
         }}
+      />
+      
+      <ModalConfirmacaoUltimoPercurso
+        open={modalConfirmacaoOpen}
+        onClose={handleCloseConfirmacaoModal}
+        onConfirm={handleConfirmacaoUltimoPercurso}
+        localOrigem={corridaLocal.local_de_saida || ""}
       />
 
       <ModalIniciarPercurso
