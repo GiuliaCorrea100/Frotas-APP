@@ -21,6 +21,7 @@ import CadastrarOcorrencia from "../../cadastros/corrida/modais/ocorrenciasModal
 import AbastecimentoModal from "../../cadastros/abastecimento/ModalCadastroAbastecimento";
 import { Abastecimento } from "../../../api/abastecimentoService";
 import AbastecimentoService from "../../../api/abastecimentoService";
+import EdicaoAbastecimentoModal from "./modais/editarAbastecimento";
 
 const DetalhesRequisicao: React.FC = () => {
   const theme = useTheme();
@@ -33,6 +34,9 @@ const DetalhesRequisicao: React.FC = () => {
   const [modalEditarOcorrenciaAberto, setModalEditarOcorrenciaAberto] = useState(false);
   const [modalCadastroOcorrenciaAberto, setModalCadastroOcorrenciaAberto] = useState(false);
   const [modalCadastroAbertoAbastecimento, setModalCadastroAbertoAbastecimento] = useState(false);
+  const [modalEditarAbastecimentoAberto, setModalEditarAbastecimento] = useState(false);
+
+  const [abastecimentoSelecionado, setAbastecimentoSelecionado] = useState<Abastecimento | null>(null);
   const [ocorrenciaSelecionada, setOcorrenciaSelecionada] = useState<OcorrenciaDto | null>(null);
 
   const navigate = useNavigate();
@@ -154,13 +158,14 @@ const DetalhesRequisicao: React.FC = () => {
       sortable: false,
       filterable: false,
       renderCell: (params) => {
+        const abastecimento = params.row;
         return (
           <Box sx={{ display: "flex", gap: 1 }}>
             <Button
               variant="outlined"
               color="warning"
               size="small"
-              //onClick={() => handleAbrirModalEditarOcorrencia(ocorrencia)}
+              onClick={() => handleAbrirModalEditarAbastecimento(abastecimento)}
             >
               Editar
             </Button>
@@ -191,6 +196,19 @@ const DetalhesRequisicao: React.FC = () => {
   };
   const handleFecharModalCadastroAbastecimento = () => {
     setModalCadastroAbertoAbastecimento(false);
+  };
+
+  const handleAbrirModalEditarAbastecimento = (abastecimento: Abastecimento) =>{
+    setAbastecimentoSelecionado(abastecimento);
+    setModalEditarAbastecimento(true);
+  }
+  const handleFecharModalEditarAbastecimento = () =>{
+    setModalEditarAbastecimento(false);
+  }
+
+  const handleSucesso = () => {
+    console.log("atualizações cadastradas com sucesso!");
+    carregarDados();
   };
 
   return (
@@ -402,6 +420,7 @@ const DetalhesRequisicao: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Card de Percusos */}
       <Card
         sx={{
           margin: 2,
@@ -454,6 +473,7 @@ const DetalhesRequisicao: React.FC = () => {
         }}
       />
 
+      {/* Cadastrar Nova Ocorrencia */}
       <AbastecimentoModal
         open={modalCadastroAbertoAbastecimento}
         onClose={handleFecharModalCadastroAbastecimento}
@@ -463,6 +483,19 @@ const DetalhesRequisicao: React.FC = () => {
           await carregarDados();
         }}
       />
+
+      <EdicaoAbastecimentoModal 
+        open={modalEditarAbastecimentoAberto} 
+        abastecimento={abastecimentoSelecionado} 
+        onClose={handleFecharModalCadastroAbastecimento}
+        onSuccess={async (msg) => {
+          console.log(msg);
+          await carregarDados();
+        }}
+        onError={(err) => {
+          console.error(err);
+        }}
+        />
     </>
   );
 };

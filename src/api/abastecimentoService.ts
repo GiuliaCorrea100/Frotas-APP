@@ -1,4 +1,5 @@
 import api from "../config/axiosConfig";
+import axiosConnect from "../services/axiosConnect";
 
 // Tipagem padronizada com camelCase
 export interface TipoCombustivel {
@@ -109,6 +110,25 @@ export class AbastecimentoService {
       await api.put(`${this.API}/${id}`, abastecimento);
     } catch (error) {
       throw error;
+    }
+  }
+
+  async atualizarAbastecimentoPatch(
+    idAbastecimento: number,
+    litros: number,
+    precoFinal: number,
+    tipoCombustivel: number,
+    valorUnitario: number
+  ): Promise<any> {
+    try {
+      await axiosConnect.patch(`${this.API}/${idAbastecimento}/abastecimento`, {
+        precoFinal,
+        valorUnitario,
+        tipoCombustivel,
+        litros,
+      });
+    } catch (error) {
+      console.error("Erro ao salvar abastecimento: ", error);
     }
   }
 
