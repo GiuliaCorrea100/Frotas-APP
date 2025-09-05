@@ -22,6 +22,7 @@ import ModalSucesso from "./modaisMenu/ModalSucesso";
 import CadastrarOcorrencia from "./cadastros/corrida/modais/ocorrenciasModal";
 import AbastecimentoModal from "./cadastros/abastecimento/ModalCadastroAbastecimento";
 import ModalConfirmacaoUltimoPercurso from "./modaisMenu/ModalConfirmacaoUltimoPercurso";
+import ModalPercursos from "./modaisMenu/ModalPercursos";
 
 interface Corrida {
   idCorrida: number;
@@ -283,6 +284,12 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
         >
           Situação: {corridaLocal.situacao} 
         </Typography>
+        
+        <ModalPercursos 
+          corridaId={corridaLocal.idCorrida} 
+          situacaoCorrida={corridaLocal.situacao || 'AGENDADA'} 
+        />
+
         <Typography variant="subtitle2" color="text.secondary">
           De {formatDate(corridaLocal.dataInicio)} até{" "}
           {corridaLocal.dataTermino ? formatDate(corridaLocal.dataTermino) : "em andamento"}
