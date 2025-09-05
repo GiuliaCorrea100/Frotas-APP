@@ -1,698 +1,439 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Box,
-  Typography,
-  Paper,
-  Button,
-  CircularProgress,
-  Stack,
-} from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
-import { ptBR } from "@mui/x-data-grid/locales";
-import {
-  Assignment,
-  DirectionsCar,
-  LocalGasStation,
-  Gavel,
-  Report,
-} from "@mui/icons-material";
-import {
-  PieChart,
-  Pie,
-  Legend,
-  ResponsiveContainer,
-  Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  LineChart,
-  Line,
-  AreaChart,
-  Area,
-  ScatterChart,
-  Scatter,
-} from "recharts";
+    Box, Typography, Paper, FormControl, InputLabel, Select,
+    MenuItem, Button, CircularProgress, useTheme
+} from '@mui/material';
 
+import Grid from '@mui/material/Grid';
+
+import {
+    Assignment, DirectionsCar, LocalGasStation, Gavel, Report,
+    TrendingUp, TrendingDown, Money, Speed, WarningAmber
+} from '@mui/icons-material';
+import {
+    BarChart, PieChart, LineChart, AreaChart, Pie, Bar, Line, Area,
+    XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell
+} from 'recharts';
+import { DataGrid } from '@mui/x-data-grid';
+import { ptBR } from '@mui/x-data-grid/locales';
+import { ValueType } from 'recharts/types/component/DefaultTooltipContent';
+
+// Importe seus serviços
 import AbastecimentoService from "../../api/abastecimentoService";
 import { CarrosService } from "../../api/carrosService";
 import { getCorridas } from "../../api/corridaService";
 import { OcorrenciaService } from "../../api/ocorrenciasService";
 import { listarMultas } from "../../api/multaService";
-
-// PDF
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import Menu from "../Menu";
 
-const COLORS = ["#FF9800", "#4CAF50", "#2196F3", "#F44336", "#9C27B0"];
+// --- Paletas de Cores Consistentes ---
+const PIE_COLORS = ['#FF9800', '#4CAF50', '#2196F3', '#F44336', '#9C27B0', '#795548', '#607D8B']; // Ajustado para corresponder a AGENDADA, FINALIZADA, EM ANDAMENTO
 
-// Interfaces para tipagem
-interface ValorMultaPorVeiculo {
-  veiculo: string;
-  valor: number;
-}
-
-interface ConsumoMensal {
-  mes: string;
-  litros: number;
-  valor: number;
-}
-
-interface OcorrenciaPorData {
-  data: string;
-  total: number;
-}
-
-const Relatorio: React.FC = () => {
-  const [activeTab, setActiveTab] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const pdfRef = useRef<HTMLDivElement>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [dados, setDados] = useState<any[]>([]);
-  const [dadosGraficos, setDadosGraficos] = useState<any>(null);
-
-  const [multas, setMultas] = useState<any[]>([]);
-  const [corridas, setCorridas] = useState<any[]>([]);
-  const [carros, setCarros] = useState<any[]>([]);
-  const [abastecimentos, setAbastecimentos] = useState<any[]>([]);
-  const [ocorrencias, setOcorrencias] = useState<any[]>([]);
-
-  useEffect(() => {
-    const carregarDados = async () => {
-      setLoading(true);
-      try {
-        const [corridasData, carrosData, abastecData, ocorrData, multasData] =
-          await Promise.all([
-            getCorridas(),
-            CarrosService.buscarTodos(),
-            AbastecimentoService.BuscarTodosAbastecimentos({ expand: true }),
-            OcorrenciaService.buscarTodos(),
-            listarMultas(),
-          ]);
-
-        setCorridas(corridasData);
-        setCarros(carrosData);
-        setAbastecimentos(abastecData);
-        setOcorrencias(ocorrData);
-        setMultas(multasData); 
-      } catch (error) {
-        console.error("Erro ao carregar relatórios:", error);
-        setError("Erro ao carregar relatórios");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    carregarDados();
-  }, []);
-
-  const tabs = [
-    { label: "Corridas", icon: <Assignment />, value: 0 },
-    { label: "Veículos", icon: <DirectionsCar />, value: 1 },
-    { label: "Multas", icon: <Gavel />, value: 2 },
-    { label: "Abastecimentos", icon: <LocalGasStation />, value: 3 },
-    { label: "Ocorrências", icon: <Report />, value: 4 },
-  ];
-
-  if (loading) {
-    return (
-      <>
-        <Menu />
-        <Box display="flex" justifyContent="center" alignItems="center" height="60vh">
-          <CircularProgress />
-        </Box>
-      </>
-    );
-  }
-
-  // Função para gerar PDF
-  const gerarPDF = async () => {
-    if (!pdfRef.current) return;
-
-    setLoading(true);
-    try {
-      const canvas = await html2canvas(pdfRef.current, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgWidth = 210;
-      const pageHeight = 297;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-
-      let position = 0;
-
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-
-      pdf.save(`relatorio-${activeTab}-${new Date().toISOString().split('T')[0]}.pdf`);
-    } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
-      setError('Erro ao gerar PDF');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Função para exportar CSV
-  const exportarCSV = () => {
-    if (dados.length === 0) return;
-    
-    const headers = Object.keys(dados[0]).join(',');
-    const rows = dados.map(row => 
-      Object.values(row).map(value => 
-        typeof value === 'string' && value.includes(',') ? `"${value}"` : value
-      ).join(',')
-    );
-    
-    const csvContent = [headers, ...rows].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    
-    link.setAttribute('href', url);
-    link.setAttribute('download', `relatorio-${activeTab}.csv`);
-    link.style.visibility = 'hidden';
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  return (
-    <>
-      <Menu />
-      <Box sx={{ p: 3 }}>
-        {/* Navegação */}
-        <Stack direction="row" spacing={2} mb={3}>
-          {tabs.map((tab) => (
-            <Button
-              key={tab.value}
-              startIcon={tab.icon}
-              onClick={() => setActiveTab(tab.value)}
-              variant={activeTab === tab.value ? "contained" : "outlined"}
-            >
-              {tab.label}
-            </Button>
-          ))}
-        </Stack>
-
-        {/* -------------------- CORRIDAS -------------------- */}
-        {activeTab === 0 && (
-          <Stack spacing={3}>
-            <Paper sx={{ p: 2, height: 400 }}>
-              <Typography variant="h6" gutterBottom>
-                Corridas por Situação
-              </Typography>
-              <ResponsiveContainer width="100%" height="90%">
-                <PieChart>
-                  <Pie
-                    data={[
-                      { name: "Agendada", value: corridas.filter((c) => c.situacao === "AGENDADA").length },
-                      { name: "Concluídas", value: corridas.filter((c) => c.situacao === "FINALIZADA").length },
-                    ]}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                    label={({ name, percent }) => 
-                      `${name}: ${percent ? (percent * 100).toFixed(0) + '%' : '0%'}`
-                    }
-                  > 
-                    {COLORS.map((color, index) => (
-                      <Cell key={index} fill={color} />
-                    ))}
-                  </Pie>
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </Paper>
-
-            <Paper sx={{ p: 2, height: 400 }}>
-              <Typography variant="h6" gutterBottom>
-                Corridas por Mês
-              </Typography>
-              <ResponsiveContainer width="100%" height="90%">
-                <BarChart
-                  data={Object.values(
-                    corridas.reduce((acc: any, corrida: any) => {
-                      const mes = new Date(corrida.dataInicio).toLocaleDateString('pt-BR', { month: 'short' });
-                      acc[mes] = acc[mes] || { mes, total: 0 };
-                      acc[mes].total++;
-                      return acc;
-                    }, {})
-                  )}
-                >
-                  <XAxis dataKey="mes" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="total" fill="#4CAF50" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Paper>
-
-            <Paper sx={{ p: 2, height: 400 }}>
-              <Typography variant="h6" gutterBottom>
-                Performance por Motorista
-              </Typography>
-              <ResponsiveContainer width="100%" height="90%">
-                <BarChart
-                  data={Object.values(
-                    corridas.reduce((acc: any, c: any) => {
-                      acc[c.nomeMotorista] = acc[c.nomeMotorista] || { 
-                        motorista: c.nomeMotorista, 
-                        concluidas: 0, 
-                        total: 0 
-                      };
-                      if (c.situacao === "FINALIZADA") acc[c.nomeMotorista].concluidas++;
-                      acc[c.nomeMotorista].total++;
-                      return acc;
-                    }, {})
-                  )}
-                >
-                  <XAxis dataKey="motorista" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="concluidas" fill="#4CAF50" name="Concluídas" />
-                  <Bar dataKey="total" fill="#FF9800" name="Totais" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Paper>
-          </Stack>
-        )}
-
-        {/* -------------------- VEÍCULOS -------------------- */}
-        {activeTab === 1 && (
-          <Stack spacing={3}>
-            <Paper sx={{ p: 2, height: 400 }}>
-              <Typography variant="h6" gutterBottom>
-                Veículos mais Utilizados
-              </Typography>
-              <ResponsiveContainer width="100%" height="90%">
-                <BarChart
-                  data={Object.values(
-                    corridas.reduce((acc: any, c: any) => {
-                      const carro = carros.find((car: any) => car.placa === c.placaVeiculo);
-                      const modelo = carro ? carro.modelo : 'Desconhecido';
-                      
-                      acc[c.placaVeiculo] = acc[c.placaVeiculo] || { 
-                        veiculo: c.placaVeiculo, 
-                        modelo: modelo,
-                        total: 0 
-                      };
-                      acc[c.placaVeiculo].total++;
-                      return acc;
-                    }, {})
-                  ).filter((item: any) => item.total > 0)
-                  .sort((a: any, b: any) => b.total - a.total)
-                }
-                >
-                  <XAxis dataKey="veiculo" tickFormatter={(value) => value || 'N/A'} />
-                  <YAxis />
-                  <Tooltip 
-                    formatter={(value: any) => [`${value} corridas`, 'Quantidade']}
-                    labelFormatter={(_label, payload) => {
-                      if (payload && payload.length > 0) {
-                        const data = payload[0].payload;
-                        return `Placa: ${data.veiculo || 'N/A'}\nModelo: ${data.modelo || 'Desconhecido'}`;
-                      }
-                      return '';
-                    }}
-                  />
-                  <Bar dataKey="total" fill="#4CAF50" name="Corridas" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Paper>
-
-            <Paper sx={{ p: 2, height: 400 }}>
-              <Typography variant="h6" gutterBottom>
-                Veículos por Modelo
-              </Typography>
-              <ResponsiveContainer width="100%" height="90%">
-                <BarChart
-                  data={Object.values(
-                    corridas.reduce((acc: any, c: any) => {
-                      const carro = carros.find((car: any) => car.placa === c.placaVeiculo);
-                      const modelo = carro ? carro.modelo : 'Desconhecido';
-                      
-                      acc[modelo] = acc[modelo] || { 
-                        modelo: modelo,
-                        total: 0 
-                      };
-                      acc[modelo].total++;
-                      return acc;
-                    }, {})
-                  ).filter((item: any) => item.total > 0)
-                  .sort((a: any, b: any) => b.total - a.total)
-                }
-                >
-                  <XAxis dataKey="modelo" tickFormatter={(value) => value || 'N/A'} />
-                  <YAxis />
-                  <Tooltip 
-                    formatter={(value: any) => [`${value} corridas`, 'Quantidade']}
-                    labelFormatter={(label) => `Modelo: ${label || 'Desconhecido'}`}
-                  />
-                  <Bar dataKey="total" fill="#2196F3" name="Corridas" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Paper>
-
-            <Paper sx={{ p: 2, height: 400 }}>
-              <Typography variant="h6" gutterBottom>
-                Situação dos Veículos
-              </Typography>
-              <ResponsiveContainer width="100%" height="90%">
-                <PieChart>
-                  <Pie
-                    data={[
-                      { name: "MANUTENÇÃO", value: carros.filter((c) => c.situacao === "MANUTENCAO").length },
-                      { name: "VIAGEM", value: carros.filter((c) => c.situacao === "VIAGEM").length },
-                      { name: "RESERVADO", value: carros.filter((c) => c.situacao === "RESERVADO").length },
-                      { name: "DISPONÍVEL", value: carros.filter((c) => c.situacao === "DISPONIVEL").length },
-                    ]}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                    label={({ name, value }) => `${name}: ${value}`}
-                  >
-                    <Cell fill="#a30000ff" />
-                    <Cell fill="#59bab2ff" />
-                    <Cell fill="#be9f00ff" />
-                    <Cell fill="#07561bff" />
-                  </Pie>
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </Paper>
-
-            <Paper sx={{ p: 2, height: 400 }}>
-              <Typography variant="h6" gutterBottom>
-                Informações dos Veículos
-              </Typography>
-              <DataGrid
-                rows={carros}
-                columns={[
-                  { field: "idCarros", headerName: "ID", width: 80 },
-                  { field: "placa", headerName: "Placa", width: 120 },
-                  { field: "modelo", headerName: "Modelo", width: 150 },
-                  { field: "ano", headerName: "Ano", width: 100 },
-                  { field: "situacao", headerName: "Situação", width: 120 },
-                ]}
-                getRowId={(row) => row.idCarros}
-                pageSizeOptions={[5, 10, 20]}
-                localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
-              />
-            </Paper>
-
-            <Paper sx={{ p: 2, height: 400 }}>
-              <Typography variant="h6" gutterBottom>
-                Distribuição por Modelo
-              </Typography>
-              <ResponsiveContainer width="100%" height="90%">
-                <PieChart>
-                  <Pie
-                    data={Object.values(
-                      carros.reduce((acc: any, carro: any) => {
-                        acc[carro.modelo] = acc[carro.modelo] || { modelo: carro.modelo, total: 0 };
-                        acc[carro.modelo].total++;
-                        return acc;
-                      }, {})
-                    )}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={70}
-                    outerRadius={90}
-                    paddingAngle={3}
-                    dataKey="total"
-                    label={({ modelo, total }: any) => `${modelo}: ${total}`}
-                  >
-                    {Object.keys(
-                      carros.reduce((acc: any, carro: any) => {
-                        acc[carro.modelo] = true;
-                        return acc;
-                      }, {})
-                    ).map((_, index) => (
-                      <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </Paper>
-          </Stack>
-        )}
-
-        {/* -------------------- MULTAS -------------------- */}
-        {activeTab === 2 && (
-          <Stack spacing={3}>
-            <Paper sx={{ p: 2, height: 400 }}>
-              <Typography variant="h6">Relatório de Multas</Typography>
-              <ResponsiveContainer width="100%" height="90%">
-                <BarChart
-                  data={Object.values(
-                    multas.reduce((acc: any, m: any) => {
-                      acc[m.placaVeiculo] = acc[m.placaVeiculo] || { veiculo: m.placaVeiculo, total: 0 };
-                      acc[m.placaVeiculo].total++;
-                      return acc;
-                    }, {})
-                  )}
-                >
-                  <XAxis dataKey="veiculo" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="total" fill="#F44336" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Paper>
-
-            <Paper sx={{ p: 2, height: 400 }}>
-              <Typography variant="h6" gutterBottom>
-                Multas por Classificação
-              </Typography>
-              <ResponsiveContainer width="100%" height="90%">
-                <BarChart
-                  data={Object.values(
-                    multas.reduce((acc: any, multa: any) => {
-                      const key = multa.classInfracao || 'Não Informado';
-                      acc[key] = acc[key] || { classificacao: key, total: 0, valorTotal: 0 };
-                      acc[key].total++;
-                      acc[key].valorTotal += parseFloat(multa.valor || 0);
-                      return acc;
-                    }, {})
-                  )}
-                >
-                  <XAxis dataKey="classificacao" />
-                  <YAxis yAxisId="left" orientation="left" />
-                  <YAxis yAxisId="right" orientation="right" />
-                  <Tooltip />
-                  <Bar yAxisId="left" dataKey="total" fill="#F44336" name="Quantidade" />
-                  <Bar yAxisId="right" dataKey="valorTotal" fill="#FF9800" name="Valor Total (R$)" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Paper>
-
-            <Paper sx={{ p: 2, height: 400 }}>
-              <Typography variant="h6" gutterBottom>
-                Lista de Multas
-              </Typography>
-              <DataGrid
-                rows={multas}
-                columns={[
-                  { field: "idMultas", headerName: "ID", width: 80 },
-                  { field: "codInfracao", headerName: "Código", width: 120 },
-                  { field: "classInfracao", headerName: "Classificação", width: 150 },
-                  { field: "valor", headerName: "Valor", width: 120 },
-                  { field: "placaVeiculo", headerName: "Placa", width: 120 },
-                  { field: "data", headerName: "Data", width: 180 },
-                  { field: "numAutoInfracao", headerName: "Número do Auto", width: 150 },
-                ]}
-                getRowId={(row) => row.idMultas} 
-                pageSizeOptions={[5, 10, 20]}
-                localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
-              />
-            </Paper>
-          </Stack>
-        )}
-
-        {/* -------------------- ABASTECIMENTOS -------------------- */}
-        {activeTab === 3 && (
-          <Stack spacing={3}>
-            <Paper sx={{ p: 2, height: 400 }}>
-              <Typography variant="h6" gutterBottom>
-                Consumo Mensal de Combustível
-              </Typography>
-              <ResponsiveContainer width="100%" height="90%">
-                <AreaChart
-                  data={Object.values(
-                    abastecimentos.reduce((acc: Record<string, ConsumoMensal>, abs: any) => {
-                      const mes = new Date(abs.dataAbastecimento).toLocaleDateString('pt-BR', { 
-                        month: 'short', 
-                        year: 'numeric' 
-                      });
-                      acc[mes] = acc[mes] || { mes, litros: 0, valor: 0 };
-                      acc[mes].litros += parseFloat(abs.litros || 0);
-                      acc[mes].valor += parseFloat(abs.precoFinal || 0);
-                      return acc;
-                    }, {} as Record<string, ConsumoMensal>)
-                  ).sort((a: ConsumoMensal, b: ConsumoMensal) => {
-                    const dateA = new Date(`01 ${a.mes}`);
-                    const dateB = new Date(`01 ${b.mes}`);
-                    return dateA.getTime() - dateB.getTime();
-                  })}
-                >
-                  <XAxis dataKey="mes" />
-                  <YAxis yAxisId="left" />
-                  <YAxis yAxisId="right" orientation="right" />
-                  <Tooltip />
-                  <Area yAxisId="left" type="monotone" dataKey="litros" fill="#4CAF50" stroke="#4CAF50" name="Litros" />
-                  <Area yAxisId="right" type="monotone" dataKey="valor" fill="#FF9800" stroke="#FF9800" name="Valor (R$)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </Paper>
-
-            <Paper sx={{ p: 2, height: 400 }}>
-              <Typography variant="h6" gutterBottom>
-                Relação Litros vs Preço
-              </Typography>
-              <ResponsiveContainer width="100%" height="90%">
-                <ScatterChart>
-                  <XAxis type="number" dataKey="litros" name="Litros" />
-                  <YAxis type="number" dataKey="precoFinal" name="Preço (R$)" />
-                  <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                  <Scatter data={abastecimentos.map((abs: any) => ({
-                    litros: parseFloat(abs.litros || 0),
-                    precoFinal: parseFloat(abs.precoFinal || 0)
-                  }))} fill="#2196F3" />
-                </ScatterChart>
-              </ResponsiveContainer>
-            </Paper>
-          </Stack>
-        )}
-
-        {/* -------------------- OCORRÊNCIAS -------------------- */}
-        {activeTab === 4 && (
-          <Stack spacing={3}>
-            <Paper sx={{ p: 2, height: 400 }}>
-              <Typography variant="h6" gutterBottom>
-                Ocorrências por Corrida
-              </Typography>
-              <ResponsiveContainer width="100%" height="90%">
-                <BarChart
-                  data={Object.values(
-                    ocorrencias.reduce((acc: any, o: any) => {
-                      acc[o.idCorrida] = acc[o.idCorrida] || { corrida: o.idCorrida, total: 0 };
-                      acc[o.idCorrida].total++;
-                      return acc;
-                    }, {})
-                  )}
-                >
-                  <XAxis dataKey="corrida" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="total" fill="#9C27B0" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Paper>
-
-            <Paper sx={{ p: 2, height: 400 }}>
-              <Typography variant="h6" gutterBottom>
-                Lista de Ocorrências
-              </Typography>
-              <DataGrid
-                rows={ocorrencias}
-                columns={[
-                  { field: "idOcorrencia", headerName: "ID", width: 80 },
-                  { field: "descricao", headerName: "Descrição", width: 250 },
-                  { field: "idCorrida", headerName: "Corrida", width: 120 },
-                ]}
-                getRowId={(row) => row.idOcorrencia}
-                pageSizeOptions={[5, 10, 20]}
-                localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
-              />
-            </Paper>
-
-            <Paper sx={{ p: 2, height: 400 }}>
-              <Typography variant="h6" gutterBottom>
-                Top Ocorrências por Descrição
-              </Typography>
-              <ResponsiveContainer width="100%" height="90%">
-                <BarChart
-                  layout="vertical"
-                  data={Object.values(
-                    ocorrencias.reduce((acc: any, occ: any) => {
-                      const descricao = occ.descricao.length > 20 
-                        ? occ.descricao.substring(0, 20) + '...' 
-                        : occ.descricao;
-                      
-                      acc[descricao] = acc[descricao] || { descricao, total: 0 };
-                      acc[descricao].total++;
-                      return acc;
-                    }, {})
-                  )
-                  .sort((a: any, b: any) => b.total - a.total)
-                  .slice(0, 10)}
-                >
-                  <XAxis type="number" />
-                  <YAxis type="category" dataKey="descricao" width={150} />
-                  <Tooltip />
-                  <Bar dataKey="total" fill="#9C27B0" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Paper>
-<Paper sx={{ p: 2, height: 400 }}>
-  <Typography variant="h6" gutterBottom>
-    Ocorrências ao Longo do Tempo
-  </Typography>
-  <ResponsiveContainer width="100%" height="90%">
-    <LineChart
-      data={Object.values(
-        ocorrencias.reduce((acc: any, occ: any) => {
-          const data = new Date(occ.dataOcorrencia || occ.dataCriacao);
-          if (isNaN(data.getTime())) return acc;
-          
-          const dataStr = data.toLocaleDateString('pt-BR');
-          if (!acc[dataStr]) {
-            acc[dataStr] = { dataStr, timestamp: data.getTime(), total: 0 };
-          }
-          acc[dataStr].total++;
-          return acc;
-        }, {})
-      ).sort((a: any, b: any) => a.timestamp - b.timestamp)
-      .map((item: any) => ({ dataStr: item.dataStr, total: item.total }))}
-    >
-      <XAxis dataKey="dataStr" />
-      <YAxis />
-      <Tooltip />
-      <Line type="monotone" dataKey="total" stroke="#2196F3" strokeWidth={2} />
-    </LineChart>
-  </ResponsiveContainer>
-</Paper>
-
-            
-          </Stack>
-        )}
-
-      </Box>
-    </>
-  );
+const SITUACAO_VEICULO_COLORS: { [key: string]: string } = {
+    'DISPONIVEL': '#4CAF50',
+    'VIAGEM': '#2196F3',
+    'RESERVADO': '#FF9800',
+    'MANUTENCAO': '#F44336',
 };
 
-export default Relatorio;
+// --- Tipagem para as Props do StatCard ---
+interface StatCardProps {
+    title: string;
+    value: string | number;
+    icon: React.ReactNode;
+    trend?: 'up' | 'down';
+}
+
+// --- Componente Reutilizável StatCard ---
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon, trend }) => {
+    const theme = useTheme();
+    const trendColor = trend === 'up' ? theme.palette.success.main : trend === 'down' ? theme.palette.error.main : theme.palette.primary.main;
+
+    return (
+        <Paper sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 2, height: '100%', borderRadius: 2 }}>
+            <Box sx={{ color: trendColor }}>
+                {icon}
+            </Box>
+            <Box>
+                <Typography variant="body2" color="text.secondary">{title}</Typography>
+                <Typography variant="h5" fontWeight="bold">{value}</Typography>
+            </Box>
+        </Paper>
+    );
+};
+
+// --- Componente Principal do Relatório ---
+const Relatorios: React.FC = () => {
+    const theme = useTheme();
+    const [activeTab, setActiveTab] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
+    // Estados para dados brutos da API
+    const [corridas, setCorridas] = useState<any[]>([]);
+    const [carros, setCarros] = useState<any[]>([]);
+    const [abastecimentos, setAbastecimentos] = useState<any[]>([]);
+    const [ocorrencias, setOcorrencias] = useState<any[]>([]);
+    const [multas, setMultas] = useState<any[]>([]);
+
+    useEffect(() => {
+        const carregarTodosDados = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const [corridasData, carrosData, abastecData, ocorrData, multasData] = await Promise.all([
+                    getCorridas(),
+                    CarrosService.buscarTodos(),
+                    AbastecimentoService.buscarTodosAbastecimentos({ expand: true }),
+                    OcorrenciaService.buscarTodos(),
+                    listarMultas(),
+                ]);
+                setCorridas(corridasData);
+                setCarros(carrosData);
+                setAbastecimentos(abastecData);
+                setOcorrencias(ocorrData);
+                setMultas(multasData);
+            } catch (err) {
+                console.error("Erro ao carregar dados:", err);
+                setError("Não foi possível carregar os dados.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        carregarTodosDados();
+    }, []);
+
+    // Otimização: Filtra e processa dados apenas quando o ano ou os dados brutos mudam
+    const dadosFiltrados = useMemo(() => {
+        const filtrarPorAno = (item: any, dateField: string) => {
+            if (!item[dateField]) return false;
+            return new Date(item[dateField]).getFullYear() === selectedYear;
+        };
+        return {
+            corridas: corridas.filter(item => filtrarPorAno(item, 'dataInicio')),
+            multas: multas.filter(item => filtrarPorAno(item, 'data')),
+            abastecimentos: abastecimentos.filter(item => filtrarPorAno(item, 'dataAbastecimento')),
+            ocorrencias: ocorrencias.filter(item => filtrarPorAno(item, 'dataOcorrencia') || filtrarPorAno(item, 'dataCriacao')),
+            carros: carros, // Frota é um estado atual, não filtrado por ano
+        };
+    }, [corridas, carros, abastecimentos, ocorrencias, multas, selectedYear]);
+
+    // Otimização: Prepara os dados para todos os gráficos
+    const dadosGraficos = useMemo(() => {
+        // Visão Geral
+        const totalGastoCombustivel = dadosFiltrados.abastecimentos.reduce((acc, item) => acc + parseFloat(item.precoFinal || 0), 0);
+        const totalMultas = dadosFiltrados.multas.reduce((acc, item) => acc + parseFloat(item.valor || 0), 0);
+
+       // Abastecimentos
+        const custoPorCombustivel = dadosFiltrados.abastecimentos.reduce((acc: { [key: string]: number }, abs) => {
+            const tipo = abs.tipo_combustivel?.nome || 'Não especificado';
+            acc[tipo] = (acc[tipo] || 0) + parseFloat(abs.precoFinal || 0);
+            return acc;
+        }, {});
+       console.log(custoPorCombustivel);
+ 
+        return {
+            visaoGeral: {
+                totalCorridas: dadosFiltrados.corridas.length,
+                totalVeiculos: dadosFiltrados.carros.length,
+                totalGastoCombustivel,
+                totalMultas: totalMultas,
+                totalOcorrencias: dadosFiltrados.ocorrencias.length,
+            },
+            corridas: {
+                porSituacao: [
+                    { name: "Agendada", value: dadosFiltrados.corridas.filter(c => c.situacao === "AGENDADA").length },
+                    { name: "Finalizada", value: dadosFiltrados.corridas.filter(c => c.situacao === "FINALIZADA").length },
+                    { name: "Em Andamento", value: dadosFiltrados.corridas.filter(c => c.situacao === "EM ANDAMENTO").length },
+                ]
+            },
+            veiculos: {
+                porSituacao: Object.entries(
+                    dadosFiltrados.carros.reduce((acc: { [key: string]: number }, carro) => {
+                        const situacao = carro.situacao || 'INDEFINIDA';
+                        acc[situacao] = (acc[situacao] || 0) + 1;
+                        return acc;
+                    }, {})
+                ).map(([name, value]) => ({ name, value }))
+            },
+            abastecimentos: {
+                totalLitros: dadosFiltrados.abastecimentos.reduce((acc, item) => acc + parseFloat(item.litros || 0), 0),
+                custoPorCombustivel: Object.entries(custoPorCombustivel).map(([name, value]) => ({ name, value })),
+            },
+            multas: {
+                totalMultas: dadosFiltrados.multas.length,
+            }
+        };
+    }, [dadosFiltrados]);
+
+    const tabs = [
+        { label: "Visão Geral", icon: <Assignment />, value: 0 },
+        { label: "Corridas", icon: <Speed />, value: 1 },
+        { label: "Veículos", icon: <DirectionsCar />, value: 2 },
+        { label: "Abastecimentos", icon: <LocalGasStation />, value: 3 },
+        { label: "Multas e Ocorrências", icon: <Gavel />, value: 4 },
+    ];
+    
+    const tooltipStyle = {
+        backgroundColor: theme.palette.background.paper,
+        border: `1px solid ${theme.palette.divider}`,
+        borderRadius: theme.shape.borderRadius,
+    };
+
+    if (loading) {
+        return (
+            <>
+                <Menu />
+                <Box display="flex" justifyContent="center" alignItems="center" height="80vh" flexDirection="column" gap={2}>
+                    <CircularProgress size={50} />
+                    <Typography variant="h6" color="text.secondary">Carregando dados do relatório...</Typography>
+                </Box>
+            </>
+        );
+    }
+
+    return (
+        <>
+            <Menu />
+            <Box sx={{ p: 3 }}>
+                <Paper sx={{ width: '100%', mb: 3, position: 'relative' }} elevation={2}>
+                    <Box sx={{ borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between' }}>
+                        <Box>
+                            {tabs.map((tab) => (
+                                <Button key={tab.value} disableRipple onClick={() => setActiveTab(tab.value)} startIcon={tab.icon}
+                                    sx={{ p: 2, borderRadius: 0, borderBottom: activeTab === tab.value ? 3 : 0, borderColor: 'primary.main', color: activeTab === tab.value ? 'primary.main' : 'text.primary', fontWeight: activeTab === tab.value ? 'bold' : 400, textTransform: 'none', '&:hover': { bgcolor: 'action.hover' } }}
+                                >{tab.label}</Button>
+                            ))}
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 1 }}>
+                            <FormControl size="small" sx={{ minWidth: 120 }}>
+                                <InputLabel>Ano</InputLabel>
+                                <Select value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))} label="Ano">
+                                    <MenuItem value={new Date().getFullYear() - 1}>{new Date().getFullYear() - 1}</MenuItem>
+                                    <MenuItem value={new Date().getFullYear()}>{new Date().getFullYear()}</MenuItem>
+                                    <MenuItem value={new Date().getFullYear() + 1}>{new Date().getFullYear() + 1}</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Box>
+                    </Box>
+                </Paper>
+                
+                {error && <Typography color="error">{error}</Typography>}
+
+                {/* --- CONTEÚDO DAS ABAS --- */}
+                {activeTab === 0 && (
+                    <Grid container spacing={3}>
+                        <Grid item xs={12}><Typography variant="h5" gutterBottom>Indicadores Principais ({selectedYear})</Typography></Grid>
+                        <Grid item xs={12} sm={6} md={3}><StatCard title="Total de Corridas" value={dadosGraficos.visaoGeral.totalCorridas} icon={<Speed fontSize="large" />} trend="up" /></Grid>
+                        <Grid item xs={12} sm={6} md={3}><StatCard title="Frota Ativa" value={dadosGraficos.visaoGeral.totalVeiculos} icon={<DirectionsCar fontSize="large" />} /></Grid>
+                        <Grid item xs={12} sm={6} md={3}><StatCard title="Gasto c/ Combustível" value={`R$ ${dadosGraficos.visaoGeral.totalGastoCombustivel.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} icon={<LocalGasStation fontSize="large" />} trend="down" /></Grid>
+                        <Grid item xs={12} sm={6} md={3}><StatCard title="Ocorrências e Multas" value={`${dadosGraficos.visaoGeral.totalOcorrencias} / ${dadosGraficos.multas.totalMultas}`} icon={<WarningAmber fontSize="large" />} trend="down" /></Grid>
+                    </Grid>
+                )}
+                
+                {/* --- (NOVO) CONTEÚDO DA ABA CORRIDAS --- */}
+                {activeTab === 1 && (
+                    <Grid container spacing={3}>
+                        <Grid item xs={12}>
+                            <Typography variant="h5" gutterBottom>Análise de Corridas ({selectedYear})</Typography>
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+                                <Typography variant="h6" gutterBottom>Situação das Corridas</Typography>
+                                <ResponsiveContainer width="100%" height="90%">
+                                    <PieChart>
+                                        <Pie
+                                            data={dadosGraficos.corridas.porSituacao}
+                                            dataKey="value"
+                                            nameKey="name"
+                                            cx="50%"
+                                            cy="50%"
+                                            outerRadius={100}
+                                            label
+                                        >
+                                            {dadosGraficos.corridas.porSituacao.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip contentStyle={tooltipStyle} />
+                                        <Legend />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </Paper>
+                        </Grid>
+                        {/* Você pode adicionar mais gráficos sobre corridas aqui, como corridas por motorista, etc. */}
+                    </Grid>
+                )}
+
+                {activeTab === 2 && (
+                    <Grid container spacing={3}>
+                        <Grid item xs={12}><Typography variant="h5" gutterBottom>Análise da Frota ({selectedYear})</Typography></Grid>
+                        <Grid item xs={12} md={5}>
+                            <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+                                <Typography variant="h6" gutterBottom>Situação da Frota</Typography>
+                                <ResponsiveContainer width="100%" height="90%"><PieChart><Pie data={dadosGraficos.veiculos.porSituacao} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={3} label>
+                                    {dadosGraficos.veiculos.porSituacao.map((entry, index) => <Cell key={`cell-${index}`} fill={SITUACAO_VEICULO_COLORS[entry.name] || PIE_COLORS[index]} />)}
+                                </Pie><Tooltip contentStyle={tooltipStyle} /><Legend /></PieChart></ResponsiveContainer>
+                            </Paper>
+                        </Grid>
+                        <Grid item xs={12} md={7}>
+                                <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+                                    <Typography variant="h6" gutterBottom>Veículos Mais Utilizados</Typography>
+                                    <ResponsiveContainer width="100%" height="90%">
+                                        <BarChart layout="vertical" data={
+                                            Object.values(dadosFiltrados.corridas.reduce((acc: any, c: any) => {
+                                                const veiculo = c.placaVeiculo || 'N/A';
+                                                acc[veiculo] = acc[veiculo] || { veiculo, Corridas: 0 };
+                                                acc[veiculo].Corridas++;
+                                                return acc;
+                                            }, {})).sort((a: any, b: any) => b.Corridas - a.Corridas).slice(0, 10)
+                                        } margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" /><XAxis type="number" /><YAxis type="category" dataKey="veiculo" width={80} /><Tooltip contentStyle={tooltipStyle} /><Legend />
+                                        <Bar dataKey="Corridas" fill={theme.palette.secondary.main} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </Paper>
+                        </Grid>
+                    </Grid>
+                )}
+
+                {activeTab === 3 && (
+                    <Grid container spacing={3}>
+                        <Grid item xs={12}><Typography variant="h5" gutterBottom>Análise de Abastecimentos ({selectedYear})</Typography></Grid>
+                        <Grid item xs={12} sm={6}><StatCard title="Custo Total" value={`R$ ${dadosGraficos.visaoGeral.totalGastoCombustivel.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={<Money fontSize="large" />} /></Grid>
+                        <Grid item xs={12} sm={6}><StatCard title="Total Abastecido" value={`${dadosGraficos.abastecimentos.totalLitros.toFixed(2)} Litros`} icon={<LocalGasStation fontSize="large" />} /></Grid>
+                        <Grid item xs={12} md={5}>
+                            <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+                                    <Typography variant="h6" gutterBottom>Custo por Tipo de Combustível</Typography>
+                                    <ResponsiveContainer width="100%" height="90%">
+                                        <PieChart>
+                                            <Pie data={dadosGraficos.abastecimentos.custoPorCombustivel} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
+                                                {dadosGraficos.abastecimentos.custoPorCombustivel.map((entry, index) => <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />)}
+                                            </Pie>
+                                            <Tooltip formatter={(value: ValueType) => `R$ ${typeof value === 'number' ? value.toFixed(2) : value}`} contentStyle={tooltipStyle} />
+                                            <Legend />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                            </Paper>
+                        </Grid>
+                        <Grid item xs={12} md={7}>
+                            <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+                                    <Typography variant="h6" gutterBottom>Consumo Mensal</Typography>
+                                    <ResponsiveContainer width="100%" height="90%"><AreaChart data={
+                                        Array.from({ length: 12 }, (_, i) => {
+                                            const mes = new Date(0, i).toLocaleString('pt-BR', { month: 'short' });
+                                            const mesFormatado = mes.charAt(0).toUpperCase() + mes.slice(1);
+                                            let litros = 0;
+                                            let valor = 0;
+                                            dadosFiltrados.abastecimentos.forEach(abs => {
+                                                if(new Date(abs.dataAbastecimento).getMonth() === i){
+                                                    litros += parseFloat(abs.litros || 0);
+                                                    valor += parseFloat(abs.precoFinal || 0);
+                                                }
+                                            });
+                                            return { mes: mesFormatado, Litros: litros, Valor: valor };
+                                        })
+                                    }><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="mes" /><YAxis yAxisId="left" /><YAxis yAxisId="right" orientation="right" /><Tooltip contentStyle={tooltipStyle} /><Legend /><Area yAxisId="left" type="monotone" dataKey="Litros" stroke="#8884d8" fill="#8884d8" /><Area yAxisId="right" type="monotone" dataKey="Valor" stroke="#82ca9d" fill="#82ca9d" /></AreaChart></ResponsiveContainer>
+                            </Paper>
+                        </Grid>
+                    </Grid>
+                )}
+
+        {/* --- CONTEÚDO DA ABA MULTAS E OCORRÊNCIAS --- */}
+
+    {activeTab === 4 && (
+    <Grid container spacing={3}>
+        {/* --- Relatório de Ocorrências --- */}
+        <Grid item xs={12}>
+            <Typography variant="h5" gutterBottom> Relatório de Ocorrências ({selectedYear})</Typography>
+            <Paper sx={{ p: 2 }} elevation={3}>
+                <DataGrid
+                    autoHeight
+                    rows={dadosFiltrados.ocorrencias.map((o, index) => ({
+                        id: o.idOcorrencia || index + 1,
+                        data: new Date(o.dataOcorrencia || o.dataCriacao).toLocaleDateString('pt-BR'),
+                       veiculo: o.placaVeiculo || o.veiculo?.placa || "N/A",
+                        motorista: o.nomeMotorista || o.motorista?.nome || "N/A",
+                        descricao: o.descricao || "—",
+                        corrida: o.idCorrida || "N/A"
+                    }))}
+                    columns={[
+                        { field: 'data', headerName: 'Data', flex: 1 },
+                        { field: 'veiculo', headerName: 'Veículo', flex: 1 },
+                        { field: 'motorista', headerName: 'Motorista', flex: 1 },
+                        { field: 'descricao', headerName: 'Descrição', flex: 2 },
+                    ]}
+                    pageSizeOptions={[5, 10, 20]}
+                    localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+                />
+            </Paper>
+        </Grid>
+
+        {/* --- Relatório de Multas --- */}
+        <Grid item xs={12} md={7}>
+            <Typography variant="h5" gutterBottom>Relatório de Multas ({selectedYear})</Typography>
+            <Paper sx={{ p: 2 }} elevation={3}>
+                <DataGrid
+                    autoHeight
+                    rows={dadosFiltrados.multas.map((m, index) => ({
+                        id: index + 1,
+                        data: new Date(m.data).toLocaleDateString('pt-BR'),
+                        veiculo: m.placaVeiculo || "N/A",
+                        motorista: m.nomeMotorista || "N/A",
+                        valor: `R$ ${parseFloat(m.valor || 0).toFixed(2)}`,
+                        descricao: m.descricao || "—"
+                    }))}
+                    columns={[
+                        { field: 'data', headerName: 'Data', flex: 1 },
+                        { field: 'veiculo', headerName: 'Veículo', flex: 1 },
+                        { field: 'motorista', headerName: 'Motorista', flex: 1 },
+                        { field: 'valor', headerName: 'Valor', flex: 1 },
+                        { field: 'descricao', headerName: 'Descrição', flex: 2 },
+                    ]}
+                    pageSizeOptions={[5, 10, 20]}
+                    localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+                />
+            </Paper>
+        </Grid>
+
+        {/* --- Gráfico: Veículos mais multados --- */}
+        <Grid item xs={12} md={5}>
+            <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+                <Typography variant="h6" gutterBottom>Veículos Mais Multados</Typography>
+                <ResponsiveContainer width="100%" height="90%">
+                    <BarChart
+                        layout="vertical"
+                        data={
+                            Object.values(
+                                dadosFiltrados.multas.reduce((acc: any, multa: any) => {
+                                    const veiculo = multa.placaVeiculo || 'N/A';
+                                    acc[veiculo] = acc[veiculo] || { veiculo, Multas: 0 };
+                                    acc[veiculo].Multas++;
+                                    return acc;
+                                }, {})
+                            )
+                            .sort((a: any, b: any) => b.Multas - a.Multas)
+                            .slice(0, 10)
+                        }
+                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" />
+                        <YAxis type="category" dataKey="veiculo" width={100} />
+                        <Tooltip contentStyle={tooltipStyle} />
+                        <Legend />
+                        <Bar dataKey="Multas" fill={theme.palette.error.main} />
+                    </BarChart>
+                </ResponsiveContainer>
+            </Paper>
+        </Grid>
+    </Grid>
+)}
+
+            </Box>
+        </>
+    );
+};
+
+export default Relatorios;

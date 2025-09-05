@@ -1,24 +1,9 @@
 import api from "../config/axiosConfig";
+import axiosConnect from "../services/axiosConnect";
 
-export interface Abastecimento {
-  idAbastecimento?: number;
-  litros: number;
-  codPagamento: number;
-  precoFinal: number;
-  dataAbastecimento: string;
-  valorUnitarioLitro: number;
-  valorMedioLitro: number;
-  valorUnitario: number;
-  valorMedio: number;
-  justificativaAlteracao?: string;
-  
-  // Relacionamentos
-  tipo_combustivel: TipoCombustivel; 
-  corrida: Corrida;
-}
-
+// Tipagem padronizada com camelCase
 export interface TipoCombustivel {
-  id_tipo_combustivel?: number;
+  idTipoCombustivel?: number;
   nome: string;
 }
 
@@ -27,51 +12,79 @@ export interface Corrida {
   dataInicio: string | Date;
   dataTermino: string | Date | null;
   distanciaKm?: string | null;
-  
   idMotorista: number;
   situacao: string; // "PENDENTE", "CONCLUIDA"
   chaveEmprestada: boolean;
   idCarros: number;
 }
 
+export interface Abastecimento {
+  idAbastecimento?: number;
+  litros: number;
+  codPagamento: number;
+  precoFinal: number;
+  dataAbastecimento: string;
+  valorUnitarioLitro?: number;
+  valorMedioLitro?: number;
+  valorUnitario?: number;
+  valorMedio?: number;
+  justificativaAlteracao?: string;
+
+  // Relacionamentos
+  tipoCombustivel: TipoCombustivel;
+  corrida: Corrida;
+}
+
+// Interface para o corpo da requisição de cadastro/atualização
+export interface AbastecimentoRequest {
+  litros: number;
+  codPagamento: number;
+  precoFinal: number;
+  dataAbastecimento: string;
+  valorUnitarioLitro?: number;
+  valorMedioLitro?: number;
+  valorUnitario?: number;
+  valorMedio?: number;
+  justificativaAlteracao?: string;
+  tipoCombustivel: number;
+  idCorrida: number;
+}
+
 export class AbastecimentoService {
-  static BuscarTodosAbastecimentos(arg0: { expand: boolean; }) {
-    throw new Error('Method not implemented.');
-  }
-  static buscarAbastecimentoPorId(arg0: { expand: boolean; }) {
-    throw new Error('Method not implemented.');
-  }
-  static cadastrarAbastecimento(dadosParaCadastro: { litros: number; codPagamento: number; precoFinal: number; dataAbastecimento: string; valorUnitarioLitro: number; valorMedioLitro: number; valorUnitario: number; valorMedio: number; justificativaAlteracao: string; tipo_combustivel: number; corrida: number | null; }) {
-    throw new Error('Method not implemented.');
-  }
   private readonly API = "/abastecimento";
 
-  async BuscarTodosAbastecimentos(params?: {
+  async buscarTodosAbastecimentos(params?: {
     tipoCombustivel?: string;
     corrida?: string;
-    
-    expand?: boolean; // <- parâmetro para dizer ao back-end que queremos as relações
+    expand?: boolean;
   }): Promise<Abastecimento[]> {
     try {
       const response = await api.get(this.API, { params });
-    //  console.log("AbastecimentoService - BuscarTodosAbastecimentos", response.data);
-
       return response.data;
-
     } catch (error) {
       throw error;
     }
   }
 
-  async BuscarAbastecimentoPorId(
+  async buscarAbastecimentoPorId(
     id: number,
-    expand = true // por padrão, já buscar com relação
+    expand = true
   ): Promise<Abastecimento> {
     try {
       const response = await api.get(`${this.API}/${id}`, {
-        params: expand ? { expand: true } : {}
+        params: expand ? { expand: true } : {},
       });
-    //  console.log("AbastecimentoService - BuscarAbastecimentoPorId", response.data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async buscarPorCorrida(idCorrida: number): Promise<Abastecimento[]> {
+    try {
+      const response = await api.get<Abastecimento[]>(
+        `${this.API}/buscar-por-corrida/${idCorrida}`
+      );
       return response.data;
     } catch (error) {
       throw error;
@@ -79,23 +92,19 @@ export class AbastecimentoService {
   }
 
   async cadastrarAbastecimento(
-    abastecimento: Omit<Abastecimento, "tipo_combustivel" | "corrida"> & {
-      tipo_combustivel: number; // ao cadastrar, envia apenas ID
-      corrida: number;
-    }
+    abastecimento: AbastecimentoRequest
   ): Promise<Abastecimento> {
     try {
       const response = await api.post(this.API, abastecimento);
-      console.log("AbastecimentoService - cadastrarAbastecimento", response.data);
       return response.data;
     } catch (error) {
       throw error;
     }
   }
 
-  async AtualizarAbastecimento(
+  async atualizarAbastecimento(
     id: number,
-    abastecimento: Partial<Abastecimento>
+    abastecimento: Partial<AbastecimentoRequest>
   ): Promise<void> {
     try {
       await api.put(`${this.API}/${id}`, abastecimento);
@@ -104,7 +113,26 @@ export class AbastecimentoService {
     }
   }
 
-  async DeletarAbastecimento(id: number): Promise<void> {
+  async atualizarAbastecimentoPatch(
+    idAbastecimento: number,
+    litros: number,
+    precoFinal: number,
+    tipoCombustivel: number,
+    valorUnitario: number
+  ): Promise<any> {
+    try {
+      await axiosConnect.patch(`${this.API}/${idAbastecimento}/abastecimento`, {
+        precoFinal,
+        valorUnitario,
+        tipoCombustivel,
+        litros,
+      });
+    } catch (error) {
+      console.error("Erro ao salvar abastecimento: ", error);
+    }
+  }
+
+  async deletarAbastecimento(id: number): Promise<void> {
     try {
       await api.delete(`${this.API}/${id}`);
     } catch (error) {
@@ -113,4 +141,6 @@ export class AbastecimentoService {
   }
 }
 
-export default new AbastecimentoService();
+// Criando uma única instância e exportando-a
+const abastecimentoService = new AbastecimentoService();
+export default abastecimentoService;
