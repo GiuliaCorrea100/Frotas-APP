@@ -165,7 +165,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
 
   const handleClick = (path: string, label: string) => {
     if (label === "Iniciar Percurso") {
-      setModalConfirmacaoOpen(true);
+      verificarSeMostrarModalConfirmacao();
     } else if (label === "Finalizar Percurso") {
       setModalFinalizarOpen(true);
     } else if (path === "#abrirModalAbastecimento") {
@@ -174,6 +174,23 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
       setModalOcorrenciaAberto(true);
     } else {
       navigate(path);
+    }
+  };
+
+  const verificarSeMostrarModalConfirmacao = async () => {
+    try {
+      const percursos = await buscarPercursosDaCorrida(corridaLocal.idCorrida);
+      
+      const percursosFinalizados = percursos.filter(p => p.chegadaHora);
+      
+      if (percursosFinalizados.length > 0) {
+        setModalConfirmacaoOpen(true);
+      } else {
+        setModalIniciarOpen(true);
+      }
+    } catch (error) {
+      console.error("Erro ao verificar percursos:", error);
+      setModalIniciarOpen(true);
     }
   };
 
