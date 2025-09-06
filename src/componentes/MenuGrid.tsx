@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-import { atualizarSituacaoCorrida } from "../api/corridaService";
+import { atualizarSituacaoCorrida, buscarCorridaPorId } from "../api/corridaService";
 import { 
   iniciarPercurso, 
   finalizarPercurso, 
@@ -79,6 +79,24 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
   const [odometroFinal, setOdometroFinal] = useState("");
   const [ultimoDestino, setUltimoDestino] = useState("");
   const [isUltimoPercurso, setIsUltimoPercurso] = useState(false);
+
+  const [chaveEmprestada, setChaveEmprestada] = useState(false);
+
+  useEffect(() => {
+    const fetchStatusChave = async () => {
+      try {
+        const corridaDetalhada = await buscarCorridaPorId(corrida.idCorrida);
+        setChaveEmprestada(corridaDetalhada.chaveEmprestada || false);
+      } catch (error) {
+        console.error("Erro ao buscar status da chave:", error);
+        setChaveEmprestada(false);
+      }
+    };
+  
+    if (corrida.situacao !== 'FINALIZADA') {
+      fetchStatusChave();
+    }
+  }, [corrida.idCorrida, corrida.situacao]);
 
   useEffect(() => {
     const fetchPercursoStatus = async () => {
@@ -403,6 +421,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
         setOdometro={setOdometro}
         ultimoDestino={ultimoDestino}
         percursosAtivosCount={percursosAtivosCount}
+        chaveEmprestada={chaveEmprestada}
       />
 
       <ModalFinalizarPercurso

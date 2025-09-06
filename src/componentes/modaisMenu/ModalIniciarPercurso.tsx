@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -13,13 +13,14 @@ import {
 interface ModalIniciarPercursoProps {
   open: boolean;
   onClose: () => void;
-  onConfirm: () => void; 
+  onConfirm: () => void;
   destino: string;
   setDestino: (value: string) => void;
   odometro: string;
   setOdometro: (value: string) => void;
   ultimoDestino: string;
   percursosAtivosCount?: number;
+  chaveEmprestada: boolean;
 }
 
 const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
@@ -31,14 +32,26 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
   odometro,
   setOdometro,
   ultimoDestino,
-  percursosAtivosCount = 0
+  percursosAtivosCount = 0,
+  chaveEmprestada
 }) => {
+  const [mostrarAlertaChave, setMostrarAlertaChave] = useState(false);
+
   const handleConfirm = () => {
+    if (!chaveEmprestada) {
+      setMostrarAlertaChave(true);
+      return;
+    }
     onConfirm();
   };
 
+  const handleClose = () => {
+    setMostrarAlertaChave(false);
+    onClose();
+  };
+
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
       <DialogTitle>
         <Typography component="div" fontWeight="bold" sx={{ fontSize: "1.25rem" }}>
           Iniciar Novo Percurso
@@ -51,6 +64,12 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
       </DialogTitle>
       <DialogContent>
         <Box sx={{ mt: 2 }}>
+          {mostrarAlertaChave && (
+            <Typography variant="body2" color="error" sx={{ mb: 2, fontWeight: 'bold' }}>
+              Você precisa pegar a chave para iniciar este percurso!
+            </Typography>
+          )}
+
           <TextField
             label="Local de Saída"
             value={ultimoDestino || "Não informado"}
@@ -68,7 +87,7 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
             sx={{ mb: 2 }}
             placeholder="Digite o destino do percurso"
           />
-          
+
           <TextField
             label="Odômetro"
             value={odometro}
@@ -96,7 +115,7 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
         <Button
           color="inherit"
           size="small"
-          onClick={onClose}
+          onClick={handleClose}
           sx={{ textTransform: "none" }}
         >
           Cancelar
