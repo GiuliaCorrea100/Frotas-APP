@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { jwtDecode } from 'jwt-decode';
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import axiosConnect from "../services/axiosConnect";
@@ -31,6 +31,7 @@ interface Corrida {
   idCorrida: number;
   dataInicio: string; 
   itinerario: string;
+  situacao: 'EM_ANDAMENTO' | 'FINALIZADA' | 'PENDENTE' | 'AGENDADA' | 'ANDAMENTO'; // Tipos ajustados para maior compatibilidade
   placaVeiculo?: string;
   nomeMotorista?: string;
   dataTermino?: string | null;
@@ -57,38 +58,39 @@ const Menu: React.FC = () => {
   const handleAbrirModalDadosPerfil = () => setShowModalDadosPerfil(true);
   const handleFecharModalDadosPerfil = () => setShowModalDadosPerfil(false);
 
-  useEffect(() => {
-    const carregarDadosDoDashboard = async () => {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-      if (!token || !isAuthenticated) {
-        setLoading(false);
-        return;
+  const carregarDadosDoDashboard = useCallback(async () => {
+    setLoading(true);
+    const token = localStorage.getItem('token');
+    if (!token || !isAuthenticated) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const decodedToken = jwtDecode<JwtPayload>(token);
+      const idUsuario = decodedToken?.sub;
+
+      if (idUsuario) {
+        const response = await axiosConnect.get<MotoristaDashboard>(`/corrida/motorista-dashboard/${idUsuario}`);
+        setDashboardData(response.data);
       }
-
-      try {
-        const decodedToken = jwtDecode<JwtPayload>(token);
-        const idUsuario = decodedToken?.sub;
-
-        if (idUsuario) {
-          const response = await axiosConnect.get<MotoristaDashboard>(`/corrida/motorista-dashboard/${idUsuario}`);
-          setDashboardData(response.data);
-        }
-      } catch (error) {
-        console.error("Erro ao carregar dados do dashboard:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    carregarDadosDoDashboard();
+    } catch (error) {
+      console.error("Erro ao carregar dados do dashboard:", error);
+    } finally {
+      setLoading(false);
+    }
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    carregarDadosDoDashboard();
+  }, [carregarDadosDoDashboard]);
 
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return 'Em andamento'; 
     try {
       const date = new Date(dateString);
-      return isNaN(date.getTime()) ? 'Data inválida' : date.toLocaleString('pt-BR');
+      const userTimezoneOffset = date.getTimezoneOffset() * 60000;
+      return isNaN(date.getTime()) ? 'Data inválida' : new Date(date.getTime() + userTimezoneOffset).toLocaleString('pt-BR');
     } catch {
       return 'Data inválida';
     }
@@ -138,12 +140,8 @@ const Menu: React.FC = () => {
       return null;
     }
 
-    // if (dashboardData.corridaDeHoje) {
-    //   return <MenuGrid />;
-    // }
-
-    if (dashboardData.corridaDeHoje) {
-      return <MenuGrid idCorrida={dashboardData.corridaDeHoje.idCorrida} />;
+    if (dashboardData.corridaDeHoje && dashboardData.corridaDeHoje.situacao !== 'FINALIZADA') {
+      return <MenuGrid corrida={dashboardData.corridaDeHoje} onCorridaUpdate={carregarDadosDoDashboard} />;
     }
     
     if (dashboardData.proximasCorridas.length > 0) {
