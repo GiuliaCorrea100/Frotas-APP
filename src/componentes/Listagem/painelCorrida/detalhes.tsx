@@ -234,7 +234,7 @@ const DetalhesRequisicao: React.FC = () => {
       ),
     },
     {
-      field: "chegadaOdometro",
+      field: "chegadaodometro",
       headerName: "Odometro chegada",
       flex: 1,
       renderCell: (params) => (

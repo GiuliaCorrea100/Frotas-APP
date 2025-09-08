@@ -74,7 +74,6 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
     try{
 
       const dadosPercurso = {
-        //idCorrida: corrida,
         saidaHora,
         saidaOdometro,
         localDestino,
@@ -102,7 +101,7 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Box display="flex" alignItems="center">
             <LocalGasStation color="primary" sx={{ mr: 1 }} />
-            <Typography variant="h6">Edição de Percurso</Typography>
+            <Typography variant="h6">Cadastro de Percurso</Typography>
           </Box>
           <IconButton onClick={onClose}>
             <Close />
@@ -207,7 +206,7 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
               startIcon={!loading && <AttachMoney />}
               disabled={loading}
             >
-              {loading ? <CircularProgress size={24} /> : "Atualizar"}
+              {loading ? <CircularProgress size={24} /> : "Cadastrar"}
             </Button>
           </Box>
         </Box>
