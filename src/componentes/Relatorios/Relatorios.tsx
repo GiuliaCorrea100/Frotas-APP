@@ -197,7 +197,7 @@ const Relatorios: React.FC = () => {
       
       switch (activeTab) {
         case 'abastecimentos':
-          const abastecimentos = await AbastecimentoService.BuscarTodosAbastecimentos({ expand: true });
+          const abastecimentos = await AbastecimentoService.buscarTodosAbastecimentos({ expand: true });
           dadosApi = abastecimentos.map((abast: any) => ({
             id: abast.idAbastecimento,
             data: new Date(abast.dataAbastecimento).toLocaleDateString('pt-BR'),
@@ -225,7 +225,7 @@ const Relatorios: React.FC = () => {
         
         case 'financeiro':
           const [abastecimentosFin, multas] = await Promise.all([
-            AbastecimentoService.BuscarTodosAbastecimentos({ expand: true }),
+            AbastecimentoService.buscarTodosAbastecimentos({ expand: true }),
             listarMultas()
           ]);
           
