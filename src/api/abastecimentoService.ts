@@ -50,6 +50,14 @@ export interface AbastecimentoRequest {
   idCorrida: number;
 }
 
+export interface AbastecimentoUpdate {
+  idAbastecimento: number;
+  litros: number;
+  precoFinal: number;
+  valorUnitario: number;
+  idTipoCombustivel?: number;
+}
+
 export class AbastecimentoService {
   private readonly API = "/abastecimento";
 
@@ -115,20 +123,17 @@ export class AbastecimentoService {
 
   async atualizarAbastecimentoPatch(
     idAbastecimento: number,
-    litros: number,
-    precoFinal: number,
-    tipoCombustivel: number,
-    valorUnitario: number
+    dados: Partial<Abastecimento>
   ): Promise<any> {
     try {
-      await axiosConnect.patch(`${this.API}/${idAbastecimento}/abastecimento`, {
-        precoFinal,
-        valorUnitario,
-        tipoCombustivel,
-        litros,
-      });
+      const response = await axiosConnect.patch(
+        `${this.API}/${idAbastecimento}/abastecimento`,
+        dados
+      );
+      return response.data;
     } catch (error) {
       console.error("Erro ao salvar abastecimento: ", error);
+      throw error;
     }
   }
 

@@ -15,6 +15,8 @@ import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import Menu from "../../Menu";
 import { CorridaFrontend, getCorridaById } from "../../../api/corridaService";
 import { OcorrenciaDto, OcorrenciaService } from "../../../api/ocorrenciasService";
+import { buscarPercursosDaCorrida, PercursoDto } from "../../../api/percursoService";
+
 import ModalEditarOcorrencia from "./modais/editarOcorrencias";
 import { Add } from "@mui/icons-material";
 import CadastrarOcorrencia from "../../cadastros/corrida/modais/ocorrenciasModal";
@@ -22,6 +24,8 @@ import AbastecimentoModal from "../../cadastros/abastecimento/ModalCadastroAbast
 import { Abastecimento } from "../../../api/abastecimentoService";
 import AbastecimentoService from "../../../api/abastecimentoService";
 import EdicaoAbastecimentoModal from "./modais/editarAbastecimento";
+import EdicaoPercursosModal from "./modais/editarPercursos";
+import CadastrarPercursosModal from "./modais/cadastrarPercursos";
 
 const DetalhesRequisicao: React.FC = () => {
   const theme = useTheme();
@@ -30,14 +34,19 @@ const DetalhesRequisicao: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [ocorrencias, setOcorrencias] = useState<OcorrenciaDto[]>([]);
   const [abastecimentos, setAbastecimento] = useState<Abastecimento[]>([]);
+  const [percursos, setPercursos] = useState<PercursoDto[]>([]);
 
   const [modalEditarOcorrenciaAberto, setModalEditarOcorrenciaAberto] = useState(false);
   const [modalCadastroOcorrenciaAberto, setModalCadastroOcorrenciaAberto] = useState(false);
   const [modalCadastroAbertoAbastecimento, setModalCadastroAbertoAbastecimento] = useState(false);
   const [modalEditarAbastecimentoAberto, setModalEditarAbastecimento] = useState(false);
+  const [modalCadastrarPercursoAberto, setModalCadastrarPercusoAberto] = useState(false);
+  const [modalEditarPercursoAberto, setModalEditarPercursoAberto] = useState(false);
+
 
   const [abastecimentoSelecionado, setAbastecimentoSelecionado] = useState<Abastecimento | null>(null);
   const [ocorrenciaSelecionada, setOcorrenciaSelecionada] = useState<OcorrenciaDto | null>(null);
+  const [percursoSelecionado, setPercursoSelecionado] = useState<PercursoDto | null>(null);
 
   const navigate = useNavigate();
 
@@ -49,10 +58,11 @@ const DetalhesRequisicao: React.FC = () => {
     try {
       setLoading(true);
       if (id) {
-        const [corridaData, ocorrenciasData, abastecimentosData] = await Promise.all([
+        const [corridaData, ocorrenciasData, abastecimentosData, percursosData, ] = await Promise.all([
           getCorridaById(Number(id)),
           OcorrenciaService.buscarPorCorrida(Number(id)),
           AbastecimentoService.buscarPorCorrida(Number(id)),
+          buscarPercursosDaCorrida(Number(id)),
         ]);
 
         setCorrida(corridaData);
@@ -68,6 +78,13 @@ const DetalhesRequisicao: React.FC = () => {
         } else if (abastecimentosData) {
           setAbastecimento([abastecimentosData]);
         }
+
+        if(Array.isArray(percursosData)){
+          setPercursos(percursosData);
+        } else if(percursosData) {
+          setPercursos([percursosData]);
+        }
+        console.log(percursosData);
       }
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -120,7 +137,7 @@ const DetalhesRequisicao: React.FC = () => {
 
   const columnsAbastecimentos: GridColDef<Abastecimento>[] = [
     {
-      field: "tipo_combustivel",
+      field: "tipoCombustivel",
       headerName: "Combustível",
       flex: 1,
       renderCell: (params) => (
@@ -136,7 +153,7 @@ const DetalhesRequisicao: React.FC = () => {
       ),
     },
     {
-      field: "valorUnitarioLitro",
+      field: "valorUnitario",
       headerName: "Valor do Litro",
       flex: 1,
       renderCell: (params) => (
@@ -175,6 +192,79 @@ const DetalhesRequisicao: React.FC = () => {
     },
   ];
 
+  const colunsPercursos: GridColDef<PercursoDto>[] = [
+    {
+      field: "localOrigem",
+      headerName: "Local origem",
+      flex: 1,
+      renderCell: (params) => (
+        <Typography fontWeight="bold">{params.value}</Typography>
+      ),
+    },
+    {
+      field: "saidaHora",
+      headerName: "Hora de saída",
+      flex: 1,
+      renderCell: (params) => (
+        <Typography fontWeight="bold">{params.value}</Typography>
+      ),
+    },
+    {
+      field: "saidaOdometro",
+      headerName: "Odometro saída",
+      flex: 1,
+      renderCell: (params) => (
+        <Typography fontWeight="bold">{params.value}</Typography>
+      ),
+    },
+    {
+      field: "localDestino",
+      headerName: "Local destino",
+      flex: 1,
+      renderCell: (params) => (
+        <Typography fontWeight="bold">{params.value}</Typography>
+      ),
+    },
+    {
+      field: "chegadaHora",
+      headerName: "Hora da chegada",
+      flex: 1,
+      renderCell: (params) => (
+        <Typography fontWeight="bold">{params.value}</Typography>
+      ),
+    },
+    {
+      field: "chegadaOdometro",
+      headerName: "Odometro chegada",
+      flex: 1,
+      renderCell: (params) => (
+        <Typography fontWeight="bold">{params.value}</Typography>
+      ),
+    },
+    {
+      field: "acoes",
+      headerName: "Ações",
+      flex: 1,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => {
+        const percurso = params.row;
+        return (
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Button
+              variant="outlined"
+              color="warning"
+              size="small"
+              onClick={() => handleAbrirModalEditarPercuso(percurso)}
+            >
+              Editar
+            </Button>
+          </Box>
+        );
+      },
+    },
+  ];
+
   const handleAbrirModalEditarOcorrencia = (ocorrencia: OcorrenciaDto) => {
     setOcorrenciaSelecionada(ocorrencia);
     setModalEditarOcorrenciaAberto(true);
@@ -204,6 +294,21 @@ const DetalhesRequisicao: React.FC = () => {
   }
   const handleFecharModalEditarAbastecimento = () =>{
     setModalEditarAbastecimento(false);
+  }
+
+  const handleAbrirModalCadastroPercurso = () => {
+    setModalCadastrarPercusoAberto(true);
+  }
+  const handleFecharModalCadastroPercurso = () => {
+    setModalCadastrarPercusoAberto(false);
+  }
+
+  const handleAbrirModalEditarPercuso = (percurso: PercursoDto) =>{
+    setPercursoSelecionado(percurso);
+    setModalEditarPercursoAberto(true);
+  }
+  const handleFecharModalEditarPercurso = () => {
+    setModalEditarPercursoAberto(false);
   }
 
   const handleSucesso = () => {
@@ -441,9 +546,42 @@ const DetalhesRequisicao: React.FC = () => {
           }}
         />
         <CardContent>
-          <Typography variant="body2" color="text.secondary">
-            {loading ? "Carregando..." : "Nenhum percurso cadastrado."}
-          </Typography>
+          <Button
+            variant="contained"
+            onClick={handleAbrirModalCadastroPercurso}
+            startIcon={<Add />}
+            sx={{
+              textTransform: "none",
+              fontWeight: 600,
+              boxShadow: theme.shadows[2],
+            }}
+          >
+            Novo Percurso
+          </Button>
+          {loading ? (
+            <Typography variant="body2" color="text.secondary">
+              Carregando Percursos...
+            </Typography>
+          ) : percursos.length > 0 ? (
+            <Box sx={{ height: 400, width: "100%" }}>
+              <DataGrid
+                rows={percursos}
+                columns={colunsPercursos}
+                initialState={{
+                  pagination: {
+                    paginationModel: { page: 0, pageSize: 5 },
+                  },
+                }}
+                pageSizeOptions={[5, 10, 25]}
+                disableRowSelectionOnClick
+                getRowId={(row) => row.idPercurso!}
+              />
+            </Box>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              Nenhum percurso cadastrado para esta corrida.
+            </Typography>
+          )}
         </CardContent>
       </Card>
 
@@ -487,7 +625,7 @@ const DetalhesRequisicao: React.FC = () => {
       <EdicaoAbastecimentoModal 
         open={modalEditarAbastecimentoAberto} 
         abastecimento={abastecimentoSelecionado} 
-        onClose={handleFecharModalCadastroAbastecimento}
+        onClose={handleFecharModalEditarAbastecimento}
         onSuccess={async (msg) => {
           console.log(msg);
           await carregarDados();
@@ -496,6 +634,31 @@ const DetalhesRequisicao: React.FC = () => {
           console.error(err);
         }}
         />
+
+        <EdicaoPercursosModal
+        open={modalEditarPercursoAberto}
+        percurso={percursoSelecionado}
+        onClose={handleFecharModalEditarPercurso}
+        onSuccess={async (msg) => {
+          console.log(msg);
+          await carregarDados();
+        }}
+        onError={(err) => {
+          console.error(err);
+        }}
+        />
+
+        <CadastrarPercursosModal
+        open={modalCadastrarPercursoAberto}
+        onClose={handleFecharModalCadastroPercurso}
+        onSuccess={async (msg) => {
+          console.log(msg);
+          await carregarDados();
+        } }
+        onError={(err) => {
+          console.error(err);
+        } }
+        corrida={idcorridaNumber}        />
     </>
   );
 };

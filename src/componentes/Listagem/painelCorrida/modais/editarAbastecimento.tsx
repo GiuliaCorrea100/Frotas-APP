@@ -73,7 +73,6 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
       setLitros(abastecimento.litros ?? 0);
       setPrecoFinal(abastecimento.precoFinal ?? 0);
       setTipoCombustivel(abastecimento.tipoCombustivel?.idTipoCombustivel ?? "");
-      //setTipoCombustivel(abastecimento.tipoCombustivel ?? "");
       setValorUnitario(abastecimento.valorUnitario ?? 0);
     }
   }, [abastecimento]);
@@ -108,21 +107,26 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
 
     setLoading(true);
     try {
-      await abastecimentoService.atualizarAbastecimentoPatch(
-        abastecimento.idAbastecimento,
+
+      const dadosAtualizados ={
+        litros,
         precoFinal,
         valorUnitario,
-        tipoCombustivel,
-        litros
+        idTipoCombustivel: tipoCombustivel === "" ? undefined : Number(tipoCombustivel),
+      };
+
+      await abastecimentoService.atualizarAbastecimentoPatch(
+        abastecimento.idAbastecimento!,
+        dadosAtualizados
       );
 
       onSuccess("Abastecimento atualizado com sucesso!");
-      onClose();
     } catch (error) {
       console.error("Erro ao salvar abastecimento:", error);
       onError(error);
     } finally {
       setLoading(false);
+      onClose();
     }
   };
 
