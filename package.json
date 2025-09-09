@@ -8,9 +8,9 @@
     "@fontsource/roboto": "^5.2.5",
     "@fortawesome/fontawesome-free": "^5.15.4",
     "@govbr-ds/react-components": "^2.1.0",
-    "@mui/material": "^5.15.20",
     "@mui/icons-material": "^5.15.20",
     "@mui/lab": "^5.0.0-alpha.170",
+    "@mui/material": "^5.15.20",
     "@mui/x-data-grid": "^6.20.2",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
@@ -26,17 +26,14 @@
     "react-dom": "^18.2.0",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.5.0",
-    "react-scripts": "5.0.1",
     "recharts": "^3.1.2",
     "styled-components": "^6.1.19",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "generate": "plop --plopfile ./generators/plopfile.js"
+   "dev": "vite",
+   "build": "vite build",
+   "preview": "vite preview"
   },
   "eslintConfig": {
     "extends": [
@@ -67,11 +64,13 @@
     "@types/react-dom": "^18.3.7",
     "@types/react-icons": "^2.2.7",
     "@types/react-router-dom": "^5.3.3",
+    "@vitejs/plugin-react": "^5.0.2",
     "eslint": "^8.57.1",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^16.0.0",
     "plop": "^4.0.1",
     "typescript": "^4.9.5",
-    "typescript-eslint": "^8.30.1"
+    "typescript-eslint": "^8.30.1",
+    "vite": "^7.1.5"
   }
 }

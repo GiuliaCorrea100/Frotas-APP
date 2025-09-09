@@ -111,7 +111,8 @@ export default function ListaCorridas() {
     {
       field: 'placaVeiculo',
       headerName: 'Veículo',
-      flex: 1,
+      width: 200,
+      align: 'center',
       renderCell: (params) => (
         <Typography>{params.value}</Typography>
       )
@@ -119,7 +120,7 @@ export default function ListaCorridas() {
     {
       field: 'dataInicio',
       headerName: 'Data/Hora Início',
-      flex: 1,
+      width: 200,
       renderCell: (params) => (
         <Typography variant="body2">
           {formatDate(params.value as string)}
@@ -129,7 +130,7 @@ export default function ListaCorridas() {
     {
       field: 'dataTermino',
       headerName: 'Data/Hora Término',
-      flex: 1,
+      width: 200,
       renderCell: (params) => (
         <Typography variant="body2">
           {formatDate(params.value as string | null)}
@@ -139,7 +140,7 @@ export default function ListaCorridas() {
     {
       field: 'situacao',
       headerName: 'Situação',
-      flex: 1,
+      width: 200,
       renderCell: (params) => {
         let color;
         switch (params.value) {
