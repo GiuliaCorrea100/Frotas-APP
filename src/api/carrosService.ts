@@ -69,11 +69,6 @@ export class CarrosService {
     const resposta = await api.patch<CarrosDto>(`/carros/${idCarros}/inativar`);
     return resposta.data;
   }
-  // Alterar a situação de um carro
-  /* static async alterarSituacao(idCarros: number): Promise<CarrosDto>{
-    const resposta = await api.patch<CarrosDto>(`/carros/${idCarros}/situacao`);
-    return resposta.data;
-  }    */
 
   static async deletar(idCarros: number): Promise<void> {
     await api.delete(`/carros/${idCarros}`);

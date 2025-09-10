@@ -23,7 +23,6 @@ import Menu from './componentes/Menu';
 import Unauthorized from './componentes/Unauthorized';
 
 import ListaAdministrador from './componentes/Administradores';
-import Ocorrencias from        './componentes/Ocorrencias';
 
 import { AuthProvider } from './context/AuthContext';
 
@@ -33,10 +32,8 @@ import PrivateRoute from './componentes/PrivateRoute';
 import ListaCorrida from './componentes/Listagem/painelCorrida/ListaCorrida';
 import DetalhesRequisicao from './componentes/Listagem/painelCorrida/detalhes';
 import HistoricoIndividual from './componentes/Listagem/HistoricoIndividual';
-import ListaAbastecimentos from './componentes/Listagem/painelAbastecimento/ListaAbastecimento';
 
 import AbastecimentoModal from './componentes/cadastros/abastecimento/ModalCadastroAbastecimento'; 
-import CadastroAbastecimento from './componentes/cadastros/abastecimento/CadastroAbastecimento';
 
 const App: React.FC = () => {
   return (
@@ -55,14 +52,12 @@ const App: React.FC = () => {
           <Route path="/CadastroMulta" element={<CadastroMulta />} />
           <Route path="/CadastroCarro" element={<CadastroCarro />} />
           <Route path="/CadastrarCorrida" element={<CadastrarCorrida />} />
-          <Route path="/CadastrarAbastecimento" element={<CadastroAbastecimento />} />
 
          {/* <Route path="/AbastecimentoModal" element={<AbastecimentoModal /> } />  */}
 
           {/*Paginas de Cadastro*/}
           <Route path="/ListaMultas" element={<ListaMulta />} />
           <Route path="/ListaMotoristas" element={<ListaMotorista />} />
-          <Route path="/ListaAbastecimento" element={<ListaAbastecimentos />} />
 
           <Route path="/Administradores" element={<ListaAdministrador />} />
           <Route path="/ListaCarros" element={<ListaCarros />} />
@@ -73,13 +68,13 @@ const App: React.FC = () => {
           {/*ALTERAR DEPOIS, PARA QUE NAO POSSAM SER ACESSADOS VIA URL*/}
           <Route path="/IniciarCorrida" element={<IniciarCorrida />} />
           <Route path="/ColocarTombo" element={<ColocarTombo />} />
-          <Route path="/Ocorrencias" element={<Ocorrencias/>} />
+
+          {/*  Relatórios      /> */}
+          <Route path="/Relatorios" element={<Relatorios />} />
         </Route>
 
 
       
-        {/*  Relatórios      /> */}
-        <Route path="/Relatorios" element={<Relatorios />} />
         {/* Rotas usuario comum */}
         <Route path="/HistoricoIndividual" element={<HistoricoIndividual/>} />
         

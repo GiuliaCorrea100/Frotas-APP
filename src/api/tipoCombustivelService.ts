@@ -10,7 +10,6 @@ export const TipoCombustivelService = {
   listar: (): Promise<{ data: TipoCombustivel[] }> =>
     api.get("/tipo-combustivel"),
 
-  // Buscar por ID
   buscarPorId: (id: number): Promise<{ data: TipoCombustivel }> =>
     api.get(`/tipo-combustivel/${id}`),
 

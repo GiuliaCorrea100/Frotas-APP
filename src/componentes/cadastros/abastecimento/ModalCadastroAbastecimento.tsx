@@ -43,11 +43,11 @@ interface AbastecimentoModalProps {
   onSuccess?: () => void;
 }
 
-const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({ 
-  open, 
-  onClose, 
+const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
+  open,
+  onClose,
   corridaId,
-  onSuccess 
+  onSuccess
 }) => {
   const [formData, setFormData] = useState({
     litros: '',
@@ -108,7 +108,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
     if (formData.litros && formData.valor_unitario_litro) {
       const litros = parseFloat(formData.litros);
       const valorUnitario = parseFloat(formData.valor_unitario_litro);
-      
+
       if (!isNaN(litros) && !isNaN(valorUnitario)) {
         const precoFinal = litros * valorUnitario;
         setFormData(prev => ({
@@ -121,50 +121,50 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-    
+
     // Validações obrigatórias
     if (!formData.litros || parseFloat(formData.litros) <= 0) {
       newErrors.litros = 'Litros são obrigatórios e devem ser maiores que zero';
     }
-    
+
     if (!formData.cod_pagamento) {
       newErrors.cod_pagamento = 'Código de pagamento é obrigatório';
     }
-    
+
     if (!formData.preco_final || parseFloat(formData.preco_final) <= 0) {
       newErrors.preco_final = 'Preço final é obrigatório';
     }
-    
+
     if (!formData.data_abastecimento) {
       newErrors.data_abastecimento = 'Data é obrigatória';
     }
-    
+
     if (!formData.tipo_combustivel_id) {
       newErrors.tipo_combustivel_id = 'Tipo de combustível é obrigatório';
     }
-    
+
     if (!formData.id_corrida) {
       newErrors.id_corrida = 'Corrida é obrigatória';
     }
-    
+
     // Validação de data (não pode ser futura)
     if (formData.data_abastecimento) {
       const dataAbastecimento = new Date(formData.data_abastecimento);
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
-      
+
       if (dataAbastecimento > hoje) {
         newErrors.data_abastecimento = 'Data não pode ser futura';
       }
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     // Encontrar o tipo de combustível selecionado
@@ -187,8 +187,8 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       valorUnitario: formData.valor_unitario ? parseFloat(formData.valor_unitario) : 0,
       valorMedio: formData.valor_medio ? parseFloat(formData.valor_medio) : 0,
       justificativaAlteracao: formData.justificativa_alteracao || '',
-      tipo_combustivel: tipoCombustivelSelecionado.id_tipo_combustivel as number,
-      corrida: parseInt(formData.id_corrida),
+      tipoCombustivel: tipoCombustivelSelecionado.id_tipo_combustivel as number, // Corrigido
+      idCorrida: parseInt(formData.id_corrida), // Corrigido
     };
 
     console.log('Dados enviados para cadastro:', dadosParaCadastro);
@@ -197,8 +197,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       setLoading(true);
       await AbastecimentoService.cadastrarAbastecimento(dadosParaCadastro);
       setSuccessMessage('Abastecimento cadastrado com sucesso!');
-      
-      // Limpar formulário após sucesso
+
       setTimeout(() => {
         setSuccessMessage('');
         setFormData({
@@ -214,14 +213,14 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
           tipo_combustivel_id: '',
           id_corrida: corridaId ? corridaId.toString() : '',
         });
-        
+
         if (onSuccess) onSuccess();
         onClose();
       }, 1500);
     } catch (error: any) {
       console.error('Erro ao cadastrar:', error);
-      setErrors({ 
-        submit: error.response?.data?.message || 'Erro ao cadastrar abastecimento. Tente novamente.' 
+      setErrors({
+        submit: error.response?.data?.message || 'Erro ao cadastrar abastecimento. Tente novamente.'
       });
     } finally {
       setLoading(false);
@@ -230,8 +229,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
-    // Limpar erro do campo quando usuário começar a digitar
+
     if (errors[name]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -239,7 +237,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
         return newErrors;
       });
     }
-    
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -248,8 +246,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
   const handleSelectChange = (e: any) => {
     const { name, value } = e.target;
-    
-    // Limpar erro do campo quando usuário selecionar uma opção
+
     if (errors[name]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -257,7 +254,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
         return newErrors;
       });
     }
-    
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -321,7 +318,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
             <Typography variant="h6" gutterBottom>
               Informações Básicas
             </Typography>
-            
+
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
               <TextField
                 label="Litros"
@@ -338,7 +335,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                   endAdornment: <InputAdornment position="end">L</InputAdornment>,
                 }}
               />
-              
+
               <TextField
                 label="Código de Pagamento"
                 name="cod_pagamento"
@@ -350,7 +347,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                 sx={{ flex: '1 1 200px' }}
               />
             </Box>
-            
+
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
               <TextField
                 label="Valor Unitário por Litro"
@@ -364,7 +361,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                   startAdornment: <InputAdornment position="start">R$</InputAdornment>,
                 }}
               />
-              
+
               <TextField
                 label="Preço Final"
                 name="preco_final"
@@ -381,7 +378,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                 }}
               />
             </Box>
-            
+
             <TextField
               label="Data de Abastecimento"
               name="data_abastecimento"
@@ -402,15 +399,15 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
               sx={{ mb: 2, width: '100%', maxWidth: 400 }}
             />
           </Box>
-          
+
           <Divider sx={{ my: 2 }} />
-          
+
           {/* Tipo de Combustível */}
           <Box sx={{ mb: 2 }}>
             <Typography variant="h6" gutterBottom>
               Tipo de Combustível
             </Typography>
-            
+
             <FormControl fullWidth required error={!!errors.tipo_combustivel_id} sx={{ mb: 2 }}>
               <InputLabel>Tipo de Combustível</InputLabel>
               <Select
@@ -436,15 +433,15 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
               )}
             </FormControl>
           </Box>
-          
+
           <Divider sx={{ my: 2 }} />
-          
+
           {/* Corrida Relacionada */}
           <Box sx={{ mb: 2 }}>
             <Typography variant="h6" gutterBottom>
               Corrida Relacionada
             </Typography>
-            
+
             <FormControl fullWidth required error={!!errors.id_corrida} sx={{ mb: 2 }}>
               <InputLabel>Corrida</InputLabel>
               <Select
@@ -469,7 +466,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                 </Typography>
               )}
             </FormControl>
-            
+
             {corridaSelecionada && (
               <Paper variant="outlined" sx={{ p: 2, backgroundColor: '#f9f9f9' }}>
                 <Typography variant="subtitle2" gutterBottom>
@@ -484,15 +481,15 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
               </Paper>
             )}
           </Box>
-          
+
           <Divider sx={{ my: 2 }} />
-          
+
           {/* Informações Adicionais */}
           <Box sx={{ mb: 2 }}>
             <Typography variant="h6" gutterBottom>
               Informações Adicionais (Opcionais)
             </Typography>
-            
+
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
               <TextField
                 label="Valor Médio por Litro"
@@ -506,7 +503,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                   startAdornment: <InputAdornment position="start">R$</InputAdornment>,
                 }}
               />
-              
+
               <TextField
                 label="Valor Unitário"
                 name="valor_unitario"
@@ -518,7 +515,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                   startAdornment: <InputAdornment position="start">R$</InputAdornment>,
                 }}
               />
-              
+
               <TextField
                 label="Valor Médio"
                 name="valor_medio"
@@ -531,7 +528,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                 }}
               />
             </Box>
-            
+
             <TextField
               label="Justificativa de Alteração"
               name="justificativa_alteracao"
@@ -543,7 +540,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
               placeholder="Informe a justificativa para alterações de valores, se aplicável"
             />
           </Box>
-          
+
           {/* Botões */}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
             <Button

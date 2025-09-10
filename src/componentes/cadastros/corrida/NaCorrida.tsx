@@ -51,7 +51,7 @@ const NaCorrida: React.FC = () => {
       abastecimentos
     };
 
-    console.log('Dados da corrida:', corridaData);
+   
     alert(`Corrida finalizada!\nVeículo: ${corridaInfo.carro.modelo} - ${corridaInfo.carro.placa}\nInício: ${new Date(corridaInfo.dataInicio).toLocaleString()}\nFim: ${now.toLocaleString()}\nAbastecimentos: ${abastecimentos}`);
     navigate('/IniciarCorrida');
   };

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios, { AxiosError } from 'axios';
-import Menu from "../../Menu";
+import Menu from "../Menu";
 import { Button, Box, TextField, Typography } from "@mui/material";
 
 interface CarroInfo {
-  idCarro: number; // giulia adicionou
+  idCarro: number;
   placa: string;
   odometro: string;
   modelo: string;

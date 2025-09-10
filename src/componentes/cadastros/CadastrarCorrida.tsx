@@ -11,8 +11,8 @@ import {
   DialogTitle,
   DialogActions
 } from "@mui/material";
-import { createCorrida } from '../../../api/corridaService';
-import Menu from "../../Menu";
+import { createCorrida } from '../../api/corridaService';
+import Menu from "../Menu";
 
 interface CarroInfo {
   idCarro: number;
@@ -205,7 +205,14 @@ export default function CadastrarCorrida() {
           name="local_de_saida"
           label="Local de Saída"
           value={corrida.local_de_saida}
-          onChange={handleChange}
+          onChange={(e) => {
+            const value = e.target.value.toUpperCase();
+            setCorrida(prev => ({
+              ...prev,
+              local_de_saida: value
+            }));
+            setErrors(prev => ({ ...prev, local_de_saida: false }));
+          }}
           fullWidth
           required
           error={errors.local_de_saida}
