@@ -23,7 +23,6 @@ import Menu from './componentes/Menu';
 import Unauthorized from './componentes/Unauthorized';
 
 import ListaAdministrador from './componentes/Administradores';
-import Ocorrencias from        './componentes/Ocorrencias';
 
 import { AuthProvider } from './context/AuthContext';
 
@@ -69,13 +68,13 @@ const App: React.FC = () => {
           {/*ALTERAR DEPOIS, PARA QUE NAO POSSAM SER ACESSADOS VIA URL*/}
           <Route path="/IniciarCorrida" element={<IniciarCorrida />} />
           <Route path="/ColocarTombo" element={<ColocarTombo />} />
-          <Route path="/Ocorrencias" element={<Ocorrencias/>} />
+
+          {/*  Relatórios      /> */}
+          <Route path="/Relatorios" element={<Relatorios />} />
         </Route>
 
 
       
-        {/*  Relatórios      /> */}
-        <Route path="/Relatorios" element={<Relatorios />} />
         {/* Rotas usuario comum */}
         <Route path="/HistoricoIndividual" element={<HistoricoIndividual/>} />
         

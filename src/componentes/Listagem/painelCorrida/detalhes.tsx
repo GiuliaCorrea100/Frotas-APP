@@ -84,7 +84,6 @@ const DetalhesRequisicao: React.FC = () => {
         } else if(percursosData) {
           setPercursos([percursosData]);
         }
-        console.log(percursosData);
       }
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -311,10 +310,6 @@ const DetalhesRequisicao: React.FC = () => {
     setModalEditarPercursoAberto(false);
   }
 
-  const handleSucesso = () => {
-    console.log("atualizações cadastradas com sucesso!");
-    carregarDados();
-  };
 
   return (
     <>
@@ -590,7 +585,6 @@ const DetalhesRequisicao: React.FC = () => {
         ocorrencia={ocorrenciaSelecionada}
         onClose={handleFecharModalEditarOcorrencia}
         onSuccess={async (msg) => {
-          console.log(msg);
           await carregarDados();
         }}
         onError={(err) => {
@@ -617,7 +611,6 @@ const DetalhesRequisicao: React.FC = () => {
         onClose={handleFecharModalCadastroAbastecimento}
         corridaId={idcorridaNumber}
         onSuccess={async () => {
-          console.log("Abastecimento cadastrado com sucesso!");
           await carregarDados();
         }}
       />

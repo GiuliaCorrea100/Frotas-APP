@@ -403,7 +403,6 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
         onClose={fecharModalOcorrencia} 
         corrida={corridaLocal.idCorrida}
         onSuccess={() => {
-          console.log("Ocorrência salva com sucesso!");
           fecharModalOcorrencia();
         }}
         onError={(erro) => {
