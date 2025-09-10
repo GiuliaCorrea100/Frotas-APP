@@ -1,8 +1,6 @@
 import axios from "axios";
 import axiosConnect from "../services/axiosConnect";
 
-const API_URL = "http://localhost:3000/percurso";
-
 export interface PercursoBackend {
   idPercurso?: number;
   idCorrida: number;
@@ -40,7 +38,7 @@ export const iniciarPercurso = async (
       localOrigem: data.localOrigem || null,
     };
 
-    const response = await axios.post(API_URL, payload);
+    const response = await axios.post(`/percurso`, payload);
     return response.data as PercursoBackend;
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
@@ -64,7 +62,7 @@ export const finalizarPercurso = async (
   }
 ) => {
   try {
-    const response = await axios.put(`${API_URL}/${idPercurso}/finalizar`, {
+    const response = await axios.put(`/percurso/${idPercurso}/finalizar`, {
       chegadaOdometro: data.chegadaOdometro,
     });
     return response.data as PercursoBackend;
@@ -88,7 +86,7 @@ export const buscarUltimoPercursoFinalizado = async (
 ): Promise<PercursoBackend | null> => {
   try {
     const response = await axios.get(
-      `${API_URL}/corrida/${idCorrida}/ultimo-finalizado`
+      `percurso/corrida/${idCorrida}/ultimo-finalizado`
     );
     return response.data as PercursoBackend;
   } catch (error) {
@@ -104,7 +102,7 @@ export const buscarPercursoAtivo = async (
   idCorrida: number
 ): Promise<PercursoBackend | null> => {
   try {
-    const response = await axios.get(`${API_URL}/corrida/${idCorrida}/ativo`);
+    const response = await axios.get(`percurso/corrida/${idCorrida}/ativo`);
     return response.data as PercursoBackend;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 404) {
@@ -119,7 +117,7 @@ export const buscarPercursosDaCorrida = async (
   idCorrida: number
 ): Promise<PercursoBackend[]> => {
   try {
-    const response = await axios.get(`${API_URL}/corrida/${idCorrida}`);
+    const response = await axios.get(`percurso/corrida/${idCorrida}`);
 
     console.log(response);
     return response.data as PercursoBackend[];
@@ -136,7 +134,7 @@ export const atualizarPercurso = async (
   try {
     console.log(dados);
     const response = await axiosConnect.patch(
-      `${API_URL}/${idPercurso}/percurso`,
+      `/percurso/${idPercurso}/atualizar-percurso`,
       dados
     );
     console.log(response.data);
@@ -171,7 +169,7 @@ export const inserirPercursoCompleto = async (
 
     console.log(payload);
     const response = await axios.post(
-      `${API_URL}/percurso-completo/${idCorrida}`,
+      `/percurso/percurso-completo/${idCorrida}`,
       payload
     );
     return response.data as PercursoBackend;
