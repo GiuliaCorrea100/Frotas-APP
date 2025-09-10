@@ -1,5 +1,4 @@
-import axios from "axios";
-import axiosConnect from "../services/axiosConnect";
+import api from "../services/axiosConnect";
 
 export interface PercursoBackend {
   idPercurso?: number;
@@ -38,16 +37,10 @@ export const iniciarPercurso = async (
       localOrigem: data.localOrigem || null,
     };
 
-    const response = await axios.post(`/percurso`, payload);
+    const response = await api.post(`/percurso`, payload);
     return response.data as PercursoBackend;
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const errorMessage =
-        error.response?.data?.error ||
-        error.response?.data?.message ||
-        "Erro no servidor";
-      throw new Error(errorMessage);
-    }
+    //
     if (error instanceof Error) {
       throw error;
     }
@@ -62,18 +55,11 @@ export const finalizarPercurso = async (
   }
 ) => {
   try {
-    const response = await axios.put(`/percurso/${idPercurso}/finalizar`, {
+    const response = await api.put(`/percurso/${idPercurso}/finalizar`, {
       chegadaOdometro: data.chegadaOdometro,
     });
     return response.data as PercursoBackend;
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const errorMessage =
-        error.response?.data?.error ||
-        error.response?.data?.message ||
-        "Erro no servidor";
-      throw new Error(errorMessage);
-    }
     if (error instanceof Error) {
       throw error;
     }
@@ -85,14 +71,11 @@ export const buscarUltimoPercursoFinalizado = async (
   idCorrida: number
 ): Promise<PercursoBackend | null> => {
   try {
-    const response = await axios.get(
+    const response = await api.get(
       `percurso/corrida/${idCorrida}/ultimo-finalizado`
     );
     return response.data as PercursoBackend;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.status === 404) {
-      return null;
-    }
     console.error("Erro ao buscar último percurso finalizado:", error);
     throw error;
   }
@@ -102,12 +85,9 @@ export const buscarPercursoAtivo = async (
   idCorrida: number
 ): Promise<PercursoBackend | null> => {
   try {
-    const response = await axios.get(`percurso/corrida/${idCorrida}/ativo`);
+    const response = await api.get(`percurso/corrida/${idCorrida}/ativo`);
     return response.data as PercursoBackend;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.status === 404) {
-      return null;
-    }
     console.error("Erro ao buscar percurso ativo:", error);
     throw error;
   }
@@ -117,7 +97,7 @@ export const buscarPercursosDaCorrida = async (
   idCorrida: number
 ): Promise<PercursoBackend[]> => {
   try {
-    const response = await axios.get(`percurso/corrida/${idCorrida}`);
+    const response = await api.get(`percurso/corrida/${idCorrida}`);
 
     console.log(response);
     return response.data as PercursoBackend[];
@@ -133,7 +113,7 @@ export const atualizarPercurso = async (
 ): Promise<any> => {
   try {
     console.log(dados);
-    const response = await axiosConnect.patch(
+    const response = await api.patch(
       `/percurso/${idPercurso}/atualizar-percurso`,
       dados
     );
@@ -168,19 +148,12 @@ export const inserirPercursoCompleto = async (
     };
 
     console.log(payload);
-    const response = await axios.post(
+    const response = await api.post(
       `/percurso/percurso-completo/${idCorrida}`,
       payload
     );
     return response.data as PercursoBackend;
   } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      const errorMessage =
-        error.response?.data?.error ||
-        error.response?.data?.message ||
-        "Erro no servidor";
-      throw new Error(errorMessage);
-    }
     if (error instanceof Error) {
       throw error;
     }

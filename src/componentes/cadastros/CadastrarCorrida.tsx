@@ -79,7 +79,7 @@ export default function CadastrarCorrida() {
     }
 
     try {
-      const response = await axios.get(`http://localhost:3000/usuarios/buscar-por-nome/${nome}`);
+      const response = await axios.get(`/usuarios/buscar-por-nome/${nome}`);
       setMotoristaOptions(response.data);
     } catch (error) {
       console.error("Erro ao buscar motoristas:", error);
@@ -89,14 +89,14 @@ export default function CadastrarCorrida() {
 
   const atualizarSituacaoCarro = async (idCarro: number, situacao: string) => {
     try {
-      const carroAtual = await axios.get(`http://localhost:3000/carros/${idCarro}`);
+      const carroAtual = await axios.get(`/carros/${idCarro}`);
       
       const dadosAtualizados = {
         ...carroAtual.data,
         situacao: situacao
       };
 
-      await axios.put(`http://localhost:3000/carros/${idCarro}`, dadosAtualizados);
+      await axios.put(`/carros/${idCarro}`, dadosAtualizados);
     } catch (error) {
       console.error("Erro ao atualizar situação do carro:", error);
       throw error;

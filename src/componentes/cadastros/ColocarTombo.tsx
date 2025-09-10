@@ -32,7 +32,7 @@ const ColocarTombo: React.FC = () => {
     setCarro(null);
 
     try {
-      const response = await axios.get(`http://localhost:3000/carros/por-tombo/${tombo}`);
+      const response = await axios.get(`/carros/por-tombo/${tombo}`);
       const carroEncontrado = response.data;
       
       setCarro({

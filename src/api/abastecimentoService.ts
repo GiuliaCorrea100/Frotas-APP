@@ -59,15 +59,13 @@ export interface AbastecimentoUpdate {
 }
 
 export class AbastecimentoService {
-  private readonly API = "/abastecimento";
-
   async buscarTodosAbastecimentos(params?: {
     tipoCombustivel?: string;
     corrida?: string;
     expand?: boolean;
   }): Promise<Abastecimento[]> {
     try {
-      const response = await api.get(this.API, { params });
+      const response = await api.get(`/abastecimento`, { params });
       return response.data;
     } catch (error) {
       throw error;
@@ -79,7 +77,7 @@ export class AbastecimentoService {
     expand = true
   ): Promise<Abastecimento> {
     try {
-      const response = await api.get(`${this.API}/${id}`, {
+      const response = await api.get(`/abastecimento/${id}`, {
         params: expand ? { expand: true } : {},
       });
       return response.data;
@@ -91,7 +89,7 @@ export class AbastecimentoService {
   async buscarPorCorrida(idCorrida: number): Promise<Abastecimento[]> {
     try {
       const response = await api.get<Abastecimento[]>(
-        `${this.API}/buscar-por-corrida/${idCorrida}`
+        `/abastecimento/buscar-por-corrida/${idCorrida}`
       );
       return response.data;
     } catch (error) {
@@ -103,7 +101,7 @@ export class AbastecimentoService {
     abastecimento: AbastecimentoRequest
   ): Promise<Abastecimento> {
     try {
-      const response = await api.post(this.API, abastecimento);
+      const response = await api.post(`/abastecimento`, abastecimento);
       return response.data;
     } catch (error) {
       throw error;
@@ -115,7 +113,7 @@ export class AbastecimentoService {
     abastecimento: Partial<AbastecimentoRequest>
   ): Promise<void> {
     try {
-      await api.put(`${this.API}/${id}`, abastecimento);
+      await api.put(`/abastecimento/${id}`, abastecimento);
     } catch (error) {
       throw error;
     }
@@ -127,7 +125,7 @@ export class AbastecimentoService {
   ): Promise<any> {
     try {
       const response = await axiosConnect.patch(
-        `${this.API}/${idAbastecimento}/abastecimento`,
+        `/abastecimento/${idAbastecimento}/abastecimento`,
         dados
       );
       return response.data;
@@ -139,7 +137,7 @@ export class AbastecimentoService {
 
   async deletarAbastecimento(id: number): Promise<void> {
     try {
-      await api.delete(`${this.API}/${id}`);
+      await api.delete(`/abastecimento/${id}`);
     } catch (error) {
       throw error;
     }

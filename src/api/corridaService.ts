@@ -1,4 +1,3 @@
-import axios from "axios";
 import api from "../config/axiosConfig";
 
 export interface CorridaBackend {
@@ -55,12 +54,10 @@ export const createCorrida = async (
     };
 
     console.log("Enviando para o backend:", payload);
-    const response = await axios.post(`/corrida`, payload);
+    const response = await api.post(`/corrida`, payload);
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw error;
-    }
+    //
     throw error;
   }
 };
@@ -69,24 +66,18 @@ export const getCorridaById = async (
   idCorrida: number
 ): Promise<CorridaFrontend> => {
   try {
-    const response = await axios.get<CorridaBackend>(`/corrida/${idCorrida}`);
+    const response = await api.get<CorridaBackend>(`/corrida/${idCorrida}`);
     return formatCorrida(response.data);
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || error.message);
-    }
     throw error;
   }
 };
 
 export const getCorridas = async (): Promise<CorridaFrontend[]> => {
   try {
-    const response = await axios.get<CorridaBackend[]>(`/corrida`);
+    const response = await api.get<CorridaBackend[]>(`/corrida`);
     return response.data.map(formatCorrida);
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || error.message);
-    }
     throw error;
   }
 };
@@ -95,7 +86,7 @@ export const buscarCorridaPorId = async (
   idCorrida: number
 ): Promise<CorridaBackend> => {
   try {
-    const response = await axios.get(`/corrida/${idCorrida}`);
+    const response = await api.get(`/corrida/${idCorrida}`);
     return response.data;
   } catch (error) {
     console.error("Erro ao buscar corrida:", error);
@@ -108,11 +99,8 @@ export const atualizarSituacaoCorrida = async (
   situacao: string
 ): Promise<void> => {
   try {
-    await axios.patch(`/corrida/${idCorrida}/situacao`, { situacao });
+    await api.patch(`/corrida/${idCorrida}/situacao`, { situacao });
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || error.message);
-    }
     throw error;
   }
 };

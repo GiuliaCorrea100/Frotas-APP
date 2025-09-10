@@ -62,7 +62,7 @@ export default function EditarInfoCorrida({
 
       // Verifica alteração de motorista
       if (motorista !== (corrida.nomeMotorista || '')) {
-        const resMotorista = await axiosConnect.get(`http://localhost:3000/usuarios/buscar-por-nome/${motorista}`);
+        const resMotorista = await axiosConnect.get(`/usuarios/buscar-por-nome/${motorista}`);
         console.log(resMotorista);
           idMotorista = resMotorista.data?.[0]?.idUsuario;
         if (!idMotorista) {
