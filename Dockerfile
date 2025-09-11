@@ -7,10 +7,14 @@ ENV TZ="America/Porto_Velho"
 
 RUN apk add --no-cache tzdata
 
+# Copy the files needed for installing dependencies
+COPY package.json package-lock.json ./
+
+# Install production dependencies only
+RUN npm ci --production
+
 # Copy the rest of the application files
 COPY ./dist ./dist
-COPY ./node_modules ./node_modules
-COPY ./package.json ./package.json
 
 # Expose the application port
 EXPOSE 4173

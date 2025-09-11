@@ -32,14 +32,14 @@ generate_envs:
 
       # Monta os nomes das variáveis dinâmicas
       VAR_NAME="${ENVIRONMENT}_ANSIBLE_HOST"
-      APP_URL_NAME="${ENVIRONMENT}_APP_URL"
+      APP_FQDN_NAME="${ENVIRONMENT}_APP_FQDN"
       PROJECT_ENV_NAME="${ENVIRONMENT}_PROJECT_ENV"
       ANSIBLE_SSH_PRIVATE_KEY_NAME="${ENVIRONMENT}_ANSIBLE_SSH_PRIVATE_KEY"
       ANSIBLE_SSH_PUBLIC_KEY_NAME="${ENVIRONMENT}_ANSIBLE_SSH_PUBLIC_KEY"
 
       # Usa eval para buscar os valores das variáveis dinamicamente
       eval HOST="\$$VAR_NAME"
-      eval APP_URL="\$$APP_URL_NAME"
+      eval APP_FQDN="\$$APP_FQDN_NAME"
       eval PROJECT_ENV="\$$PROJECT_ENV_NAME"
       eval ANSIBLE_SSH_PRIVATE_KEY="\$$ANSIBLE_SSH_PRIVATE_KEY_NAME"
       eval ANSIBLE_SSH_PUBLIC_KEY="\$$ANSIBLE_SSH_PUBLIC_KEY_NAME"
@@ -47,7 +47,8 @@ generate_envs:
       # Cria o arquivo environment.env
       cat << EOF > environment.env
       HOST=${HOST}
-      APP_URL=${APP_URL}
+      APP_FQDN=${APP_URL}
+      APP_URL=https://${APP_URL}
       PROJECT_ENV=${PROJECT_ENV}
       ANSIBLE_SSH_PRIVATE_KEY=${ANSIBLE_SSH_PRIVATE_KEY}
       ANSIBLE_SSH_PUBLIC_KEY=${ANSIBLE_SSH_PUBLIC_KEY}
@@ -61,26 +62,24 @@ build:
   image: node:20.19.3-alpine3.22
   stage: build
   before_script:
-    - printenv
     - cp $PROJECT_ENV .env.production
   script:
-    - npm ci
+    - npm install
     - npm run build:witherror
   artifacts:
     paths:
-      - node_modules/
+      # Dockerfile run 'npm ci --production'
+      # - node_modules/
       - dist/
     expire_in: 30 mins
 
 docker:
-  # Use the official docker image.
   image: docker:cli
   stage: docker
   services:
     - docker:dind
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-  # All branches are tagged with $DOCKER_IMAGE_NAME (defaults to commit ref slug)
   # Default branch is also tagged with `latest`
   script:
     - echo $DOCKER_IMAGE_NAME
@@ -102,6 +101,9 @@ deploy:
   variables:
     ANSIBLE_PATH: "ansible"
     ANSIBLE_HOST_KEY_CHECKING: "False"
+  environment:
+    name: $ENVIRONMENT
+    url: $APP_URL
   before_script:
     - printenv
     - |
