@@ -47,8 +47,8 @@ generate_envs:
       # Cria o arquivo environment.env
       cat << EOF > environment.env
       HOST=${HOST}
-      APP_FQDN=${APP_URL}
-      APP_URL=https://${APP_URL}
+      APP_FQDN=${APP_FQDN}
+      APP_URL=https://${APP_FQDN}
       PROJECT_ENV=${PROJECT_ENV}
       ANSIBLE_SSH_PRIVATE_KEY=${ANSIBLE_SSH_PRIVATE_KEY}
       ANSIBLE_SSH_PUBLIC_KEY=${ANSIBLE_SSH_PUBLIC_KEY}
