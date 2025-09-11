@@ -1,0 +1,124 @@
+stages:
+  - build
+  - docker
+  - deploy
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: always
+    - when: never
+
+variables:
+  DOCKER_IMAGE_NAME: "$CI_REGISTRY_IMAGE:$CI_COMMIT_TAG"
+
+generate_envs:
+  stage: .pre
+  image: alpine:latest
+  script:
+    - |
+      # Define a variável de versão
+      VERSION=$CI_COMMIT_TAG
+
+      # Extrai o ambiente da string da versão
+      ENVIRONMENT=$(echo "$VERSION" | awk -F'-' '{print $2}')
+
+      # Se não tiver ambiente, assume "PROD"
+      if [ -z "$ENVIRONMENT" ]; then
+        ENVIRONMENT="PROD"
+      else
+        ENVIRONMENT=$(echo "$ENVIRONMENT" | tr '[:lower:]' '[:upper:]')
+      fi
+
+      # Monta os nomes das variáveis dinâmicas
+      VAR_NAME="${ENVIRONMENT}_ANSIBLE_HOST"
+      APP_URL_NAME="${ENVIRONMENT}_APP_URL"
+      PROJECT_ENV_NAME="${ENVIRONMENT}_PROJECT_ENV"
+      ANSIBLE_SSH_PRIVATE_KEY_NAME="${ENVIRONMENT}_ANSIBLE_SSH_PRIVATE_KEY"
+      ANSIBLE_SSH_PUBLIC_KEY_NAME="${ENVIRONMENT}_ANSIBLE_SSH_PUBLIC_KEY"
+
+      # Usa eval para buscar os valores das variáveis dinamicamente
+      eval HOST="\$$VAR_NAME"
+      eval APP_URL="\$$APP_URL_NAME"
+      eval PROJECT_ENV="\$$PROJECT_ENV_NAME"
+      eval ANSIBLE_SSH_PRIVATE_KEY="\$$ANSIBLE_SSH_PRIVATE_KEY_NAME"
+      eval ANSIBLE_SSH_PUBLIC_KEY="\$$ANSIBLE_SSH_PUBLIC_KEY_NAME"
+
+      # Cria o arquivo environment.env
+      cat << EOF > environment.env
+      HOST=${HOST}
+      APP_URL=${APP_URL}
+      PROJECT_ENV=${PROJECT_ENV}
+      ANSIBLE_SSH_PRIVATE_KEY=${ANSIBLE_SSH_PRIVATE_KEY}
+      ANSIBLE_SSH_PUBLIC_KEY=${ANSIBLE_SSH_PUBLIC_KEY}
+      EOF
+  artifacts:
+    reports:
+      dotenv: environment.env
+
+
+build:
+  image: node:20.19.3-alpine3.22
+  stage: build
+  before_script:
+    - printenv
+    - cp $PROJECT_ENV .env.production
+  script:
+    - npm ci
+    - npm run build:witherror
+  artifacts:
+    paths:
+      - node_modules/
+      - dist/
+    expire_in: 30 mins
+
+docker:
+  # Use the official docker image.
+  image: docker:cli
+  stage: docker
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  # All branches are tagged with $DOCKER_IMAGE_NAME (defaults to commit ref slug)
+  # Default branch is also tagged with `latest`
+  script:
+    - echo $DOCKER_IMAGE_NAME
+    - docker build --pull -t "$DOCKER_IMAGE_NAME" .
+    - |
+      if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
+        docker tag "$DOCKER_IMAGE_NAME" "$CI_REGISTRY_IMAGE:$VERSION"
+        docker push "$CI_REGISTRY_IMAGE:$VERSION"
+
+        docker tag "$DOCKER_IMAGE_NAME" "$CI_REGISTRY_IMAGE:latest"
+        docker push "$CI_REGISTRY_IMAGE:latest"
+      else
+        docker push "$DOCKER_IMAGE_NAME"
+      fi
+
+deploy:
+  stage: deploy
+  image: registry.unir.br/cirs/ansible
+  variables:
+    ANSIBLE_PATH: "ansible"
+    ANSIBLE_HOST_KEY_CHECKING: "False"
+  before_script:
+    - printenv
+    - |
+      if [ ! -d "$ANSIBLE_PATH" ]; then
+        echo "📁 Pasta $ANSIBLE_PATH] não existe — job ignorado."
+        exit 0
+      fi
+    - mkdir -p ~/.ssh
+    - cp $ANSIBLE_SSH_PRIVATE_KEY ~/.ssh/id_ed25519
+    - cp $ANSIBLE_SSH_PUBLIC_KEY ~/.ssh/id_ed25519.pub
+    - chmod 700 ~/.ssh
+    - chmod 600 ~/.ssh/id_ed25519
+    - cp -r $ANSIBLE_PATH/. .
+    # - ssh-keyscan -t ed25519,rsa "$HOST" >> ~/.ssh/known_hosts
+    # - chmod 644 ~/.ssh/known_hosts
+
+  script:
+    - cp $PROJECT_ENV ./.env.production
+    - ansible-galaxy collection install -r requirements.yml
+    - ansible-playbook -i "$HOST," -u "ansible" playbook.yaml
