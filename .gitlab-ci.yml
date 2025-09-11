@@ -101,9 +101,6 @@ deploy:
   variables:
     ANSIBLE_PATH: "ansible"
     ANSIBLE_HOST_KEY_CHECKING: "False"
-  environment:
-    name: $ENVIRONMENT
-    url: $APP_URL
   before_script:
     - printenv
     - |
