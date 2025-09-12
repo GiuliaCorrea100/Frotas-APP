@@ -1,23 +1,9 @@
-# Use the official Node.js image as the base image
-FROM node:20.19.3-alpine3.22
-
-WORKDIR /usr/src/app
+FROM nginx:stable-alpine
 
 ENV TZ="America/Porto_Velho"
-
 RUN apk add --no-cache tzdata
 
-# Copy the files needed for installing dependencies
-COPY package.json package-lock.json ./
+COPY dist /usr/share/nginx/html
 
-# Install production dependencies only
-RUN npm ci --production
-
-# Copy the rest of the application files
-COPY ./dist ./dist
-
-# Expose the application port
-EXPOSE 4173
-
-# Command to run the application
-CMD [ "npm", "run", "preview", "--host", "0.0.0.0" ]
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
