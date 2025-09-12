@@ -2,7 +2,7 @@
   hosts: all
   become: true
   vars:
-    app_url: "{{ lookup('env', 'APP_URL') }}"
+    app_fqdn: "{{ lookup('env', 'APP_FQDN') }}"
     app_name: "{{ lookup('env', 'CI_PROJECT_NAME') }}"
     docker_registry: "{{ lookup('env', 'CI_REGISTRY') }}"
     docker_user: "{{ lookup('env', 'CI_REGISTRY_USER') }}"
