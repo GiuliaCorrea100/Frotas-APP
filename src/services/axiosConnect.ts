@@ -1,9 +1,8 @@
 // src/services/axiosConnect.ts
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 
 const axiosConnect = axios.create({
-  baseURL: "http://localhost:3000", // Defina a URL base da sua API
+  baseURL: import.meta.env.VITE_API_URL, // Defina a URL base da sua API
   timeout: 10000, // Defina um tempo limite se necessário
   headers: {
     "Content-Type": "application/json",
