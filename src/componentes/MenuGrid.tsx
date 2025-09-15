@@ -23,7 +23,6 @@ import CadastrarOcorrencia from "./cadastros/corrida/modais/ocorrenciasModal";
 import AbastecimentoModal from "./cadastros/abastecimento/ModalCadastroAbastecimento";
 import ModalConfirmacaoUltimoPercurso from "./modaisMenu/ModalConfirmacaoUltimoPercurso";
 import ModalPercursos from "./modaisMenu/ModalPercursos";
-import ModalConfirmacaoFinal from "./modaisMenu/ModalConfirmacaoUltimoPercurso";
 
 interface Corrida {
   idCorrida: number;
@@ -63,7 +62,6 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
 
   const [modalIniciarOpen, setModalIniciarOpen] = useState(false);
   const [modalConfirmacaoOpen, setModalConfirmacaoOpen] = useState(false);
-  const [modalConfirmacaoFinalOpen, setModalConfirmacaoFinalOpen] = useState(false);
   const [modalFinalizarOpen, setModalFinalizarOpen] = useState(false);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [finalizeSuccessModalOpen, setFinalizeSuccessModalOpen] = useState(false);
@@ -141,7 +139,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
           }
       };
       
-      if (corrida.situacao !== 'FINALIZADA') {
+      if (corrida.situacao !== 'FINALIZADE') {
         fetchUltimoDestino();
       }
   }, [modalIniciarOpen, corrida.idCorrida, corrida.local_de_saida, corrida.situacao]);
@@ -204,36 +202,23 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
     setModalConfirmacaoOpen(false);
     
     if (isUltimo) {
+      setDestino(corridaLocal.local_de_saida || "");
       setIsUltimoPercurso(true);
-      setModalConfirmacaoFinalOpen(true);
     } else {
       setIsUltimoPercurso(false);
-      setModalIniciarOpen(true);
     }
-  };
-
-  const handleConfirmacaoFinal = () => {
-    setModalConfirmacaoFinalOpen(false);
-    setDestino(corridaLocal.local_de_saida || "");
+    
     setModalIniciarOpen(true);
-  };
-
-  const handleSolicitarConfirmacaoUltimoPercurso = () => {
-    setModalIniciarOpen(false);
-    setModalConfirmacaoFinalOpen(true);
   };
 
   const handleCloseIniciarModal = () => {
     setModalIniciarOpen(false);
     setDestino("");
-    setIsUltimoPercurso(false);
   };
-
   const handleCloseFinalizarModal = () => {
     setModalFinalizarOpen(false);
     setOdometroFinal("");
   };
-
   const handleSuccessClose = () => setSuccessModalOpen(false);
   const handleFinalizeSuccessClose = () => setFinalizeSuccessModalOpen(false);
   const fecharModalOcorrencia = () => setModalOcorrenciaAberto(false);
@@ -418,6 +403,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
         onClose={fecharModalOcorrencia} 
         corrida={corridaLocal.idCorrida}
         onSuccess={() => {
+          console.log("Ocorrência salva com sucesso!");
           fecharModalOcorrencia();
         }}
         onError={(erro) => {
@@ -442,13 +428,6 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
         localOrigem={corridaLocal.local_de_saida || ""}
       />
 
-      <ModalConfirmacaoFinal
-        open={modalConfirmacaoFinalOpen}
-        onClose={() => setModalConfirmacaoFinalOpen(false)}
-        onConfirm={handleConfirmacaoFinal}
-        localOrigem={corridaLocal.local_de_saida || ""}
-      />
-
       <ModalIniciarPercurso
         open={modalIniciarOpen}
         onClose={handleCloseIniciarModal}
@@ -462,7 +441,6 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
         chaveEmprestada={chaveEmprestada}
         isUltimoPercurso={isUltimoPercurso}
         localOrigemCorrida={corridaLocal.local_de_saida || ""}
-        onConfirmacaoUltimoPercurso={handleSolicitarConfirmacaoUltimoPercurso}
       />
 
       <ModalFinalizarPercurso
