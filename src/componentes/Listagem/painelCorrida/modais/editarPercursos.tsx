@@ -66,8 +66,6 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
 
   useEffect(() => {
     if(percurso){
-      // setChegadaHora(percurso.chegadaHora);
-      // setSaidaHora(percurso.saidaHora);
       setChegadaHora(percurso.chegadaHora ? new Date(percurso.chegadaHora) : null);
       setSaidaHora(percurso.saidaHora ? new Date(percurso.saidaHora) : null);
 
@@ -133,7 +131,7 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
             <TextField
               label="Local de Origem"
               value={localOrigem}
-              onChange={(e) => setLocalOrigem(e.target.value)}
+              onChange={(e) => setLocalOrigem(e.target.value.toUpperCase())}
               required
               sx={{ flex: "1 1 200px" }}
             />
@@ -176,7 +174,7 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
             <TextField
               label="Local de Destino"
               value={localDestino}
-              onChange={(e) => setLocalDestino(e.target.value)}
+              onChange={(e) => setLocalDestino(e.target.value.toUpperCase())}
               required
               sx={{ flex: "1 1 200px" }}
             />

@@ -47,7 +47,7 @@ export interface AbastecimentoRequest {
   valorUnitario?: number;
   valorMedio?: number;
   justificativaAlteracao?: string;
-  tipoCombustivel: number;
+  idTipoCombustivel: number;
   idCorrida: number;
 }
 
@@ -106,14 +106,44 @@ export class AbastecimentoService {
     }
   }
 
-  async cadastrarAbastecimento(
-    abastecimento: AbastecimentoRequest
-  ): Promise<Abastecimento> {
+  async cadastrarAbastecimento(data: {
+    idCorrida: number;
+    litros: number;
+    codPagamento: number;
+    precoFinal: number;
+    dataAbastecimento: string;
+    valorUnitarioLitro?: number;
+    valorMedioLitro?: number;
+    valorUnitario?: number;
+    valorMedio?: number;
+    justificativaAlteracao?: string;
+    tipoCombustivel: number;
+  }): Promise<Abastecimento> {
     try {
-      const response = await api.post(`/abastecimento`, abastecimento);
-      return response.data;
-    } catch (error) {
-      throw error;
+      const payload: AbastecimentoRequest = {
+        idCorrida: data.idCorrida,
+        litros: data.litros,
+        codPagamento: data.codPagamento,
+        precoFinal: data.precoFinal,
+        dataAbastecimento: data.dataAbastecimento,
+        valorUnitarioLitro: data.valorUnitarioLitro,
+        valorMedioLitro: data.valorMedioLitro,
+        valorUnitario: data.valorUnitario,
+        valorMedio: data.valorMedio,
+        justificativaAlteracao: data.justificativaAlteracao,
+        idTipoCombustivel: data.tipoCombustivel,
+      };
+
+      console.log("Payload de cadastro de abastecimento:", payload);
+
+      const response = await api.post(`/abastecimento`, payload);
+      return response.data as Abastecimento;
+    } catch (error: unknown) {
+      console.error("Erro ao cadastrar abastecimento:", error);
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("Erro ao cadastrar abastecimento");
     }
   }
 
