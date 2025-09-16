@@ -97,6 +97,7 @@ export class AbastecimentoService {
     }
   }
 
+  //versão gab
   async cadastrarAbastecimento(
     abastecimento: AbastecimentoRequest
   ): Promise<Abastecimento> {
@@ -107,6 +108,47 @@ export class AbastecimentoService {
       throw error;
     }
   }
+
+  // async cadastrarAbastecimento(data: {
+  //   idCorrida: number;
+  //   litros: number;
+  //   codPagamento: number;
+  //   precoFinal: number;
+  //   dataAbastecimento: string;
+  //   valorUnitarioLitro?: number;
+  //   valorMedioLitro?: number;
+  //   valorUnitario?: number;
+  //   valorMedio?: number;
+  //   justificativaAlteracao?: string;
+  //   tipoCombustivel: number;
+  // }): Promise<Abastecimento> {
+  //   try {
+  //     const payload: AbastecimentoRequest = {
+  //       idCorrida: data.idCorrida,
+  //       litros: data.litros,
+  //       codPagamento: data.codPagamento,
+  //       precoFinal: data.precoFinal,
+  //       dataAbastecimento: data.dataAbastecimento,
+  //       valorUnitarioLitro: data.valorUnitarioLitro,
+  //       valorMedioLitro: data.valorMedioLitro,
+  //       valorUnitario: data.valorUnitario,
+  //       valorMedio: data.valorMedio,
+  //       justificativaAlteracao: data.justificativaAlteracao,
+  //       idTipoCombustivel: data.tipoCombustivel,
+  //     };
+
+  //     console.log("Payload de cadastro de abastecimento:", payload);
+
+  //     const response = await api.post(`/abastecimento`, payload);
+  //     return response.data as Abastecimento;
+  //   } catch (error: unknown) {
+  //     console.error("Erro ao cadastrar abastecimento:", error);
+  //     if (error instanceof Error) {
+  //       throw error;
+  //     }
+  //     throw new Error("Erro ao cadastrar abastecimento");
+  //   }
+  // }
 
   async atualizarAbastecimento(
     id: number,

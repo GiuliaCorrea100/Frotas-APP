@@ -52,9 +52,9 @@ export default function ListaMulta() {
 
   const columns: GridColDef[] = [
     { field: 'codInfracao', headerName: 'Código Infração', flex: 1 },
-    { 
-      field: 'placaVeiculo', 
-      headerName: 'Placa', 
+    {
+      field: 'placaVeiculo',
+      headerName: 'Placa',
       flex: 1,
       renderCell: (params) => (
         <Typography fontWeight="bold">
@@ -65,28 +65,29 @@ export default function ListaMulta() {
     { field: 'data', headerName: 'Data da Infração', flex: 1 },
     { field: 'valor', headerName: 'Valor', flex: 1 },
     { field: 'classInfracao', headerName: 'Classificação', flex: 2 },
-    { field: 'numAutoInfracao', headerName: 'Número do auto da infração', flex: 1 },
+    { field: 'numAutoInfracao', headerName: 'Número do auto', flex: 1 },
   ];
 
   return (
     <>
       <Menu />
-      <Box sx={{ 
+      <Box sx={{
         p: 3,
         backgroundColor: theme.palette.background.default,
         minHeight: '100vh'
       }}>
+        {/* Cabeçalho */}
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Typography variant="h5" fontWeight="bold" color="textPrimary">
             Listagem de Multas
           </Typography>
-          
-          <Button 
+
+          <Button
             variant="contained"
-            component={Link} 
+            component={Link}
             to="/CadastroMulta"
             startIcon={<Add />}
-            sx={{ 
+            sx={{
               textTransform: 'none',
               fontWeight: 600,
               boxShadow: theme.shadows[2]
@@ -96,7 +97,8 @@ export default function ListaMulta() {
           </Button>
         </Box>
 
-        <Box sx={{ 
+        {/* Filtros e busca */}
+        <Box sx={{
           width: '100%',
           mb: 3,
           borderBottom: 1,
@@ -111,7 +113,7 @@ export default function ListaMulta() {
             size="small"
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            sx={{ 
+            sx={{
               width: 250,
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
@@ -121,6 +123,7 @@ export default function ListaMulta() {
           />
         </Box>
 
+        {/* Tabela */}
         <DataGrid
           rows={dadosFiltrados}
           columns={columns}
@@ -139,8 +142,8 @@ export default function ListaMulta() {
               py: 1.5,
             },
             '& .MuiDataGrid-columnHeaders': {
-              backgroundColor: theme.palette.mode === 'dark' 
-                ? theme.palette.grey[800] 
+              backgroundColor: theme.palette.mode === 'dark'
+                ? theme.palette.grey[800]
                 : theme.palette.grey[100],
               fontWeight: 'bold',
               borderRadius: 1,

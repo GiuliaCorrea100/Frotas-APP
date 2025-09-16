@@ -5,10 +5,6 @@ import {
   Typography,
   Button,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Divider,
   InputAdornment,
   CircularProgress,
@@ -21,12 +17,10 @@ import {
   CalendarToday,
   Close,
 } from "@mui/icons-material";
-import { atualizarPercurso, PercursoDto, PercursoBackend, inserirPercursoCompleto } from "../../../../api/percursoService";
-
+import { inserirPercursoCompleto } from "../../../../api/percursoService";
 
 interface CadastrarModalProps {
   open: boolean;
-  //percurso: PercursoBackend | null;
   onClose: () => void;
   onSuccess: (message: string) => void;
   onError: (error: any) => void;
@@ -48,7 +42,6 @@ const modalStyle = {
   borderRadius: 2,
 };
 
-
 const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
   open,
   onClose,
@@ -65,14 +58,23 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
 
   const [loading, setLoading] = useState(false);
 
-
+  // 🔹 Resetar os campos sempre que o modal abrir
+  useEffect(() => {
+    if (open) {
+      setSaidaHora(null);
+      setSaidaOdometro(0);
+      setLocalDestino("");
+      setChegadaHora(null);
+      setChegadaOdometro(0);
+      setLocalOrigem("");
+    }
+  }, [open]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
 
-    try{
-
+    try {
       const dadosPercurso = {
         saidaHora,
         saidaOdometro,
@@ -80,11 +82,10 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
         chegadaHora,
         chegadaOdometro,
         localOrigem,
-      }
+      };
 
       await inserirPercursoCompleto(corrida, dadosPercurso);
-
-      onSuccess("Percurso atualizado com sucesso!");
+      onSuccess("Percurso cadastrado com sucesso!");
     } catch (error) {
       console.error("Erro ao salvar percurso:", error);
       onError(error);
@@ -118,7 +119,7 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
             <TextField
               label="Local de Origem"
               value={localOrigem}
-              onChange={(e) => setLocalOrigem(e.target.value)}
+              onChange={(e) => setLocalOrigem(e.target.value.toUpperCase())}
               required
               sx={{ flex: "1 1 200px" }}
             />
@@ -150,7 +151,7 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
             }}
             sx={{ mb: 2 }}
           />
-          
+
           <Divider sx={{ my: 2 }} />
 
           {/* Informações de Chegada */}
@@ -161,7 +162,7 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
             <TextField
               label="Local de Destino"
               value={localDestino}
-              onChange={(e) => setLocalDestino(e.target.value)}
+              onChange={(e) => setLocalDestino(e.target.value.toUpperCase())}
               required
               sx={{ flex: "1 1 200px" }}
             />
@@ -214,6 +215,5 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
     </Modal>
   );
 };
-
 
 export default CadastrarPercursosModal;

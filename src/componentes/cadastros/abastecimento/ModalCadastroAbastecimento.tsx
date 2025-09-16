@@ -191,12 +191,14 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       idCorrida: parseInt(formData.id_corrida), // Corrigido
     };
 
-    console.log('Dados enviados para cadastro:', dadosParaCadastro);
+
 
     try {
       setLoading(true);
+      console.log(dadosParaCadastro);
       await AbastecimentoService.cadastrarAbastecimento(dadosParaCadastro);
       setSuccessMessage('Abastecimento cadastrado com sucesso!');
+      
 
       setTimeout(() => {
         setSuccessMessage('');
