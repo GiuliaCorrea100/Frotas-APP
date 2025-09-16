@@ -5,7 +5,6 @@ export interface CorridaBackend {
   dataInicio: string | Date;
   dataTermino: string | Date | null;
   distanciaKm?: string | null;
-
   idMotorista: number;
   situacao: string;
   chaveEmprestada: boolean;

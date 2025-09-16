@@ -1,7 +1,15 @@
 {
-  "name": "frotasunir",
+  "name": "frotas-app",
   "version": "0.1.0",
   "private": true,
+  "scripts": {
+   "dev": "vite",
+   "build": "tsc -b && vite build",
+   "build:witherror": "tsc --noEmit && vite build",
+   "lint": "eslint .",
+   "preview": "vite preview"
+  },
+
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
@@ -30,36 +38,12 @@
     "styled-components": "^6.1.19",
     "web-vitals": "^2.1.4"
   },
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
   "devDependencies": {
     "@eslint/js": "^9.24.0",
     "@govbr-ds/core": "^3.6.1",
     "@govbr-ds/webcomponents": "^2.0.0-next.5",
     "@govbr-ds/webcomponents-react": "^2.0.0-next.5",
     "@types/jest": "^29.5.14",
-    "@types/node": "^22.15.17",
     "@types/react": "^18.3.21",
     "@types/react-dom": "^18.3.7",
     "@types/react-icons": "^2.2.7",
