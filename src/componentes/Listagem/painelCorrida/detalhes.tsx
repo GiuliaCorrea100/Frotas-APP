@@ -182,6 +182,14 @@ const DetalhesRequisicao: React.FC = () => {
       ),
     },
     {
+      field: "dataAbastecimento",
+      headerName: "Data Abstecimento",
+      flex: 1,
+      renderCell: (params) => (
+        <Typography>{formatDateTime(params.value)}</Typography>
+      ),
+    },
+    {
       field: "acoes",
       headerName: "Ações",
       flex: 1,
