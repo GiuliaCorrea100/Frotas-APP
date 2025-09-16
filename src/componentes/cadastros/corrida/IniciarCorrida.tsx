@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios, { AxiosError  } from 'axios';
+import { AxiosError } from 'axios';
+import api from '../../../config/axiosConfig';
 import Menu from "../../Menu";
 
 interface CarroInfo {
@@ -27,7 +28,7 @@ const IniciarCorrida: React.FC = () => {
     setCarro(null);
 
     try {
-      const response = await axios.get(`/carros/por-tombo/${tombo}`);
+      const response = await api.get(`/carros/por-tombo/${tombo}`);
       
       const carroEncontrado = response.data;
       

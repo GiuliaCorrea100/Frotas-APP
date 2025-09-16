@@ -403,6 +403,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
         onClose={fecharModalOcorrencia} 
         corrida={corridaLocal.idCorrida}
         onSuccess={() => {
+          console.log("Ocorrência salva com sucesso!");
           fecharModalOcorrencia();
         }}
         onError={(erro) => {
@@ -438,6 +439,8 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
         ultimoDestino={ultimoDestino}
         percursosAtivosCount={percursosAtivosCount}
         chaveEmprestada={chaveEmprestada}
+        isUltimoPercurso={isUltimoPercurso}
+        localOrigemCorrida={corridaLocal.local_de_saida || ""}
       />
 
       <ModalFinalizarPercurso

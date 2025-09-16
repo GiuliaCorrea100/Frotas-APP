@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -7,7 +7,8 @@ import {
   TextField,
   Button,
   Typography,
-  Box
+  Box,
+  Alert
 } from '@mui/material';
 
 interface ModalIniciarPercursoProps {
@@ -21,6 +22,9 @@ interface ModalIniciarPercursoProps {
   ultimoDestino: string;
   percursosAtivosCount?: number;
   chaveEmprestada: boolean;
+  isUltimoPercurso: boolean; 
+  localOrigemCorrida: string; 
+  onConfirmacaoUltimoPercurso?: () => void;
 }
 
 const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
@@ -33,21 +37,44 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
   setOdometro,
   ultimoDestino,
   percursosAtivosCount = 0,
-  chaveEmprestada
+  chaveEmprestada,
+  isUltimoPercurso,
+  localOrigemCorrida,
+  onConfirmacaoUltimoPercurso 
 }) => {
   const [mostrarAlertaChave, setMostrarAlertaChave] = useState(false);
+  const [confirmacaoUltimoPercurso, setConfirmacaoUltimoPercurso] = useState(false);
+
+  useEffect(() => {
+    if (isUltimoPercurso && open) {
+      setConfirmacaoUltimoPercurso(true);
+      setDestino(localOrigemCorrida);
+    }
+  }, [isUltimoPercurso, open, localOrigemCorrida, setDestino]);
 
   const handleConfirm = () => {
     if (!chaveEmprestada) {
       setMostrarAlertaChave(true);
       return;
     }
-    onConfirm();
+    
+    if (isUltimoPercurso && !confirmacaoUltimoPercurso && onConfirmacaoUltimoPercurso) {
+      onConfirmacaoUltimoPercurso();
+    } else {
+      onConfirm();
+    }
   };
 
   const handleClose = () => {
     setMostrarAlertaChave(false);
+    setConfirmacaoUltimoPercurso(false);
     onClose();
+  };
+
+  const handleDestinoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isUltimoPercurso || !confirmacaoUltimoPercurso) {
+      setDestino(e.target.value);
+    }
   };
 
   return (
@@ -60,6 +87,11 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
           <Typography variant="body2" color="warning.main">
             Existe(m) {percursosAtivosCount} percurso(s) ativo(s) nesta corrida
           </Typography>
+        )}
+        {isUltimoPercurso && (
+          <Alert severity="info" sx={{ mt: 1 }}>
+            Último percurso - Destino: {localOrigemCorrida}
+          </Alert>
         )}
       </DialogTitle>
       <DialogContent>
@@ -79,13 +111,19 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
               readOnly: true,
             }}
           />
+          
           <TextField
             label="Local de Destino"
             value={destino}
-            onChange={(e) => setDestino(e.target.value)}
+            onChange={handleDestinoChange}
             fullWidth
             sx={{ mb: 2 }}
             placeholder="Digite o destino do percurso"
+            InputProps={{
+              readOnly: isUltimoPercurso && confirmacaoUltimoPercurso,
+            }}
+            helperText={isUltimoPercurso && confirmacaoUltimoPercurso ? 
+              "Destino bloqueado para último percurso" : ""}
           />
 
           <TextField
@@ -110,7 +148,8 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
           onClick={handleConfirm}
           disabled={!destino || !odometro}
         >
-          INICIAR PERCURSO
+          {isUltimoPercurso && !confirmacaoUltimoPercurso ? 
+            "CONFIRMAR ÚLTIMO PERCURSO" : "INICIAR PERCURSO"}
         </Button>
         <Button
           color="inherit"
