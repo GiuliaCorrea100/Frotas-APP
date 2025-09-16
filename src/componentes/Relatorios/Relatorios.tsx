@@ -18,7 +18,6 @@ import { DataGrid } from '@mui/x-data-grid';
 import { ptBR } from '@mui/x-data-grid/locales';
 import { ValueType } from 'recharts/types/component/DefaultTooltipContent';
 
-// Importe seus serviços
 import AbastecimentoService from "../../api/abastecimentoService";
 import { CarrosService } from "../../api/carrosService";
 import { getCorridas } from "../../api/corridaService";
@@ -76,6 +75,7 @@ const Relatorios: React.FC = () => {
     const [abastecimentos, setAbastecimentos] = useState<any[]>([]);
     const [ocorrencias, setOcorrencias] = useState<any[]>([]);
     const [multas, setMultas] = useState<any[]>([]);
+    const [gastosPorCampus, setGastosPorCampus] = useState<any[]>([]);
 
     
     useEffect(() => {
@@ -83,18 +83,21 @@ const Relatorios: React.FC = () => {
             setLoading(true);
             setError(null);
             try {
-                const [corridasData, carrosData, abastecData, ocorrData, multasData] = await Promise.all([
+                const [corridasData, carrosData, abastecData, ocorrData, multasData, gastoPorCampusData] = await Promise.all([
                     getCorridas(),
                     CarrosService.buscarTodos(),
                     AbastecimentoService.buscarTodosAbastecimentos({ expand: true }),
                     OcorrenciaService.buscarTodos(),
                     listarMultas(),
+                    AbastecimentoService.buscarGastosPorCampus(),
                 ]);
                 setCorridas(corridasData);
                 setCarros(carrosData);
                 setAbastecimentos(abastecData);
                 setOcorrencias(ocorrData);
                 setMultas(multasData);
+                 setGastosPorCampus(gastoPorCampusData);
+
             } catch (err) {
                 console.error("Erro ao carregar dados:", err);
                 setError("Não foi possível carregar os dados.");
@@ -120,14 +123,6 @@ const Relatorios: React.FC = () => {
         };
     }, [corridas, carros, abastecimentos, ocorrencias, multas, selectedYear]);
 
-    // Adicione este console.log para ver a estrutura real dos dados
-useEffect(() => {
-  console.log("Dados de ocorrências:", ocorrencias);
-  console.log("Dados filtrados de ocorrências:", dadosFiltrados.ocorrencias);
-  if (dadosFiltrados.ocorrencias.length > 0) {
-    console.log("Primeira ocorrência:", dadosFiltrados.ocorrencias[0]);
-  }
-}, [dadosFiltrados.ocorrencias]);
 
     // Otimização: Prepara os dados para todos os gráficos
     const dadosGraficos = useMemo(() => {
@@ -241,8 +236,7 @@ useEffect(() => {
                         <Grid item xs={12} sm={6} md={3}><StatCard title="Ocorrências e Multas" value={`${dadosGraficos.visaoGeral.totalOcorrencias} / ${dadosGraficos.multas.totalMultas}`} icon={<WarningAmber fontSize="large" />} trend="down" /></Grid>
                     </Grid>
                 )}
-                
-                {/* --- CONTEÚDO DA ABA CORRIDAS --- */}
+            
 {/* --- CONTEÚDO DA ABA CORRIDAS --- */}
 {activeTab === 1 && (
     <Grid container spacing={3}>
@@ -308,7 +302,7 @@ useEffect(() => {
             </Paper>
         </Grid>
 
-                {/* Tabela de Corridas (opcional, se quiser adicionar abaixo) */}
+                {/* Tabela de Corrida */}
                 <Grid item xs={12}>
                     <Paper sx={{ p: 2 }} elevation={3}>
                         <Typography variant="h6" gutterBottom>Relatório de Corridas</Typography>
@@ -341,7 +335,7 @@ useEffect(() => {
             </Grid>
         )}
 
-            { /* --- CONTEÚDO DA ABA VEÍCULOS --- */ }
+            
 {/* --- CONTEÚDO DA ABA VEÍCULOS --- */}
 {activeTab === 2 && (
     <Grid container spacing={3}>
@@ -440,6 +434,41 @@ useEffect(() => {
             </Paper>
         </Grid>
 
+
+{/* Gráfico de Gasto Total por Campus */}
+<Grid item xs={12}>
+    <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+        <Typography variant="h6" gutterBottom>Gasto Total por Campus ({selectedYear})</Typography>
+        <ResponsiveContainer width="100%" height="90%">
+            <BarChart
+                data={gastosPorCampus}
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="campus" />
+                <YAxis 
+                    tickFormatter={(value) => 
+                        `R$ ${Number(value).toLocaleString('pt-BR')}`
+                    }
+                />
+                <Tooltip
+                    contentStyle={tooltipStyle}
+                    formatter={(value: ValueType) => [
+                        Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        'Gasto Total'
+                    ]}
+                />
+                <Legend />
+                <Bar 
+                    dataKey="totalGasto" 
+                    fill={theme.palette.primary.main} 
+                    name="Gasto Total" 
+                />
+            </BarChart>
+        </ResponsiveContainer>
+    </Paper>
+</Grid>
+
         {/* Tabela Detalhada de Veículos */}
         <Grid item xs={12}>
             <Paper sx={{ p: 2 }} elevation={3}>
@@ -451,12 +480,12 @@ useEffect(() => {
                             c.placaVeiculo === veiculo.placa || c.veiculo?.placa === veiculo.placa
                         );
                         
-                        // Calcular quilometragem total (supondo que cada corrida tenha um campo 'quilometragem')
+                        // Calcular quilometragem total 
                         const quilometragemTotal = corridasVeiculo.reduce((total, corrida) => 
                             total + (parseFloat(corrida.quilometragem) || 0), 0
                         );
                         
-                        // Calcular tempo médio de uso (supondo campo 'duracao' em minutos)
+                        // Calcular tempo médio de uso ( campo 'duracao' em minutos)
                         const tempoTotal = corridasVeiculo.reduce((total, corrida) => 
                             total + (parseFloat(corrida.duracao) || 0), 0
                         );
@@ -466,7 +495,7 @@ useEffect(() => {
                         let statusUtilizacao = 'Normal';
                         if (corridasVeiculo.length === 0) {
                             statusUtilizacao = 'Ocioso';
-                        } else if (corridasVeiculo.length > 20) { // Ajuste este valor conforme necessário
+                        } else if (corridasVeiculo.length > 20) { 
                             statusUtilizacao = 'Superutilizado';
                         }
                         
@@ -480,7 +509,7 @@ useEffect(() => {
                             quilometragemTotal: quilometragemTotal.toFixed(2),
                             tempoMedioUso: `${tempoMedio.toFixed(2)} min`,
                             statusUtilizacao: statusUtilizacao,
-                            consumoMedio: veiculo.consumoMedio || 'N/A' // Supondo campo de consumo médio
+                            consumoMedio: veiculo.consumoMedio || 'N/A' 
                         };
                     })}
                     columns={[
@@ -521,49 +550,11 @@ useEffect(() => {
                 />
             </Paper>
         </Grid>
-
-        {/* Gráfico de Consumo por Campus */}
-        <Grid item xs={12}>
-            <Paper sx={{ p: 2, height: 400 }} elevation={3}>
-                <Typography variant="h6" gutterBottom>Consumo Médio por Campus</Typography>
-                <ResponsiveContainer width="100%" height="90%">
-                    <BarChart
-                        data={
-                            Object.values(
-                                dadosFiltrados.carros.reduce((acc: any, veiculo) => {
-                                    const campus = veiculo.localidade_fisica;
-                                    if (!acc[campus]) {
-                                        acc[campus] = { campus, totalConsumo: 0, count: 0 };
-                                    }
-                                    if (veiculo.consumoMedio) {
-                                        acc[campus].totalConsumo += parseFloat(veiculo.consumoMedio);
-                                        acc[campus].count++;
-                                    }
-                                    return acc;
-                                }, {})
-                            ).map((item: any) => ({
-                                campus: item.campus,
-                                consumoMedio: item.count > 0 ? (item.totalConsumo / item.count) : 0
-                            }))
-                        }
-                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                    >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="campus" />
-                        <YAxis label={{ value: 'km/l', angle: -90, position: 'insideLeft' }} />
-                        <Tooltip 
-                            formatter={(value: number) => [`${value.toFixed(2)} km/l`, 'Consumo Médio']}
-                            contentStyle={tooltipStyle} 
-                        />
-                        <Legend />
-                        <Bar dataKey="consumoMedio" fill={theme.palette.info.main} name="Consumo Médio" />
-                    </BarChart>
-                </ResponsiveContainer>
-            </Paper>
-        </Grid>
-    </Grid>
+     </Grid>
 )}
-                {                /* --- CONTEÚDO DA ABA ABASTECIMENTOS --- */                }
+
+
+        {/* --- CONTEÚDO DA ABA ABASTECIMENTOS --- */}
 
                 {activeTab === 3 && (
                     <Grid container spacing={3}>
@@ -607,6 +598,9 @@ useEffect(() => {
                     </Grid>
                 )}
 
+
+
+
         {/* --- CONTEÚDO DA ABA MULTAS E OCORRÊNCIAS --- */}
 
     {activeTab === 4 && (
@@ -619,13 +613,13 @@ useEffect(() => {
             <Paper sx={{ p: 2 }} elevation={3}>
                 <DataGrid
                     autoHeight
-                    rows={dadosFiltrados.ocorrencias.map((o, index) => ({
-                        id: o.idOcorrencia || index + 1,
-                        data: new Date(o.dataOcorrencia || o.dataCriacao).toLocaleDateString('pt-BR'),
-                       veiculo: o.placaVeiculo || o.veiculo?.placa || "N/A",
-                        motorista: o.nomeMotorista || o.motorista?.nome || "N/A",
-                        descricao: o.descricao || "—",
-                        corrida: o.idCorrida || "N/A"
+                    rows={dadosFiltrados.ocorrencias.map((ocorrencias, index) => ({
+                        id: ocorrencias.idOcorrencia || index + 1,
+                        data: new Date(ocorrencias.dataOcorrencia || ocorrencias.dataCriacao).toLocaleDateString('pt-BR'),
+                        veiculo: ocorrencias.placaVeiculo || ocorrencias.veiculo?.placa || "N/A",
+                        motorista: ocorrencias.nomeMotorista || ocorrencias.motorista?.nome || "N/A",
+                        descricao: ocorrencias.descricao || "—",
+                        corrida: ocorrencias.idCorrida || "N/A"
                     }))}
                     columns={[
                         { field: 'data', headerName: 'Data', flex: 1 },
@@ -676,7 +670,7 @@ useEffect(() => {
                         data={
                             Object.values(
                                 dadosFiltrados.multas.reduce((acc: any, multa: any) => {
-                                    const veiculo = multa.placaVeiculo || 'N/A';
+                                    const veiculo = multa.placaVeiculo || multa.modelo|| 'N/A';
                                     acc[veiculo] = acc[veiculo] || { veiculo, Multas: 0 };
                                     acc[veiculo].Multas++;
                                     return acc;
