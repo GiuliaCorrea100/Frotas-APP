@@ -61,6 +61,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
   const [precoFinal, setPrecoFinal] = useState<number>(0);
   const [tipoCombustivel, setTipoCombustivel] = useState<number | "">("");
   const [valorUnitario, setValorUnitario] = useState<number>(0);
+  const [dataAbastecimento, setdataAbastecimento] = useState<Date | null>(null);
 
   const [tiposCombustivel, setTiposCombustivel] = useState<TipoCombustivel[]>([]);
   const [corridas, setCorridas] = useState<CorridaFrontend[]>([]);
@@ -74,6 +75,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
       setPrecoFinal(abastecimento.precoFinal ?? 0);
       setTipoCombustivel(abastecimento.tipoCombustivel?.idTipoCombustivel ?? "");
       setValorUnitario(abastecimento.valorUnitario ?? 0);
+      setdataAbastecimento(abastecimento.dataAbastecimento ? new Date(abastecimento.dataAbastecimento) : null);
     }
   }, [abastecimento]);
 
@@ -112,6 +114,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
         litros,
         precoFinal,
         valorUnitario,
+        //dataAbastecimento,
         idTipoCombustivel: tipoCombustivel === "" ? undefined : Number(tipoCombustivel),
       };
 
@@ -120,6 +123,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
         dadosAtualizados
       );
 
+      console.log(dadosAtualizados);
       onSuccess("Abastecimento atualizado com sucesso!");
     } catch (error) {
       console.error("Erro ao salvar abastecimento:", error);
