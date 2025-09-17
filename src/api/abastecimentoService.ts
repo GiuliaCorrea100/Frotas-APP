@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import api from "../config/axiosConfig";
 import axiosConnect from "../services/axiosConnect";
 
@@ -47,7 +46,7 @@ export interface AbastecimentoRequest {
   valorUnitario?: number;
   valorMedio?: number;
   justificativaAlteracao?: string;
-  tipoCombustivel: number;
+  idTipoCombustivel: number;
   idCorrida: number;
 }
 
@@ -67,7 +66,16 @@ export interface GastoPorCampus {
 
 export class AbastecimentoService {
 
-  
+ static async ConsumoMedioCampus() {
+    try {
+        const response = await api.get('consumo-medio-campus/');
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao buscar consumo médio por campus:', error);
+        throw error;
+    }
+  } 
+
   async buscarTodosAbastecimentos(params?: {
     tipoCombustivel?: string;
     corrida?: string;
@@ -106,14 +114,44 @@ export class AbastecimentoService {
     }
   }
 
-  async cadastrarAbastecimento(
-    abastecimento: AbastecimentoRequest
-  ): Promise<Abastecimento> {
+  async cadastrarAbastecimento(data: {
+    idCorrida: number;
+    litros: number;
+    codPagamento: number;
+    precoFinal: number;
+    dataAbastecimento: string;
+    valorUnitarioLitro?: number;
+    valorMedioLitro?: number;
+    valorUnitario?: number;
+    valorMedio?: number;
+    justificativaAlteracao?: string;
+    tipoCombustivel: number;
+  }): Promise<Abastecimento> {
     try {
-      const response = await api.post(`/abastecimento`, abastecimento);
-      return response.data;
-    } catch (error) {
-      throw error;
+      const payload: AbastecimentoRequest = {
+        idCorrida: data.idCorrida,
+        litros: data.litros,
+        codPagamento: data.codPagamento,
+        precoFinal: data.precoFinal,
+        dataAbastecimento: data.dataAbastecimento,
+        valorUnitarioLitro: data.valorUnitarioLitro,
+        valorMedioLitro: data.valorMedioLitro,
+        valorUnitario: data.valorUnitario,
+        valorMedio: data.valorMedio,
+        justificativaAlteracao: data.justificativaAlteracao,
+        idTipoCombustivel: data.tipoCombustivel,
+      };
+
+      console.log("Payload de cadastro de abastecimento:", payload);
+
+      const response = await api.post(`/abastecimento`, payload);
+      return response.data as Abastecimento;
+    } catch (error: unknown) {
+      console.error("Erro ao cadastrar abastecimento:", error);
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("Erro ao cadastrar abastecimento");
     }
   }
 
@@ -152,18 +190,11 @@ export class AbastecimentoService {
     }
   }
 
-  async buscarGastosPorCampus(): Promise<GastoPorCampus[]> {
-    try {
-      const response = await api.get(`/abastecimento/gastos-por-campus`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  }
   
 }
-
-
 // Criando uma única instância e exportando-a
 const abastecimentoService = new AbastecimentoService();
 export default abastecimentoService;
+
+
+
