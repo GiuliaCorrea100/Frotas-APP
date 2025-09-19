@@ -1,5 +1,3 @@
-//RELATORIO FUNCIONANDO:
-
 import React, { useState, useEffect, useMemo } from 'react';
 import {
     Box, Typography, Paper, FormControl, InputLabel, Select,
@@ -29,7 +27,7 @@ import { listarMultas } from "../../api/multaService";
 import Menu from "../Menu";
 
 // --- Paletas de Cores Consistentes ---
-const PIE_COLORS = ['#FF9800', '#4CAF50', '#2196F3', '#F44336', '#9C27B0', '#795548', '#607D8B']; // Ajustado para corresponder a AGENDADA, FINALIZADA, EM ANDAMENTO
+const PIE_COLORS = ['#FF9800', '#4CAF50', '#2196F3', '#F44336', '#9C27B0', '#795548', '#607D8B'];
 
 const SITUACAO_VEICULO_COLORS: { [key: string]: string } = {
     'DISPONIVEL': '#4CAF50',
@@ -78,34 +76,25 @@ const Relatorios: React.FC = () => {
     const [abastecimentos, setAbastecimentos] = useState<any[]>([]);
     const [ocorrencias, setOcorrencias] = useState<any[]>([]);
     const [multas, setMultas] = useState<any[]>([]);
-    const [consumoMedioCampus, setConsumoMedioCampus] = useState([]);
-
-    // Use os dados de consumoMedioCampus que já estão sendo carregados
-const dadosConsumoMedio = useMemo(() => {
-    if (!consumoMedioCampus || consumoMedioCampus.length === 0) {
-        return [];
-    }
-}, [consumoMedioCampus]);
 
     useEffect(() => {
         const carregarTodosDados = async () => {
             setLoading(true);
             setError(null);
             try {
-                const [corridasData, carrosData, abastecData, ocorrData, multasData, consumoMedioData] = await Promise.all([
+                const [corridasData, carrosData, abastecData, ocorrData, multasData] = await Promise.all([
                     getCorridas(),
                     CarrosService.buscarTodos(),
                     AbastecimentoService.buscarTodosAbastecimentos({ expand: true }),
                     OcorrenciaService.buscarTodos(),
                     listarMultas(),
-                    AbastecimentoService.ConsumoMedioCampus(),
                 ]);
+                
                 setCorridas(corridasData);
                 setCarros(carrosData);
                 setAbastecimentos(abastecData);
                 setOcorrencias(ocorrData);
                 setMultas(multasData);
-                setConsumoMedioCampus(consumoMedioData);
             } catch (err) {
                 console.error("Erro ao carregar dados:", err);
                 setError("Não foi possível carregar os dados.");
@@ -115,6 +104,49 @@ const dadosConsumoMedio = useMemo(() => {
         };
         carregarTodosDados();
     }, []);
+
+    // Função para calcular consumo por campus
+const calcularConsumoPorCampus = useMemo(() => {
+    const consumoPorCampusMap: {[key: string]: number} = {};
+    
+    // Filtrar apenas abastecimentos do ano selecionado
+    const abastecimentosDoAno = abastecimentos.filter(abastecimento => {
+        if (!abastecimento.dataAbastecimento) return false;
+        return new Date(abastecimento.dataAbastecimento).getFullYear() === selectedYear;
+    });
+
+    abastecimentosDoAno.forEach(abastecimento => {
+        // Verificar se tem litros válidos
+        const litros = parseFloat(abastecimento.litros) || 0;
+        if (litros <= 0) return;
+
+        let campus = 'Não especificado';
+        
+        if (abastecimento.carros?.localidade_fisica) {
+            campus = abastecimento.carros.localidade_fisica;
+        } 
+        else if (abastecimento.idCorrida?.veiculo?.localidade_fisica) {
+            campus = abastecimento.idCorrida.veiculo.localidade_fisica;
+        }
+        else if (abastecimento.localidade_fisica) {
+            campus = abastecimento.localidade_fisica;
+        }
+
+        consumoPorCampusMap[campus] = (consumoPorCampusMap[campus] || 0) + litros;
+    });
+    
+    // Converter para array e ordenar
+    const resultado = Object.entries(consumoPorCampusMap)
+        .map(([campus, litros]) => ({
+            campus,
+            litros: parseFloat(litros.toFixed(2))
+        }))
+        .sort((a, b) => b.litros - a.litros);
+
+    console.log("Consumo por campus:", resultado);
+    return resultado;
+}, [abastecimentos, selectedYear]);
+
 
     // Otimização: Filtra e processa dados apenas quando o ano ou os dados brutos mudam
     const dadosFiltrados = useMemo(() => {
@@ -131,29 +163,19 @@ const dadosConsumoMedio = useMemo(() => {
         };
     }, [corridas, carros, abastecimentos, ocorrencias, multas, selectedYear]);
 
-    // Adicione este console.log para ver a estrutura real dos dados
-useEffect(() => {
-  console.log("Dados de ocorrências:", ocorrencias);
-  console.log("Dados filtrados de ocorrências:", dadosFiltrados.ocorrencias);
-  if (dadosFiltrados.ocorrencias.length > 0) {
-    console.log("Primeira ocorrência:", dadosFiltrados.ocorrencias[0]);
-  }
-}, [dadosFiltrados.ocorrencias]);
-
     // Otimização: Prepara os dados para todos os gráficos
     const dadosGraficos = useMemo(() => {
         // Visão Geral
         const totalGastoCombustivel = dadosFiltrados.abastecimentos.reduce((acc, item) => acc + parseFloat(item.precoFinal || 0), 0);
         const totalMultas = dadosFiltrados.multas.reduce((acc, item) => acc + parseFloat(item.valor || 0), 0);
 
-       // Abastecimentos
+        // Abastecimentos
         const custoPorCombustivel = dadosFiltrados.abastecimentos.reduce((acc: { [key: string]: number }, abs) => {
             const tipo = abs.tipo_combustivel?.nome || 'Não especificado';
             acc[tipo] = (acc[tipo] || 0) + parseFloat(abs.precoFinal || 0);
             return acc;
         }, {});
-       console.log(custoPorCombustivel);
- 
+
         return {
             visaoGeral: {
                 totalCorridas: dadosFiltrados.corridas.length,
@@ -254,333 +276,338 @@ useEffect(() => {
                 )}
                 
                 {/* --- CONTEÚDO DA ABA CORRIDAS --- */}
-{/* --- CONTEÚDO DA ABA CORRIDAS --- */}
-{activeTab === 1 && (
-    <Grid container spacing={3}>
-        <Grid item xs={12}>
-            <Typography variant="h5" gutterBottom>Análise de Corridas ({selectedYear})</Typography>
-        </Grid>
-        
-        {/* Gráfico: Situação das Corridas */}
-        <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, height: 400 }} elevation={3}>
-                <Typography variant="h6" gutterBottom>Situação das Corridas</Typography>
-                <ResponsiveContainer width="100%" height="90%">
-                    <PieChart>
-                        <Pie
-                            data={dadosGraficos.corridas.porSituacao}
-                            dataKey="value"
-                            nameKey="name"
-                            cx="50%"
-                            cy="50%"
-                            outerRadius={100}
-                            label
-                        >
-                            {dadosGraficos.corridas.porSituacao.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                            ))}
-                        </Pie>
-                        <Tooltip contentStyle={tooltipStyle} />
-                        <Legend />
-                    </PieChart>
-                </ResponsiveContainer>
-            </Paper>
-        </Grid>
+                {activeTab === 1 && (
+                    <Grid container spacing={3}>
+                        <Grid item xs={12}>
+                            <Typography variant="h5" gutterBottom>Análise de Corridas ({selectedYear})</Typography>
+                        </Grid>
+                        
+                        {/* Gráfico: Situação das Corridas */}
+                        <Grid item xs={12} md={6}>
+                            <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+                                <Typography variant="h6" gutterBottom>Situação das Corridas</Typography>
+                                <ResponsiveContainer width="100%" height="90%">
+                                    <PieChart>
+                                        <Pie
+                                            data={dadosGraficos.corridas.porSituacao}
+                                            dataKey="value"
+                                            nameKey="name"
+                                            cx="50%"
+                                            cy="50%"
+                                            outerRadius={100}
+                                            label
+                                        >
+                                            {dadosGraficos.corridas.porSituacao.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip contentStyle={tooltipStyle} />
+                                        <Legend />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </Paper>
+                        </Grid>
 
-        {/* Gráfico: Corridas por Motorista */}
-        <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 2, height: 400 }} elevation={3}>
-                <Typography variant="h6" gutterBottom>Top Motoristas por Número de Corridas</Typography>
-                <ResponsiveContainer width="100%" height="90%">
-                    <BarChart
-                        layout="vertical"
-                        data={
-                            Object.values(
-                                dadosFiltrados.corridas.reduce((acc: any, corrida: any) => {
-                                    const motorista = corrida.motorista?.nome || corrida.nomeMotorista || 'N/A';
-                                    acc[motorista] = acc[motorista] || { motorista, Corridas: 0 };
-                                    acc[motorista].Corridas++;
-                                    return acc;
-                                }, {})
-                            )
-                            .sort((a: any, b: any) => b.Corridas - a.Corridas)
-                            .slice(0, 10)
-                        }
-                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                    >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" />
-                        <YAxis type="category" dataKey="motorista" width={100} />
-                        <Tooltip contentStyle={tooltipStyle} />
-                        <Legend />
-                        <Bar dataKey="Corridas" fill={theme.palette.primary.main} />
-                    </BarChart>
-                </ResponsiveContainer>
-            </Paper>
-        </Grid>
+                        {/* Gráfico: Corridas por Motorista */}
+                        <Grid item xs={12} md={6}>
+                            <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+                                <Typography variant="h6" gutterBottom>Top Motoristas por Número de Corridas</Typography>
+                                <ResponsiveContainer width="100%" height="90%">
+                                    <BarChart
+                                        layout="vertical"
+                                        data={
+                                            Object.values(
+                                                dadosFiltrados.corridas.reduce((acc: any, corrida: any) => {
+                                                    const motorista = corrida.motorista?.nome || corrida.nomeMotorista || 'N/A';
+                                                    acc[motorista] = acc[motorista] || { motorista, Corridas: 0 };
+                                                    acc[motorista].Corridas++;
+                                                    return acc;
+                                                }, {})
+                                            )
+                                            .sort((a: any, b: any) => b.Corridas - a.Corridas)
+                                            .slice(0, 10)
+                                        }
+                                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis type="number" />
+                                        <YAxis type="category" dataKey="motorista" width={100} />
+                                        <Tooltip contentStyle={tooltipStyle} />
+                                        <Legend />
+                                        <Bar dataKey="Corridas" fill={theme.palette.primary.main} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </Paper>
+                        </Grid>
 
-                {/* Tabela de Corridas (opcional, se quiser adicionar abaixo) */}
-                <Grid item xs={12}>
-                    <Paper sx={{ p: 2 }} elevation={3}>
-                        <Typography variant="h6" gutterBottom>Relatório de Corridas</Typography>
-                        <DataGrid
-                            autoHeight
-                            rows={dadosFiltrados.corridas.map((corrida, index) => ({
-                                id: corrida.idCorrida || index + 1,
-                                motorista: corrida.motorista?.nome || corrida.nomeMotorista || "N/A",
-                                veiculo: corrida.veiculo?.placa || corrida.placaVeiculo || "N/A",
-                                situacao: corrida.situacao || "N/A",
-                                dataInicio: new Date(corrida.dataInicio).toLocaleString('pt-BR'),
-                                dataTermino: corrida.dataTermino 
-                                    ? new Date(corrida.dataTermino).toLocaleString('pt-BR')
-                                    : "—",
-                                localSaida: corrida.localSaida || "—"
-                            }))}
-                            columns={[
-                                { field: 'motorista', headerName: 'Motorista', flex: 1 },
-                                { field: 'veiculo', headerName: 'Veículo', flex: 1 },
-                                { field: 'situacao', headerName: 'Situação', flex: 1 },
-                                { field: 'dataInicio', headerName: 'Data/Hora Início', flex: 1.5 },
-                                { field: 'dataTermino', headerName: 'Data/Hora Término', flex: 1.5 },
-                                { field: 'localSaida', headerName: 'Local de Saída', flex: 1.5 },
-                            ]}
-                            pageSizeOptions={[5, 10, 20]}
-                            localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
-                        />
-                    </Paper>
-                </Grid>
-            </Grid>
-        )}
+                        {/* Tabela de Corridas */}
+                        <Grid item xs={12}>
+                            <Paper sx={{ p: 2 }} elevation={3}>
+                                <Typography variant="h6" gutterBottom>Relatório de Corridas</Typography>
+                                <DataGrid
+                                    autoHeight
+                                    rows={dadosFiltrados.corridas.map((corrida, index) => ({
+                                        id: corrida.idCorrida || index + 1,
+                                        motorista: corrida.motorista?.nome || corrida.nomeMotorista || "N/A",
+                                        veiculo: corrida.veiculo?.placa || corrida.placaVeiculo || "N/A",
+                                        situacao: corrida.situacao || "N/A",
+                                        dataInicio: new Date(corrida.dataInicio).toLocaleString('pt-BR'),
+                                        dataTermino: corrida.dataTermino 
+                                            ? new Date(corrida.dataTermino).toLocaleString('pt-BR')
+                                            : "—",
+                                        localSaida: corrida.localSaida || "—"
+                                    }))}
+                                    columns={[
+                                        { field: 'motorista', headerName: 'Motorista', flex: 1 },
+                                        { field: 'veiculo', headerName: 'Veículo', flex: 1 },
+                                        { field: 'situacao', headerName: 'Situação', flex: 1 },
+                                        { field: 'dataInicio', headerName: 'Data/Hora Início', flex: 1.5 },
+                                        { field: 'dataTermino', headerName: 'Data/Hora Término', flex: 1.5 },
+                                        { field: 'localSaida', headerName: 'Local de Saída', flex: 1.5 },
+                                    ]}
+                                    pageSizeOptions={[5, 10, 20]}
+                                    localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+                                />
+                            </Paper>
+                        </Grid>
+                    </Grid>
+                )}
 
-            { /* --- CONTEÚDO DA ABA VEÍCULOS --- */ }
-{/* --- CONTEÚDO DA ABA VEÍCULOS --- */}
-{activeTab === 2 && (
-    <Grid container spacing={3}>
-        <Grid item xs={12}>
-            <Typography variant="h5" gutterBottom>Análise da Frota ({selectedYear})</Typography>
-        </Grid>
-        
-        {/* Cards Estatísticos */}
-        <Grid item xs={12} sm={6} md={3}>
-            <StatCard 
-                title="Total de Veículos" 
-                value={dadosFiltrados.carros.length} 
-                icon={<DirectionsCar fontSize="large" />} 
-            />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-            <StatCard 
-                title="Veículos em Operação" 
-                value={dadosFiltrados.carros.filter(c => c.situacao === 'RESERVADO' || c.situacao === 'VIAGEM').length} 
-                icon={<Speed fontSize="large" />} 
-            />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-            <StatCard 
-                title="Veículos em Manutenção" 
-                value={dadosFiltrados.carros.filter(c => c.situacao === 'MANUTENCAO').length} 
-                icon={<WarningAmber fontSize="large" />} 
-            />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-            <StatCard 
-                title="Veículos Ociosos" 
-                value={dadosFiltrados.carros.filter(c => {
-                    const corridasVeiculo = dadosFiltrados.corridas.filter(corr => 
-                        corr.placaVeiculo === c.placa || corr.veiculo?.placa === c.placa
-                    );
-                    return corridasVeiculo.length === 0 && c.situacao === 'DISPONIVEL';
-                }).length} 
-                icon={<Assignment fontSize="large" />} 
-            />
-        </Grid>
+                {/* --- CONTEÚDO DA ABA VEÍCULOS --- */}
+                {activeTab === 2 && (
+                    <Grid container spacing={3}>
+                        <Grid item xs={12}>
+                            <Typography variant="h5" gutterBottom>Análise da Frota ({selectedYear})</Typography>
+                        </Grid>
+                        
+                        {/* Cards Estatísticos */}
+                        <Grid item xs={12} sm={6} md={3}>
+                            <StatCard 
+                                title="Total de Veículos" 
+                                value={dadosFiltrados.carros.length} 
+                                icon={<DirectionsCar fontSize="large" />} 
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={6} md={3}>
+                            <StatCard 
+                                title="Veículos em Operação" 
+                                value={dadosFiltrados.carros.filter(c => c.situacao === 'RESERVADO' || c.situacao === 'VIAGEM').length} 
+                                icon={<Speed fontSize="large" />} 
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={6} md={3}>
+                            <StatCard 
+                                title="Veículos em Manutenção" 
+                                value={dadosFiltrados.carros.filter(c => c.situacao === 'MANUTENCAO').length} 
+                                icon={<WarningAmber fontSize="large" />} 
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={6} md={3}>
+                            <StatCard 
+                                title="Veículos Ociosos" 
+                                value={dadosFiltrados.carros.filter(c => {
+                                    const corridasVeiculo = dadosFiltrados.corridas.filter(corr => 
+                                        corr.placaVeiculo === c.placa || corr.veiculo?.placa === c.placa
+                                    );
+                                    return corridasVeiculo.length === 0 && c.situacao === 'DISPONIVEL';
+                                }).length} 
+                                icon={<Assignment fontSize="large" />} 
+                            />
+                        </Grid>
 
-        {/* Gráfico: Situação da Frota */}
-        <Grid item xs={12} md={5}>
-            <Paper sx={{ p: 2, height: 400 }} elevation={3}>
-                <Typography variant="h6" gutterBottom>Situação da Frota</Typography>
-                <ResponsiveContainer width="100%" height="90%">
-                    <PieChart>
-                        <Pie 
-                            data={dadosGraficos.veiculos.porSituacao} 
-                            dataKey="value" 
-                            nameKey="name" 
-                            cx="50%" 
-                            cy="50%" 
-                            innerRadius={70} 
-                            outerRadius={100} 
-                            paddingAngle={3} 
-                            label
-                        >
-                            {dadosGraficos.veiculos.porSituacao.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={SITUACAO_VEICULO_COLORS[entry.name] || PIE_COLORS[index]} />
-                            ))}
-                        </Pie>
-                        <Tooltip contentStyle={tooltipStyle} />
-                        <Legend />
-                    </PieChart>
-                </ResponsiveContainer>
-            </Paper>
-        </Grid>
-        
-        {/* Gráfico: Veículos Mais Utilizados */}
-        <Grid item xs={12} md={7}>
-            <Paper sx={{ p: 2, height: 400 }} elevation={3}>
-                <Typography variant="h6" gutterBottom>Veículos Mais Utilizados (Top 10)</Typography>
-                <ResponsiveContainer width="100%" height="90%">
-                    <BarChart 
-                        layout="vertical" 
-                        data={
-                            Object.values(dadosFiltrados.corridas.reduce((acc: any, c: any) => {
-                                const veiculo = c.placaVeiculo || c.veiculo?.placa || 'N/A';
-                                acc[veiculo] = acc[veiculo] || { veiculo, Corridas: 0 };
-                                acc[veiculo].Corridas++;
-                                return acc;
-                            }, {})).sort((a: any, b: any) => b.Corridas - a.Corridas).slice(0, 10)
-                        } 
-                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                    >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" />
-                        <YAxis type="category" dataKey="veiculo" width={80} />
-                        <Tooltip contentStyle={tooltipStyle} />
-                        <Legend />
-                        <Bar dataKey="Corridas" fill={theme.palette.secondary.main} />
-                    </BarChart>
-                </ResponsiveContainer>
-            </Paper>
-        </Grid>
+                        {/* Gráfico: Situação da Frota */}
+                        <Grid item xs={12} md={5}>
+                            <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+                                <Typography variant="h6" gutterBottom>Situação da Frota</Typography>
+                                <ResponsiveContainer width="100%" height="90%">
+                                    <PieChart>
+                                        <Pie 
+                                            data={dadosGraficos.veiculos.porSituacao} 
+                                            dataKey="value" 
+                                            nameKey="name" 
+                                            cx="50%" 
+                                            cy="50%" 
+                                            innerRadius={70} 
+                                            outerRadius={100} 
+                                            paddingAngle={3} 
+                                            label
+                                        >
+                                            {dadosGraficos.veiculos.porSituacao.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={SITUACAO_VEICULO_COLORS[entry.name] || PIE_COLORS[index]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip contentStyle={tooltipStyle} />
+                                        <Legend />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </Paper>
+                        </Grid>
+                        
+                        {/* Gráfico: Veículos Mais Utilizados */}
+                        <Grid item xs={12} md={7}>
+                            <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+                                <Typography variant="h6" gutterBottom>Veículos Mais Utilizados (Top 10)</Typography>
+                                <ResponsiveContainer width="100%" height="90%">
+                                    <BarChart 
+                                        layout="vertical" 
+                                        data={
+                                            Object.values(dadosFiltrados.corridas.reduce((acc: any, c: any) => {
+                                                const veiculo = c.placaVeiculo || c.veiculo?.placa || 'N/A';
+                                                acc[veiculo] = acc[veiculo] || { veiculo, Corridas: 0 };
+                                                acc[veiculo].Corridas++;
+                                                return acc;
+                                            }, {})).sort((a: any, b: any) => b.Corridas - a.Corridas).slice(0, 10)
+                                        } 
+                                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis type="number" />
+                                        <YAxis type="category" dataKey="veiculo" width={80} />
+                                        <Tooltip contentStyle={tooltipStyle} />
+                                        <Legend />
+                                        <Bar dataKey="Corridas" fill={theme.palette.secondary.main} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </Paper>
+                        </Grid>
 
-            {/* Gráfico de Consumo por Campus */}
+
+                       {/* Gráfico de Consumo por Campus */}
 <Grid item xs={12}>
-    <Paper sx={{ p: 2, height: 400 }} elevation={3}>
-        <Typography variant="h6" gutterBottom>Consumo Médio por Campus</Typography>
-        {dadosConsumoMedio.length > 0 ? (
-            <ResponsiveContainer width="100%" height="90%">
+    <Paper sx={{ p: 3, height: 450, background: 'linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%)' }} elevation={2}>
+        <Typography variant="h6" gutterBottom sx={{ 
+            fontWeight: 'bold', 
+            color: '#2c3e50', 
+            textAlign: 'center',
+            fontSize: '1.1rem',
+            mb: 3
+        }}>
+            CONSUMO POR CAMPUS ({selectedYear})
+        </Typography>
+        {calcularConsumoPorCampus.length > 0 ? (
+            <ResponsiveContainer width="100%" height="85%">
                 <BarChart
-                    data={dadosConsumoMedio}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    data={calcularConsumoPorCampus}
+                    margin={{ top: 5, right: 20, left: 20, bottom: 25 }}
+                    barGap={5}
                 >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="campus" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" vertical={false} />
+                    <XAxis 
+                        dataKey="campus" 
+                        tick={{ fill: '#555', fontSize: 11, fontWeight: 500 }}
+                        interval={0}
+                        angle={-45}
+                        textAnchor="end"
+                        height={70}
+                    />
                     <YAxis 
-                        label={{ 
-                            value: 'km/l', 
-                            angle: -90, 
-                            position: 'insideLeft' 
-                        }} 
+                        tick={{ fill: '#555', fontSize: 11 }}
+                        tickFormatter={(value) => {
+                            if (value >= 1000) return `${(value / 1000).toFixed(0)}k`;
+                            return value.toString();
+                        }}
                     />
                     <Tooltip 
-                        formatter={(value: number) => [`${value.toFixed(2)} km/l`, 'Consumo Médio']}
-                        contentStyle={tooltipStyle} 
+                        formatter={(value: number) => [`${value.toFixed(2)} litros`, '']}
+                        contentStyle={{
+                            backgroundColor: '#fff',
+                            border: '1px solid #ddd',
+                            borderRadius: '6px',
+                            padding: '12px',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                        }}
+                        labelStyle={{ fontWeight: 'bold', color: '#2c3e50' }}
                     />
-                    <Legend />
                     <Bar 
-                        dataKey="consumoMedio" 
-                        fill={theme.palette.info.main} 
-                        name="Consumo Médio" 
+                        dataKey="litros" 
+                        name="Consumo"
+                        fill="#3498db"
+                        radius={[6, 6, 0, 0]}
+                        background={{ fill: '#f8f9fa' }}
                     />
                 </BarChart>
             </ResponsiveContainer>
         ) : (
             <Box display="flex" justifyContent="center" alignItems="center" height="100%">
                 <Typography variant="body1" color="text.secondary">
-                    {loading ? 'Carregando...' : 'Nenhum dado de consumo disponível'}
+                    Nenhum dado de consumo disponível
                 </Typography>
             </Box>
         )}
     </Paper>
 </Grid>
-
-
-        {/* Tabela Detalhada de Veículos */}
-        <Grid item xs={12}>
-            <Paper sx={{ p: 2 }} elevation={3}>
-                <Typography variant="h6" gutterBottom>Relatório Detalhado de Veículos</Typography>
-                <DataGrid
-                    autoHeight
-                    rows={dadosFiltrados.carros.map((veiculo) => {
-                        const corridasVeiculo = dadosFiltrados.corridas.filter(c => 
-                            c.placaVeiculo === veiculo.placa || c.veiculo?.placa === veiculo.placa
-                        );
-                        
-                        // Calcular quilometragem total (supondo que cada corrida tenha um campo 'quilometragem')
-                        const quilometragemTotal = corridasVeiculo.reduce((total, corrida) => 
-                            total + (parseFloat(corrida.quilometragem) || 0), 0
-                        );
-                        
-                        // Calcular tempo médio de uso (supondo campo 'duracao' em minutos)
-                        const tempoTotal = corridasVeiculo.reduce((total, corrida) => 
-                            total + (parseFloat(corrida.duracao) || 0), 0
-                        );
-                        const tempoMedio = corridasVeiculo.length > 0 ? (tempoTotal / corridasVeiculo.length) : 0;
-                        
-                        // Identificar se é ocioso ou superutilizado
-                        let statusUtilizacao = 'Normal';
-                        if (corridasVeiculo.length === 0) {
-                            statusUtilizacao = 'Ocioso';
-                        } else if (corridasVeiculo.length > 20) { // Ajuste este valor conforme necessário
-                            statusUtilizacao = 'Superutilizado';
-                        }
-                        
-                        return {
-                            id: veiculo.idVeiculo || veiculo.placa,
-                            placa: veiculo.placa,
-                            modelo: veiculo.modelo || 'N/A',
-                            situacao: veiculo.situacao || 'N/A',
-                            campus: veiculo.localidade_fisica || 'N/A',
-                            totalCorridas: corridasVeiculo.length,
-                            quilometragemTotal: quilometragemTotal.toFixed(2),
-                            tempoMedioUso: `${tempoMedio.toFixed(2)} min`,
-                            statusUtilizacao: statusUtilizacao,
-                            consumoMedio: veiculo.consumoMedio || 'N/A' // Supondo campo de consumo médio
-                        };
-                    })}
-                    columns={[
-                        { field: 'placa', headerName: 'Placa', flex: 1 },
-                        { field: 'modelo', headerName: 'Modelo', flex: 1 },
-                        { field: 'situacao', headerName: 'Situação', flex: 1 },
-                        { field: 'localidade_fisica', headerName: 'Campus', flex: 1 },
-                        { field: 'totalCorridas', headerName: 'Total de Corridas', flex: 1, type: 'number' },
-                        { field: 'quilometragemTotal', headerName: 'Km Total', flex: 1 },
-                        { field: 'tempoMedioUso', headerName: 'Tempo Médio', flex: 1 },
-                        { field: 'consumoMedio', headerName: 'Consumo Médio (km/l)', flex: 1 },
-                        { 
-                            field: 'statusUtilizacao', 
-                            headerName: 'Status Utilização', 
-                            flex: 1,
-                            renderCell: (params) => (
-                                <Typography 
-                                    variant="body2" 
-                                    sx={{ 
-                                        color: params.value === 'Ocioso' ? 'warning.main' : 
-                                              params.value === 'Superutilizado' ? 'error.main' : 
-                                              'success.main',
-                                        fontWeight: 'bold'
+                        {/* Tabela Detalhada de Veículos */}
+                        <Grid item xs={12}>
+                            <Paper sx={{ p: 2 }} elevation={3}>
+                                <Typography variant="h6" gutterBottom>Relatório Detalhado de Veículos</Typography>
+                                <DataGrid
+                                    autoHeight
+                                    rows={dadosFiltrados.carros.map((veiculo) => {
+                                        const corridasVeiculo = dadosFiltrados.corridas.filter(c => 
+                                            c.placaVeiculo === veiculo.placa || c.veiculo?.placa === veiculo.placa
+                                        );
+                                        
+                                        const tempoTotal = corridasVeiculo.reduce((total, corrida) => 
+                                            total + (parseFloat(corrida.duracao) || 0), 0
+                                        );
+                                        const tempoMedio = corridasVeiculo.length > 0 ? (tempoTotal / corridasVeiculo.length) : 0;
+                                        
+                                        let statusUtilizacao = 'Normal';
+                                        if (corridasVeiculo.length === 0) {
+                                            statusUtilizacao = 'Ocioso';
+                                        } else if (corridasVeiculo.length > 20) {
+                                            statusUtilizacao = 'Superutilizado';
+                                        }
+                                        
+                                        return {
+                                            id: veiculo.idVeiculo || veiculo.placa,
+                                            placa: veiculo.placa,
+                                            modelo: veiculo.modelo || 'N/A',
+                                            situacao: veiculo.situacao || 'N/A',
+                                            localidade_fisica: veiculo.localidade_fisica || 'N/A',
+                                            totalCorridas: corridasVeiculo.length,
+                                            statusUtilizacao: statusUtilizacao,
+                                        };
+                                    })}
+                                    columns={[
+                                        { field: 'placa', headerName: 'Placa', flex: 1 },
+                                        { field: 'modelo', headerName: 'Modelo', flex: 1 },
+                                        { field: 'situacao', headerName: 'Situação', flex: 1 },
+                                        { field: 'localidade_fisica', headerName: 'Campus', flex: 1 },
+                                        { field: 'totalCorridas', headerName: 'Total de Corridas', flex: 1, type: 'number' },
+                                        { 
+                                            field: 'statusUtilizacao', 
+                                            headerName: 'Status Utilização', 
+                                            flex: 1,
+                                            renderCell: (params) => (
+                                                <Typography 
+                                                    variant="body2" 
+                                                    sx={{ 
+                                                        color: params.value === 'Ocioso' ? 'warning.main' : 
+                                                            params.value === 'Superutilizado' ? 'error.main' : 
+                                                            'success.main',
+                                                        fontWeight: 'bold'
+                                                    }}
+                                                >
+                                                    {params.value}
+                                                </Typography>
+                                            )
+                                        },
+                                    ]}
+                                    pageSizeOptions={[5, 10, 20]}
+                                    localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+                                    initialState={{
+                                        sorting: {
+                                            sortModel: [{ field: 'totalCorridas', sort: 'desc' }],
+                                        },
                                     }}
-                                >
-                                    {params.value}
-                                </Typography>
-                            )
-                        },
-                    ]}
-                    pageSizeOptions={[5, 10, 20]}
-                    localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
-                    initialState={{
-                        sorting: {
-                            sortModel: [{ field: 'totalCorridas', sort: 'desc' }],
-                        },
-                    }}
-                />
-            </Paper>
-        </Grid>
-    
+                                />
+                            </Paper>
+                        </Grid>
+                    </Grid>
+                )}
 
-    </Grid>
-
-)}
-                {                /* --- CONTEÚDO DA ABA ABASTECIMENTOS --- */                }
-
+                {/* --- CONTEÚDO DA ABA ABASTECIMENTOS --- */}
                 {activeTab === 3 && (
                     <Grid container spacing={3}>
                         <Grid item xs={12}><Typography variant="h5" gutterBottom>Análise de Abastecimentos ({selectedYear})</Typography></Grid>
@@ -588,22 +615,23 @@ useEffect(() => {
                         <Grid item xs={12} sm={6}><StatCard title="Total Abastecido" value={`${dadosGraficos.abastecimentos.totalLitros.toFixed(2)} Litros`} icon={<LocalGasStation fontSize="large" />} /></Grid>
                         <Grid item xs={12} md={5}>
                             <Paper sx={{ p: 2, height: 400 }} elevation={3}>
-                                    <Typography variant="h6" gutterBottom>Custo por Tipo de Combustível</Typography>
-                                    <ResponsiveContainer width="100%" height="90%">
-                                        <PieChart>
-                                            <Pie data={dadosGraficos.abastecimentos.custoPorCombustivel} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
-                                                {dadosGraficos.abastecimentos.custoPorCombustivel.map((entry, index) => <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />)}
-                                            </Pie>
-                                            <Tooltip formatter={(value: ValueType) => `R$ ${typeof value === 'number' ? value.toFixed(2) : value}`} contentStyle={tooltipStyle} />
-                                            <Legend />
-                                        </PieChart>
-                                    </ResponsiveContainer>
+                                <Typography variant="h6" gutterBottom>Custo por Tipo de Combustível</Typography>
+                                <ResponsiveContainer width="100%" height="90%">
+                                    <PieChart>
+                                        <Pie data={dadosGraficos.abastecimentos.custoPorCombustivel} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
+                                            {dadosGraficos.abastecimentos.custoPorCombustivel.map((entry, index) => <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />)}
+                                        </Pie>
+                                        <Tooltip formatter={(value: ValueType) => `R$ ${typeof value === 'number' ? value.toFixed(2) : value}`} contentStyle={tooltipStyle} />
+                                        <Legend />
+                                    </PieChart>
+                                </ResponsiveContainer>
                             </Paper>
                         </Grid>
                         <Grid item xs={12} md={7}>
                             <Paper sx={{ p: 2, height: 400 }} elevation={3}>
-                                    <Typography variant="h6" gutterBottom>Consumo Mensal</Typography>
-                                    <ResponsiveContainer width="100%" height="90%"><AreaChart data={
+                                <Typography variant="h6" gutterBottom>Consumo Mensal</Typography>
+                                <ResponsiveContainer width="100%" height="90%">
+                                    <AreaChart data={
                                         Array.from({ length: 12 }, (_, i) => {
                                             const mes = new Date(0, i).toLocaleString('pt-BR', { month: 'short' });
                                             const mesFormatado = mes.charAt(0).toUpperCase() + mes.slice(1);
@@ -617,105 +645,111 @@ useEffect(() => {
                                             });
                                             return { mes: mesFormatado, Litros: litros, Valor: valor };
                                         })
-                                    }><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="mes" /><YAxis yAxisId="left" /><YAxis yAxisId="right" orientation="right" /><Tooltip contentStyle={tooltipStyle} /><Legend /><Area yAxisId="left" type="monotone" dataKey="Litros" stroke="#8884d8" fill="#8884d8" /><Area yAxisId="right" type="monotone" dataKey="Valor" stroke="#82ca9d" fill="#82ca9d" /></AreaChart></ResponsiveContainer>
+                                    }>
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="mes" />
+                                        <YAxis yAxisId="left" />
+                                        <YAxis yAxisId="right" orientation="right" />
+                                        <Tooltip contentStyle={tooltipStyle} />
+                                        <Legend />
+                                        <Area yAxisId="left" type="monotone" dataKey="Litros" stroke="#8884d8" fill="#8884d8" />
+                                        <Area yAxisId="right" type="monotone" dataKey="Valor" stroke="#82ca9d" fill="#82ca9d" />
+                                    </AreaChart>
+                                </ResponsiveContainer>
                             </Paper>
                         </Grid>
                     </Grid>
                 )}
 
-        {/* --- CONTEÚDO DA ABA MULTAS E OCORRÊNCIAS --- */}
+                {/* --- CONTEÚDO DA ABA MULTAS E OCORRÊNCIAS --- */}
+                {activeTab === 4 && (
+                    <Grid container spacing={3}>
+                        {/* --- Relatório de Ocorrências --- */}
+                        <Grid item xs={12}>
+                            <Typography variant="h5" gutterBottom> Relatório de Ocorrências ({selectedYear})</Typography>
+                            <Paper sx={{ p: 2 }} elevation={3}>
+                                <DataGrid
+                                    autoHeight
+                                    rows={dadosFiltrados.ocorrencias.map((o, index) => ({
+                                        id: o.idOcorrencia || index + 1,
+                                        data: new Date(o.dataOcorrencia || o.dataCriacao).toLocaleDateString('pt-BR'),
+                                        veiculo: o.placaVeiculo || o.veiculo?.placa || "N/A",
+                                        motorista: o.nomeMotorista || o.motorista?.nome || "N/A",
+                                        descricao: o.descricao || "—",
+                                        corrida: o.idCorrida || "N/A"
+                                    }))}
+                                    columns={[
+                                        { field: 'data', headerName: 'Data', flex: 1 },
+                                        { field: 'veiculo', headerName: 'Veículo', flex: 1 },
+                                        { field: 'motorista', headerName: 'Motorista', flex: 1 },
+                                        { field: 'descricao', headerName: 'Descrição', flex: 2 },
+                                    ]}
+                                    pageSizeOptions={[5, 10, 20]}
+                                    localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+                                />
+                            </Paper>
+                        </Grid>
 
-    {activeTab === 4 && (
-    <Grid container spacing={3}>
-        
-        {/* --- Relatório de Ocorrências --- */}
-        
-        <Grid item xs={12}>
-            <Typography variant="h5" gutterBottom> Relatório de Ocorrências ({selectedYear})</Typography>
-            <Paper sx={{ p: 2 }} elevation={3}>
-                <DataGrid
-                    autoHeight
-                    rows={dadosFiltrados.ocorrencias.map((o, index) => ({
-                        id: o.idOcorrencia || index + 1,
-                        data: new Date(o.dataOcorrencia || o.dataCriacao).toLocaleDateString('pt-BR'),
-                       veiculo: o.placaVeiculo || o.veiculo?.placa || "N/A",
-                        motorista: o.nomeMotorista || o.motorista?.nome || "N/A",
-                        descricao: o.descricao || "—",
-                        corrida: o.idCorrida || "N/A"
-                    }))}
-                    columns={[
-                        { field: 'data', headerName: 'Data', flex: 1 },
-                        { field: 'veiculo', headerName: 'Veículo', flex: 1 },
-                        { field: 'motorista', headerName: 'Motorista', flex: 1 },
-                        { field: 'descricao', headerName: 'Descrição', flex: 2 },
-                    ]}
-                    pageSizeOptions={[5, 10, 20]}
-                    localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
-                />
-            </Paper>
-        </Grid>
+                        {/* --- Relatório de Multas --- */}
+                        <Grid item xs={12} md={7}>
+                            <Typography variant="h5" gutterBottom>Relatório de Multas ({selectedYear})</Typography>
+                            <Paper sx={{ p: 2 }} elevation={3}>
+                                <DataGrid
+                                    autoHeight
+                                    rows={dadosFiltrados.multas.map((m, index) => ({
+                                        id: index + 1,
+                                        data: new Date(m.data).toLocaleDateString('pt-BR'),
+                                        veiculo: m.placaVeiculo || "N/A",
+                                        motorista: m.nomeMotorista || "N/A",
+                                        valor: `R$ ${parseFloat(m.valor || 0).toFixed(2)}`,
+                                        descricao: m.descricao || "—"
+                                    }))}
+                                    columns={[
+                                        { field: 'data', headerName: 'Data', flex: 1 },
+                                        { field: 'veiculo', headerName: 'Veículo', flex: 1 },
+                                        { field: 'motorista', headerName: 'Motorista', flex: 1 },
+                                        { field: 'valor', headerName: 'Valor', flex: 1 },
+                                        { field: 'descricao', headerName: 'Descrição', flex: 2 },
+                                    ]}
+                                    pageSizeOptions={[5, 10, 20]}
+                                    localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+                                />
+                            </Paper>
+                        </Grid>
 
-        {/* --- Relatório de Multas --- */}
-        <Grid item xs={12} md={7}>
-            <Typography variant="h5" gutterBottom>Relatório de Multas ({selectedYear})</Typography>
-            <Paper sx={{ p: 2 }} elevation={3}>
-                <DataGrid
-                    autoHeight
-                    rows={dadosFiltrados.multas.map((m, index) => ({
-                        id: index + 1,
-                        data: new Date(m.data).toLocaleDateString('pt-BR'),
-                        veiculo: m.placaVeiculo || "N/A",
-                        motorista: m.nomeMotorista || "N/A",
-                        valor: `R$ ${parseFloat(m.valor || 0).toFixed(2)}`,
-                        descricao: m.descricao || "—"
-                    }))}
-                    columns={[
-                        { field: 'data', headerName: 'Data', flex: 1 },
-                        { field: 'veiculo', headerName: 'Veículo', flex: 1 },
-                        { field: 'motorista', headerName: 'Motorista', flex: 1 },
-                        { field: 'valor', headerName: 'Valor', flex: 1 },
-                        { field: 'descricao', headerName: 'Descrição', flex: 2 },
-                    ]}
-                    pageSizeOptions={[5, 10, 20]}
-                    localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
-                />
-            </Paper>
-        </Grid>
-
-        {/* --- Gráfico: Veículos mais multados --- */}
-        <Grid item xs={12} md={5}>
-            <Paper sx={{ p: 2, height: 400 }} elevation={3}>
-                <Typography variant="h6" gutterBottom>Veículos Mais Multados</Typography>
-                <ResponsiveContainer width="100%" height="90%">
-                    <BarChart
-                        layout="vertical"
-                        data={
-                            Object.values(
-                                dadosFiltrados.multas.reduce((acc: any, multa: any) => {
-                                    const veiculo = multa.placaVeiculo || 'N/A';
-                                    acc[veiculo] = acc[veiculo] || { veiculo, Multas: 0 };
-                                    acc[veiculo].Multas++;
-                                    return acc;
-                                }, {})
-                            )
-                            .sort((a: any, b: any) => b.Multas - a.Multas)
-                            .slice(0, 10)
-                        }
-                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                    >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" />
-                        <YAxis type="category" dataKey="veiculo" width={100} />
-                        <Tooltip contentStyle={tooltipStyle} />
-                        <Legend />
-                        <Bar dataKey="Multas" fill={theme.palette.error.main} />
-                    </BarChart>
-                </ResponsiveContainer>
-            </Paper>
-        </Grid>
-    </Grid>
-)}
-
+                        {/* --- Gráfico: Veículos mais multados --- */}
+                        <Grid item xs={12} md={5}>
+                            <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+                                <Typography variant="h6" gutterBottom>Veículos Mais Multados</Typography>
+                                <ResponsiveContainer width="100%" height="90%">
+                                    <BarChart
+                                        layout="vertical"
+                                        data={
+                                            Object.values(
+                                                dadosFiltrados.multas.reduce((acc: any, multa: any) => {
+                                                    const veiculo = multa.placaVeiculo || 'N/A';
+                                                    acc[veiculo] = acc[veiculo] || { veiculo, Multas: 0 };
+                                                    acc[veiculo].Multas++;
+                                                    return acc;
+                                                }, {})
+                                            )
+                                            .sort((a: any, b: any) => b.Multas - a.Multas)
+                                            .slice(0, 10)
+                                        }
+                                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis type="number" />
+                                        <YAxis type="category" dataKey="veiculo" width={100} />
+                                        <Tooltip contentStyle={tooltipStyle} />
+                                        <Legend />
+                                        <Bar dataKey="Multas" fill={theme.palette.error.main} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </Paper>
+                        </Grid>
+                    </Grid>
+                )}
             </Box>
         </>
     );

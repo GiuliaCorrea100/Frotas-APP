@@ -66,12 +66,13 @@ export interface GastoPorCampus {
 
 export class AbastecimentoService {
 
- static async ConsumoMedioCampus() {
+ async ConsumoPorCampus() {
+  
     try {
-        const response = await api.get('consumo-medio-campus/');
+        const response = await api.get('consumoPorCampus/');
         return response.data;
     } catch (error) {
-        console.error('Erro ao buscar consumo médio por campus:', error);
+        console.error('Erro ao buscar consumo por campus:', error);
         throw error;
     }
   } 
