@@ -143,15 +143,25 @@ const dadosConsumoPorCampus = useMemo(() => {
         const filtrarPorAno = (item: any, dateField: string) => {
             if (!item[dateField]) return false;
             return new Date(item[dateField]).getFullYear() === selectedYear;
+            
         };
         return {
             corridas: corridas.filter(item => filtrarPorAno(item, 'dataInicio')),
             multas: multas.filter(item => filtrarPorAno(item, 'data')),
             abastecimentos: abastecimentos.filter(item => filtrarPorAno(item, 'dataAbastecimento')),
-            ocorrencias: ocorrencias.filter(item => filtrarPorAno(item, 'dataOcorrencia') || filtrarPorAno(item, 'dataCriacao')),
+            ocorrencias: ocorrencias.filter(item => filtrarPorAno(item, 'dataRegistro')),
             carros: carros, // Frota é um estado atual, não filtrado por ano
         };
     }, [corridas, carros, abastecimentos, ocorrencias, multas, selectedYear]);
+
+    // Adicione antes do return para debug
+console.log("Dados de ocorrências:", dadosFiltrados.ocorrencias);
+console.log("Dados de corridas:", dadosFiltrados.corridas.slice(0, 3));
+
+// Verifique se há ocorrências no ano selecionado
+const ocorrenciasDoAno = dadosFiltrados.ocorrencias.length;
+console.log(`Ocorrências em ${selectedYear}:`, ocorrenciasDoAno);
+
 
     // Otimização: Prepara os dados para todos os gráficos
     const dadosGraficos = useMemo(() => {
@@ -463,6 +473,7 @@ const dadosConsumoPorCampus = useMemo(() => {
 
 
                        {/* Gráfico de Consumo por Campus */}
+
 {/* Gráfico de Consumo por Campus - CORRIGIDO */}
 <Grid item xs={12}>
     <Paper sx={{ p: 3, height: 450 }} elevation={3}>
@@ -661,31 +672,43 @@ const dadosConsumoPorCampus = useMemo(() => {
                 {/* --- CONTEÚDO DA ABA MULTAS E OCORRÊNCIAS --- */}
                 {activeTab === 4 && (
                     <Grid container spacing={3}>
+
+
                         {/* --- Relatório de Ocorrências --- */}
-                        <Grid item xs={12}>
-                            <Typography variant="h5" gutterBottom> Relatório de Ocorrências ({selectedYear})</Typography>
-                            <Paper sx={{ p: 2 }} elevation={3}>
-                                <DataGrid
-                                    autoHeight
-                                    rows={dadosFiltrados.ocorrencias.map((o, index) => ({
-                                        id: o.idOcorrencia || index + 1,
-                                        data: new Date(o.dataOcorrencia || o.dataCriacao).toLocaleDateString('pt-BR'),
-                                        veiculo: o.placaVeiculo || o.veiculo?.placa || "N/A",
-                                        motorista: o.nomeMotorista || o.motorista?.nome || "N/A",
-                                        descricao: o.descricao || "—",
-                                        corrida: o.idCorrida || "N/A"
-                                    }))}
-                                    columns={[
-                                        { field: 'data', headerName: 'Data', flex: 1 },
-                                        { field: 'veiculo', headerName: 'Veículo', flex: 1 },
-                                        { field: 'motorista', headerName: 'Motorista', flex: 1 },
-                                        { field: 'descricao', headerName: 'Descrição', flex: 2 },
-                                    ]}
-                                    pageSizeOptions={[5, 10, 20]}
-                                    localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
-                                />
-                            </Paper>
-                        </Grid>
+                        {/* --- Relatório de Ocorrências --- */}
+<Grid item xs={12}>
+    <Typography variant="h5" gutterBottom>Relatório de Ocorrências ({selectedYear})</Typography>
+    <Paper sx={{ p: 2 }} elevation={3}>
+        <DataGrid
+            autoHeight
+            rows={dadosFiltrados.ocorrencias.map((ocorrencia, index) => {
+                // Encontrar a corrida relacionada
+                const corridaRelacionada = dadosFiltrados.corridas.find(
+                    c => c.idCorrida === ocorrencia.idCorrida
+                );
+                
+                
+                return {
+                    id: ocorrencia.idOcorrencia || index + 1,
+                    data: new Date(ocorrencia.dataRegistro).toLocaleDateString('pt-BR'),
+                    veiculo: corridaRelacionada?.placaVeiculo || corridaRelacionada?.veiculo?.placa || "N/A",
+                    motorista: corridaRelacionada?.nomeMotorista || corridaRelacionada?.motorista?.nome || "N/A",
+                    descricao: ocorrencia.descricao || "—",
+                    corrida: ocorrencia.idCorrida || "N/A"
+                };
+            })}
+            columns={[
+                { field: 'data', headerName: 'Data', flex: 1 },
+                { field: 'veiculo', headerName: 'Veículo', flex: 1 },
+                { field: 'motorista', headerName: 'Motorista', flex: 1 },
+                { field: 'descricao', headerName: 'Descrição', flex: 2 },
+                { field: 'corrida', headerName: 'ID Corrida', flex: 1 },
+            ]}
+            pageSizeOptions={[5, 10, 20]}
+            localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+        />
+    </Paper>
+</Grid>
 
                         {/* --- Relatório de Multas --- */}
                         <Grid item xs={12} md={7}>

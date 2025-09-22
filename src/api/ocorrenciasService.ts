@@ -4,6 +4,7 @@ export interface OcorrenciaDto {
   idOcorrencia: number;
   descricao: string;
   idCorrida: number;
+  dataRegistro: String;
 }
 
 interface OcorrenciaBackend {
