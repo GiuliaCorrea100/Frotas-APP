@@ -58,24 +58,19 @@ export interface AbastecimentoUpdate {
   idTipoCombustivel?: number;
 }
 
-export interface GastoPorCampus {
-  campus: string;
-  totalGasto: number;
-}
 
 
 export class AbastecimentoService {
 
- async ConsumoPorCampus() {
-  
+async ConsumoPorCampus(): Promise<{campus: string; litrosTotal: number}[]> {
     try {
-        const response = await api.get('consumoPorCampus/');
+        const response = await api.get('abastecimento/consumoPorCampus/');
         return response.data;
     } catch (error) {
         console.error('Erro ao buscar consumo por campus:', error);
         throw error;
     }
-  } 
+}
 
   async buscarTodosAbastecimentos(params?: {
     tipoCombustivel?: string;

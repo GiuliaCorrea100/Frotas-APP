@@ -77,6 +77,9 @@ const Relatorios: React.FC = () => {
     const [ocorrencias, setOcorrencias] = useState<any[]>([]);
     const [multas, setMultas] = useState<any[]>([]);
 
+    // Estados para o consumo por campus
+    const [consumoPorCampus, setConsumoPorCampus] = useState<{campus: string; litrosTotal: number}[]>([]);
+    const [loadingConsumo, setLoadingConsumo] = useState(false);
     useEffect(() => {
         const carregarTodosDados = async () => {
             setLoading(true);
@@ -105,47 +108,34 @@ const Relatorios: React.FC = () => {
         carregarTodosDados();
     }, []);
 
-    // Função para calcular consumo por campus
-const calcularConsumoPorCampus = useMemo(() => {
-    const consumoPorCampusMap: {[key: string]: number} = {};
-    
-    // Filtrar apenas abastecimentos do ano selecionado
-    const abastecimentosDoAno = abastecimentos.filter(abastecimento => {
-        if (!abastecimento.dataAbastecimento) return false;
-        return new Date(abastecimento.dataAbastecimento).getFullYear() === selectedYear;
-    });
 
-    abastecimentosDoAno.forEach(abastecimento => {
-        // Verificar se tem litros válidos
-        const litros = parseFloat(abastecimento.litros) || 0;
-        if (litros <= 0) return;
+// Função para buscar consumo por campus
+const buscarConsumoPorCampus = async () => {
+    setLoadingConsumo(true);
+    try {
+        // ✅ SEM passar o ano
+        const dados = await AbastecimentoService.ConsumoPorCampus();
+        console.log("Dados do backend - Consumo por campus:", dados);
+        setConsumoPorCampus(dados);
+    } catch (error) {
+        console.error("Erro ao buscar consumo por campus:", error);
+        setError("Erro ao carregar consumo por campus");
+    } finally {
+        setLoadingConsumo(false);
+    }
+};
 
-        let campus = 'Não especificado';
-        
-        if (abastecimento.carros?.localidade_fisica) {
-            campus = abastecimento.carros.localidade_fisica;
-        } 
-        else if (abastecimento.idCorrida?.veiculo?.localidade_fisica) {
-            campus = abastecimento.idCorrida.veiculo.localidade_fisica;
-        }
-        else if (abastecimento.localidade_fisica) {
-            campus = abastecimento.localidade_fisica;
-        }
+// Buscar os dados quando o componente carregar
+useEffect(() => {
+    buscarConsumoPorCampus();
+}, []); 
 
-        consumoPorCampusMap[campus] = (consumoPorCampusMap[campus] || 0) + litros;
-    });
-    
-    // Converter para array e ordenar
-    const resultado = Object.entries(consumoPorCampusMap)
-        .map(([campus, litros]) => ({
-            campus,
-            litros: parseFloat(litros.toFixed(2))
-        }))
-        .sort((a, b) => b.litros - a.litros);
-
-    console.log("Consumo por campus:", resultado);
-    return resultado;
-}, [abastecimentos, selectedYear]);
+const dadosConsumoPorCampus = useMemo(() => {
+    return consumoPorCampus.map(item => ({
+        campus: item.campus || 'Não especificado',
+        litros: parseFloat(item.litrosTotal.toString()) || 0
+    })).sort((a, b) => b.litros - a.litros);
+}, [consumoPorCampus]);
 
 
     // Otimização: Filtra e processa dados apenas quando o ano ou os dados brutos mudam
@@ -473,65 +463,72 @@ const calcularConsumoPorCampus = useMemo(() => {
 
 
                        {/* Gráfico de Consumo por Campus */}
+{/* Gráfico de Consumo por Campus - CORRIGIDO */}
 <Grid item xs={12}>
-    <Paper sx={{ p: 3, height: 450, background: 'linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%)' }} elevation={2}>
-        <Typography variant="h6" gutterBottom sx={{ 
-            fontWeight: 'bold', 
-            color: '#2c3e50', 
-            textAlign: 'center',
-            fontSize: '1.1rem',
-            mb: 3
-        }}>
-            CONSUMO POR CAMPUS ({selectedYear})
+    <Paper sx={{ p: 3, height: 450 }} elevation={3}>
+        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+            CONSUMO POR CAMPUS
         </Typography>
-        {calcularConsumoPorCampus.length > 0 ? (
-            <ResponsiveContainer width="100%" height="85%">
-                <BarChart
-                    data={calcularConsumoPorCampus}
-                    margin={{ top: 5, right: 20, left: 20, bottom: 25 }}
-                    barGap={5}
-                >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" vertical={false} />
-                    <XAxis 
-                        dataKey="campus" 
-                        tick={{ fill: '#555', fontSize: 11, fontWeight: 500 }}
-                        interval={0}
-                        angle={-45}
-                        textAnchor="end"
-                        height={70}
-                    />
-                    <YAxis 
-                        tick={{ fill: '#555', fontSize: 11 }}
-                        tickFormatter={(value) => {
-                            if (value >= 1000) return `${(value / 1000).toFixed(0)}k`;
-                            return value.toString();
-                        }}
-                    />
-                    <Tooltip 
-                        formatter={(value: number) => [`${value.toFixed(2)} litros`, '']}
-                        contentStyle={{
-                            backgroundColor: '#fff',
-                            border: '1px solid #ddd',
-                            borderRadius: '6px',
-                            padding: '12px',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                        }}
-                        labelStyle={{ fontWeight: 'bold', color: '#2c3e50' }}
-                    />
-                    <Bar 
-                        dataKey="litros" 
-                        name="Consumo"
-                        fill="#3498db"
-                        radius={[6, 6, 0, 0]}
-                        background={{ fill: '#f8f9fa' }}
-                    />
-                </BarChart>
-            </ResponsiveContainer>
+        
+        {loadingConsumo ? (
+            <Box display="flex" justifyContent="center" alignItems="center" height="100%" flexDirection="column">
+                <CircularProgress size={40} />
+                <Typography variant="body1" color="text.secondary" sx={{ mt: 2 }}>
+                    Carregando consumo por campus...
+                </Typography>
+            </Box>
+        ) : dadosConsumoPorCampus.length > 0 ? (
+            <Box sx={{ width: '100%', height: '100%' }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    {dadosConsumoPorCampus.length} campus encontrados - 
+                    Total: {dadosConsumoPorCampus.reduce((acc, item) => acc + item.litros, 0).toFixed(2)} litros
+                </Typography>
+                <ResponsiveContainer width="100%" height="85%">
+                    <BarChart
+                        data={dadosConsumoPorCampus}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                    >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                            dataKey="campus" 
+                            angle={-45}
+                            textAnchor="end"
+                            height={80}
+                            interval={0}
+                            tick={{ fontSize: 12 }}
+                        />
+                        <YAxis 
+                            label={{ value: 'Litros', angle: -90, position: 'insideLeft' }}
+                        />
+                        <Tooltip 
+                            formatter={(value: number) => [`${value.toFixed(2)} litros`, 'Consumo']}
+                            labelFormatter={(label) => `Campus: ${label}`}
+                        />
+                        <Bar 
+                            dataKey="litros" 
+                            name="Consumo (litros)"
+                            fill="#3498db"
+                            radius={[4, 4, 0, 0]}
+                        />
+                    </BarChart>
+                </ResponsiveContainer>
+            </Box>
         ) : (
-            <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                <Typography variant="body1" color="text.secondary">
+            <Box display="flex" justifyContent="center" alignItems="center" height="100%" flexDirection="column">
+                <Typography variant="h6" color="text.secondary">
                     Nenhum dado de consumo disponível
                 </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    Não há dados de consumo para exibir
+                </Typography>
+                <Button 
+                    variant="outlined" 
+                    sx={{ mt: 2 }}
+                    onClick={buscarConsumoPorCampus}
+                    disabled={loadingConsumo}
+                >
+                    {loadingConsumo ? <CircularProgress size={20} /> : "Tentar novamente"}
+                </Button>
             </Box>
         )}
     </Paper>
