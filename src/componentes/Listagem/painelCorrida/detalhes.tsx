@@ -150,7 +150,7 @@ const DetalhesRequisicao: React.FC = () => {
 
   const columnsAbastecimentos: GridColDef<Abastecimento>[] = [
     {
-      field: "tipoCombustivel",
+      field: "nomeTipoCombustivel",
       headerName: "Combustível",
       flex: 1,
       renderCell: (params) => (

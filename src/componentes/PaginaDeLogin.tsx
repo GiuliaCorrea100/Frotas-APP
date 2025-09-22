@@ -44,6 +44,7 @@ const PaginaDeLogin: React.FC = () => {
         login(token, username, permissao, nome, email);
         navigate('/menu');
       } catch (error) {
+        
         console.error("Erro ao realizar login:", error);
         alert("CPF ou senha incorretos");
       }

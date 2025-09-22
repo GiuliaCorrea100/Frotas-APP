@@ -30,6 +30,7 @@ export interface Abastecimento {
   valorUnitario?: number;
   valorMedio?: number;
   justificativaAlteracao?: string;
+  nomeTipoCombustivel?: string;
 
   // Relacionamentos
   tipoCombustivel: TipoCombustivel;
@@ -64,10 +65,7 @@ export interface GastoPorCampus {
   totalGasto: number;
 }
 
-
 export class AbastecimentoService {
-
-  
   async buscarTodosAbastecimentos(params?: {
     tipoCombustivel?: string;
     corrida?: string;
@@ -190,9 +188,7 @@ export class AbastecimentoService {
       throw error;
     }
   }
-  
 }
-
 
 // Criando uma única instância e exportando-a
 const abastecimentoService = new AbastecimentoService();

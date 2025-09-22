@@ -68,7 +68,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
 
   const [loading, setLoading] = useState(false);
 
-  // Preenche campos ao abrir
+  //Preenche campos ao abrir
   useEffect(() => {
     if (abastecimento) {
       setLitros(abastecimento.litros ?? 0);
@@ -78,6 +78,8 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
       setdataAbastecimento(abastecimento.dataAbastecimento ? new Date(abastecimento.dataAbastecimento) : null);
     }
   }, [abastecimento]);
+
+
 
   // Busca listas auxiliares
   useEffect(() => {
