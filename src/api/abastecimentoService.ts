@@ -1,4 +1,3 @@
-//import { useMemo } from "react";
 import api from "../config/axiosConfig";
 import axiosConnect from "../services/axiosConnect";
 
@@ -60,12 +59,19 @@ export interface AbastecimentoUpdate {
   idTipoCombustivel?: number;
 }
 
-export interface GastoPorCampus {
-  campus: string;
-  totalGasto: number;
-}
 
 export class AbastecimentoService {
+
+async ConsumoPorCampus(): Promise<{campus: string; litrosTotal: number}[]> {
+    try {
+        const response = await api.get('abastecimento/consumoPorCampus/');
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao buscar consumo por campus:', error);
+        throw error;
+    }
+}
+
   async buscarTodosAbastecimentos(params?: {
     tipoCombustivel?: string;
     corrida?: string;
@@ -132,6 +138,8 @@ export class AbastecimentoService {
         idTipoCombustivel: data.tipoCombustivel,
       };
 
+      console.log("Payload de cadastro de abastecimento:", payload);
+
       const response = await api.post(`/abastecimento`, payload);
       return response.data as Abastecimento;
     } catch (error: unknown) {
@@ -191,3 +199,6 @@ export class AbastecimentoService {
 // Criando uma única instância e exportando-a
 const abastecimentoService = new AbastecimentoService();
 export default abastecimentoService;
+
+
+
