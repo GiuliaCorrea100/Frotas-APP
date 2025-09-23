@@ -23,12 +23,13 @@ export interface Abastecimento {
   litros: number;
   codPagamento: number;
   precoFinal: number;
-  dataAbastecimento: string;
+  dataAbastecimento: Date; //MUDEI AQUI, TAVA string antes
   valorUnitarioLitro?: number;
   valorMedioLitro?: number;
   valorUnitario?: number;
   valorMedio?: number;
   justificativaAlteracao?: string;
+  nomeTipoCombustivel?: string;
 
   // Relacionamentos
   tipoCombustivel: TipoCombustivel;
@@ -40,7 +41,7 @@ export interface AbastecimentoRequest {
   litros: number;
   codPagamento: number;
   precoFinal: number;
-  dataAbastecimento: string;
+  dataAbastecimento: Date; //MUDEI AQUI, TAVA string antes
   valorUnitarioLitro?: number;
   valorMedioLitro?: number;
   valorUnitario?: number;
@@ -57,7 +58,6 @@ export interface AbastecimentoUpdate {
   valorUnitario: number;
   idTipoCombustivel?: number;
 }
-
 
 
 export class AbastecimentoService {
@@ -115,7 +115,7 @@ async ConsumoPorCampus(): Promise<{campus: string; litrosTotal: number}[]> {
     litros: number;
     codPagamento: number;
     precoFinal: number;
-    dataAbastecimento: string;
+    dataAbastecimento: Date; //MUDEI AQUI, TAVA string antes
     valorUnitarioLitro?: number;
     valorMedioLitro?: number;
     valorUnitario?: number;
@@ -168,7 +168,7 @@ async ConsumoPorCampus(): Promise<{campus: string; litrosTotal: number}[]> {
   ): Promise<any> {
     try {
       const response = await axiosConnect.patch(
-        `/abastecimento/${idAbastecimento}/abastecimento`,
+        `/abastecimento/${idAbastecimento}/edicao-abastecimento`,
         dados
       );
       return response.data;
@@ -186,8 +186,16 @@ async ConsumoPorCampus(): Promise<{campus: string; litrosTotal: number}[]> {
     }
   }
 
-  
+  async buscarGastosPorCampus(): Promise<GastoPorCampus[]> {
+    try {
+      const response = await api.get(`/abastecimento/gastos-por-campus`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
+
 // Criando uma única instância e exportando-a
 const abastecimentoService = new AbastecimentoService();
 export default abastecimentoService;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, } from "react-router-dom";
 import {
   Typography,
   useTheme,
@@ -10,7 +10,7 @@ import {
   Stack,
   Button,
 } from "@mui/material";
-import Grid from "@mui/material/Grid";
+
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import Menu from "../../Menu";
 import { CorridaFrontend, getCorridaById } from "../../../api/corridaService";
@@ -48,7 +48,7 @@ const DetalhesRequisicao: React.FC = () => {
   const [ocorrenciaSelecionada, setOcorrenciaSelecionada] = useState<OcorrenciaDto | null>(null);
   const [percursoSelecionado, setPercursoSelecionado] = useState<PercursoDto | null>(null);
 
-  const navigate = useNavigate();
+  
 
   useEffect(() => {
     carregarDados();
@@ -103,12 +103,26 @@ const DetalhesRequisicao: React.FC = () => {
     }).format(value);
   };
 
+  // Função para formatar datas
+  const formatDateTime = (dateString?: string | null) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Data inválida";
+    return date.toLocaleString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   const columnsOcorrencias: GridColDef<OcorrenciaDto>[] = [
     {
       field: "descricao",
       headerName: "Descrição",
       flex: 1,
-      renderCell: (params) => <Typography fontWeight="bold">{params.value}</Typography>,
+      renderCell: (params) => <Typography>{params.value}</Typography>,
     },
     {
       field: "acoes",
@@ -136,11 +150,11 @@ const DetalhesRequisicao: React.FC = () => {
 
   const columnsAbastecimentos: GridColDef<Abastecimento>[] = [
     {
-      field: "tipoCombustivel",
+      field: "nomeTipoCombustivel",
       headerName: "Combustível",
       flex: 1,
       renderCell: (params) => (
-        <Typography fontWeight="bold">{params.value}</Typography>
+        <Typography>{params.value}</Typography>
       ),
     },
     {
@@ -148,7 +162,7 @@ const DetalhesRequisicao: React.FC = () => {
       headerName: "Quantidade de Litros",
       flex: 1,
       renderCell: (params) => (
-        <Typography fontWeight="bold">{params.value?.toFixed(2)} L</Typography>
+        <Typography>{params.value?.toFixed(2)} L</Typography>
       ),
     },
     {
@@ -156,7 +170,7 @@ const DetalhesRequisicao: React.FC = () => {
       headerName: "Valor do Litro",
       flex: 1,
       renderCell: (params) => (
-        <Typography fontWeight="bold">{formatCurrency(params.value)}</Typography>
+        <Typography>{formatCurrency(params.value)}</Typography>
       ),
     },
     {
@@ -164,7 +178,15 @@ const DetalhesRequisicao: React.FC = () => {
       headerName: "Preço Final",
       flex: 1,
       renderCell: (params) => (
-        <Typography fontWeight="bold">{formatCurrency(params.value)}</Typography>
+        <Typography>{formatCurrency(params.value)}</Typography>
+      ),
+    },
+    {
+      field: "dataAbastecimento",
+      headerName: "Data Abastecimento",
+      flex: 1,
+      renderCell: (params) => (
+        <Typography>{formatDateTime(params.value)}</Typography>
       ),
     },
     {
@@ -192,77 +214,85 @@ const DetalhesRequisicao: React.FC = () => {
   ];
 
   const colunsPercursos: GridColDef<PercursoDto>[] = [
-    {
-      field: "localOrigem",
-      headerName: "Local origem",
-      flex: 1,
-      renderCell: (params) => (
-        <Typography fontWeight="bold">{params.value}</Typography>
-      ),
-    },
-    {
-      field: "saidaHora",
-      headerName: "Hora de saída",
-      flex: 1,
-      renderCell: (params) => (
-        <Typography fontWeight="bold">{params.value}</Typography>
-      ),
-    },
-    {
-      field: "saidaOdometro",
-      headerName: "Odometro saída",
-      flex: 1,
-      renderCell: (params) => (
-        <Typography fontWeight="bold">{params.value}</Typography>
-      ),
-    },
-    {
-      field: "localDestino",
-      headerName: "Local destino",
-      flex: 1,
-      renderCell: (params) => (
-        <Typography fontWeight="bold">{params.value}</Typography>
-      ),
-    },
-    {
-      field: "chegadaHora",
-      headerName: "Hora da chegada",
-      flex: 1,
-      renderCell: (params) => (
-        <Typography fontWeight="bold">{params.value}</Typography>
-      ),
-    },
-    {
-      field: "chegadaodometro",
-      headerName: "Odometro chegada",
-      flex: 1,
-      renderCell: (params) => (
-        <Typography fontWeight="bold">{params.value}</Typography>
-      ),
-    },
-    {
-      field: "acoes",
-      headerName: "Ações",
-      flex: 1,
-      sortable: false,
-      filterable: false,
-      renderCell: (params) => {
-        const percurso = params.row;
-        return (
-          <Box sx={{ display: "flex", gap: 1 }}>
-            <Button
-              variant="outlined"
-              color="warning"
-              size="small"
-              onClick={() => handleAbrirModalEditarPercuso(percurso)}
-            >
-              Editar
-            </Button>
-          </Box>
-        );
+      {
+        field: "localOrigem",
+        headerName: "Local origem",
+        flex: 1,
+        sortable: false,
+        renderCell: (params) => (
+          <Typography>{params.value}</Typography>
+        ),
       },
-    },
+      {
+        field: "saidaHora",
+        headerName: "Hora de saída",
+        flex: 1,
+        sortable: false,
+        renderCell: (params) => (
+          <Typography>{formatDateTime(params.value)}</Typography>
+        ),
+      },
+      {
+        field: "saidaOdometro",
+        headerName: "Odômetro saída",
+        flex: 1,
+        sortable: false,
+        renderCell: (params) => (
+          <Typography>{params.value}</Typography>
+        ),
+      },
+      {
+        field: "localDestino",
+        headerName: "Local destino",
+        flex: 1,
+        sortable: false,
+        renderCell: (params) => (
+          <Typography>{params.value}</Typography>
+        ),
+      },
+      {
+        field: "chegadaHora",
+        headerName: "Hora da chegada",
+        flex: 1,
+        sortable: false,
+        renderCell: (params) => (
+          <Typography>{formatDateTime(params.value)}</Typography>
+        ),
+      },
+      {
+        field: "chegadaodometro",
+        headerName: "Odômetro chegada",
+        flex: 1,
+        sortable: false,
+        renderCell: (params) => (
+          <Typography>{params.value}</Typography>
+        ),
+      },
+      {
+        field: "acoes",
+        headerName: "Ações",
+        flex: 1,
+        sortable: false,
+        filterable: false,
+        renderCell: (params) => {
+          const percurso = params.row;
+          return (
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <Button
+                variant="outlined"
+                color="warning"
+                size="small"
+                onClick={() => handleAbrirModalEditarPercuso(percurso)}
+              >
+                Editar
+              </Button>
+            </Box>
+          );
+        },
+      },
   ];
+
+
 
   const handleAbrirModalEditarOcorrencia = (ocorrencia: OcorrenciaDto) => {
     setOcorrenciaSelecionada(ocorrencia);
@@ -628,7 +658,7 @@ const DetalhesRequisicao: React.FC = () => {
         }}
         />
 
-        <EdicaoPercursosModal
+      <EdicaoPercursosModal
         open={modalEditarPercursoAberto}
         percurso={percursoSelecionado}
         onClose={handleFecharModalEditarPercurso}

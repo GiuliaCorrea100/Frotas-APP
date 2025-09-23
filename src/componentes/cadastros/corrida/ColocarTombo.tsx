@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios, { AxiosError } from 'axios';
+import api from '../../../config/axiosConfig';
 import Menu from "../../Menu";
 import { Button, Box, TextField, Typography } from "@mui/material";
+import { AxiosError } from "axios";
 
 interface CarroInfo {
-  idCarro: number; // giulia adicionou
+  idCarro: number; 
   placa: string;
   odometro: string;
   modelo: string;
@@ -32,7 +33,7 @@ const ColocarTombo: React.FC = () => {
     setCarro(null);
 
     try {
-      const response = await axios.get(`/carros/por-tombo/${tombo}`);
+      const response = await api.get(`/carros/por-tombo/${tombo}`);
       const carroEncontrado = response.data;
       
       setCarro({
@@ -60,9 +61,7 @@ const ColocarTombo: React.FC = () => {
   const handleCadastrarCorrida = () => {
     if (carro) {
       navigate('/CadastrarCorrida', { 
-        state: { 
-          carroInfo: carro 
-        } 
+        state: { carroInfo: carro } 
       });
     }
   };
@@ -71,7 +70,7 @@ const ColocarTombo: React.FC = () => {
     <>
       <Menu />
       <Box sx={{ p: 3, maxWidth: 500, margin: '0 auto' }}>
-        <h1>Qual carro voce deseja cadastrar?</h1>
+        <h1>Qual carro você deseja cadastrar?</h1>
         
         <Box sx={{ mb: 3 }}>
           <TextField
@@ -113,7 +112,6 @@ const ColocarTombo: React.FC = () => {
             >
               Cadastrar!
             </Button>
-            
           </Box>
         )}
       </Box>

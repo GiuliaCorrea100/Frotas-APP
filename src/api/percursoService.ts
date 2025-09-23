@@ -99,8 +99,13 @@ export const buscarPercursosDaCorrida = async (
   try {
     const response = await api.get(`percurso/corrida/${idCorrida}`);
 
-    console.log(response);
-    return response.data as PercursoBackend[];
+    // Ordena os percursos por ID em ordem crescente
+    const percursosOrdenados = (response.data as PercursoBackend[]).sort(
+      (a, b) => (a.idPercurso ?? 0) - (b.idPercurso ?? 0)
+    );
+
+    return percursosOrdenados;
+    //return response.data as PercursoBackend[];
   } catch (error) {
     console.error("Erro ao buscar percursos da corrida:", error);
     return [];
@@ -109,13 +114,28 @@ export const buscarPercursosDaCorrida = async (
 
 export const atualizarPercurso = async (
   idPercurso: number,
-  dados: Partial<PercursoDto>
+  data: {
+    localDestino: string;
+    chegadaOdometro: number;
+    localOrigem?: string;
+    saidaOdometro: number;
+    saidaHora: Date | null;
+    chegadaHora: Date | null;
+  }
 ): Promise<any> => {
   try {
-    console.log(dados);
+    const payload = {
+      saidaOdometro: data.saidaOdometro,
+      chegadaodometro: data.chegadaOdometro,
+      localDestino: data.localDestino,
+      localOrigem: data.localOrigem,
+      saidaHora: data.saidaHora,
+      chegadaHora: data.chegadaHora,
+    };
+
     const response = await api.patch(
       `/percurso/${idPercurso}/atualizar-percurso`,
-      dados
+      payload
     );
     console.log(response.data);
     return response.data;
@@ -140,7 +160,7 @@ export const inserirPercursoCompleto = async (
     const payload = {
       idCorrida: idCorrida,
       saidaOdometro: data.saidaOdometro,
-      chegadaOdometro: data.chegadaOdometro,
+      chegadaodometro: data.chegadaOdometro,
       localDestino: data.localDestino,
       localOrigem: data.localOrigem,
       saidaHora: data.saidaHora,

@@ -68,3 +68,36 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+
+
+
+## Test Docker Deploy
+
+- Remove paths
+```
+rm -rf node_modules/ && rm -rf dist
+```
+
+- Emulate build step (original is .gitlab-ci.yaml)
+```sh
+docker run --rm \
+-w /usr/src/app \
+-v $(pwd):/usr/src/app \
+node:20.19.3-alpine3.22 \
+sh -c "npm install && npm run build:witherror"
+```
+
+- Emulate step build (original is .gitlab-ci.yaml)
+```sh
+docker rmi gitlab.unir.br/cdsis/frotas-app:manual
+docker build -t gitlab.unir.br/cdsis/frotas-app:manual .
+```
+
+- Emulate step run (original is server)
+```sh
+docker run --rm \
+-p 4173:4173 \
+--env-file .env \
+gitlab.unir.br/cdsis/frotas-app:manual
+```

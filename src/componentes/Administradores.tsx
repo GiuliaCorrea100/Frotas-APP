@@ -17,6 +17,7 @@ import { useEffect, useState } from 'react';
 import { AdminUserService } from '../api/AdminUserService';
 import Menu from './Menu';
 import axiosConnect from '../services/axiosConnect';
+import React from 'react';
 
 interface AdminUserDto {
   idUsuario: number;

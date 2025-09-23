@@ -42,10 +42,9 @@ const PaginaDeLogin: React.FC = () => {
 
         const { token, username, permissao, nome, email } = response.data;
         login(token, username, permissao, nome, email);
-
-        console.log("Login realizado com sucesso!", response.data);
         navigate('/menu');
       } catch (error) {
+        
         console.error("Erro ao realizar login:", error);
         alert("CPF ou senha incorretos");
       }

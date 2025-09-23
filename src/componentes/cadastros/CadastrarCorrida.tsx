@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import api from '../../config/axiosConfig';
 import {
   Autocomplete,
   Box,
@@ -79,7 +80,7 @@ export default function CadastrarCorrida() {
     }
 
     try {
-      const response = await axios.get(`/usuarios/buscar-por-nome/${nome}`);
+      const response = await api.get(`/usuarios/buscar-por-nome/${nome}`);
       setMotoristaOptions(response.data);
     } catch (error) {
       console.error("Erro ao buscar motoristas:", error);
@@ -89,14 +90,14 @@ export default function CadastrarCorrida() {
 
   const atualizarSituacaoCarro = async (idCarro: number, situacao: string) => {
     try {
-      const carroAtual = await axios.get(`/carros/${idCarro}`);
+      const carroAtual = await api.get(`/carros/${idCarro}`);
       
       const dadosAtualizados = {
         ...carroAtual.data,
         situacao: situacao
       };
 
-      await axios.put(`/carros/${idCarro}`, dadosAtualizados);
+      await api.put(`/carros/${idCarro}`, dadosAtualizados);
     } catch (error) {
       console.error("Erro ao atualizar situação do carro:", error);
       throw error;
@@ -167,7 +168,7 @@ export default function CadastrarCorrida() {
           navigate('/ListaCorrida');
       }, 1500);
 
-    } catch (error) {
+    } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response) {
         if (error.response.status === 409) {
           if (error.response.data.message.includes('carro')) {
