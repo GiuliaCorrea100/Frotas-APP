@@ -105,9 +105,9 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
   // Calcular preço final automaticamente
   useEffect(() => {
-    if (formData.litros && formData.valor_unitario_litro) {
+    if (formData.litros && formData.valor_unitario) {
       const litros = parseFloat(formData.litros);
-      const valorUnitario = parseFloat(formData.valor_unitario_litro);
+      const valorUnitario = parseFloat(formData.valor_unitario);
 
       if (!isNaN(litros) && !isNaN(valorUnitario)) {
         const precoFinal = litros * valorUnitario;
@@ -117,7 +117,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
         }));
       }
     }
-  }, [formData.litros, formData.valor_unitario_litro]);
+  }, [formData.litros, formData.valor_unitario]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -353,9 +353,9 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
               <TextField
                 label="Valor Unitário por Litro"
-                name="valor_unitario_litro"
+                name="valor_unitario"
                 type="number"
-                value={formData.valor_unitario_litro}
+                value={formData.valor_unitario}
                 onChange={handleInputChange}
                 inputProps={{ min: 0, step: 0.001 }}
                 sx={{ flex: '1 1 200px' }}
