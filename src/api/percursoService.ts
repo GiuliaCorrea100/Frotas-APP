@@ -99,7 +99,13 @@ export const buscarPercursosDaCorrida = async (
   try {
     const response = await api.get(`percurso/corrida/${idCorrida}`);
 
-    return response.data as PercursoBackend[];
+    // Ordena os percursos por ID em ordem crescente
+    const percursosOrdenados = (response.data as PercursoBackend[]).sort(
+      (a, b) => (a.idPercurso ?? 0) - (b.idPercurso ?? 0)
+    );
+
+    return percursosOrdenados;
+    //return response.data as PercursoBackend[];
   } catch (error) {
     console.error("Erro ao buscar percursos da corrida:", error);
     return [];
