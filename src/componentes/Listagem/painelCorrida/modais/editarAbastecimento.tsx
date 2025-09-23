@@ -50,6 +50,15 @@ const modalStyle = {
   borderRadius: 2,
 };
 
+// Função auxiliar para formatar a data
+const formatDate = (date: Date | null): string => {
+  if (!date) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
   open,
   abastecimento,
@@ -61,11 +70,10 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
   const [precoFinal, setPrecoFinal] = useState<number>(0);
   const [tipoCombustivel, setTipoCombustivel] = useState<number | "">("");
   const [valorUnitario, setValorUnitario] = useState<number>(0);
-  const [dataAbastecimento, setdataAbastecimento] = useState<Date | null>(null);
+  const [dataAbastecimento, setdataAbastecimento] = useState<string>("");
 
   const [tiposCombustivel, setTiposCombustivel] = useState<TipoCombustivel[]>([]);
   const [corridas, setCorridas] = useState<CorridaFrontend[]>([]);
-
   const [loading, setLoading] = useState(false);
 
   // Preenche campos ao abrir
@@ -75,7 +83,11 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
       setPrecoFinal(abastecimento.precoFinal ?? 0);
       setTipoCombustivel(abastecimento.tipoCombustivel?.idTipoCombustivel ?? "");
       setValorUnitario(abastecimento.valorUnitario ?? 0);
-      setdataAbastecimento(abastecimento.dataAbastecimento ? new Date(abastecimento.dataAbastecimento) : null);
+      setdataAbastecimento(
+        abastecimento.dataAbastecimento
+          ? formatDate(new Date(abastecimento.dataAbastecimento)) 
+          : ""
+      );
     }
   }, [abastecimento]);
 
@@ -109,12 +121,11 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
 
     setLoading(true);
     try {
-
-      const dadosAtualizados ={
+      const dadosAtualizados = {
         litros,
         precoFinal,
         valorUnitario,
-        //dataAbastecimento,
+        dataAbastecimento: new Date(dataAbastecimento), // Converte de volta para Date
         idTipoCombustivel: tipoCombustivel === "" ? undefined : Number(tipoCombustivel),
       };
 
@@ -138,7 +149,12 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
     <Modal open={open} onClose={onClose}>
       <Paper sx={modalStyle}>
         {/* Cabeçalho */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={2}
+        >
           <Box display="flex" alignItems="center">
             <LocalGasStation color="primary" sx={{ mr: 1 }} />
             <Typography variant="h6">Edição de Abastecimento</Typography>
@@ -163,7 +179,9 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
               required
               sx={{ flex: "1 1 200px" }}
               InputProps={{
-                endAdornment: <InputAdornment position="end">L</InputAdornment>,
+                endAdornment: (
+                  <InputAdornment position="end">L</InputAdornment>
+                ),
               }}
             />
             <TextField
@@ -197,6 +215,8 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
             type="date"
             fullWidth
             InputLabelProps={{ shrink: true }}
+            value={dataAbastecimento} 
+            onChange={(e) => setdataAbastecimento(e.target.value)} // Atualiza o estado com a string
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -230,7 +250,6 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
               ))}
             </Select>
           </FormControl>
-
 
           {/* Botões */}
           <Box display="flex" justifyContent="flex-end" gap={1} mt={3}>

@@ -17,7 +17,6 @@ import { CorridaFrontend, CorridaDto, getCorridas, CorridaService } from '../../
 import Menu from "../../Menu";
 import SalvarEdicaoCorrida from "./modais/editarPainelCorrida";
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import ModeEditIcon from '@mui/icons-material/ModeEdit';
 
 const formatDate = (dateString: string | null) => {
   if (!dateString) return 'Em andamento';

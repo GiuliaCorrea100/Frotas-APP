@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, } from "react-router-dom";
 import {
   Typography,
   useTheme,
@@ -10,7 +10,7 @@ import {
   Stack,
   Button,
 } from "@mui/material";
-import Grid from "@mui/material/Grid";
+
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import Menu from "../../Menu";
 import { CorridaFrontend, getCorridaById } from "../../../api/corridaService";
@@ -48,7 +48,7 @@ const DetalhesRequisicao: React.FC = () => {
   const [ocorrenciaSelecionada, setOcorrenciaSelecionada] = useState<OcorrenciaDto | null>(null);
   const [percursoSelecionado, setPercursoSelecionado] = useState<PercursoDto | null>(null);
 
-  const navigate = useNavigate();
+  
 
   useEffect(() => {
     carregarDados();
@@ -150,7 +150,7 @@ const DetalhesRequisicao: React.FC = () => {
 
   const columnsAbastecimentos: GridColDef<Abastecimento>[] = [
     {
-      field: "tipoCombustivel",
+      field: "nomeTipoCombustivel",
       headerName: "Combustível",
       flex: 1,
       renderCell: (params) => (
@@ -166,7 +166,7 @@ const DetalhesRequisicao: React.FC = () => {
       ),
     },
     {
-      field: "valorUnitarioLitro",
+      field: "valorUnitario",
       headerName: "Valor do Litro",
       flex: 1,
       renderCell: (params) => (
@@ -183,7 +183,7 @@ const DetalhesRequisicao: React.FC = () => {
     },
     {
       field: "dataAbastecimento",
-      headerName: "Data Abstecimento",
+      headerName: "Data Abastecimento",
       flex: 1,
       renderCell: (params) => (
         <Typography>{formatDateTime(params.value)}</Typography>
@@ -218,6 +218,7 @@ const DetalhesRequisicao: React.FC = () => {
         field: "localOrigem",
         headerName: "Local origem",
         flex: 1,
+        sortable: false,
         renderCell: (params) => (
           <Typography>{params.value}</Typography>
         ),
@@ -226,6 +227,7 @@ const DetalhesRequisicao: React.FC = () => {
         field: "saidaHora",
         headerName: "Hora de saída",
         flex: 1,
+        sortable: false,
         renderCell: (params) => (
           <Typography>{formatDateTime(params.value)}</Typography>
         ),
@@ -234,6 +236,7 @@ const DetalhesRequisicao: React.FC = () => {
         field: "saidaOdometro",
         headerName: "Odômetro saída",
         flex: 1,
+        sortable: false,
         renderCell: (params) => (
           <Typography>{params.value}</Typography>
         ),
@@ -242,6 +245,7 @@ const DetalhesRequisicao: React.FC = () => {
         field: "localDestino",
         headerName: "Local destino",
         flex: 1,
+        sortable: false,
         renderCell: (params) => (
           <Typography>{params.value}</Typography>
         ),
@@ -250,6 +254,7 @@ const DetalhesRequisicao: React.FC = () => {
         field: "chegadaHora",
         headerName: "Hora da chegada",
         flex: 1,
+        sortable: false,
         renderCell: (params) => (
           <Typography>{formatDateTime(params.value)}</Typography>
         ),
@@ -258,6 +263,7 @@ const DetalhesRequisicao: React.FC = () => {
         field: "chegadaodometro",
         headerName: "Odômetro chegada",
         flex: 1,
+        sortable: false,
         renderCell: (params) => (
           <Typography>{params.value}</Typography>
         ),

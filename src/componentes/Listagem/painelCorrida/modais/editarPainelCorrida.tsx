@@ -6,9 +6,9 @@ import {
   TextField,
   Button,
   CircularProgress,
-  Alert, // Importe o componente Alert do Material-UI
+  Alert,
+  Autocomplete, // Importe o componente Alert do Material-UI
 } from '@mui/material';
-import axiosConnect from '../../../../services/axiosConnect';
 import api from '../../../../config/axiosConfig';
 
 interface CorridaDto {
@@ -36,7 +36,7 @@ export default function EditarInfoCorrida({
   open,
   onClose,
   onSuccess,
-  onError,
+  //onError,
   corrida,
 }: EditarInfoCorridaProps) {
   const [motorista, setMotorista] = useState('');
@@ -45,6 +45,9 @@ export default function EditarInfoCorrida({
   const [dataFim, setDataFim] = useState('');
   const [loading, setLoading] = useState(false);
   const [validationError, setValidationError] = useState(''); // Estado para a mensagem de erro de validação
+  const [usuariosDisponiveis, setUsuariosDisponiveis] = useState<any[]>([]);
+  const [loadingMotorista, setLoadingMotorista] = useState(false);
+  const [selectedMotorista, setSelectedMotorista] = useState<any>(null);
 
   useEffect(() => {
     if (corrida) {
@@ -54,6 +57,32 @@ export default function EditarInfoCorrida({
       setDataFim(corrida.dataTermino ? new Date(corrida.dataTermino).toISOString().slice(0, 16) : '');
     }
   }, [corrida]);
+
+  const buscarUsuario = async (nome: string) => {
+      if (nome.length < 3) {
+        setUsuariosDisponiveis([]);
+        return;
+      }
+  
+      try {
+        setLoadingMotorista(true);
+        const response = await api.get(`usersingu/buscar-nome/${nome}`);
+        setUsuariosDisponiveis(response.data);
+      } catch (error) {
+        console.error('Erro ao buscar usuários:', error);
+        setUsuariosDisponiveis([]);
+      } finally {
+        setLoadingMotorista(false);
+      }
+  };
+
+  const handleSelecionarUsuario = (usuario: any) => {
+    if (!usuario) {
+      setSelectedMotorista(null);
+      return;
+    }
+    setSelectedMotorista(usuario);
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -120,13 +149,51 @@ export default function EditarInfoCorrida({
               {validationError}
             </Alert>
           )}
-          <TextField
+
+
+          <Autocomplete
+            options={usuariosDisponiveis}
+            getOptionLabel={(option) => option.nome || ''}
+            isOptionEqualToValue={(option, value) => option.idPessoa === value.idPessoa}
+            loading={loadingMotorista}
+            onInputChange={(_, value) => {
+              setMotorista(value);
+              buscarUsuario(value);
+            }}
+            onChange={(_, value) => handleSelecionarUsuario(value)}
+            filterOptions={(x) => x}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                fullWidth
+                label="Buscar motorista"
+                placeholder="Digite pelo menos 3 caracteres"
+                value={motorista}
+                sx={{ mb: 2 }}
+                InputProps={{
+                  ...params.InputProps,
+                  endAdornment: (
+                    <>
+                      {loadingMotorista ? <CircularProgress color="inherit" size={20} /> : null}
+                      {params.InputProps.endAdornment}
+                    </>
+                  ),
+                }}
+              />
+            )}
+
+          />
+
+
+
+          {/* <TextField
             fullWidth
             label="Motorista"
             value={motorista}
             onChange={(e) => setMotorista(e.target.value)}
             sx={{ mb: 2 }}
-          />
+          /> */}
+
           <TextField
             fullWidth
             label="Veículo"

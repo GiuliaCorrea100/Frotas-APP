@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+//import { useMemo } from "react";
 import api from "../config/axiosConfig";
 import axiosConnect from "../services/axiosConnect";
 
@@ -24,12 +24,13 @@ export interface Abastecimento {
   litros: number;
   codPagamento: number;
   precoFinal: number;
-  dataAbastecimento: string;
+  dataAbastecimento: Date; //MUDEI AQUI, TAVA string antes
   valorUnitarioLitro?: number;
   valorMedioLitro?: number;
   valorUnitario?: number;
   valorMedio?: number;
   justificativaAlteracao?: string;
+  nomeTipoCombustivel?: string;
 
   // Relacionamentos
   tipoCombustivel: TipoCombustivel;
@@ -41,7 +42,7 @@ export interface AbastecimentoRequest {
   litros: number;
   codPagamento: number;
   precoFinal: number;
-  dataAbastecimento: string;
+  dataAbastecimento: Date; //MUDEI AQUI, TAVA string antes
   valorUnitarioLitro?: number;
   valorMedioLitro?: number;
   valorUnitario?: number;
@@ -64,10 +65,7 @@ export interface GastoPorCampus {
   totalGasto: number;
 }
 
-
 export class AbastecimentoService {
-
-  
   async buscarTodosAbastecimentos(params?: {
     tipoCombustivel?: string;
     corrida?: string;
@@ -111,7 +109,7 @@ export class AbastecimentoService {
     litros: number;
     codPagamento: number;
     precoFinal: number;
-    dataAbastecimento: string;
+    dataAbastecimento: Date; //MUDEI AQUI, TAVA string antes
     valorUnitarioLitro?: number;
     valorMedioLitro?: number;
     valorUnitario?: number;
@@ -133,8 +131,6 @@ export class AbastecimentoService {
         justificativaAlteracao: data.justificativaAlteracao,
         idTipoCombustivel: data.tipoCombustivel,
       };
-
-      console.log("Payload de cadastro de abastecimento:", payload);
 
       const response = await api.post(`/abastecimento`, payload);
       return response.data as Abastecimento;
@@ -164,7 +160,7 @@ export class AbastecimentoService {
   ): Promise<any> {
     try {
       const response = await axiosConnect.patch(
-        `/abastecimento/${idAbastecimento}/abastecimento`,
+        `/abastecimento/${idAbastecimento}/edicao-abastecimento`,
         dados
       );
       return response.data;
@@ -190,9 +186,7 @@ export class AbastecimentoService {
       throw error;
     }
   }
-  
 }
-
 
 // Criando uma única instância e exportando-a
 const abastecimentoService = new AbastecimentoService();
