@@ -182,10 +182,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       codPagamento: parseInt(formData.cod_pagamento),
       precoFinal: parseFloat(formData.preco_final),
       dataAbastecimento: formData.data_abastecimento,
-      valorUnitarioLitro: formData.valor_unitario_litro ? parseFloat(formData.valor_unitario_litro) : 0,
-      valorMedioLitro: formData.valor_medio_litro ? parseFloat(formData.valor_medio_litro) : 0,
       valorUnitario: formData.valor_unitario ? parseFloat(formData.valor_unitario) : 0,
-      valorMedio: formData.valor_medio ? parseFloat(formData.valor_medio) : 0,
       justificativaAlteracao: formData.justificativa_alteracao || '',
       tipoCombustivel: tipoCombustivelSelecionado.id_tipo_combustivel as number, // Corrigido
       idCorrida: parseInt(formData.id_corrida), // Corrigido
@@ -439,7 +436,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
           <Divider sx={{ my: 2 }} />
 
           {/* Corrida Relacionada */}
-          <Box sx={{ mb: 2 }}>
+          {/* <Box sx={{ mb: 2 }}>
             <Typography variant="h6" gutterBottom>
               Corrida Relacionada
             </Typography>
@@ -482,12 +479,12 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                 </Typography>
               </Paper>
             )}
-          </Box>
+          </Box> */}
 
           <Divider sx={{ my: 2 }} />
 
           {/* Informações Adicionais */}
-          <Box sx={{ mb: 2 }}>
+          {/* <Box sx={{ mb: 2 }}>
             <Typography variant="h6" gutterBottom>
               Informações Adicionais (Opcionais)
             </Typography>
@@ -541,7 +538,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
               rows={3}
               placeholder="Informe a justificativa para alterações de valores, se aplicável"
             />
-          </Box>
+          </Box> */}
 
           {/* Botões */}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
