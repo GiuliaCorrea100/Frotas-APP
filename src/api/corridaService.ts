@@ -166,4 +166,14 @@ export class CorridaService {
       throw error;
     }
   }
+
+  static async cancelarCorrida(idCorrida: number): Promise<void> {
+    try {
+      await api.patch(`/corrida/cancelar/${idCorrida}`);
+      console.log("corrida cancelada com sucesso - APP");
+    } catch (error) {
+      console.error("Erro ao cancelar corrida", error);
+      throw error;
+    }
+  }
 }

@@ -20,6 +20,7 @@ import { Link, useLocation } from "react-router-dom";
 import { CarrosDto, CarrosService } from "../../api/carrosService";
 import { TipoCombustivel } from '../../api/tipoCombustivelService';
 import Menu from "../Menu";
+import React from 'react';
 
 export default function ListaCarros() {
   const theme = useTheme();
