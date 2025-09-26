@@ -12,8 +12,10 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useEffect, useState } from 'react';
 import { Link } from "react-router-dom";
 import Menu from '../../Menu';
-import { listarMultas } from '../../../api/multaService';
+import { listarMultas, MultaDto } from '../../../api/multaService';
 import React from 'react';
+import CadastroMultaModal from './modais/adicionarMulta';
+import EditarMultaModal from './modais/editarMulta';
 
 interface Multa {
   idMultas: number;
@@ -31,7 +33,14 @@ export default function ListaMulta() {
   const [multas, setMultas] = useState<Multa[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const [modalCadastrarAberto, setModalCadastroAberto] = useState(false);
+  const [modalEditarAberto, setModalEditarAberto] = useState(false);
+
+  const [multaSelecionada, setMultaSelecionada] = useState<MultaDto | null>(null)
   useEffect(() => {
+    carregarMultas();
+  }, []);
+
     const carregarMultas = async () => {
       setLoading(true);
       try {
@@ -44,8 +53,22 @@ export default function ListaMulta() {
       }
     };
 
-    carregarMultas();
-  }, []);
+  const handleAbrirModalCadastrarMulta = () =>{
+    setModalCadastroAberto(true);
+  }
+  const handleFecharModalCadastrarMulta = () =>{
+    setModalCadastroAberto(false);
+  }
+
+  const handleAbrirModalEditarMulta = (multa: MultaDto) => {
+    setModalEditarAberto(true);
+    setMultaSelecionada(multa);
+  }
+
+  const handleFecharModalEditarMulta = () => {
+    setModalEditarAberto(false);
+  }
+
 
   const dadosFiltrados = multas.filter((multa) =>
     Object.values(multa).some((valor) =>
@@ -80,7 +103,7 @@ export default function ListaMulta() {
                 <IconButton 
                   color="primary"
                   size="small"
-                   //onClick={() => handleOpenEditModal(params.row)}
+                   onClick={() => handleAbrirModalEditarMulta(params.row)}
                 >
                   <Edit fontSize="small" />
                 </IconButton>
@@ -119,8 +142,7 @@ export default function ListaMulta() {
 
           <Button
             variant="contained"
-            component={Link}
-            to="/CadastroMulta"
+            onClick={handleAbrirModalCadastrarMulta}
             startIcon={<Add />}
             sx={{
               textTransform: 'none',
@@ -205,7 +227,32 @@ export default function ListaMulta() {
           }}
           rowSelection={false}
         />
+
+        <CadastroMultaModal
+          open={modalCadastrarAberto}
+          onClose={handleFecharModalCadastrarMulta}
+          onSuccess={async () => {
+            await carregarMultas();
+          }}
+          onError={(err) => {
+            console.error(err);
+          } }
+        />
+
+        <EditarMultaModal
+          open={modalEditarAberto}
+          multa={multaSelecionada}
+          onClose={handleFecharModalEditarMulta}
+           onSuccess={async () => {
+            await carregarMultas();
+          }}
+          onError={(err) => {
+          console.error(err);
+        }}
+        />
       </Box>
+
+      
     </>
   );
 }

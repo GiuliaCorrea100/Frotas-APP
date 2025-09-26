@@ -1,26 +1,33 @@
 import api from "../config/axiosConfig";
 
 //É como um "formulário" dos dados que precisamos para cadastrar uma multa
-interface DadosMultaFrontend {
-  codigo: string;
+export interface MultaDto {
+  idMulta?: number;
+  codigoInfracao: number;
   classificacao: string;
-  valor: string;
-  placa: string;
-  horario: string;
-  numeroAuto: string;
+  valorInfracao: number;
+  placaVeiculo: string;
+  dataInfracao: Date;
+  autoInfracao: number;
 }
 
 //Recebe os dados da multa - Envia para o backend - Retorna a resposta
-export const cadastrarMulta = async (dados: DadosMultaFrontend) => {
+export const cadastrarMulta = async (dados: {
+  codigoInfracao: number;
+  classificacao: string;
+  valorInfracao: number;
+  placaVeiculo: string;
+  dataInfracao: Date | null;
+  autoInfracao: number;
+}) => {
   try {
-    //Faz uma requisição POST para a rota /multas - Usa a configuração do axios (api)
     const response = await api.post("/multas", {
-      codInfracao: dados.codigo,
+      codInfracao: dados.codigoInfracao,
       classInfracao: dados.classificacao,
-      valor: dados.valor,
-      placaVeiculo: dados.placa,
-      data: new Date(dados.horario),
-      numAutoInfracao: Number(dados.numeroAuto),
+      valorInfracao: dados.valorInfracao,
+      placaVeiculo: dados.placaVeiculo,
+      dataInfracao: dados.dataInfracao,
+      numAutoInfracao: dados.autoInfracao,
     });
 
     //Retorna o que o backend respondeu
@@ -39,6 +46,17 @@ export const cadastrarMulta = async (dados: DadosMultaFrontend) => {
 
 // Função para buscar todas as multas
 export const listarMultas = async () => {
+  try {
+    const response = await api.get("/multas");
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao listar multas:", error);
+    throw error;
+  }
+};
+
+//IMPLEMENTAR ISSO AQUI
+export const atualizarMulta = async (idMulta: number, data: MultaDto) => {
   try {
     const response = await api.get("/multas");
     return response.data;
