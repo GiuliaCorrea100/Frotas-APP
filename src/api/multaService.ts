@@ -55,6 +55,17 @@ export const listarMultas = async () => {
   }
 };
 
+export const removerMulta = async (idMulta: number) => {
+  try {
+    console.log(idMulta);
+    const response = await api.patch(`/deletar-multa/${idMulta}`);
+    console.log("multa deletada com sucesso");
+  } catch (error) {
+    console.error("Erro ao deletar multa: ", error);
+    throw error;
+  }
+};
+
 //IMPLEMENTAR ISSO AQUI
 export const atualizarMulta = async (idMulta: number, data: MultaDto) => {
   try {
