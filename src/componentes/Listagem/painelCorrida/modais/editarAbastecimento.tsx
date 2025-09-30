@@ -66,8 +66,8 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
   onSuccess,
   onError,
 }) => {
-  const [litros, setLitros] = useState<number>(0);
-  const [precoFinal, setPrecoFinal] = useState<number>(0);
+  const [quantidade, setQuantidade] = useState<number>(0);
+  const [valorTotal, setValorTotal] = useState<number>(0);
   const [tipoCombustivel, setTipoCombustivel] = useState<number | "">("");
   const [valorUnitario, setValorUnitario] = useState<number>(0);
   const [dataAbastecimento, setdataAbastecimento] = useState<string>("");
@@ -79,8 +79,8 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
   // Preenche campos ao abrir
   useEffect(() => {
     if (abastecimento) {
-      setLitros(abastecimento.litros ?? 0);
-      setPrecoFinal(abastecimento.precoFinal ?? 0);
+      setQuantidade(abastecimento.quantidade ?? 0);
+      setValorTotal(abastecimento.valorTotal ?? 0);
       setTipoCombustivel(abastecimento.tipoCombustivel?.idTipoCombustivel ?? "");
       setValorUnitario(abastecimento.valorUnitario ?? 0);
       setdataAbastecimento(
@@ -110,10 +110,10 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
 
   // Calcula preço final automaticamente
   useEffect(() => {
-    if (litros >= 0 && valorUnitario >= 0) {
-      setPrecoFinal(Number((litros * valorUnitario).toFixed(2)));
+    if (quantidade >= 0 && valorUnitario >= 0) {
+      setValorTotal(Number((quantidade * valorUnitario).toFixed(2)));
     }
-  }, [litros, valorUnitario]);
+  }, [quantidade, valorUnitario]);
 
   const handleSalvar = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -122,8 +122,8 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
     setLoading(true);
     try {
       const dadosAtualizados = {
-        litros,
-        precoFinal,
+        quantidade,
+        valorTotal,
         valorUnitario,
         dataAbastecimento: new Date(dataAbastecimento), // Converte de volta para Date
         idTipoCombustivel: tipoCombustivel === "" ? undefined : Number(tipoCombustivel),
@@ -174,8 +174,8 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
             <TextField
               label="Litros"
               type="number"
-              value={litros}
-              onChange={(e) => setLitros(Number(e.target.value))}
+              value={quantidade}
+              onChange={(e) => setQuantidade(Number(e.target.value))}
               required
               sx={{ flex: "1 1 200px" }}
               InputProps={{
@@ -199,7 +199,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
             <TextField
               label="Preço Final"
               type="number"
-              value={precoFinal}
+              value={valorTotal}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">R$</InputAdornment>

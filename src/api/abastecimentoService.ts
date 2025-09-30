@@ -20,14 +20,11 @@ export interface Corrida {
 
 export interface Abastecimento {
   idAbastecimento?: number;
-  litros: number;
-  codPagamento: number;
-  precoFinal: number;
+  quantidade: number;
+  codigoPagamento: number;
+  valorTotal: number;
   dataAbastecimento: Date; //MUDEI AQUI, TAVA string antes
-  valorUnitarioLitro?: number;
-  valorMedioLitro?: number;
   valorUnitario?: number;
-  valorMedio?: number;
   justificativaAlteracao?: string;
   nomeTipoCombustivel?: string;
 
@@ -38,14 +35,11 @@ export interface Abastecimento {
 
 // Interface para o corpo da requisição de cadastro/atualização
 export interface AbastecimentoRequest {
-  litros: number;
-  codPagamento: number;
-  precoFinal: number;
+  quantidade: number;
+  codigoPagamento: number;
+  valorTotal: number;
   dataAbastecimento: Date; //MUDEI AQUI, TAVA string antes
-  valorUnitarioLitro?: number;
-  valorMedioLitro?: number;
   valorUnitario?: number;
-  valorMedio?: number;
   justificativaAlteracao?: string;
   idTipoCombustivel: number;
   idCorrida: number;
@@ -53,24 +47,22 @@ export interface AbastecimentoRequest {
 
 export interface AbastecimentoUpdate {
   idAbastecimento: number;
-  litros: number;
-  precoFinal: number;
+  quantidade: number;
+  valorTotal: number;
   valorUnitario: number;
   idTipoCombustivel?: number;
 }
 
-
 export class AbastecimentoService {
-
-async ConsumoPorCampus(): Promise<{campus: string; litrosTotal: number}[]> {
+  async ConsumoPorCampus(): Promise<{ campus: string; litrosTotal: number }[]> {
     try {
-        const response = await api.get('abastecimento/consumoPorCampus/');
-        return response.data;
+      const response = await api.get("abastecimento/consumoPorCampus/");
+      return response.data;
     } catch (error) {
-        console.error('Erro ao buscar consumo por campus:', error);
-        throw error;
+      console.error("Erro ao buscar consumo por campus:", error);
+      throw error;
     }
-}
+  }
 
   async buscarTodosAbastecimentos(params?: {
     tipoCombustivel?: string;
@@ -112,28 +104,22 @@ async ConsumoPorCampus(): Promise<{campus: string; litrosTotal: number}[]> {
 
   async cadastrarAbastecimento(data: {
     idCorrida: number;
-    litros: number;
-    codPagamento: number;
-    precoFinal: number;
+    quantidade: number;
+    codigoPagamento: number;
+    valorTotal: number;
     dataAbastecimento: Date; //MUDEI AQUI, TAVA string antes
-    valorUnitarioLitro?: number;
-    valorMedioLitro?: number;
     valorUnitario?: number;
-    valorMedio?: number;
     justificativaAlteracao?: string;
     tipoCombustivel: number;
   }): Promise<Abastecimento> {
     try {
       const payload: AbastecimentoRequest = {
         idCorrida: data.idCorrida,
-        litros: data.litros,
-        codPagamento: data.codPagamento,
-        precoFinal: data.precoFinal,
+        quantidade: data.quantidade,
+        codigoPagamento: data.codigoPagamento,
+        valorTotal: data.valorTotal,
         dataAbastecimento: data.dataAbastecimento,
-        valorUnitarioLitro: data.valorUnitarioLitro,
-        valorMedioLitro: data.valorMedioLitro,
         valorUnitario: data.valorUnitario,
-        valorMedio: data.valorMedio,
         justificativaAlteracao: data.justificativaAlteracao,
         idTipoCombustivel: data.tipoCombustivel,
       };
@@ -199,6 +185,3 @@ async ConsumoPorCampus(): Promise<{campus: string; litrosTotal: number}[]> {
 // Criando uma única instância e exportando-a
 const abastecimentoService = new AbastecimentoService();
 export default abastecimentoService;
-
-
-
