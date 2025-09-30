@@ -21,7 +21,7 @@ export interface Corrida {
 export interface Abastecimento {
   idAbastecimento?: number;
   quantidade: number;
-  codigoPagamento: number;
+  codigoPagamento: string;
   valorTotal: number;
   dataAbastecimento: Date; //MUDEI AQUI, TAVA string antes
   valorUnitario?: number;
@@ -36,7 +36,7 @@ export interface Abastecimento {
 // Interface para o corpo da requisição de cadastro/atualização
 export interface AbastecimentoRequest {
   quantidade: number;
-  codigoPagamento: number;
+  codigoPagamento: string;
   valorTotal: number;
   dataAbastecimento: Date; //MUDEI AQUI, TAVA string antes
   valorUnitario?: number;
@@ -105,9 +105,9 @@ export class AbastecimentoService {
   async cadastrarAbastecimento(data: {
     idCorrida: number;
     quantidade: number;
-    codigoPagamento: number;
+    codigoPagamento: string;
     valorTotal: number;
-    dataAbastecimento: Date; //MUDEI AQUI, TAVA string antes
+    dataAbastecimento: Date;
     valorUnitario?: number;
     justificativaAlteracao?: string;
     tipoCombustivel: number;

@@ -53,7 +53,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
     quantidade: '',
     codigoPagamento: '',
     valorTotal: '',
-    dataAbastecimento: new Date().toISOString().split('T')[0],
+    dataAbastecimento: new Date(),
     valorUnitario: '',
     justificativaAlteracao: '',
     tipoCombustivelId: '',
@@ -110,7 +110,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
         const precoFinal = litros * valorUnitario;
         setFormData(prev => ({
           ...prev,
-          valorFinal: precoFinal.toFixed(2)
+          valorTotal: precoFinal.toFixed(2)
         }));
       }
     }
@@ -176,7 +176,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
     const dadosParaCadastro = {
       quantidade: parseFloat(formData.quantidade),
-      codigoPagamento: parseInt(formData.codigoPagamento),
+      codigoPagamento: formData.codigoPagamento,
       valorTotal: parseFloat(formData.valorTotal),
       dataAbastecimento: formData.dataAbastecimento,
       valorUnitario: formData.valorUnitario ? parseFloat(formData.valorUnitario) : 0,
@@ -200,7 +200,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
           quantidade: '',
           codigoPagamento: '',
           valorTotal: '',
-          dataAbastecimento: new Date().toISOString().split('T')[0],
+          dataAbastecimento: new Date(),
           valorUnitario: '',
           justificativaAlteracao: '',
           tipoCombustivelId: '',
@@ -259,7 +259,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       quantidade: '',
       codigoPagamento: '',
       valorTotal: '',
-      dataAbastecimento: new Date().toISOString().split('T')[0],
+      dataAbastecimento: new Date(),
       valorUnitario: '',
       justificativaAlteracao: '',
       tipoCombustivelId: '',
@@ -312,13 +312,13 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
               <TextField
                 label="Litros"
-                name="litros"
+                name="quantidade"
                 type="number"
                 value={formData.quantidade}
                 onChange={handleInputChange}
                 required
-                error={!!errors.litros}
-                helperText={errors.litros}
+                error={!!errors.quantidade}
+                helperText={errors.quantidade}
                 inputProps={{ min: 0, step: 0.01 }}
                 sx={{ flex: '1 1 200px' }}
                 InputProps={{
