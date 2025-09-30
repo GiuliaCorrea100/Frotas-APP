@@ -159,7 +159,7 @@ const DetalhesRequisicao: React.FC = () => {
       ),
     },
     {
-      field: "litros",
+      field: "quantidade",
       headerName: "Quantidade de Litros",
       flex: 1,
       renderCell: (params) => (
@@ -175,7 +175,7 @@ const DetalhesRequisicao: React.FC = () => {
       ),
     },
     {
-      field: "precoFinal",
+      field: "valorTotal",
       headerName: "Preço Final",
       flex: 1,
       renderCell: (params) => (

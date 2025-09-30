@@ -50,17 +50,14 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
   onSuccess
 }) => {
   const [formData, setFormData] = useState({
-    litros: '',
-    cod_pagamento: '',
-    preco_final: '',
-    data_abastecimento: new Date().toISOString().split('T')[0],
-    valor_unitario_litro: '',
-    valor_medio_litro: '',
-    valor_unitario: '',
-    valor_medio: '',
-    justificativa_alteracao: '',
-    tipo_combustivel_id: '',
-    id_corrida: corridaId ? corridaId.toString() : '',
+    quantidade: '',
+    codigoPagamento: '',
+    valorTotal: '',
+    dataAbastecimento: new Date().toISOString().split('T')[0],
+    valorUnitario: '',
+    justificativaAlteracao: '',
+    tipoCombustivelId: '',
+    idCorrida: corridaId ? corridaId.toString() : '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -95,66 +92,66 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
   // Atualizar informações da corrida selecionada
   useEffect(() => {
-    if (formData.id_corrida) {
-      const corrida = corridas.find(c => c.idCorrida === parseInt(formData.id_corrida));
+    if (formData.idCorrida) {
+      const corrida = corridas.find(c => c.idCorrida === parseInt(formData.idCorrida));
       setCorridaSelecionada(corrida || null);
     } else {
       setCorridaSelecionada(null);
     }
-  }, [formData.id_corrida, corridas]);
+  }, [formData.idCorrida, corridas]);
 
   // Calcular preço final automaticamente
   useEffect(() => {
-    if (formData.litros && formData.valor_unitario) {
-      const litros = parseFloat(formData.litros);
-      const valorUnitario = parseFloat(formData.valor_unitario);
+    if (formData.quantidade && formData.valorUnitario) {
+      const litros = parseFloat(formData.quantidade);
+      const valorUnitario = parseFloat(formData.valorUnitario);
 
       if (!isNaN(litros) && !isNaN(valorUnitario)) {
         const precoFinal = litros * valorUnitario;
         setFormData(prev => ({
           ...prev,
-          preco_final: precoFinal.toFixed(2)
+          valorFinal: precoFinal.toFixed(2)
         }));
       }
     }
-  }, [formData.litros, formData.valor_unitario]);
+  }, [formData.quantidade, formData.valorUnitario]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
     // Validações obrigatórias
-    if (!formData.litros || parseFloat(formData.litros) <= 0) {
+    if (!formData.quantidade || parseFloat(formData.quantidade) <= 0) {
       newErrors.litros = 'Litros são obrigatórios e devem ser maiores que zero';
     }
 
-    if (!formData.cod_pagamento) {
-      newErrors.cod_pagamento = 'Código de pagamento é obrigatório';
+    if (!formData.codigoPagamento) {
+      newErrors.codigoPagamento = 'Código de pagamento é obrigatório';
     }
 
-    if (!formData.preco_final || parseFloat(formData.preco_final) <= 0) {
+    if (!formData.valorTotal || parseFloat(formData.valorTotal) <= 0) {
       newErrors.preco_final = 'Preço final é obrigatório';
     }
 
-    if (!formData.data_abastecimento) {
-      newErrors.data_abastecimento = 'Data é obrigatória';
+    if (!formData.dataAbastecimento) {
+      newErrors.dataAbastecimento = 'Data é obrigatória';
     }
 
-    if (!formData.tipo_combustivel_id) {
-      newErrors.tipo_combustivel_id = 'Tipo de combustível é obrigatório';
+    if (!formData.tipoCombustivelId) {
+      newErrors.tipoCombustivelId = 'Tipo de combustível é obrigatório';
     }
 
-    if (!formData.id_corrida) {
+    if (!formData.idCorrida) {
       newErrors.id_corrida = 'Corrida é obrigatória';
     }
 
     // Validação de data (não pode ser futura)
-    if (formData.data_abastecimento) {
-      const dataAbastecimento = new Date(formData.data_abastecimento);
+    if (formData.dataAbastecimento) {
+      const dataAbastecimento = new Date(formData.dataAbastecimento);
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
 
       if (dataAbastecimento > hoje) {
-        newErrors.data_abastecimento = 'Data não pode ser futura';
+        newErrors.dataAbastecimento = 'Data não pode ser futura';
       }
     }
 
@@ -169,7 +166,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
     // Encontrar o tipo de combustível selecionado
     const tipoCombustivelSelecionado = tiposCombustivel.find(
-      tipo => tipo.id_tipo_combustivel === parseInt(formData.tipo_combustivel_id)
+      tipo => tipo.id_tipo_combustivel === parseInt(formData.tipoCombustivelId)
     );
 
     if (!tipoCombustivelSelecionado) {
@@ -178,14 +175,14 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
     }
 
     const dadosParaCadastro = {
-      litros: parseFloat(formData.litros),
-      codPagamento: parseInt(formData.cod_pagamento),
-      precoFinal: parseFloat(formData.preco_final),
-      dataAbastecimento: formData.data_abastecimento,
-      valorUnitario: formData.valor_unitario ? parseFloat(formData.valor_unitario) : 0,
-      justificativaAlteracao: formData.justificativa_alteracao || '',
+      quantidade: parseFloat(formData.quantidade),
+      codigoPagamento: parseInt(formData.codigoPagamento),
+      valorTotal: parseFloat(formData.valorTotal),
+      dataAbastecimento: formData.dataAbastecimento,
+      valorUnitario: formData.valorUnitario ? parseFloat(formData.valorUnitario) : 0,
+      justificativaAlteracao: formData.justificativaAlteracao || '',
       tipoCombustivel: tipoCombustivelSelecionado.id_tipo_combustivel as number, // Corrigido
-      idCorrida: parseInt(formData.id_corrida), // Corrigido
+      idCorrida: parseInt(formData.idCorrida), // Corrigido
     };
 
 
@@ -200,17 +197,14 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       setTimeout(() => {
         setSuccessMessage('');
         setFormData({
-          litros: '',
-          cod_pagamento: '',
-          preco_final: '',
-          data_abastecimento: new Date().toISOString().split('T')[0],
-          valor_unitario_litro: '',
-          valor_medio_litro: '',
-          valor_unitario: '',
-          valor_medio: '',
-          justificativa_alteracao: '',
-          tipo_combustivel_id: '',
-          id_corrida: corridaId ? corridaId.toString() : '',
+          quantidade: '',
+          codigoPagamento: '',
+          valorTotal: '',
+          dataAbastecimento: new Date().toISOString().split('T')[0],
+          valorUnitario: '',
+          justificativaAlteracao: '',
+          tipoCombustivelId: '',
+          idCorrida: corridaId ? corridaId.toString() : '',
         });
 
         if (onSuccess) onSuccess();
@@ -262,17 +256,14 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
   const handleClose = () => {
     setFormData({
-      litros: '',
-      cod_pagamento: '',
-      preco_final: '',
-      data_abastecimento: new Date().toISOString().split('T')[0],
-      valor_unitario_litro: '',
-      valor_medio_litro: '',
-      valor_unitario: '',
-      valor_medio: '',
-      justificativa_alteracao: '',
-      tipo_combustivel_id: '',
-      id_corrida: corridaId ? corridaId.toString() : '',
+      quantidade: '',
+      codigoPagamento: '',
+      valorTotal: '',
+      dataAbastecimento: new Date().toISOString().split('T')[0],
+      valorUnitario: '',
+      justificativaAlteracao: '',
+      tipoCombustivelId: '',
+      idCorrida: corridaId ? corridaId.toString() : '',
     });
     setErrors({});
     setSuccessMessage('');
@@ -323,7 +314,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                 label="Litros"
                 name="litros"
                 type="number"
-                value={formData.litros}
+                value={formData.quantidade}
                 onChange={handleInputChange}
                 required
                 error={!!errors.litros}
@@ -337,12 +328,12 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
               <TextField
                 label="Código de Pagamento"
-                name="cod_pagamento"
-                value={formData.cod_pagamento}
+                name="codigoPagamento"
+                value={formData.codigoPagamento}
                 onChange={handleInputChange}
                 required
-                error={!!errors.cod_pagamento}
-                helperText={errors.cod_pagamento}
+                error={!!errors.codigoPagamento}
+                helperText={errors.codigoPagamento}
                 sx={{ flex: '1 1 200px' }}
               />
             </Box>
@@ -350,9 +341,9 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
               <TextField
                 label="Valor Unitário por Litro"
-                name="valor_unitario"
+                name="valorUnitario"
                 type="number"
-                value={formData.valor_unitario}
+                value={formData.valorUnitario}
                 onChange={handleInputChange}
                 inputProps={{ min: 0, step: 0.001 }}
                 sx={{ flex: '1 1 200px' }}
@@ -365,11 +356,11 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                 label="Preço Final"
                 name="preco_final"
                 type="number"
-                value={formData.preco_final}
+                value={formData.valorTotal}
                 onChange={handleInputChange}
                 required
-                error={!!errors.preco_final}
-                helperText={errors.preco_final}
+                error={!!errors.valorTotal}
+                helperText={errors.valorTotal}
                 sx={{ flex: '1 1 200px' }}
                 InputProps={{
                   startAdornment: <InputAdornment position="start">R$</InputAdornment>,
@@ -380,13 +371,13 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
             <TextField
               label="Data de Abastecimento"
-              name="data_abastecimento"
+              name="dataAbastecimento"
               type="date"
-              value={formData.data_abastecimento}
+              value={formData.dataAbastecimento}
               onChange={handleInputChange}
               required
-              error={!!errors.data_abastecimento}
-              helperText={errors.data_abastecimento}
+              error={!!errors.dataAbastecimento}
+              helperText={errors.dataAbastecimento}
               InputLabelProps={{ shrink: true }}
               InputProps={{
                 startAdornment: (
@@ -407,11 +398,11 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
               Tipo de Combustível
             </Typography>
 
-            <FormControl fullWidth required error={!!errors.tipo_combustivel_id} sx={{ mb: 2 }}>
+            <FormControl fullWidth required error={!!errors.tipoCombustivelId} sx={{ mb: 2 }}>
               <InputLabel>Tipo de Combustível</InputLabel>
               <Select
-                name="tipo_combustivel_id"
-                value={formData.tipo_combustivel_id}
+                name="tipoCombustivelId"
+                value={formData.tipoCombustivelId}
                 onChange={handleSelectChange}
                 label="Tipo de Combustível"
               >
@@ -425,121 +416,16 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                   ))
                 )}
               </Select>
-              {errors.tipo_combustivel_id && (
+              {errors.tipoCombustivelId && (
                 <Typography variant="caption" color="error" sx={{ ml: 2 }}>
-                  {errors.tipo_combustivel_id}
+                  {errors.tipoCombustivelId}
                 </Typography>
               )}
             </FormControl>
           </Box>
 
           <Divider sx={{ my: 2 }} />
-
-          {/* Corrida Relacionada */}
-          {/* <Box sx={{ mb: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Corrida Relacionada
-            </Typography>
-
-            <FormControl fullWidth required error={!!errors.id_corrida} sx={{ mb: 2 }}>
-              <InputLabel>Corrida</InputLabel>
-              <Select
-                name="id_corrida"
-                value={formData.id_corrida}
-                onChange={handleSelectChange}
-                label="Corrida"
-              >
-                {corridas.length === 0 ? (
-                  <MenuItem value="">Carregando corridas...</MenuItem>
-                ) : (
-                  corridas.map((corrida) => (
-                    <MenuItem key={corrida.idCorrida} value={corrida.idCorrida}>
-                      {`#${corrida.idCorrida} - ${new Date(corrida.dataInicio).toLocaleDateString()} - ${corrida.placaVeiculo} - ${corrida.nomeMotorista}`}
-                    </MenuItem>
-                  ))
-                )}
-              </Select>
-              {errors.id_corrida && (
-                <Typography variant="caption" color="error" sx={{ ml: 2 }}>
-                  {errors.id_corrida}
-                </Typography>
-              )}
-            </FormControl>
-
-            {corridaSelecionada && (
-              <Paper variant="outlined" sx={{ p: 2, backgroundColor: '#f9f9f9' }}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Informações da Corrida Selecionada:
-                </Typography>
-                <Typography variant="body2">
-                  Veículo: {corridaSelecionada.placaVeiculo} | Motorista: {corridaSelecionada.nomeMotorista}
-                </Typography>
-                <Typography variant="body2">
-                  Data de Início: {new Date(corridaSelecionada.dataInicio).toLocaleDateString()}
-                </Typography>
-              </Paper>
-            )}
-          </Box> */}
-
-          <Divider sx={{ my: 2 }} />
-
-          {/* Informações Adicionais */}
-          {/* <Box sx={{ mb: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Informações Adicionais (Opcionais)
-            </Typography>
-
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
-              <TextField
-                label="Valor Médio por Litro"
-                name="valor_medio_litro"
-                type="number"
-                value={formData.valor_medio_litro}
-                onChange={handleInputChange}
-                sx={{ flex: '1 1 200px' }}
-                inputProps={{ min: 0, step: 0.001 }}
-                InputProps={{
-                  startAdornment: <InputAdornment position="start">R$</InputAdornment>,
-                }}
-              />
-
-              <TextField
-                label="Valor Unitário"
-                name="valor_unitario"
-                type="number"
-                value={formData.valor_unitario}
-                onChange={handleInputChange}
-                sx={{ flex: '1 1 200px' }}
-                InputProps={{
-                  startAdornment: <InputAdornment position="start">R$</InputAdornment>,
-                }}
-              />
-
-              <TextField
-                label="Valor Médio"
-                name="valor_medio"
-                type="number"
-                value={formData.valor_medio}
-                onChange={handleInputChange}
-                sx={{ flex: '1 1 200px' }}
-                InputProps={{
-                  startAdornment: <InputAdornment position="start">R$</InputAdornment>,
-                }}
-              />
-            </Box>
-
-            <TextField
-              label="Justificativa de Alteração"
-              name="justificativa_alteracao"
-              value={formData.justificativa_alteracao}
-              onChange={handleInputChange}
-              fullWidth
-              multiline
-              rows={3}
-              placeholder="Informe a justificativa para alterações de valores, se aplicável"
-            />
-          </Box> */}
-
+          
           {/* Botões */}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
             <Button
