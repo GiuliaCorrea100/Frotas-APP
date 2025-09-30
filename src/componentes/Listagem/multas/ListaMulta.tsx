@@ -1,16 +1,19 @@
-import { Add } from '@mui/icons-material';
+import { Add, Cancel, CheckCircle, Edit } from '@mui/icons-material';
 import {
   Box,
   Button,
+  IconButton,
   TextField,
+  Tooltip,
   Typography,
   useTheme,
 } from "@mui/material";
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useEffect, useState } from 'react';
 import { Link } from "react-router-dom";
-import Menu from '../Menu';
-import { listarMultas } from '../../api/multaService';
+import Menu from '../../Menu';
+import { listarMultas } from '../../../api/multaService';
+import React from 'react';
 
 interface Multa {
   idMultas: number;
@@ -66,6 +69,38 @@ export default function ListaMulta() {
     { field: 'valor', headerName: 'Valor', flex: 1 },
     { field: 'classInfracao', headerName: 'Classificação', flex: 2 },
     { field: 'numAutoInfracao', headerName: 'Número do auto', flex: 1 },
+    {
+          field: 'acoes',
+          headerName: 'Ações',
+          flex: 1,
+          renderCell: (params) => (
+            <Box display="flex" gap={1}>
+          
+              <Tooltip title="Editar veículo">
+                <IconButton 
+                  color="primary"
+                  size="small"
+                   //onClick={() => handleOpenEditModal(params.row)}
+                >
+                  <Edit fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              
+              <Tooltip title={"Excluir multa"}>
+                <IconButton 
+                  color={params.row.ativo ? "error" : "success"}
+                  size="small"
+                  //onClick={() => handleAbrirModalAtivacao(params.row)}
+                >
+                  {params.row.ativo ? 
+                    <Cancel fontSize="small" /> : 
+                    <CheckCircle fontSize="small" />
+                  }
+                </IconButton>
+              </Tooltip>
+            </Box>
+          )
+        }
   ];
 
   return (

@@ -27,6 +27,7 @@ import EdicaoAbastecimentoModal from "./modais/editarAbastecimento";
 import EdicaoPercursosModal from "./modais/editarPercursos";
 import CadastrarPercursosModal from "./modais/cadastrarPercursos";
 
+
 const DetalhesRequisicao: React.FC = () => {
   const theme = useTheme();
   const { id } = useParams<{ id: string }>();
@@ -158,7 +159,7 @@ const DetalhesRequisicao: React.FC = () => {
       ),
     },
     {
-      field: "litros",
+      field: "quantidade",
       headerName: "Quantidade de Litros",
       flex: 1,
       renderCell: (params) => (
@@ -174,7 +175,7 @@ const DetalhesRequisicao: React.FC = () => {
       ),
     },
     {
-      field: "precoFinal",
+      field: "valorTotal",
       headerName: "Preço Final",
       flex: 1,
       renderCell: (params) => (

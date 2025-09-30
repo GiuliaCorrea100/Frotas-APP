@@ -12,11 +12,13 @@ import {
   useTheme
 } from "@mui/material";
 import CreateIcon from '@mui/icons-material/Create';
+import CancelIcon from '@mui/icons-material/Cancel';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { CorridaFrontend, CorridaDto, getCorridas, CorridaService } from '../../../api/corridaService';
+import { CorridaFrontend, CorridaDto, getCorridas, CorridaService, atualizarSituacaoCorrida } from '../../../api/corridaService';
 import Menu from "../../Menu";
 import SalvarEdicaoCorrida from "./modais/editarPainelCorrida";
 import VisibilityIcon from '@mui/icons-material/Visibility';
+
 
 const formatDate = (dateString: string | null) => {
   if (!dateString) return 'Em andamento';
@@ -42,12 +44,15 @@ export default function ListaCorridas() {
   const [corridas, setCorridas] = useState<CorridaFrontend[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [showModalLiberarChave, setShowModalLiberarChave] = useState(false);
-  const [showModalReceberChave, setShowModalReceberChave] = useState(false);
   const [selectedCorrida, setSelectedCorrida] = useState<CorridaFrontend | null>(null);
   const [senhaLiberarChave, setSenhaLiberarChave] = useState('');
-  const [showModalEditar, setShowModalEditar] = useState(false);
   const [corridaParaEditar, setCorridaParaEditar] = useState<CorridaFrontend | null>(null);
+
+  const [showModalLiberarChave, setShowModalLiberarChave] = useState(false);
+  const [showModalReceberChave, setShowModalReceberChave] = useState(false);
+  const [showModalEditar, setShowModalEditar] = useState(false);
+  const [showModalCancelar, setShowModalCancelar] = useState(false);
+  
 
   const [filtroSituacao, setFiltroSituacao] = useState<string>('TODOS');
 
@@ -70,6 +75,7 @@ export default function ListaCorridas() {
   const qtdAgendadas = corridas.filter(c => c.situacao === 'AGENDADA').length;
   const qtdEmAndamento = corridas.filter(c => c.situacao === 'ANDAMENTO').length;
   const qtdFinalizadas = corridas.filter(c => c.situacao === 'FINALIZADA').length;
+  const qtdCanceladas= corridas.filter(c => c.situacao === 'CANCELADA').length;
 
   const dadosFiltrados = corridas.filter(corrida => {
     const matchesSearch = Object.values(corrida).some(valor =>
@@ -98,11 +104,16 @@ export default function ListaCorridas() {
     setShowModalEditar(true);
   };
 
+  const handleAbrirModalCancelarCorrida = (corrida: CorridaFrontend) => {
+    setSelectedCorrida(corrida);
+    setShowModalCancelar(true);
+  };
+
   const columns: GridColDef<CorridaFrontend>[] = [
     {
       field: 'nomeMotorista',
       headerName: 'Motorista',
-      flex: 1,
+      flex: 0.8,
       renderCell: (params) => (
         <Typography fontWeight="bold">{params.value}</Typography>
       )
@@ -139,7 +150,7 @@ export default function ListaCorridas() {
     {
       field: 'situacao',
       headerName: 'Situação',
-      width: 200,
+      width: 100,
       renderCell: (params) => {
         let color;
         switch (params.value) {
@@ -177,8 +188,8 @@ export default function ListaCorridas() {
               color="warning"
               size="small"
               onClick={() => handleAbrirModalEditar(corrida)}
-              disabled={((corrida.chaveEmprestada === true) && (corrida.situacao === "FINALIZADA" || corrida.situacao === "ANDAMENTO" || corrida.situacao === "AGENDADA"))
-                || ((corrida.situacao === "FINALIZADA") && (corrida.chaveEmprestada === false))}
+              disabled={((corrida.chaveEmprestada === true) && (corrida.situacao === "FINALIZADA" || corrida.situacao === "ANDAMENTO" || corrida.situacao === "AGENDADA" || corrida.situacao === "CANCELADA"))
+                || ((corrida.situacao === "FINALIZADA"|| corrida.situacao === "CANCELADA") && (corrida.chaveEmprestada === false))}
               startIcon={<CreateIcon />}
             >
             </Button>
@@ -187,7 +198,18 @@ export default function ListaCorridas() {
               color="success"
               size="small"
               onClick={() => navigate(`/DetalhesCorrida/${corrida.idCorrida}`)}
+              disabled={corrida.situacao === "CANCELADA"}
               startIcon={<VisibilityIcon />}
+            >
+            </Button>
+            <Button
+              variant="outlined"
+              color="warning"
+              size="small"
+              onClick={() => handleAbrirModalCancelarCorrida(corrida)}
+              disabled={((corrida.chaveEmprestada === true) && (corrida.situacao === "FINALIZADA" || corrida.situacao === "ANDAMENTO" || corrida.situacao === "AGENDADA"|| corrida.situacao === "CANCELADA"))
+                || ((corrida.situacao === "FINALIZADA"|| corrida.situacao === "CANCELADA") && (corrida.chaveEmprestada === false))}
+              startIcon={<CancelIcon />}
             >
             </Button>
             <Button
@@ -195,8 +217,8 @@ export default function ListaCorridas() {
               color="primary"
               size="small"
               onClick={() => handleAbrirModalLiberarChave(corrida)}
-              disabled={((corrida.chaveEmprestada === true) && (corrida.situacao === "FINALIZADA" || corrida.situacao === "ANDAMENTO" || corrida.situacao === "AGENDADA"))
-                || ((corrida.situacao === "FINALIZADA") && (corrida.chaveEmprestada === false))}
+              disabled={((corrida.chaveEmprestada === true) && (corrida.situacao === "FINALIZADA" || corrida.situacao === "ANDAMENTO" || corrida.situacao === "AGENDADA"|| corrida.situacao === "CANCELADA"))
+                || ((corrida.situacao === "FINALIZADA"|| corrida.situacao === "CANCELADA") && (corrida.chaveEmprestada === false))}
             >
               Liberar Chave
             </Button>
@@ -205,8 +227,8 @@ export default function ListaCorridas() {
               color="secondary"
               size="small"
               onClick={() => handleAbrirModalReceberChave(corrida)}
-              disabled={((corrida.chaveEmprestada === false) && (corrida.situacao === "AGENDADA" || corrida.situacao === "ANDAMENTO" || corrida.situacao === "FINALIZADA"))
-                || ((corrida.chaveEmprestada === true) && (corrida.situacao === "AGENDADA" || corrida.situacao === "ANDAMENTO"))}
+              disabled={((corrida.chaveEmprestada === false) && (corrida.situacao === "AGENDADA" || corrida.situacao === "ANDAMENTO" || corrida.situacao === "FINALIZADA"|| corrida.situacao === "CANCELADA"))
+                || ((corrida.chaveEmprestada === true) && (corrida.situacao === "AGENDADA" || corrida.situacao === "ANDAMENTO"|| corrida.situacao === "CANCELADA"))}
             >
               Receber Chave
             </Button>
@@ -241,6 +263,7 @@ export default function ListaCorridas() {
             { label: 'AGENDADA', value: 'AGENDADA', count: qtdAgendadas, color: theme.palette.info.main },
             { label: 'EM ANDAMENTO', value: 'ANDAMENTO', count: qtdEmAndamento, color: theme.palette.warning.main },
             { label: 'FINALIZADA', value: 'FINALIZADA', count: qtdFinalizadas, color: theme.palette.success.main },
+            {label: 'CANCELADA', value: 'CANCELADA', count: qtdCanceladas, color: theme.palette.success.main },
             { label: 'TODOS', value: 'TODOS', count: corridas.length, color: theme.palette.text.secondary }
           ].map((tab) => (
             <Button
@@ -352,6 +375,45 @@ export default function ListaCorridas() {
                   setCorridas(dadosAtualizados);
                   setShowModalLiberarChave(false);
                   setSenhaLiberarChave('');
+                } catch (error) {
+                  console.error(error);
+                }
+              }
+            }}
+            variant="contained"
+            color="primary"
+            sx={{ borderRadius: 2 }}
+          >
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={showModalCancelar}
+        onClose={() => setShowModalCancelar(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>Cancelar corrida</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Você tem certeza que deseja cancelar essa corrida?
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button onClick={() => setShowModalCancelar(false)} variant="outlined" sx={{ borderRadius: 2 }}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={async () => {
+              if (selectedCorrida) {
+                try {
+                  await atualizarSituacaoCorrida(selectedCorrida.idCorrida, 'CANCELADA');
+                  const dadosAtualizados = await getCorridas();
+                  setCorridas(dadosAtualizados);
+                  setShowModalCancelar(false);
                 } catch (error) {
                   console.error(error);
                 }

@@ -58,7 +58,7 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
 
   const [loading, setLoading] = useState(false);
 
-  // 🔹 Resetar os campos sempre que o modal abrir
+  
   useEffect(() => {
     if (open) {
       setSaidaHora(null);

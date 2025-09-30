@@ -11,7 +11,7 @@ import CadastroMulta from './componentes/cadastros/CadastroMulta';
 
 import ListaCarros from './componentes/Listagem/ListaCarros';
 import ListaMotorista from './componentes/Listagem/ListaMotorista';
-import ListaMulta from './componentes/Listagem/ListaMulta';
+import ListaMulta from './componentes/Listagem/multas/ListaMulta';
 
 //import ListaCorridas from './componentes/Listagem/ListaCorridas';
 import CadastrarCorrida from './componentes/cadastros/corrida/CadastrarCorrida';
