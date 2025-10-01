@@ -15,7 +15,7 @@ import {
   CalendarToday,
   Close,
 } from "@mui/icons-material";
-import { atualizarMulta, cadastrarMulta, MultaDto } from "../../../../api/multaService";
+import { MultaDto, MultaService } from "../../../../api/multaService";
 
 interface EdicaoModalProps {
   open: boolean;
@@ -83,7 +83,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
         autoInfracao,
       };
 
-      await atualizarMulta(multa?.idMulta, dadosMultas);
+      await MultaService.atualizarMulta(multa?.idMulta!, dadosMultas);
       onSuccess("Multa atualizada com sucesso");
     } catch (error) {
       console.error("Erro ao atualizar multa: ", error);

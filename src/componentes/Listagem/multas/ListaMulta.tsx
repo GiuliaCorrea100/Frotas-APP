@@ -1,4 +1,4 @@
-import { Add, Cancel, CheckCircle, Edit } from '@mui/icons-material';
+import { Add, Cancel,Edit } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -14,28 +14,17 @@ import {
 } from "@mui/material";
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useEffect, useState } from 'react';
-import { Link } from "react-router-dom";
 import Menu from '../../Menu';
-import { listarMultas, MultaDto, removerMulta } from '../../../api/multaService';
+import { MultaService, MultaDto } from '../../../api/multaService';
 import React from 'react';
 import CadastroMultaModal from './modais/adicionarMulta';
 import EditarMultaModal from './modais/editarMulta';
 
-interface Multa {
-  idMultas: number;
-  codInfracao: string;
-  placaVeiculo: string;
-  data: Date;
-  valor: string;
-  classInfracao: string;
-  numAutoInfracao: number;
-  ativo?: boolean; // Adicionado para compatibilidade com o código existente
-}
 
 export default function ListaMulta() {
   const theme = useTheme();
   const [busca, setBusca] = useState("");
-  const [multas, setMultas] = useState<Multa[]>([]);
+  const [multas, setMultas] = useState<MultaDto[]>([]);
   const [loading, setLoading] = useState(false);
 
   const [modalCadastrarAberto, setModalCadastroAberto] = useState(false);
@@ -51,8 +40,9 @@ export default function ListaMulta() {
   const carregarMultas = async () => {
     setLoading(true);
     try {
-      const dados = await listarMultas();
-      setMultas(dados);
+      const dados = await MultaService.listarMultas();
+      const multasAtivas = dados.filter((m) => !m.deletada);
+      setMultas(multasAtivas);
     } catch (error) {
       console.error("Erro ao carregar multas:", error);
     } finally {
@@ -89,11 +79,12 @@ export default function ListaMulta() {
   };
 
   const handleConfirmarExclusao = async () => {
+    console.log(multaSelecionada);
     if (!multaSelecionada) return;
     
     try {
-      await removerMulta(multaSelecionada.idMulta); // Corrigido para idMultas
-      await carregarMultas(); // Recarrega a lista após exclusão
+      await MultaService.removerMulta(multaSelecionada.idMulta!); 
+      await carregarMultas(); 
       handleFecharModalExcluirMulta();
     } catch (error) {
       console.error("Erro ao excluir multa:", error);
@@ -107,7 +98,7 @@ export default function ListaMulta() {
   );
 
   const columns: GridColDef[] = [
-    { field: 'codInfracao', headerName: 'Código Infração', flex: 1 },
+    { field: 'codigoInfracao', headerName: 'Código Infração', flex: 1 },
     {
       field: 'placaVeiculo',
       headerName: 'Placa',
@@ -119,7 +110,7 @@ export default function ListaMulta() {
       )
     },
     { 
-      field: 'data', 
+      field: 'dataInfracao', 
       headerName: 'Data da Infração', 
       flex: 1,
       valueFormatter: (params) => {
@@ -127,9 +118,9 @@ export default function ListaMulta() {
         return new Date(params.value).toLocaleDateString('pt-BR');
       }
     },
-    { field: 'valor', headerName: 'Valor', flex: 1 },
-    { field: 'classInfracao', headerName: 'Classificação', flex: 2 },
-    { field: 'numAutoInfracao', headerName: 'Número do auto', flex: 1 },
+    { field: 'valorInfracao', headerName: 'Valor', flex: 1 },
+    { field: 'classificacao', headerName: 'Classificação', flex: 2 },
+    { field: 'autoInfracao', headerName: 'Número do auto', flex: 1 },
     {
       field: 'acoes',
       headerName: 'Ações',
@@ -219,7 +210,7 @@ export default function ListaMulta() {
           rows={dadosFiltrados}
           columns={columns}
           loading={loading}
-          getRowId={(row) => row.idMultas}
+          getRowId={(row) => row.idMulta}
           initialState={{
             pagination: {
               paginationModel: { pageSize: 10, page: 0 },

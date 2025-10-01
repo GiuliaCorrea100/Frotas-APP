@@ -15,7 +15,7 @@ import {
   CalendarToday,
   Close,
 } from "@mui/icons-material";
-import { cadastrarMulta } from "../../../../api/multaService";
+import { MultaService } from "../../../../api/multaService";
 
 interface CadastrarModalProps {
   open: boolean;
@@ -29,8 +29,8 @@ const modalStyle = {
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: "90%", // Aumentado um pouco
-  maxWidth: 700, // Ajuste do maxWidth
+  width: "90%", 
+  maxWidth: 700, 
   maxHeight: "90vh",
   overflow: "auto",
   bgcolor: "background.paper",
@@ -80,7 +80,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
         autoInfracao,
       };
 
-      await cadastrarMulta(dadosMultas);
+      await MultaService.criarMulta(dadosMultas);
       onSuccess("Multa cadastrada com sucesso");
     } catch (error) {
       console.error("Erro ao cadastrar multa: ", error);
@@ -111,12 +111,11 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
         <Box
           component="form"
           onSubmit={handleSubmit}
-          // Configuração principal para o layout de colunas flexíveis
           display="flex"
           flexWrap="wrap"
-          gap={2} // Espaçamento uniforme entre os campos
+          gap={2} 
         >
-          {/* CAMPOS DE TEXTO (Campos menores ficam em 2 colunas) */}
+          
           <TextField
             label="Código da Infração"
             type="number"
@@ -124,7 +123,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
             onChange={(e) => setCodigoInfracao(Number(e.target.value))}
             required
             fullWidth
-            // Flexbox para permitir 2 campos por linha (2 colunas)
+            
             sx={{ flex: "1 1 calc(50% - 8px)" }} 
           />
           <TextField
@@ -169,7 +168,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
             sx={{ flex: "1 1 calc(50% - 8px)" }}
           />
 
-          {/* CAMPO DE DATA (Ocupa a linha toda) */}
+          
           <TextField
             label="Data e Hora da Infração"
             type="datetime-local"
@@ -184,7 +183,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
                 </InputAdornment>
               ),
             }}
-            // Garante que ocupe 100% da linha
+            
             sx={{ flex: "1 1 100%", mt: 1 }}
           />
 
