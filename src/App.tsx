@@ -14,9 +14,7 @@ import ListaMotorista from './componentes/Listagem/ListaMotorista';
 import ListaMulta from './componentes/Listagem/multas/ListaMulta';
 
 //import ListaCorridas from './componentes/Listagem/ListaCorridas';
-import CadastrarCorrida from './componentes/cadastros/corrida/CadastrarCorrida';
 import IniciarCorrida from './componentes/cadastros/corrida/IniciarCorrida';
-import ColocarTombo from './componentes/cadastros/corrida/ColocarTombo';
 
 import Menu from './componentes/Menu';
 
@@ -32,8 +30,6 @@ import PrivateRoute from './componentes/PrivateRoute';
 import ListaCorrida from './componentes/Listagem/painelCorrida/ListaCorrida';
 import DetalhesRequisicao from './componentes/Listagem/painelCorrida/detalhes';
 import HistoricoIndividual from './componentes/Listagem/HistoricoIndividual';
-
-import AbastecimentoModal from './componentes/cadastros/abastecimento/ModalCadastroAbastecimento'; 
 
 const App: React.FC = () => {
   return (
@@ -51,7 +47,6 @@ const App: React.FC = () => {
           <Route path="/CadastroMotorista2" element={<CadastroMotorista2 />} />
           <Route path="/CadastroMulta" element={<CadastroMulta />} />
           <Route path="/CadastroCarro" element={<CadastroCarro />} />
-          <Route path="/CadastrarCorrida" element={<CadastrarCorrida />} />
 
          {/* <Route path="/AbastecimentoModal" element={<AbastecimentoModal /> } />  */}
 
@@ -67,7 +62,6 @@ const App: React.FC = () => {
           {/*Paginas de Corridas */}
           {/*ALTERAR DEPOIS, PARA QUE NAO POSSAM SER ACESSADOS VIA URL*/}
           <Route path="/IniciarCorrida" element={<IniciarCorrida />} />
-          <Route path="/ColocarTombo" element={<ColocarTombo />} />
 
           {/*  Relatórios      /> */}
           <Route path="/Relatorios" element={<Relatorios />} />

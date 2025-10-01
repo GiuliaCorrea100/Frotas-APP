@@ -9,7 +9,7 @@ const PrivateRoute = ({ requiredPermission }: PrivateRouteProps) => {
   const { isAuthenticated, permissao } = useAuth();
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   if (
