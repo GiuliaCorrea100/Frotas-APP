@@ -115,7 +115,6 @@ const buscarConsumoPorCampus = async () => {
     try {
         // ✅ SEM passar o ano
         const dados = await AbastecimentoService.ConsumoPorCampus();
-        console.log("Dados do backend - Consumo por campus:", dados);
         setConsumoPorCampus(dados);
     } catch (error) {
         console.error("Erro ao buscar consumo por campus:", error);
@@ -154,25 +153,20 @@ const dadosConsumoPorCampus = useMemo(() => {
         };
     }, [corridas, carros, abastecimentos, ocorrencias, multas, selectedYear]);
 
-    // Adicione antes do return para debug
-console.log("Dados de ocorrências:", dadosFiltrados.ocorrencias);
-console.log("Dados de corridas:", dadosFiltrados.corridas.slice(0, 3));
 
-// Verifique se há ocorrências no ano selecionado
-const ocorrenciasDoAno = dadosFiltrados.ocorrencias.length;
-console.log(`Ocorrências em ${selectedYear}:`, ocorrenciasDoAno);
+
 
 
     // Otimização: Prepara os dados para todos os gráficos
     const dadosGraficos = useMemo(() => {
         // Visão Geral
-        const totalGastoCombustivel = dadosFiltrados.abastecimentos.reduce((acc, item) => acc + parseFloat(item.precoFinal || 0), 0);
+        const totalGastoCombustivel = dadosFiltrados.abastecimentos.reduce((acc, item) => acc + parseFloat(item.valorTotal || 0), 0);
         const totalMultas = dadosFiltrados.multas.reduce((acc, item) => acc + parseFloat(item.valor || 0), 0);
 
         // Abastecimentos
         const custoPorCombustivel = dadosFiltrados.abastecimentos.reduce((acc: { [key: string]: number }, abs) => {
             const tipo = abs.tipo_combustivel?.nome || 'Não especificado';
-            acc[tipo] = (acc[tipo] || 0) + parseFloat(abs.precoFinal || 0);
+            acc[tipo] = (acc[tipo] || 0) + parseFloat(abs.valorTotal || 0);
             return acc;
         }, {});
 
@@ -201,7 +195,7 @@ console.log(`Ocorrências em ${selectedYear}:`, ocorrenciasDoAno);
                 ).map(([name, value]) => ({ name, value }))
             },
             abastecimentos: {
-                totalLitros: dadosFiltrados.abastecimentos.reduce((acc, item) => acc + parseFloat(item.litros || 0), 0),
+                totalLitros: dadosFiltrados.abastecimentos.reduce((acc, item) => acc + parseFloat(item.quantidade || 0), 0),
                 custoPorCombustivel: Object.entries(custoPorCombustivel).map(([name, value]) => ({ name, value })),
             },
             multas: {
@@ -516,7 +510,7 @@ console.log(`Ocorrências em ${selectedYear}:`, ocorrenciasDoAno);
                             labelFormatter={(label) => `Campus: ${label}`}
                         />
                         <Bar 
-                            dataKey="litros" 
+                            dataKey="quantidade" 
                             name="Consumo (litros)"
                             fill="#3498db"
                             radius={[4, 4, 0, 0]}
@@ -647,8 +641,8 @@ console.log(`Ocorrências em ${selectedYear}:`, ocorrenciasDoAno);
                                             let valor = 0;
                                             dadosFiltrados.abastecimentos.forEach(abs => {
                                                 if(new Date(abs.dataAbastecimento).getMonth() === i){
-                                                    litros += parseFloat(abs.litros || 0);
-                                                    valor += parseFloat(abs.precoFinal || 0);
+                                                    litros += parseFloat(abs.quantidade || 0);
+                                                    valor += parseFloat(abs.valorTotal || 0);
                                                 }
                                             });
                                             return { mes: mesFormatado, Litros: litros, Valor: valor };

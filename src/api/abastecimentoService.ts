@@ -20,9 +20,9 @@ export interface Corrida {
 
 export interface Abastecimento {
   idAbastecimento?: number;
-  litros: number;
-  codPagamento: number;
-  precoFinal: number;
+  quantidade: number;
+  codigoPagamento: string;
+  valorTotal: number;
   dataAbastecimento: Date; //MUDEI AQUI, TAVA string antes
   valorUnitario?: number;
   justificativaAlteracao?: string;
@@ -35,9 +35,9 @@ export interface Abastecimento {
 
 // Interface para o corpo da requisição de cadastro/atualização
 export interface AbastecimentoRequest {
-  litros: number;
-  codPagamento: number;
-  precoFinal: number;
+  quantidade: number;
+  codigoPagamento: string;
+  valorTotal: number;
   dataAbastecimento: Date; //MUDEI AQUI, TAVA string antes
   valorUnitario?: number;
   justificativaAlteracao?: string;
@@ -47,8 +47,8 @@ export interface AbastecimentoRequest {
 
 export interface AbastecimentoUpdate {
   idAbastecimento: number;
-  litros: number;
-  precoFinal: number;
+  quantidade: number;
+  valorTotal: number;
   valorUnitario: number;
   idTipoCombustivel?: number;
 }
@@ -104,10 +104,10 @@ export class AbastecimentoService {
 
   async cadastrarAbastecimento(data: {
     idCorrida: number;
-    litros: number;
-    codPagamento: number;
-    precoFinal: number;
-    dataAbastecimento: Date; //MUDEI AQUI, TAVA string antes
+    quantidade: number;
+    codigoPagamento: string;
+    valorTotal: number;
+    dataAbastecimento: Date;
     valorUnitario?: number;
     justificativaAlteracao?: string;
     tipoCombustivel: number;
@@ -115,9 +115,9 @@ export class AbastecimentoService {
     try {
       const payload: AbastecimentoRequest = {
         idCorrida: data.idCorrida,
-        litros: data.litros,
-        codPagamento: data.codPagamento,
-        precoFinal: data.precoFinal,
+        quantidade: data.quantidade,
+        codigoPagamento: data.codigoPagamento,
+        valorTotal: data.valorTotal,
         dataAbastecimento: data.dataAbastecimento,
         valorUnitario: data.valorUnitario,
         justificativaAlteracao: data.justificativaAlteracao,

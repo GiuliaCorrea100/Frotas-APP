@@ -159,12 +159,13 @@ const DetalhesRequisicao: React.FC = () => {
       ),
     },
     {
-      field: "litros",
+      field: "quantidade",
       headerName: "Quantidade de Litros",
       flex: 1,
-      renderCell: (params) => (
-        <Typography>{params.value?.toFixed(2)} L</Typography>
-      ),
+      renderCell: (params) => {
+        const value = Number(params.value);
+        return isNaN(value) ? "-" : value.toFixed(2);
+      }
     },
     {
       field: "valorUnitario",
@@ -175,7 +176,7 @@ const DetalhesRequisicao: React.FC = () => {
       ),
     },
     {
-      field: "precoFinal",
+      field: "valorTotal",
       headerName: "Preço Final",
       flex: 1,
       renderCell: (params) => (
