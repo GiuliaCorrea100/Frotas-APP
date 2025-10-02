@@ -175,7 +175,7 @@ export default function ListaMulta() {
               boxShadow: theme.shadows[2]
             }}
           >
-            Cadastrar Multa
+            Nova Multa
           </Button>
         </Box>
 
