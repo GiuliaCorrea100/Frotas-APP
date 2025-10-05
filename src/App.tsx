@@ -9,7 +9,7 @@ import CadastroMotorista from './componentes/cadastros/CadastroMotorista';
 import CadastroMotorista2 from './componentes/cadastros/CadastroMotorista2';
 import CadastroMulta from './componentes/cadastros/CadastroMulta';
 
-import ListaCarros from './componentes/Listagem/ListaCarros';
+import ListaCarros from './componentes/Listagem/veiculos/ListaCarros';
 import ListaMotorista from './componentes/Listagem/ListaMotorista';
 import ListaMulta from './componentes/Listagem/multas/ListaMulta';
 

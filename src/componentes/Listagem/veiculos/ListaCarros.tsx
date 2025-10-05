@@ -2,25 +2,24 @@ import { Add, Cancel, CheckCircle, Edit } from '@mui/icons-material';
 import {
   Box,
   Button,
-  FormControl,
   IconButton,
-  InputLabel,
-  MenuItem,
   Modal,
-  Select,
-  SelectChangeEvent,
+  SelectChangeEvent, // Necessário para a função handleSituacaoChange
   TextField,
   Tooltip,
   Typography,
   useTheme,
 } from "@mui/material";
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from "react-router-dom";
-import { CarrosDto, CarrosService } from "../../api/carrosService";
-import { TipoCombustivel } from '../../api/tipoCombustivelService';
-import Menu from "../Menu";
-import React from 'react';
+import { CarrosDto, CarrosService } from "../../../api/carrosService"; 
+import { TipoCombustivel } from '../../../api/tipoCombustivelService'; 
+import Menu from "../../Menu"; 
+import { FormularioVeiculos } from './formularioVeiculos';
+
+// Importando o componente do Modal que criamos
+
 
 export default function ListaCarros() {
   const theme = useTheme();
@@ -35,64 +34,66 @@ export default function ListaCarros() {
   const [qtdDisponivel, setQtdDisponivel] = useState<number>(0);
   const [qtdViagem, setQtdViagem] = useState<number>(0);
   const [qtdManutencao, setQtdManutencao] = useState<number>(0);
-  
+
   // Estado para armazenar os tipos de combustível
   const [tiposCombustivel, setTiposCombustivel] = useState<TipoCombustivel[]>([]);
 
-  // Estados para o modal de confirmação
+  // Estados para o modal de confirmação (Ativar/Inativar)
   const [showModalAtivacao, setShowModalAtivacao] = useState(false);
   const [selectedCarro, setSelectedCarro] = useState<CarrosDto | null>(null);
 
-  // Estados para situacao de veiculo
+  // Estados para situacao de veiculo (Modal Editar Situação)
   const [openEditModal, setOpenEditModal] = useState(false);
   const [selectedCarroForEdit, setSelectedCarroForEdit] = useState<CarrosDto | null>(null);
   const [novaSituacao, setNovaSituacao] = useState<string>('');
 
   const handleOpenEditModal = (carro: CarrosDto) => {
-  setSelectedCarroForEdit(carro);
-  setNovaSituacao(carro.situacao);
-  setOpenEditModal(true);
-};
+    setSelectedCarroForEdit(carro);
+    setNovaSituacao(carro.situacao);
+    setOpenEditModal(true);
+  };
 
-const handleCloseEditModal = () => {
-  setOpenEditModal(false);
-  setSelectedCarroForEdit(null);
-};
+  const handleCloseEditModal = () => {
+    setOpenEditModal(false);
+    setSelectedCarroForEdit(null);
+  };
 
-const handleSituacaoChange = (event: SelectChangeEvent) => {
-  setNovaSituacao(event.target.value);
-};
+  const handleSituacaoChange = (event: SelectChangeEvent) => {
+    setNovaSituacao(event.target.value);
+  };
 
-
-// Cria um mapa de ID para nome
-const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
-  if (tipo.id_tipo_combustivel) {
-    map[tipo.id_tipo_combustivel] = tipo.nome;
-  }
-  return map;
-}, {} as Record<number, string>);
+  // Cria um mapa de ID para nome
+  const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
+    if (tipo.id_tipo_combustivel) {
+      map[tipo.id_tipo_combustivel] = tipo.nome;
+    }
+    return map;
+  }, {} as Record<number, string>);
+  
+  // Função de carregamento de carros (mantida)
   useEffect(() => {
     async function carregarCarros() {
       try {
         const lista = await CarrosService.buscarTodos();
-        
+
         // Calcular contadores
         setQtdAtivos(lista.filter(c => c.ativo).length);
         setQtdInativos(lista.filter(c => !c.ativo).length);
         setQtdDisponivel(lista.filter(c => c.situacao === 'DISPONIVEL' && c.ativo).length);
         setQtdViagem(lista.filter(c => c.situacao === 'VIAGEM' && c.ativo).length);
         setQtdManutencao(lista.filter(c => c.situacao === 'MANUTENCAO' && c.ativo).length);
-        
+
         setCarros(lista);
       } catch (error) {
         console.error("Erro ao carregar carros:", error);
       }
-    } 
+    }
     carregarCarros();
   }, [carroCadastrado]);
 
+  // Função de filtro (mantida)
   const filteredCarros = carros.filter(carro => {
-    const matchesSearchTerm = 
+    const matchesSearchTerm =
       Object.values(carro).some(valor =>
         String(valor).toLowerCase().includes(busca.toLowerCase())
       );
@@ -101,7 +102,7 @@ const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
       filtroStatus === 'TODOS' ||
       (filtroStatus === 'ATIVOS' && carro.ativo) ||
       (filtroStatus === 'INATIVOS' && !carro.ativo);
-      
+
     const matchesSituacao =
       filtroSituacao === 'TODOS' ||
       carro.situacao === filtroSituacao;
@@ -109,18 +110,19 @@ const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
     return matchesSearchTerm && matchesStatus && matchesSituacao;
   });
 
-  // Abre o modal de confirmação
+  // Abre o modal de confirmação (Ativar/Inativar)
   const handleAbrirModalAtivacao = (carro: CarrosDto) => {
     setSelectedCarro(carro);
     setShowModalAtivacao(true);
   };
 
-  // Confirma a alteração de status
+  // Confirma a alteração de status (Ativar/Inativar)
   const handleConfirmarToggleAtivo = async () => {
     if (!selectedCarro || !selectedCarro.idCarros) return;
-    
+
     try {
-      await CarrosService.inativar(selectedCarro.idCarros);
+      // Nota: A lógica inativar deve alternar o status
+      await CarrosService.inativar(selectedCarro.idCarros); 
       const listaAtualizada = await CarrosService.buscarTodos();
       setCarros(listaAtualizada);
       setShowModalAtivacao(false);
@@ -130,6 +132,7 @@ const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
     }
   };
 
+  // Lógica de salvamento da Situação (mantida)
   const handleSaveSituacao = async () => {
     if (!selectedCarroForEdit || !selectedCarroForEdit.idCarros) return;
     try {
@@ -147,10 +150,11 @@ const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
     }
   };
 
+  // Definição das colunas da DataGrid (mantida)
   const colunas: GridColDef[] = [
-    { 
-      field: 'placa', 
-      headerName: 'Placa', 
+    {
+      field: 'placa',
+      headerName: 'Placa',
       flex: 1,
       renderCell: (params) => (
         <Typography fontWeight="bold">
@@ -161,42 +165,42 @@ const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
     { field: 'modelo', headerName: 'Modelo', flex: 2 },
     { field: 'ano', headerName: 'Ano', flex: 1 },
     { field: 'localidade_fisica', headerName: 'Localidade', flex: 1 },
-     {
-        field: 'tipo_combustivel',
-        headerName: 'Combustível',
-        flex: 1,
-        renderCell: (params) => {
-          const valor = params.value;
-          let nomeCombustivel = 'Não definido';
+    {
+      field: 'tipo_combustivel',
+      headerName: 'Combustível',
+      flex: 1,
+      renderCell: (params) => {
+        const valor = params.value;
+        let nomeCombustivel = 'Não definido';
 
-          // Caso 1: É um número (ID)
-          if (typeof valor === 'number') {
-            nomeCombustivel = mapaCombustiveis[valor] || 'Não definido';
-          } 
-          // Caso 2: É um objeto com propriedade 'nome'
-          else if (valor && typeof valor === 'object' && 'nome' in valor) {
-            nomeCombustivel = valor.nome;
-          }
-          // Caso 3: É um objeto incompleto ou string
-          else if (valor && typeof valor === 'object') {
-            nomeCombustivel = valor.nome || 'Não definido';
-          }
-
-          return (
-            <Typography variant="body2">
-              {nomeCombustivel}
-            </Typography>
-          );
+        // Caso 1: É um número (ID)
+        if (typeof valor === 'number') {
+          nomeCombustivel = mapaCombustiveis[valor] || 'Não definido';
         }
-      },
-    { 
-      field: 'situacao', 
-      headerName: 'Situação', 
+        // Caso 2: É um objeto com propriedade 'nome'
+        else if (valor && typeof valor === 'object' && 'nome' in valor) {
+          nomeCombustivel = (valor as { nome: string }).nome;
+        }
+        // Caso 3: É um objeto incompleto ou string
+        else if (valor && typeof valor === 'object') {
+          nomeCombustivel = (valor as { nome?: string }).nome || 'Não definido';
+        }
+
+        return (
+          <Typography variant="body2">
+            {nomeCombustivel}
+          </Typography>
+        );
+      }
+    },
+    {
+      field: 'situacao',
+      headerName: 'Situação',
       flex: 1,
       renderCell: (params) => {
         if (!params.row.ativo) {
           return (
-            <Typography 
+            <Typography
               color="textSecondary"
               fontStyle="italic"
               fontWeight={500}
@@ -205,27 +209,27 @@ const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
             </Typography>
           );
         }
-        
+
         let color, texto;
-        switch(params.value) {
-          case 'DISPONIVEL': 
-            color = theme.palette.success.main; 
+        switch (params.value) {
+          case 'DISPONIVEL':
+            color = theme.palette.success.main;
             texto = 'Disponível';
             break;
-          case 'VIAGEM': 
-            color = theme.palette.info.main; 
+          case 'VIAGEM':
+            color = theme.palette.info.main;
             texto = 'Em Viagem';
             break;
-          case 'MANUTENCAO': 
-            color = theme.palette.warning.main; 
+          case 'MANUTENCAO':
+            color = theme.palette.warning.main;
             texto = 'Manutenção';
             break;
-          default: 
+          default:
             color = theme.palette.text.secondary;
             texto = 'Indisponivel';
         }
         return (
-          <Typography 
+          <Typography
             style={{ color, fontWeight: 600 }}
             variant="body2"
           >
@@ -240,25 +244,25 @@ const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
       flex: 1,
       renderCell: (params) => (
         <Box display="flex" gap={1}>
-      
+
           <Tooltip title="Editar veículo">
-            <IconButton 
+            <IconButton
               color="primary"
               size="small"
-               onClick={() => handleOpenEditModal(params.row)}
+              onClick={() => handleOpenEditModal(params.row)}
             >
               <Edit fontSize="small" />
             </IconButton>
           </Tooltip>
-          
+
           <Tooltip title={params.row.ativo ? "Inativar veículo" : "Ativar veículo"}>
-            <IconButton 
+            <IconButton
               color={params.row.ativo ? "error" : "success"}
               size="small"
               onClick={() => handleAbrirModalAtivacao(params.row)}
             >
-              {params.row.ativo ? 
-                <Cancel fontSize="small" /> : 
+              {params.row.ativo ?
+                <Cancel fontSize="small" /> :
                 <CheckCircle fontSize="small" />
               }
             </IconButton>
@@ -271,7 +275,7 @@ const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
   return (
     <>
       <Menu />
-      <Box sx={{ 
+      <Box sx={{
         p: 3,
         backgroundColor: theme.palette.background.default,
         minHeight: '100vh'
@@ -280,13 +284,13 @@ const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
           <Typography variant="h5" fontWeight="bold" color="textPrimary">
             Listagem de Veículos
           </Typography>
-          
-          <Button 
+
+          <Button
             variant="contained"
-            component={Link} 
+            component={Link}
             to="/CadastroCarro"
             startIcon={<Add />}
-            sx={{ 
+            sx={{
               textTransform: 'none',
               fontWeight: 600,
               boxShadow: theme.shadows[2]
@@ -297,7 +301,7 @@ const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
         </Box>
 
         {/* Filtros por status (Ativos/Inativos) */}
-        <Box sx={{ 
+        <Box sx={{
           width: '100%',
           mb: 3,
           borderBottom: 1,
@@ -306,7 +310,7 @@ const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          <Box sx={{ 
+          <Box sx={{
             display: 'flex',
             overflowX: 'auto',
             scrollbarWidth: 'none',
@@ -354,14 +358,14 @@ const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
               </Button>
             ))}
           </Box>
-          
+
           <TextField
             placeholder="Buscar veículos..."
             variant="outlined"
             size="small"
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            sx={{ 
+            sx={{
               width: 250,
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
@@ -372,9 +376,9 @@ const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
         </Box>
 
         {/* Filtros por situação operacional */}
-        <Box sx={{ 
-          display: 'flex', 
-          gap: 1, 
+        <Box sx={{
+          display: 'flex',
+          gap: 1,
           mb: 3,
           flexWrap: 'wrap',
           rowGap: 2
@@ -400,9 +404,9 @@ const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
                 }
               }}
             >
-              {tab.label} 
-              <Box sx={{ 
-                ml: 1, 
+              {tab.label}
+              <Box sx={{
+                ml: 1,
                 fontWeight: 600,
                 backgroundColor: filtroSituacao === tab.value ? 'rgba(255,255,255,0.2)' : theme.palette.grey[200],
                 px: 1,
@@ -431,8 +435,8 @@ const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
               py: 1.5,
             },
             '& .MuiDataGrid-columnHeaders': {
-              backgroundColor: theme.palette.mode === 'dark' 
-                ? theme.palette.grey[800] 
+              backgroundColor: theme.palette.mode === 'dark'
+                ? theme.palette.grey[800]
                 : theme.palette.grey[100],
               fontWeight: 'bold',
               borderRadius: 1,
@@ -461,102 +465,17 @@ const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
         />
       </Box>
 
-      {/* Modal de editar status do Veículo */}
-  <Modal
-    open={openEditModal}
-    onClose={handleCloseEditModal}
-    aria-labelledby="modal-edit-situacao"
-  >
-    <Box
-      sx={{
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 500,
-        bgcolor: 'background.paper',
-        boxShadow: 24,
-        p: 4,
-        borderRadius: 2,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 2,
-      }}
-    >
-      <Typography variant="h6" component="h2" gutterBottom>
-        Alterar Situação do Veículo
-      </Typography>
       
-      <Typography variant="body1" gutterBottom>
-        Placa: <strong>{selectedCarroForEdit?.placa}</strong>
-      </Typography>
-      <Typography variant="body1" gutterBottom>
-        Modelo: <strong>{selectedCarroForEdit?.modelo}</strong>
-      </Typography>
+      <FormularioVeiculos
+        open={openEditModal}
+        onClose={handleCloseEditModal}
+        selectedCarro={selectedCarroForEdit}
+        novaSituacao={novaSituacao}
+        onSituacaoChange={handleSituacaoChange}
+        onSave={handleSaveSituacao}
+      />
       
-      <FormControl fullWidth>
-        <InputLabel id="situacao-select-label">Nova Situação</InputLabel>
-        <Select
-          labelId="situacao-select-label"
-          value={novaSituacao}
-          label="Nova Situação"
-          onChange={handleSituacaoChange}
-        >
-          <MenuItem value="DISPONIVEL">
-            <Box display="flex" alignItems="center" gap={1}>
-              <Box sx={{
-                width: 10,
-                height: 10,
-                borderRadius: '50%',
-                bgcolor: theme.palette.success.main
-              }} />
-              Disponivel
-            </Box>
-          </MenuItem>
-          <MenuItem value="VIAGEM">
-            <Box display="flex" alignItems="center" gap={1}>
-              <Box sx={{
-                width: 10,
-                height: 10,
-                borderRadius: '50%',
-                bgcolor: theme.palette.info.main
-              }} />
-              Em Viagem
-            </Box>
-          </MenuItem>
-          <MenuItem value="MANUTENCAO">
-            <Box display="flex" alignItems="center" gap={1}>
-              <Box sx={{
-                width: 10,
-                height: 10,
-                borderRadius: '50%',
-                bgcolor: theme.palette.warning.main
-              }} />
-              Manutenção
-            </Box>
-          </MenuItem>
-        </Select>
-      </FormControl>
-    
-          <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
-            <Button 
-              onClick={handleCloseEditModal}
-              variant="outlined"
-            >
-              Cancelar
-            </Button>
-            <Button 
-              onClick={handleSaveSituacao}
-              variant="contained"
-              color="primary"
-            >
-              Salvar
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
-
-      {/* Modal de Ativar/Inativar Veículo */}
+      {/* Modal de Ativar/Inativar Veículo (Mantido aqui, pois é um modal de confirmação simples) */}
       <Modal
         open={showModalAtivacao}
         onClose={() => setShowModalAtivacao(false)}
@@ -586,14 +505,14 @@ const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
             Você está prestes a {selectedCarro?.ativo ? "inativar" : "ativar"} o veículo {selectedCarro?.placa}.
           </Typography>
           <Box display="flex" justifyContent="flex-end" gap={2}>
-            <Button 
+            <Button
               onClick={handleConfirmarToggleAtivo}
               variant="contained"
-              color={selectedCarro?.ativo ? "error" : "success"} 
+              color={selectedCarro?.ativo ? "error" : "success"}
             >
               {selectedCarro?.ativo ? "Inativar" : "Ativar"}
             </Button>
-            <Button 
+            <Button
               onClick={() => setShowModalAtivacao(false)}
               variant="outlined"
             >
@@ -602,7 +521,7 @@ const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
           </Box>
         </Box>
       </Modal>
-      
+
     </>
   );
 }
