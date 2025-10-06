@@ -4,7 +4,7 @@ import {
   Button,
   IconButton,
   Modal,
-  SelectChangeEvent, // Necessário para a função handleSituacaoChange
+  SelectChangeEvent,
   TextField,
   Tooltip,
   Typography,
@@ -12,14 +12,11 @@ import {
 } from "@mui/material";
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { CarrosDto, CarrosService } from "../../../api/carrosService"; 
 import { TipoCombustivel } from '../../../api/tipoCombustivelService'; 
 import Menu from "../../Menu"; 
-import { FormularioVeiculos } from './formularioVeiculos';
-
-// Importando o componente do Modal que criamos
-
+import FormularioVeiculos from './formularioVeiculos';
 
 export default function ListaCarros() {
   const theme = useTheme();
@@ -42,25 +39,78 @@ export default function ListaCarros() {
   const [showModalAtivacao, setShowModalAtivacao] = useState(false);
   const [selectedCarro, setSelectedCarro] = useState<CarrosDto | null>(null);
 
-  // Estados para situacao de veiculo (Modal Editar Situação)
-  const [openEditModal, setOpenEditModal] = useState(false);
+  // Estados para o FormularioVeiculos
+  const [openFormulario, setOpenFormulario] = useState(false);
   const [selectedCarroForEdit, setSelectedCarroForEdit] = useState<CarrosDto | null>(null);
+  const [modoFormulario, setModoFormulario] = useState<'criar' | 'editar'>('criar');
+
+  // Estados para situação de veiculo (Modal Editar Situação - mantido para compatibilidade)
+  const [openEditModal, setOpenEditModal] = useState(false);
   const [novaSituacao, setNovaSituacao] = useState<string>('');
 
-  const handleOpenEditModal = (carro: CarrosDto) => {
-    setSelectedCarroForEdit(carro);
-    setNovaSituacao(carro.situacao);
-    setOpenEditModal(true);
+  // Abrir modal de criação
+  const handleOpenCriar = () => {
+    setModoFormulario('criar');
+    setSelectedCarroForEdit(null);
+    setOpenFormulario(true);
   };
+
+  // Abrir modal de edição
+  const handleOpenEditar = (carro: CarrosDto) => {
+    setModoFormulario('editar');
+    setSelectedCarroForEdit(carro);
+    setOpenFormulario(true);
+  };
+
+  // Fechar modal do formulário
+  const handleCloseFormulario = () => {
+    setOpenFormulario(false);
+    setSelectedCarroForEdit(null);
+  };
+
+  // Sucesso no formulário
+  const handleSuccessFormulario = (message: string) => {
+    console.log(message);
+    // Recarregar a lista de carros
+    carregarCarros();
+    handleCloseFormulario();
+  };
+
+  // Erro no formulário
+  const handleErrorFormulario = (error: any) => {
+    console.error('Erro no formulário:', error);
+    alert('Erro ao salvar veículo: ' + (error?.message || 'Erro desconhecido'));
+  };
+
+  // Função para carregar carros
+  const carregarCarros = async () => {
+    try {
+      const lista = await CarrosService.buscarTodos();
+
+      // Calcular contadores
+      setQtdAtivos(lista.filter(c => c.ativo).length);
+      setQtdInativos(lista.filter(c => !c.ativo).length);
+      setQtdDisponivel(lista.filter(c => c.situacao === 'DISPONIVEL' && c.ativo).length);
+      setQtdViagem(lista.filter(c => c.situacao === 'VIAGEM' && c.ativo).length);
+      setQtdManutencao(lista.filter(c => c.situacao === 'MANUTENCAO' && c.ativo).length);
+
+      setCarros(lista);
+    } catch (error) {
+      console.error("Erro ao carregar carros:", error);
+    }
+  };
+
+  // Carregar carros ao inicializar
+  useEffect(() => {
+    carregarCarros();
+  }, [carroCadastrado]);
+
 
   const handleCloseEditModal = () => {
     setOpenEditModal(false);
     setSelectedCarroForEdit(null);
   };
 
-  const handleSituacaoChange = (event: SelectChangeEvent) => {
-    setNovaSituacao(event.target.value);
-  };
 
   // Cria um mapa de ID para nome
   const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
@@ -70,27 +120,6 @@ export default function ListaCarros() {
     return map;
   }, {} as Record<number, string>);
   
-  // Função de carregamento de carros (mantida)
-  useEffect(() => {
-    async function carregarCarros() {
-      try {
-        const lista = await CarrosService.buscarTodos();
-
-        // Calcular contadores
-        setQtdAtivos(lista.filter(c => c.ativo).length);
-        setQtdInativos(lista.filter(c => !c.ativo).length);
-        setQtdDisponivel(lista.filter(c => c.situacao === 'DISPONIVEL' && c.ativo).length);
-        setQtdViagem(lista.filter(c => c.situacao === 'VIAGEM' && c.ativo).length);
-        setQtdManutencao(lista.filter(c => c.situacao === 'MANUTENCAO' && c.ativo).length);
-
-        setCarros(lista);
-      } catch (error) {
-        console.error("Erro ao carregar carros:", error);
-      }
-    }
-    carregarCarros();
-  }, [carroCadastrado]);
-
   // Função de filtro (mantida)
   const filteredCarros = carros.filter(carro => {
     const matchesSearchTerm =
@@ -121,10 +150,8 @@ export default function ListaCarros() {
     if (!selectedCarro || !selectedCarro.idCarros) return;
 
     try {
-      // Nota: A lógica inativar deve alternar o status
       await CarrosService.inativar(selectedCarro.idCarros); 
-      const listaAtualizada = await CarrosService.buscarTodos();
-      setCarros(listaAtualizada);
+      await carregarCarros();
       setShowModalAtivacao(false);
     } catch (error) {
       console.error("Erro ao alternar status:", error);
@@ -132,17 +159,27 @@ export default function ListaCarros() {
     }
   };
 
-  // Lógica de salvamento da Situação (mantida)
+  // Lógica de salvamento da Situação (mantida para compatibilidade)
   const handleSaveSituacao = async () => {
     if (!selectedCarroForEdit || !selectedCarroForEdit.idCarros) return;
     try {
       console.log('Enviando para API:', selectedCarroForEdit.idCarros, { situacao: novaSituacao });
       await CarrosService.atualizar(
         selectedCarroForEdit.idCarros,
-        { situacao: novaSituacao }
+        {
+          situacao: novaSituacao,
+          tombo: 0,
+          qrCode: '',
+          placa: '',
+          odometro: '',
+          modelo: '',
+          ano: 0,
+          localidade_fisica: '',
+          ativo: false,
+          tipo_combustivel: 0
+        }
       );
-      const listaAtualizada: CarrosDto[] = await CarrosService.buscarTodos();
-      setCarros(listaAtualizada);
+      await carregarCarros();
       handleCloseEditModal();
     } catch (error: any) {
       console.error("Erro ao atualizar situação:", error);
@@ -150,7 +187,7 @@ export default function ListaCarros() {
     }
   };
 
-  // Definição das colunas da DataGrid (mantida)
+  // Definição das colunas da DataGrid (atualizada para usar handleOpenEditar)
   const colunas: GridColDef[] = [
     {
       field: 'placa',
@@ -173,15 +210,12 @@ export default function ListaCarros() {
         const valor = params.value;
         let nomeCombustivel = 'Não definido';
 
-        // Caso 1: É um número (ID)
         if (typeof valor === 'number') {
           nomeCombustivel = mapaCombustiveis[valor] || 'Não definido';
         }
-        // Caso 2: É um objeto com propriedade 'nome'
         else if (valor && typeof valor === 'object' && 'nome' in valor) {
           nomeCombustivel = (valor as { nome: string }).nome;
         }
-        // Caso 3: É um objeto incompleto ou string
         else if (valor && typeof valor === 'object') {
           nomeCombustivel = (valor as { nome?: string }).nome || 'Não definido';
         }
@@ -244,12 +278,12 @@ export default function ListaCarros() {
       flex: 1,
       renderCell: (params) => (
         <Box display="flex" gap={1}>
-
+          {/* Botão Editar - agora abre o FormularioVeiculos */}
           <Tooltip title="Editar veículo">
             <IconButton
               color="primary"
               size="small"
-              onClick={() => handleOpenEditModal(params.row)}
+              onClick={() => handleOpenEditar(params.row)}
             >
               <Edit fontSize="small" />
             </IconButton>
@@ -285,10 +319,10 @@ export default function ListaCarros() {
             Listagem de Veículos
           </Typography>
 
+          {/* Botão Novo Veículo - agora abre o FormularioVeiculos */}
           <Button
             variant="contained"
-            component={Link}
-            to="/CadastroCarro"
+            onClick={handleOpenCriar}
             startIcon={<Add />}
             sx={{
               textTransform: 'none',
@@ -465,22 +499,57 @@ export default function ListaCarros() {
         />
       </Box>
 
-      
+      {/* FormularioVeiculos para criação e edição */}
       <FormularioVeiculos
+        idVeiculo={modoFormulario === 'editar' && selectedCarroForEdit ? selectedCarroForEdit.idCarros || null : null}
+        open={openFormulario}
+        onClose={handleCloseFormulario}
+        onSuccess={handleSuccessFormulario}
+        onError={handleErrorFormulario}
+      />
+
+      {/* Modal de Edição de Situação (mantido para compatibilidade) */}
+      <Modal
         open={openEditModal}
         onClose={handleCloseEditModal}
-        selectedCarro={selectedCarroForEdit}
-        novaSituacao={novaSituacao}
-        onSituacaoChange={handleSituacaoChange}
-        onSave={handleSaveSituacao}
-      />
-      
-      {/* Modal de Ativar/Inativar Veículo (Mantido aqui, pois é um modal de confirmação simples) */}
+        aria-labelledby="modal-situacao-title"
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 400,
+            bgcolor: 'background.paper',
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            Editar Situação
+          </Typography>
+          <Typography variant="body1" gutterBottom>
+            Veículo: {selectedCarroForEdit?.placa}
+          </Typography>
+          {/* Aqui você pode adicionar os controles para editar a situação se necessário */}
+          <Box display="flex" justifyContent="flex-end" gap={1} mt={2}>
+            <Button onClick={handleCloseEditModal} variant="outlined">
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveSituacao} variant="contained">
+              Salvar
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+
+      {/* Modal de Ativar/Inativar Veículo */}
       <Modal
         open={showModalAtivacao}
         onClose={() => setShowModalAtivacao(false)}
         aria-labelledby="modal-ativacao-title"
-        aria-describedby="modal-ativacao-description"
       >
         <Box
           sx={{
@@ -521,7 +590,6 @@ export default function ListaCarros() {
           </Box>
         </Box>
       </Modal>
-
     </>
   );
 }
