@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -19,8 +19,6 @@ import Menu from "../../Menu";
 import SalvarEdicaoCorrida from "./modais/editarPainelCorrida";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CadastrarCorrida from '../../cadastros/corrida/modais/CadastrarCorrida';
-import { useAuth } from '../../../context/AuthContext';
-
 
 const formatDate = (dateString: string | null) => {
   if (!dateString) return 'Em andamento';
@@ -41,7 +39,6 @@ const mapToDto = (c: CorridaFrontend): CorridaDto => ({
 
 export default function ListaCorridas() {
   const theme = useTheme();
-  const { isAuthenticated } = useAuth();
 
   const [busca, setBusca] = useState('');
   const [corridas, setCorridas] = useState<CorridaFrontend[]>([]);
@@ -56,18 +53,13 @@ export default function ListaCorridas() {
   const [showModalReceberChave, setShowModalReceberChave] = useState(false);
   const [showModalEditar, setShowModalEditar] = useState(false);
   const [showModalCancelar, setShowModalCancelar] = useState(false);
-  
 
   const [filtroSituacao, setFiltroSituacao] = useState<string>('TODOS');
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/');
-    } else {
       carregarCorridas(); 
-    }
   }, []);
 
   const carregarCorridas = async () => {
@@ -124,14 +116,13 @@ export default function ListaCorridas() {
       headerName: 'Motorista',
       flex: 0.8,
       renderCell: (params) => (
-        <Typography fontWeight="bold">{params.value}</Typography>
+        <Typography>{params.value}</Typography>
       )
     },
     {
       field: 'placaVeiculo',
       headerName: 'Veículo',
-      width: 200,
-      align: 'center',
+      width: 150,
       renderCell: (params) => (
         <Typography>{params.value}</Typography>
       )
@@ -498,8 +489,9 @@ export default function ListaCorridas() {
         <CadastrarCorrida
           open={showModalCadastrarCorrida}
           onClose={() => setShowModalCadastrarCorrida(false)}
-          onSuccess={(message) => {
-            carregarCorridas();
+          onSuccess={async (msg) => {
+            console.log(msg);
+            await carregarCorridas();
           }}
           onError={(error) => {
             console.error('Erro ao cadastrar requisição:', error);
