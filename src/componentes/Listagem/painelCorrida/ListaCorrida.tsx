@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -18,7 +18,7 @@ import { CorridaFrontend, CorridaDto, getCorridas, CorridaService, atualizarSitu
 import Menu from "../../Menu";
 import SalvarEdicaoCorrida from "./modais/editarPainelCorrida";
 import VisibilityIcon from '@mui/icons-material/Visibility';
-
+import CadastrarCorrida from '../../cadastros/corrida/modais/cadastrarCorrida';
 
 const formatDate = (dateString: string | null) => {
   if (!dateString) return 'Em andamento';
@@ -48,29 +48,30 @@ export default function ListaCorridas() {
   const [senhaLiberarChave, setSenhaLiberarChave] = useState('');
   const [corridaParaEditar, setCorridaParaEditar] = useState<CorridaFrontend | null>(null);
 
+  const [showModalCadastrarCorrida, setShowModalCadastrarCorrida] = useState(false);
   const [showModalLiberarChave, setShowModalLiberarChave] = useState(false);
   const [showModalReceberChave, setShowModalReceberChave] = useState(false);
   const [showModalEditar, setShowModalEditar] = useState(false);
   const [showModalCancelar, setShowModalCancelar] = useState(false);
-  
 
   const [filtroSituacao, setFiltroSituacao] = useState<string>('TODOS');
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    const carregarCorridas = async () => {
-      try {
-        const dados = await getCorridas();
-        setCorridas(dados);
-      } catch (error) {
-        console.error("Erro ao carregar corridas:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    carregarCorridas();
+      carregarCorridas(); 
   }, []);
+
+  const carregarCorridas = async () => {
+    try {
+      const dados = await getCorridas();
+      setCorridas(dados);
+    } catch (error) {
+      console.error("Erro ao carregar corridas:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const qtdAgendadas = corridas.filter(c => c.situacao === 'AGENDADA').length;
   const qtdEmAndamento = corridas.filter(c => c.situacao === 'ANDAMENTO').length;
@@ -115,14 +116,13 @@ export default function ListaCorridas() {
       headerName: 'Motorista',
       flex: 0.8,
       renderCell: (params) => (
-        <Typography fontWeight="bold">{params.value}</Typography>
+        <Typography>{params.value}</Typography>
       )
     },
     {
       field: 'placaVeiculo',
       headerName: 'Veículo',
-      width: 200,
-      align: 'center',
+      width: 150,
       renderCell: (params) => (
         <Typography>{params.value}</Typography>
       )
@@ -241,19 +241,18 @@ export default function ListaCorridas() {
   return (
     <>
       <Menu />
-      <Box sx={{ p: 3, backgroundColor: theme.palette.background.default, minHeight: '100vh' }}>
+      <Box sx={{ p: 3, backgroundColor: theme.palette.background.default, minHeight: '100vh'}}>
         {/* Header */}
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Typography variant="h5" fontWeight="bold" color="textPrimary">
             Listagem de Corridas
           </Typography>
           <Button
-            component={Link}
-            to="/ColocarTombo"
+            onClick={() => setShowModalCadastrarCorrida(true)}
             variant="contained"
             sx={{ textTransform: 'none', fontWeight: 600, boxShadow: theme.shadows[2] }}
           >
-            + Agendar Corrida
+            + Nova Corrida
           </Button>
         </Box>
 
@@ -312,31 +311,32 @@ export default function ListaCorridas() {
         </Box>
 
         {/* DataGrid */}
-        <DataGrid
-          rows={dadosFiltrados}
-          columns={columns}
-          loading={loading}
-          getRowId={(row) => row.idCorrida}
-          initialState={{ pagination: { paginationModel: { pageSize: 10, page: 0 } } }}
-          pageSizeOptions={[5, 10, 20, 50]}
-          autoHeight
-          sx={{
-            '& .MuiDataGrid-cell': { borderBottom: `1px solid ${theme.palette.divider}`, py: 1.5 },
-            '& .MuiDataGrid-columnHeaders': {
-              backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[100],
-              fontWeight: 'bold',
-              borderRadius: 1,
-              borderBottom: `2px solid ${theme.palette.divider}`
-            },
-            '& .MuiDataGrid-row': { '&:hover': { backgroundColor: theme.palette.action.hover }, '&.Mui-selected': { backgroundColor: theme.palette.action.selected } },
-            '& .MuiDataGrid-footerContainer': { borderTop: `1px solid ${theme.palette.divider}` },
-            boxShadow: theme.shadows[1],
-            borderRadius: 2,
-            border: 'none',
-            backgroundColor: theme.palette.background.paper
-          }}
-          rowSelection={false}
-        />
+        <Box sx={{ width: '100%', height: 600 }}>
+          <DataGrid
+            rows={dadosFiltrados}
+            columns={columns}
+            loading={loading}
+            getRowId={(row) => row.idCorrida}
+            initialState={{ pagination: { paginationModel: { pageSize: 10, page: 0 } } }}
+            pageSizeOptions={[5, 10, 20, 50]}
+            sx={{
+              '& .MuiDataGrid-cell': { borderBottom: `1px solid ${theme.palette.divider}`, py: 1.5 },
+              '& .MuiDataGrid-columnHeaders': {
+                backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[100],
+                fontWeight: 'bold',
+                borderRadius: 1,
+                borderBottom: `2px solid ${theme.palette.divider}`
+              },
+              '& .MuiDataGrid-row': { '&:hover': { backgroundColor: theme.palette.action.hover }, '&.Mui-selected': { backgroundColor: theme.palette.action.selected } },
+              '& .MuiDataGrid-footerContainer': { borderTop: `1px solid ${theme.palette.divider}` },
+              boxShadow: theme.shadows[1],
+              borderRadius: 2,
+              border: 'none',
+              backgroundColor: theme.palette.background.paper
+            }}
+            rowSelection={false}
+          />
+        </Box>
       </Box>
 
       {/* Modais */}
@@ -468,7 +468,6 @@ export default function ListaCorridas() {
         </DialogActions>
       </Dialog>
 
-
       <SalvarEdicaoCorrida
         open={showModalEditar}
         onClose={() => setShowModalEditar(false)}
@@ -485,6 +484,23 @@ export default function ListaCorridas() {
           console.error(err);
         }}
       />
+
+      {showModalCadastrarCorrida && (
+        <CadastrarCorrida
+          open={showModalCadastrarCorrida}
+          onClose={() => setShowModalCadastrarCorrida(false)}
+          onSuccess={async (msg) => {
+            console.log(msg);
+            await carregarCorridas();
+          }}
+          onError={(error) => {
+            console.error('Erro ao cadastrar requisição:', error);
+            if (error.response?.status === 401) {
+              navigate('/');
+            }
+          }}
+        />
+      )}
     </>
   );
 }
