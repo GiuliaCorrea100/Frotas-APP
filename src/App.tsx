@@ -45,10 +45,8 @@ const App: React.FC = () => {
           {/*Paginas de Cadastro*/}
           <Route path="/CadastroMotorista" element={<CadastroMotorista />} />
           <Route path="/CadastroMotorista2" element={<CadastroMotorista2 />} />
-          {/* <Route path="/CadastroMulta" element={<CadastroMulta />} /> */}
           <Route path="/CadastroCarro" element={<CadastroCarro />} />
-
-         {/* <Route path="/AbastecimentoModal" element={<AbastecimentoModal /> } />  */}
+          <Route path="/Relatorios" element={<Relatorios />} />
 
           {/*Paginas de Cadastro*/}
           <Route path="/ListaMultas" element={<ListaMulta />} />
@@ -62,9 +60,7 @@ const App: React.FC = () => {
           {/*Paginas de Corridas */}
           {/*ALTERAR DEPOIS, PARA QUE NAO POSSAM SER ACESSADOS VIA URL*/}
           <Route path="/IniciarCorrida" element={<IniciarCorrida />} />
-
-          {/*  Relatórios      /> */}
-          <Route path="/Relatorios" element={<Relatorios />} />
+          
         </Route>
 
 

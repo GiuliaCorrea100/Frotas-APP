@@ -268,6 +268,15 @@ const Menu: React.FC = () => {
                       >
                         Administradores
                       </Button>
+
+                      <Button 
+                        color="inherit" 
+                        component={Link} 
+                        to="/Relatorios"
+                        sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
+                      >
+                        Relatórios
+                      </Button>
                     </Box>
                   )}
 
@@ -280,14 +289,7 @@ const Menu: React.FC = () => {
                     Historico
                   </Button>
 
-                  <Button 
-                    color="inherit" 
-                    component={Link} 
-                    to="/Relatorios"
-                    sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
-                  >
-                    Relatórios
-                  </Button>
+                  
                 </>
               )}
 
