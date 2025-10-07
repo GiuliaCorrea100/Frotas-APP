@@ -1,7 +1,11 @@
-import { Add, Cancel, CheckCircle, Edit } from '@mui/icons-material';
+import { Add, Cancel,Edit } from '@mui/icons-material';
 import {
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   TextField,
   Tooltip,
@@ -10,42 +14,82 @@ import {
 } from "@mui/material";
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useEffect, useState } from 'react';
-import { Link } from "react-router-dom";
 import Menu from '../../Menu';
-import { listarMultas } from '../../../api/multaService';
+import { MultaService, MultaDto } from '../../../api/multaService';
 import React from 'react';
+import CadastroMultaModal from './modais/CadastrarMulta';
+import EditarMultaModal from './modais/editarMulta';
 
-interface Multa {
-  idMultas: number;
-  codInfracao: string;
-  placaVeiculo: string;
-  data: Date;
-  valor: string;
-  classInfracao: string;
-  numAutoInfracao: number;
-}
 
 export default function ListaMulta() {
   const theme = useTheme();
   const [busca, setBusca] = useState("");
-  const [multas, setMultas] = useState<Multa[]>([]);
+  const [multas, setMultas] = useState<MultaDto[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const carregarMultas = async () => {
-      setLoading(true);
-      try {
-        const dados = await listarMultas();
-        setMultas(dados);
-      } catch (error) {
-        console.error("Erro ao carregar multas:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const [modalCadastrarAberto, setModalCadastroAberto] = useState(false);
+  const [modalEditarAberto, setModalEditarAberto] = useState(false);
+  const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
 
+  const [multaSelecionada, setMultaSelecionada] = useState<MultaDto | null>(null);
+
+  useEffect(() => {
     carregarMultas();
   }, []);
+
+  const carregarMultas = async () => {
+    setLoading(true);
+    try {
+      const dados = await MultaService.listarMultas();
+      const multasAtivas = dados.filter((m) => !m.deletada);
+      setMultas(multasAtivas);
+    } catch (error) {
+      console.error("Erro ao carregar multas:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAbrirModalCadastrarMulta = () => {
+    setModalCadastroAberto(true);
+  };
+
+  const handleFecharModalCadastrarMulta = () => {
+    setModalCadastroAberto(false);
+  };
+
+  const handleAbrirModalEditarMulta = (multa: MultaDto) => {
+    setModalEditarAberto(true);
+    setMultaSelecionada(multa);
+  };
+
+  const handleFecharModalEditarMulta = () => {
+    setModalEditarAberto(false);
+    setMultaSelecionada(null);
+  };
+
+  const handleAbrirModalExcluirMulta = (multa: MultaDto) => {
+    setModalExcluirAberto(true);
+    setMultaSelecionada(multa);
+  };
+
+  const handleFecharModalExcluirMulta = () => {
+    setModalExcluirAberto(false);
+    setMultaSelecionada(null);
+  };
+
+  const handleConfirmarExclusao = async () => {
+    console.log(multaSelecionada);
+    if (!multaSelecionada) return;
+    
+    try {
+      await MultaService.removerMulta(multaSelecionada.idMulta!); 
+      await carregarMultas(); 
+      handleFecharModalExcluirMulta();
+    } catch (error) {
+      console.error("Erro ao excluir multa:", error);
+    }
+  };
 
   const dadosFiltrados = multas.filter((multa) =>
     Object.values(multa).some((valor) =>
@@ -54,7 +98,7 @@ export default function ListaMulta() {
   );
 
   const columns: GridColDef[] = [
-    { field: 'codInfracao', headerName: 'Código Infração', flex: 1 },
+    { field: 'codigoInfracao', headerName: 'Código Infração', flex: 1 },
     {
       field: 'placaVeiculo',
       headerName: 'Placa',
@@ -65,42 +109,46 @@ export default function ListaMulta() {
         </Typography>
       )
     },
-    { field: 'data', headerName: 'Data da Infração', flex: 1 },
-    { field: 'valor', headerName: 'Valor', flex: 1 },
-    { field: 'classInfracao', headerName: 'Classificação', flex: 2 },
-    { field: 'numAutoInfracao', headerName: 'Número do auto', flex: 1 },
+    { 
+      field: 'dataInfracao', 
+      headerName: 'Data da Infração', 
+      flex: 1,
+      valueFormatter: (params) => {
+        if (!params.value) return '-';
+        return new Date(params.value).toLocaleDateString('pt-BR');
+      }
+    },
+    { field: 'valorInfracao', headerName: 'Valor', flex: 1 },
+    { field: 'classificacao', headerName: 'Classificação', flex: 2 },
+    { field: 'autoInfracao', headerName: 'Número do auto', flex: 1 },
     {
-          field: 'acoes',
-          headerName: 'Ações',
-          flex: 1,
-          renderCell: (params) => (
-            <Box display="flex" gap={1}>
+      field: 'acoes',
+      headerName: 'Ações',
+      flex: 1,
+      renderCell: (params) => (
+        <Box display="flex" gap={1}>
+          <Tooltip title="Editar multa">
+            <IconButton 
+              color="primary"
+              size="small"
+              onClick={() => handleAbrirModalEditarMulta(params.row)}
+            >
+              <Edit fontSize="small" />
+            </IconButton>
+          </Tooltip>
           
-              <Tooltip title="Editar veículo">
-                <IconButton 
-                  color="primary"
-                  size="small"
-                   //onClick={() => handleOpenEditModal(params.row)}
-                >
-                  <Edit fontSize="small" />
-                </IconButton>
-              </Tooltip>
-              
-              <Tooltip title={"Excluir multa"}>
-                <IconButton 
-                  color={params.row.ativo ? "error" : "success"}
-                  size="small"
-                  //onClick={() => handleAbrirModalAtivacao(params.row)}
-                >
-                  {params.row.ativo ? 
-                    <Cancel fontSize="small" /> : 
-                    <CheckCircle fontSize="small" />
-                  }
-                </IconButton>
-              </Tooltip>
-            </Box>
-          )
-        }
+          <Tooltip title="Excluir multa">
+            <IconButton 
+              color="error"
+              size="small"
+              onClick={() => handleAbrirModalExcluirMulta(params.row)}
+            >
+              <Cancel fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      )
+    }
   ];
 
   return (
@@ -119,8 +167,7 @@ export default function ListaMulta() {
 
           <Button
             variant="contained"
-            component={Link}
-            to="/CadastroMulta"
+            onClick={handleAbrirModalCadastrarMulta}
             startIcon={<Add />}
             sx={{
               textTransform: 'none',
@@ -128,7 +175,7 @@ export default function ListaMulta() {
               boxShadow: theme.shadows[2]
             }}
           >
-            Cadastrar Multa
+            Nova Multa
           </Button>
         </Box>
 
@@ -163,7 +210,7 @@ export default function ListaMulta() {
           rows={dadosFiltrados}
           columns={columns}
           loading={loading}
-          getRowId={(row) => row.idMultas}
+          getRowId={(row) => row.idMulta}
           initialState={{
             pagination: {
               paginationModel: { pageSize: 10, page: 0 },
@@ -204,6 +251,81 @@ export default function ListaMulta() {
             backgroundColor: theme.palette.background.paper
           }}
           rowSelection={false}
+        />
+
+        {/* Dialog de Exclusão - CORRIGIDO */}
+        <Dialog
+          open={modalExcluirAberto}
+          onClose={handleFecharModalExcluirMulta}
+          fullWidth
+          maxWidth="sm"
+          PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
+        >
+          <DialogTitle sx={{ fontWeight: 600 }}>Excluir Multa</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Você tem certeza que deseja excluir esta multa?
+            </Typography>
+            {multaSelecionada && (
+              <Box mt={2} p={2} sx={{ backgroundColor: theme.palette.grey[50], borderRadius: 1 }}>
+                <Typography variant="body2" fontWeight="bold">
+                  Detalhes da Multa:
+                </Typography>
+                <Typography variant="body2">
+                  Código: {multaSelecionada.codigoInfracao}
+                </Typography>
+                <Typography variant="body2">
+                  Placa: {multaSelecionada.placaVeiculo}
+                </Typography>
+                <Typography variant="body2">
+                  Valor: {multaSelecionada.valorInfracao}
+                </Typography>
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions sx={{ p: 3, pt: 0 }}>
+            <Button 
+              onClick={handleFecharModalExcluirMulta} 
+              variant="outlined" 
+              sx={{ borderRadius: 2 }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfirmarExclusao}
+              variant="contained"
+              color="error"
+              sx={{ borderRadius: 2 }}
+            >
+              Confirmar Exclusão
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Modais de Cadastro e Edição */}
+        <CadastroMultaModal
+          open={modalCadastrarAberto}
+          onClose={handleFecharModalCadastrarMulta}
+          onSuccess={async () => {
+            await carregarMultas();
+            handleFecharModalCadastrarMulta();
+          }}
+          onError={(err) => {
+            console.error(err);
+          }}
+        />
+
+        <EditarMultaModal
+          open={modalEditarAberto}
+          multa={multaSelecionada}
+          onClose={handleFecharModalEditarMulta}
+          onSuccess={async () => {
+            await carregarMultas();
+            handleFecharModalEditarMulta();
+          }}
+          onError={(err) => {
+            console.error(err);
+          }}
         />
       </Box>
     </>

@@ -23,7 +23,7 @@ import AbastecimentoService from "../../api/abastecimentoService";
 import { CarrosService } from "../../api/carrosService";
 import { getCorridas } from "../../api/corridaService";
 import { OcorrenciaService } from "../../api/ocorrenciasService";
-import { listarMultas } from "../../api/multaService";
+import { MultaService } from "../../api/multaService";
 import Menu from "../Menu";
 
 // --- Paletas de Cores Consistentes ---
@@ -90,7 +90,7 @@ const Relatorios: React.FC = () => {
                     CarrosService.buscarTodos(),
                     AbastecimentoService.buscarTodosAbastecimentos({ expand: true }),
                     OcorrenciaService.buscarTodos(),
-                    listarMultas(),
+                    MultaService.listarMultas(),
                 ]);
                 
                 setCorridas(corridasData);

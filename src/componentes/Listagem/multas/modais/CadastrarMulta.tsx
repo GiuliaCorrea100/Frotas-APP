@@ -15,11 +15,10 @@ import {
   CalendarToday,
   Close,
 } from "@mui/icons-material";
-import { MultaDto, MultaService } from "../../../../api/multaService";
+import { MultaService } from "../../../../api/multaService";
 
-interface EdicaoModalProps {
+interface CadastrarModalProps {
   open: boolean;
-  multa: MultaDto | null;
   onClose: () => void;
   onSuccess: (message: string) => void;
   onError: (error: any) => void;
@@ -30,8 +29,8 @@ const modalStyle = {
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: "90%",
-  maxWidth: 700,
+  width: "90%", 
+  maxWidth: 700, 
   maxHeight: "90vh",
   overflow: "auto",
   bgcolor: "background.paper",
@@ -40,9 +39,8 @@ const modalStyle = {
   borderRadius: 2,
 };
 
-const EditarMultaModal: React.FC<EdicaoModalProps> = ({
+const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
   open,
-  multa,
   onClose,
   onSuccess,
   onError,
@@ -51,55 +49,41 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
   const [classificacao, setClassificacao] = useState("");
   const [valorInfracao, setValorInfracao] = useState<number>(0);
   const [placaVeiculo, setPlacaVeiculo] = useState("");
-  const [dataInfracao, setDataInfracao] = useState<string>("");
+  const [dataInfracao, setDataInfracao] = useState<Date | null>(null);
   const [autoInfracao, setAutoInfracao] = useState<number>(0);
+
   const [loading, setLoading] = useState(false);
 
-  // Função para formatar a data para o input
-  const formatDateForInput = (date: any): string => {
-    if (!date) return "";
-    
-    try {
-      const dateObj = date instanceof Date ? date : new Date(date);
-      return !isNaN(dateObj.getTime()) 
-        ? dateObj.toISOString().slice(0, 16)
-        : "";
-    } catch {
-      return "";
-    }
-  };
-
   useEffect(() => {
-    if (multa) {
-      setCodigoInfracao(multa.codigoInfracao);
-      setValorInfracao(multa.valorInfracao);
-      setAutoInfracao(multa.autoInfracao);
-      setClassificacao(multa.classificacao);
-      setPlacaVeiculo(multa.placaVeiculo);
-      setDataInfracao(formatDateForInput(multa.dataInfracao));
+    if (open) {
+      // Resetar os estados ao abrir o modal
+      setAutoInfracao(0);
+      setClassificacao("");
+      setCodigoInfracao(0);
+      setDataInfracao(null);
+      setPlacaVeiculo("");
+      setValorInfracao(0);
     }
-  }, [multa]);
+  }, [open]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
 
     try {
-      const dataInfracaoDate = dataInfracao ? new Date(dataInfracao) : null;
-
       const dadosMultas = {
         codigoInfracao,
         classificacao,
         valorInfracao,
         placaVeiculo,
-        dataInfracao: dataInfracaoDate,
+        dataInfracao,
         autoInfracao,
       };
 
-      await MultaService.atualizarMulta(multa?.idMulta!, dadosMultas);
-      onSuccess("Multa atualizada com sucesso");
+      await MultaService.criarMulta(dadosMultas);
+      onSuccess("Multa cadastrada com sucesso");
     } catch (error) {
-      console.error("Erro ao atualizar multa: ", error);
+      console.error("Erro ao cadastrar multa: ", error);
       onError(error);
     } finally {
       setLoading(false);
@@ -110,11 +94,12 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
   return (
     <Modal open={open} onClose={onClose}>
       <Paper sx={modalStyle}>
+        {/* CABEÇALHO */}
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Box display="flex" alignItems="center">
             <LocalGasStation color="primary" sx={{ mr: 1 }} />
             <Typography variant="h6" fontWeight="bold">
-              Editar Multa
+              Cadastro de Multa
             </Typography>
           </Box>
           <IconButton onClick={onClose}>
@@ -122,13 +107,15 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
           </IconButton>
         </Box>
 
+        {/* FORMULÁRIO */}
         <Box
           component="form"
           onSubmit={handleSubmit}
           display="flex"
           flexWrap="wrap"
-          gap={2}
+          gap={2} 
         >
+          
           <TextField
             label="Código da Infração"
             type="number"
@@ -136,6 +123,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
             onChange={(e) => setCodigoInfracao(Number(e.target.value))}
             required
             fullWidth
+            
             sx={{ flex: "1 1 calc(50% - 8px)" }} 
           />
           <TextField
@@ -180,12 +168,13 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
             sx={{ flex: "1 1 calc(50% - 8px)" }}
           />
 
+          
           <TextField
             label="Data e Hora da Infração"
             type="datetime-local"
             fullWidth
-            value={dataInfracao}
-            onChange={(e) => setDataInfracao(e.target.value)}
+            value={dataInfracao ? dataInfracao.toISOString().slice(0, 16) : ""}
+            onChange={(e) => setDataInfracao(new Date(e.target.value))}
             InputLabelProps={{ shrink: true }}
             InputProps={{
               startAdornment: (
@@ -194,9 +183,11 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
                 </InputAdornment>
               ),
             }}
+            
             sx={{ flex: "1 1 100%", mt: 1 }}
           />
 
+          {/* BOTÕES */}
           <Box 
             display="flex" 
             justifyContent="flex-end" 
@@ -212,7 +203,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
               variant="contained"
               disabled={loading}
             >
-              {loading ? <CircularProgress size={24} color="inherit" /> : "Atualizar"}
+              {loading ? <CircularProgress size={24} color="inherit" /> : "Cadastrar"}
             </Button>
           </Box>
         </Box>
@@ -221,4 +212,4 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
   );
 };
 
-export default EditarMultaModal;
+export default CadastroMultaModal;
