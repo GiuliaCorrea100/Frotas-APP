@@ -7,6 +7,8 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Menu as DropdownMenu, 
+  MenuItem as DropdownItem,
   Paper,
   Toolbar,
   Typography,
@@ -18,6 +20,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import axiosConnect from "../services/axiosConnect";
 import MenuGrid from "./MenuGrid";
+import { useMediaQuery } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
 
 interface JwtPayload {
   sub: number; 
@@ -49,6 +53,8 @@ const Menu: React.FC = () => {
   const [showModalDadosPerfil, setShowModalDadosPerfil] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<MotoristaDashboard | null>(null);
+  const isMobile = useMediaQuery('(max-width:768px)');
+  const [showMobileMenu, setShowMobileMenu] = useState(false); 
 
   const handleLogout = async () => {
     await logout();
@@ -185,14 +191,30 @@ const Menu: React.FC = () => {
   return (
     <>
       <AppBar position="static">
-        <Toolbar>
+        <Toolbar sx={{ 
+          flexWrap: 'wrap', 
+          gap: 1,
+        }}>
+          {isMobile && (
+            <Button 
+              color="inherit" 
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              sx={{ minWidth: 'auto', px: 1 }}
+              className="mobile-menu-button"
+            >
+              <MenuIcon />
+            </Button>
+          )}
+
           <Typography
             variant="h6"
             sx={{ 
-              flexGrow: 1, 
+              flexGrow: isMobile ? 1 : 0, 
               textDecoration: "none", 
               color: "inherit",
-              fontFamily: "inherit"
+              fontFamily: "inherit",
+              mr: 2,
+              fontSize: isMobile ? '1rem' : '1.25rem',
             }}
             component={Link}
             to={isAuthenticated ? "/menu" : "/"}
@@ -200,73 +222,169 @@ const Menu: React.FC = () => {
             FROTAS UNIR
           </Typography>
 
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 1, 
+            flexWrap: 'wrap',
+            justifyContent: 'flex-end',
+            flex: 1,
+            alignItems: 'center'
+          }}>
           {isAuthenticated && (
             <>
-              {Number(permissao) === 2 && (
-                <Box sx={{ display: 'flex', gap: 1 }}>
+              {!isMobile && (
+                <>
+                  {Number(permissao) === 2 && (
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      <Button 
+                        color="inherit" 
+                        component={Link} 
+                        to="/ListaCorrida"
+                        sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
+                      >
+                        Painel Corrida
+                      </Button>
+                      <Button 
+                        color="inherit" 
+                        component={Link} 
+                        to="/ListaCarros"
+                        sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
+                      >
+                        Veículos
+                      </Button>
+                      <Button 
+                        color="inherit" 
+                        component={Link} 
+                        to="/ListaMultas"
+                        sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
+                      >
+                        Multas
+                      </Button>
+                      <Button 
+                        color="inherit" 
+                        component={Link} 
+                        to="/Administradores"
+                        sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
+                      >
+                        Administradores
+                      </Button>
+                    </Box>
+                  )}
+
                   <Button 
                     color="inherit" 
                     component={Link} 
-                    to="/ListaCorrida"
-                    sx={{ fontFamily: "inherit" }}
+                    to="/HistoricoIndividual"
+                    sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
                   >
-                    Painel Corrida
+                    Historico
                   </Button>
+
                   <Button 
                     color="inherit" 
                     component={Link} 
-                    to="/ListaCarros"
-                    sx={{ fontFamily: "inherit" }}
+                    to="/Relatorios"
+                    sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
                   >
-                    Veículos
+                    Relatórios
                   </Button>
-                  <Button 
-                    color="inherit" 
-                    component={Link} 
-                    to="/ListaMultas"
-                    sx={{ fontFamily: "inherit" }}
-                  >
-                    Multas
-                  </Button>
-                  <Button 
-                    color="inherit" 
-                    component={Link} 
-                    to="/Administradores"
-                    sx={{ fontFamily: "inherit" }}
-                  >
-                    Administradores
-                  </Button>
-                </Box>
+                </>
               )}
 
-              <Button 
-                color="inherit" 
-                component={Link} 
-                to="/HistoricoIndividual"
-                sx={{ fontFamily: "inherit" }}
+              <DropdownMenu
+                anchorEl={isMobile ? document.querySelector('.mobile-menu-button') : null}
+                open={isMobile && showMobileMenu}
+                onClose={() => setShowMobileMenu(false)}
+                PaperProps={{
+                  sx: {
+                    mt: 1,
+                    minWidth: 200,
+                    backgroundColor: 'background.paper',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                    borderRadius: 1,
+                  }
+                }}
               >
-                Historico Individual
-              </Button>
-
-               <Button 
-                color="inherit" 
-                component={Link} 
-                to="/Relatorios"
-                sx={{ fontFamily: "inherit" }}
-              >
-                Relatórios
-              </Button>
-
-              {nome && (
                 <>
-                  <Button 
-                    color="inherit" 
-                    onClick={handleAbrirModalDadosPerfil}
-                    sx={{ fontFamily: "inherit" }}
-                  >
-                    {nome}
-                  </Button>
+                  {Number(permissao) === 2 && (
+                    <>
+                      <DropdownItem 
+                        component={Link} 
+                        to="/ListaCorrida"
+                        onClick={() => setShowMobileMenu(false)}
+                        sx={{ fontSize: '0.9rem', py: 1 }}
+                      >
+                        Painel Corrida
+                      </DropdownItem>
+                      <DropdownItem 
+                        component={Link} 
+                        to="/ListaCarros"
+                        onClick={() => setShowMobileMenu(false)}
+                        sx={{ fontSize: '0.9rem', py: 1 }}
+                      >
+                        Veículos
+                      </DropdownItem>
+                      <DropdownItem 
+                        component={Link} 
+                        to="/ListaMultas"
+                        onClick={() => setShowMobileMenu(false)}
+                        sx={{ fontSize: '0.9rem', py: 1 }}
+                      >
+                        Multas
+                      </DropdownItem>
+                      <DropdownItem 
+                        component={Link} 
+                        to="/Administradores"
+                        onClick={() => setShowMobileMenu(false)}
+                        sx={{ fontSize: '0.9rem', py: 1 }}
+                      >
+                        Administradores
+                      </DropdownItem>
+                    </>
+                  )}
 
+                  <DropdownItem 
+                    component={Link} 
+                    to="/HistoricoIndividual"
+                    onClick={() => setShowMobileMenu(false)}
+                    sx={{ fontSize: '0.9rem', py: 1 }}
+                  >
+                    Histórico Individual
+                  </DropdownItem>
+
+                  <DropdownItem 
+                    component={Link} 
+                    to="/Relatorios"
+                    onClick={() => setShowMobileMenu(false)}
+                    sx={{ fontSize: '0.9rem', py: 1 }}
+                  >
+                    Relatórios
+                  </DropdownItem>
+                </>
+              </DropdownMenu>
+
+              <Box sx={{ 
+                display: 'flex', 
+                gap: 1, 
+                flexWrap: 'nowrap'
+              }}>
+                {nome && (
+                  <>
+                    <Button 
+                      color="inherit" 
+                      onClick={handleAbrirModalDadosPerfil}
+                      sx={{ 
+                        fontFamily: "inherit", 
+                        fontSize: isMobile ? '0.8rem' : '0.875rem',
+                        maxWidth: isMobile ? '120px' : 'none', 
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}
+                      title={nome}
+                    >
+                      {isMobile ? `${nome.split(' ')[0]}...` : nome}
+                    </Button>
                   <Dialog
                     open={showModalDadosPerfil}
                     onClose={handleFecharModalDadosPerfil}
@@ -313,13 +431,14 @@ const Menu: React.FC = () => {
                 </>
               )}
 
-              <Button 
-                color="inherit" 
-                onClick={handleLogout}
-                sx={{ fontFamily: "inherit" }}
-              >
-                Sair
-              </Button>
+                <Button 
+                  color="inherit" 
+                  onClick={handleLogout}
+                  sx={{ fontFamily: "inherit", fontSize: isMobile ? '0.8rem' : '0.875rem' }}
+                >
+                  Sair
+                </Button>
+              </Box>
             </>
           )}
 
@@ -333,6 +452,7 @@ const Menu: React.FC = () => {
               Login
             </Button>
           )}
+          </Box>
         </Toolbar>
       </AppBar>
 
