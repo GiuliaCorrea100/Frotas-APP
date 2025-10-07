@@ -158,7 +158,6 @@ export class CorridaService {
 
   static async confirmarReceberChave(idCorrida: number): Promise<void> {
     try {
-      console.log("enviando patch para mudar o estado da chave");
       await api.patch(`/corrida/emprestar-chave/${idCorrida}`);
       console.log("chave emprestada com sucesso APP");
     } catch (error) {
