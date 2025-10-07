@@ -46,6 +46,7 @@ export class MultaService {
     dados: MultaBackend
   ): Promise<void> {
     try {
+      console.log(idMulta);
       await api.put(`/multas/${idMulta}`, dados);
     } catch (error) {
       console.error(`Erro ao atualizar multa ${idMulta}:`, error);

@@ -17,7 +17,7 @@ import { useEffect, useState } from 'react';
 import Menu from '../../Menu';
 import { MultaService, MultaDto } from '../../../api/multaService';
 import React from 'react';
-import CadastroMultaModal from './modais/adicionarMulta';
+import CadastroMultaModal from './modais/CadastrarMulta';
 import EditarMultaModal from './modais/editarMulta';
 
 
