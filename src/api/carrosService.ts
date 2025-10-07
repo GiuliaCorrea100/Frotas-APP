@@ -15,6 +15,7 @@ export interface CarrosDto {
   situacao?: string;
   ativo: boolean; // Adicionando campo ativo
   tipo_combustivel: number | TipoCombustivel; // Pode ser um número, um objeto TipoCombustivel ou null
+  nomeTipoCombustivel?: string;
 }
 export interface TipoCombustivel {
   id_tipo_combustivel?: number;
@@ -33,12 +34,9 @@ export class CarrosService {
   static async buscarTodos(
     params?: Partial<ParametrosBusca>
   ): Promise<CarrosDto[]> {
-    const resposta = await api.get<CarrosDto[]>("/carros", { params });
+    const resposta = await api.get<CarrosDto[]>(`/carros`, { params });
 
-    return resposta.data.map((carro) => ({
-      ...carro,
-      tipo_combustivel: carro.tipo_combustivel ?? { nome: "Não definido" },
-    }));
+    return resposta.data;
   }
   // Buscar um carro por ID
   static async buscarPorId(idCarros: number): Promise<CarrosDto> {
@@ -52,7 +50,7 @@ export class CarrosService {
       ...carro,
       situacao: carro.situacao || "DISPONIVEL", // Se não vier, usa DISPONIVEL
     };
-    const resposta = await api.post<CarrosDto>("/carros", carroCompleto);
+    const resposta = await api.post<CarrosDto>(`/carros`, carroCompleto);
     return resposta.data;
   }
 

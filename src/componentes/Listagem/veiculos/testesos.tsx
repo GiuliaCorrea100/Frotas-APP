@@ -1,626 +1,595 @@
-// import { Modal, Box, Typography, Button, useTheme, MenuItem, FormControl, Grid,FormHelperText, IconButton, TextField, FormLabel, RadioGroup, FormControlLabel, Radio } from '@mui/material';
-// import { PostAdd as PostAddIcon, Search as SearchIcon, Close as CloseIcon } from '@mui/icons-material';
-// import { useAuth } from '../../../context/AuthContext';
-// import axiosConnect from '../../../services/axiosConnect';
-// import React, { useEffect, useState, useCallback } from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import { BemSituacaoEnum } from '../../../utils/enums/bemSituacaoEnum';
+import { Add, Cancel, CheckCircle, Edit } from '@mui/icons-material';
+import {
+  Box,
+  Button,
+  IconButton,
+  Modal,
+  SelectChangeEvent,
+  TextField,
+  Tooltip,
+  Typography,
+  useTheme,
+} from "@mui/material";
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import React, { useEffect, useState } from 'react';
+import { useLocation } from "react-router-dom";
+import { CarrosDto, CarrosService } from "../../../api/carrosService"; 
+import { TipoCombustivel } from '../../../api/tipoCombustivelService'; 
+import Menu from "../../Menu"; 
+import FormularioVeiculos from './formularioVeiculos';
 
-// interface FormularioLaudoProps {
-//   idLaudo?: number | null;
-//   unidadeSelecionada?: any;
-//   open: boolean;
-//   onClose: () => void;
-//   onSuccess: (message: string) => void;
-//   onError: (error: any) => void;
-// }
+export default function ListaCarros() {
+  const theme = useTheme();
+  const location = useLocation();
+  const carroCadastrado = location.state?.carroCadastrado as CarrosDto | undefined;
+  const [busca, setBusca] = useState("");
+  const [carros, setCarros] = useState<CarrosDto[]>([]);
+  const [filtroStatus, setFiltroStatus] = useState<string>('ATIVOS');
+  const [filtroSituacao, setFiltroSituacao] = useState<string>('TODOS');
+  const [qtdAtivos, setQtdAtivos] = useState<number>(0);
+  const [qtdInativos, setQtdInativos] = useState<number>(0);
+  const [qtdDisponivel, setQtdDisponivel] = useState<number>(0);
+  const [qtdViagem, setQtdViagem] = useState<number>(0);
+  const [qtdManutencao, setQtdManutencao] = useState<number>(0);
 
-// const FormularioLaudo: React.FC<FormularioLaudoProps> = ({
-//   idLaudo,
-//   unidadeSelecionada,
-//   open,
-//   onClose,
-//   onSuccess,
-//   onError
-// }) => {
-//     const { token, userName, isAuthenticated } = useAuth();
-//     const theme = useTheme();
-//     const [laudo, setLaudo] = useState<any>(null);
-//     const [tombo, setTombo] = useState<string>('');
-//     const [idBem, setIdBem] = useState<number | null>(null);
-//     const [descricaoPatrimonial, setDescricaoPatrimonial] = useState('');
-//     const [idUnidadeBem, setIdUnidadeBem] = useState<number | null>(null);
-//     const [nomeUnidadeBem, setNomeUnidadeBem] = useState('');
-//     const [problema, setProblema] = useState('');
-//     const [justificativa, setJustificativa] = useState('');
-//     const [observacao, setObservacao] = useState('');
-//     const [situacao, setSituacao] = useState<BemSituacaoEnum | null>(null);
-//     const [modoEdicao, setModoEdicao] = useState(false);
-//     const [titulo, setTitulo] = useState<string | null>(null);
-//     const [numeroRequisicao, setNumeroRequisicao] = useState<number | null>(null);
-//     const [loading, setLoading] = useState(true);
-//     const [errorTombo, setErrorTombo] = useState<string | null>(null);
-//     const [errorForm, setErrorForm] = useState({
-//       tombo: false,
-//       situacao: false,
-//       problema: false,
-//       justificativa: false,
-//       observacao: false
-//     });
-//     const navigate = useNavigate();
+  // Estado para armazenar os tipos de combustível
+  const [tiposCombustivel, setTiposCombustivel] = useState<TipoCombustivel[]>([]);
 
-//     // Controla/reseta quando um novo laudo é aberto
-//     const hasInitializedNewLaudo = React.useRef(false);
+  // Estados para o modal de confirmação (Ativar/Inativar)
+  const [showModalAtivacao, setShowModalAtivacao] = useState(false);
+  const [selectedCarro, setSelectedCarro] = useState<CarrosDto | null>(null);
 
-//     const fetchDetalhesBem = useCallback(async (tombo: string) => {
-//         setErrorTombo(null);
-//         setErrorForm(prev => ({ ...prev, tombo: false }));
+  // Estados para o FormularioVeiculos
+  const [openFormulario, setOpenFormulario] = useState(false);
+  const [selectedCarroForEdit, setSelectedCarroForEdit] = useState<CarrosDto | null>(null);
+  const [modoFormulario, setModoFormulario] = useState<'criar' | 'editar'>('criar');
 
-//          if (tombo.trim() === '') {
-//           setErrorForm(prev => ({ ...prev, tombo: true }));
-//           setErrorTombo('O campo Tombo não pode estar vazio.');
-//           return;
-//         }
+  // Estados para situação de veiculo (Modal Editar Situação - mantido para compatibilidade)
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [novaSituacao, setNovaSituacao] = useState<string>('');
 
-//         try {
-//             const responseEquipamento = await axiosConnect.get(`bemsingu/${tombo}`, {
-//                 headers: { Authorization: `Bearer ${token}` }
-//             });
+  // Abrir modal de criação
+  const handleOpenCriar = () => {
+    setModoFormulario('criar');
+    setSelectedCarroForEdit(null);
+    setOpenFormulario(true);
+  };
 
-//             const equipamento = responseEquipamento.data;
-//             setIdBem(equipamento.idBem);
-//             setDescricaoPatrimonial(equipamento.descricaoPatrimonial);
-//             setIdUnidadeBem(equipamento.idUnidade);
-//             setNomeUnidadeBem(equipamento.nomeUnidade);
+  // Abrir modal de edição
+  const handleOpenEditar = (carro: CarrosDto) => {
+    setModoFormulario('editar');
+    setSelectedCarroForEdit(carro);
+    setOpenFormulario(true);
+  };
 
-//             try {
-//                   const responseRequisicao = await axiosConnect.get(`/requisicao/ativa-por-tombo/${tombo}`, {
-//                     headers: { Authorization: `Bearer ${token}` }
-//                   });
-        
-//                 const requisicao = responseRequisicao.data;
-//                 setNumeroRequisicao(requisicao.idRequisicao);
-//                 setTitulo(requisicao.titulo);
+  // Fechar modal do formulário
+  const handleCloseFormulario = () => {
+    setOpenFormulario(false);
+    setSelectedCarroForEdit(null);
+  };
 
-//               } catch (errorRequisicao) {
-//                 if (errorRequisicao.response?.status === 404) {
-//                   setNumeroRequisicao(null);
-//                   setTitulo('Não há requisição cadastrada');
-//                 } else {
-//                   console.error('Erro inesperado ao consultar requisição:', errorRequisicao);
-//               }
-//               }
-//             } catch (error) {
-//               // Erros na consulta do bem
-//               console.error('Erro ao consultar bem ou erro geral:', error);
-//               if (error.response?.status === 404) {
-//                 setErrorTombo('Tombo não encontrado. Verifique o número do tombo.');
-//               } else {
-//                 console.error('Erro ao consultar bem. Verifique sua conexão ou tente novamente.');
-//               }
-//               setIdBem(null);
-//               setDescricaoPatrimonial('');
-//               setIdUnidadeBem(null);
-//               setNomeUnidadeBem('');
-//               setNumeroRequisicao(null);
-//               setTitulo(null);
-//             }
+  // Sucesso no formulário
+  const handleSuccessFormulario = (message: string) => {
+    console.log(message);
+    // Recarregar a lista de carros
+    carregarCarros();
+    handleCloseFormulario();
+  };
 
-//     }, [token]);
+  // Erro no formulário
+  const handleErrorFormulario = (error: any) => {
+    console.error('Erro no formulário:', error);
+    alert('Erro ao salvar veículo: ' + (error?.message || 'Erro desconhecido'));
+  };
 
-//     const handleConsultaBem = useCallback(async () => {
-//       setLoading(true);
-//       setErrorTombo('');
-//       setErrorForm(prev => ({ ...prev, tombo: false }));
+  // Função para carregar carros
+  const carregarCarros = async () => {
+    try {
+      const lista = await CarrosService.buscarTodos();
 
-//       if (tombo.trim() === '') {
-//         setErrorForm(prev => ({ ...prev, tombo: true }));
-//         setErrorTombo('O campo Tombo não pode estar vazio.');
-//         setLoading(false);
-//         return;
-//       }
+      // Calcular contadores
+      setQtdAtivos(lista.filter(c => c.ativo).length);
+      setQtdInativos(lista.filter(c => !c.ativo).length);
+      setQtdDisponivel(lista.filter(c => c.situacao === 'DISPONIVEL' && c.ativo).length);
+      setQtdViagem(lista.filter(c => c.situacao === 'VIAGEM' && c.ativo).length);
+      setQtdManutencao(lista.filter(c => c.situacao === 'MANUTENCAO' && c.ativo).length);
 
-//       if (modoEdicao) {
-//         await fetchDetalhesBem(tombo);
-//         setLoading(false);
-//         return;
-//       }
+      setCarros(lista);
+    } catch (error) {
+      console.error("Erro ao carregar carros:", error);
+    }
+  };
 
-//       try {
-//         const responseLaudo = await axiosConnect.get(`/laudo/consulta/tombo`, {
-//           params: { tombo },
-//           headers: { Authorization: `Bearer ${token}` }
-//         });
-
-//         if (responseLaudo.data) {
-//           setErrorTombo('Este tombo já possui um laudo emitido. Não é possível cadastrar um novo laudo para o mesmo tombo.');
-//           setTombo(''); 
-//           setLoading(false);
-//           return;
-//         }
-//       } catch (errorLaudo: any) {
-//         if (errorLaudo.response?.status !== 404) {
-//           console.error('Erro inesperado ao consultar laudo:', errorLaudo);
-//           setErrorTombo('Erro ao verificar laudo existente. Tente novamente.');
-//           setLoading(false);
-//           return;
-//         }
-//       }
-
-//       await fetchDetalhesBem(tombo);
-//       setLoading(false);
-
-//   }, [tombo, modoEdicao, token, fetchDetalhesBem]);
-
-//     useEffect(() => {
-//       if (!isAuthenticated) {
-//         navigate('/');
-//         return;
-//       }
-
-//       if (idLaudo) {
-//         setModoEdicao(true);
-//         setLoading(true);
-//         hasInitializedNewLaudo.current = false;
-//         const fetchDadosLaudo = async () => {
-//           try {
-//             const response = await axiosConnect.get(`/laudo/${idLaudo}`, {
-//                 headers: { Authorization: `Bearer ${token}` },
-//               });
-//             const laudoData = response.data;
-
-//             setLaudo(laudoData);
-//             const fetchedTombo = laudoData.tombo != null ? String(laudoData.tombo) : '';
-//             setTombo(fetchedTombo);
-//             setProblema(laudoData.problema);
-//             setJustificativa(laudoData.justificativa);
-//             setObservacao(laudoData.observacao);
-//             setSituacao(laudoData.situacao);
-
-//             if (fetchedTombo) {
-//                 await fetchDetalhesBem(fetchedTombo);
-//             } else {
-//                 setErrorTombo('Tombo não encontrado no laudo para edição.');
-//                 setIdBem(null);
-//             }
-
-//           } catch (err: any) {
-//             console.error('Erro ao buscar os dados do laudo:', err);
-//             onError('Erro ao carregar dados do laudo. Tente novamente.');
-//             onClose();
-//           } finally {
-//             setLoading(false);
-//           }
-//         };
-
-//         fetchDadosLaudo();
-//       }
-//     }, [open, idLaudo, isAuthenticated, navigate, token, onError, onClose, fetchDetalhesBem]);
-
-//    const validateForm = () => {
-//     const currentTombo = tombo || '';
-//     const isNumeric = /^\d+$/.test(currentTombo);
-
-//     const newError = {
-//       tombo: currentTombo.trim() === '' || !isNumeric,
-//       situacao: situacao === null,
-//       problema: problema.length < 5,
-//       justificativa: justificativa.length < 10,
-//       observacao: observacao.length < 10
-//     };
-
-//     setErrorForm(newError);
+  // Carregar carros ao inicializar
+  useEffect(() => {
+    carregarCarros();
+  }, [carroCadastrado]);
 
 
-//     const isIdBemValid = idBem !== null && !errorTombo; 
+  const handleCloseEditModal = () => {
+    setOpenEditModal(false);
+    setSelectedCarroForEdit(null);
+  };
 
-//     return !Object.values(newError).some(error => error) && !errorTombo && isIdBemValid;
-//   };
 
-//   const handleSubmit = async (event: React.FormEvent) => {
-//     event.preventDefault();
+  // Cria um mapa de ID para nome
+  const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
+    if (tipo.id_tipo_combustivel) {
+      map[tipo.id_tipo_combustivel] = tipo.nome;
+    }
+    return map;
+  }, {} as Record<number, string>);
+  
+  // Função de filtro (mantida)
+  const filteredCarros = carros.filter(carro => {
+    const matchesSearchTerm =
+      Object.values(carro).some(valor =>
+        String(valor).toLowerCase().includes(busca.toLowerCase())
+      );
 
-//     if (!validateForm()) {
-//       return;
-//     }
+    const matchesStatus =
+      filtroStatus === 'TODOS' ||
+      (filtroStatus === 'ATIVOS' && carro.ativo) ||
+      (filtroStatus === 'INATIVOS' && !carro.ativo);
 
-//     if (!modoEdicao && idBem === null) {
-//         setErrorTombo('Consulte o tombo antes de cadastrar o laudo.');
-//         setErrorForm(prev => ({ ...prev, tombo: true }));
-//         console.log("Erro: Tombo não consultado em modo de cadastro.");
-//         return;
-//     }
+    const matchesSituacao =
+      filtroSituacao === 'TODOS' ||
+      carro.situacao === filtroSituacao;
 
-//     const dadosLaudo = {
-//       tombo: Number(tombo),
-//       problema,
-//       justificativa,
-//       observacao,
-//       situacao,
-//       // idBem: idBem,
-//       ...(numeroRequisicao != null && { idRequisicao: numeroRequisicao }) // Inclui idRequisicao apenas se numeroRequisicao for diferente de null
-//     };
+    return matchesSearchTerm && matchesStatus && matchesSituacao;
+  });
 
-//     try {
-//       let response;
-//       if (modoEdicao) {
-//         response = await axiosConnect.patch(`/laudo/${idLaudo}/editar`, dadosLaudo, {
-//           headers: {
-//             Authorization: `Bearer ${token}`,
-//             'Content-Type': 'application/json',
-//           },
-//         });
-//       } else {
-//         response = await axiosConnect.post('/laudo', dadosLaudo, {
-//           headers: {
-//             Authorization: `Bearer ${token}`,
-//             'Content-Type': 'application/json',
-//           },
-//         });
-//       }
+  // Abre o modal de confirmação (Ativar/Inativar)
+  const handleAbrirModalAtivacao = (carro: CarrosDto) => {
+    setSelectedCarro(carro);
+    setShowModalAtivacao(true);
+  };
 
-//       const laudoId = response.data.idLaudo;
-//       onSuccess(`Laudo nº ${laudoId} ${modoEdicao ? 'editado' : 'cadastrado'} com sucesso!`);
-//       onClose();
-//       console.log("Laudo salvo com sucesso!");
+  // Confirma a alteração de status (Ativar/Inativar)
+  const handleConfirmarToggleAtivo = async () => {
+    if (!selectedCarro || !selectedCarro.idCarros) return;
 
-//     } catch (error: any) {
-//       console.error('Erro ao salvar o laudo:', error);
-//       if (error.response?.status === 409) {
-//         setErrorTombo('Já existe um laudo ativo para este equipamento.');
-//         setErrorForm(prev => ({ ...prev, tombo: true }));
-//         console.log("Erro 409: Laudo ativo já existe.");
-//       } else {
-//         onError(`Erro ao salvar laudo: ${error.response?.data?.message || error.message || 'Erro desconhecido'}`);
-//         console.log("Erro desconhecido na API:", error);
-//       }
-//     }
-//   };
+    try {
+      await CarrosService.inativar(selectedCarro.idCarros); 
+      await carregarCarros();
+      setShowModalAtivacao(false);
+    } catch (error) {
+      console.error("Erro ao alternar status:", error);
+      alert("Erro ao alternar status do veículo");
+    }
+  };
 
-//   const isTomboNumericInvalid = (tombo || '').trim() !== '' && !/^\d+$/.test(tombo || '');
+  // Lógica de salvamento da Situação (mantida para compatibilidade)
+  const handleSaveSituacao = async () => {
+    if (!selectedCarroForEdit || !selectedCarroForEdit.idCarros) return;
+    try {
+      console.log('Enviando para API:', selectedCarroForEdit.idCarros, { situacao: novaSituacao });
+      await CarrosService.atualizar(
+        selectedCarroForEdit.idCarros,
+        {
+          situacao: novaSituacao,
+          tombo: 0,
+          qrCode: '',
+          placa: '',
+          odometro: '',
+          modelo: '',
+          ano: 0,
+          localidade_fisica: '',
+          ativo: false,
+          tipo_combustivel: 0
+        }
+      );
+      await carregarCarros();
+      handleCloseEditModal();
+    } catch (error: any) {
+      console.error("Erro ao atualizar situação:", error);
+      alert("Erro ao atualizar situação do veículo: " + (error?.response?.data?.message || error.message));
+    }
+  };
 
-//   return (
-//     <Modal
-//         open={open}
-//         onClose={onClose}
-//         aria-labelledby="modal-laudo-title"
-//         aria-describedby="modal-laudo-description"
-//         sx={{
-//           overflowY: 'auto',
-//           display: 'flex',
-//           alignItems: 'center',
-//           justifyContent: 'center',
-//         }}
-//     >
-//         <Box
-//             sx={{
-//                 width: '90%',
-//                 maxWidth: 900,
-//                 maxHeight: '95vh',
-//                 overflowY: 'auto',
-//                 bgcolor: 'background.paper',
-//                 boxShadow: 24,
-//                 padding: 0,
-//                 borderRadius: 2,
-//             }}
-//             >
-//             {/* Cabeçalho */}
-//             <Box
-//                 sx={{
-//                 display: 'flex',
-//                 alignItems: 'center',
-//                 justifyContent: 'space-between',
-//                 mb: 0,
-//                 pb: 1,
-//                 borderBottom: `1px solid ${theme.palette.divider}`,
-//                 }}
-//             >
-//                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-//                     <PostAddIcon fontSize="large" />
-//                     <Typography variant="h6" component="h2" sx={{paddingBottom: 0}}>
-//                         {modoEdicao ? "Edição de Laudo" : "Cadastro de Laudo"}
-//                     </Typography>
-//                 </Box>
-//                 <IconButton onClick={onClose}>
-//                     <CloseIcon />
-//                 </IconButton>
-//             </Box>
-//             {/* Corpo do formulário */}
-//             <Box component="form" onSubmit={handleSubmit} noValidate>
-//               <Grid container spacing={3} >
-//                 <Grid item xs={10}>
-//                     <TextField
-//                     label="Tombo"
-//                     fullWidth
-//                     value={tombo}
-//                     onChange={(e) => {
-//                         setTombo(e.target.value);
-//                         setErrorForm(prev => ({ ...prev, tombo: false }));
-//                         setErrorTombo(null);
-//                         setIdBem(null);
-//                         setDescricaoPatrimonial('');
-//                         setIdUnidadeBem(null);
-//                         setNomeUnidadeBem('');
-//                         setNumeroRequisicao(null);
-//                         setTitulo(null);
-//                     }}
-//                     error={!!errorTombo || isTomboNumericInvalid || (errorForm.tombo && (tombo || '').trim() === '')}
-//                     helperText={
-//                           (isTomboNumericInvalid)
-//                             ? "O tombo deve conter apenas números."
-//                             : (errorForm.tombo && (tombo || '').trim() === '')
-//                               ? "O campo tombo é obrigatório."
-//                               : errorTombo
-//                                 ? errorTombo
-//                                 : " "
-//                         }
-//                         sx={{
-//                           '& .MuiInputLabel-root': {
-//                             color: theme.palette.text.secondary,
-//                             '&.Mui-focused': {
-//                               color: theme.palette.text.secondary,
-//                             },
-//                             '&.Mui-error': {
-//                               color: theme.palette.error.main,
-//                             },
-//                           },
-//                           '& .MuiOutlinedInput-root': {
-//                             '& fieldset': {
-//                               borderColor: theme.palette.divider,
-//                             },
-//                             '&:hover fieldset': {
-//                               borderColor: theme.palette.text.secondary,
-//                             },
-//                             '&.Mui-focused fieldset': {
-//                               borderColor: theme.palette.text.secondary,
-//                             },
-//                           },
-//                         }}
-//                       />
-//                 </Grid>
+  // Definição das colunas da DataGrid (atualizada para usar handleOpenEditar)
+  const colunas: GridColDef[] = [
+    {
+      field: 'placa',
+      headerName: 'Placa',
+      flex: 1,
+      renderCell: (params) => (
+        <Typography fontWeight="bold">
+          {params.value}
+        </Typography>
+      )
+    },
+    { field: 'modelo', headerName: 'Modelo', flex: 2 },
+    { field: 'ano', headerName: 'Ano', flex: 1 },
+    { field: 'localidade_fisica', headerName: 'Localidade', flex: 1 },
+    {
+      field: 'tipo_combustivel',
+      headerName: 'Combustível',
+      flex: 1,
+      renderCell: (params) => {
+        const valor = params.value;
+        let nomeCombustivel = 'Não definido';
 
-//                 {/* Botão de consulta de bem*/}
-//                 <Grid item xs={2} sx={{ paddingTop: '20px' }}>
-//                     <Button
-//                     variant="contained"
-//                     onClick={handleConsultaBem}
-//                     sx={{ minWidth: '100%', height: '56px' }}
-//                     disabled={ (tombo || '').trim() === '' || isTomboNumericInvalid}
-//                     >
-//                         <SearchIcon />
-//                     </Button>
-//                 </Grid>
+        if (typeof valor === 'number') {
+          nomeCombustivel = mapaCombustiveis[valor] || 'Não definido';
+        }
+        else if (valor && typeof valor === 'object' && 'nome' in valor) {
+          nomeCombustivel = (valor as { nome: string }).nome;
+        }
+        else if (valor && typeof valor === 'object') {
+          nomeCombustivel = (valor as { nome?: string }).nome || 'Não definido';
+        }
 
-//                 {descricaoPatrimonial && (
-//                   <>
-//                     <Grid item xs={12}>
-//                       <Grid container spacing={2}>
-//                         {/* Card com informações do equipamento */}
-//                         <Grid item xs={6}>
-//                           <Box sx={{
-//                             height: '100%',
-//                             background: theme.palette.mode === 'dark' ? '#2D333A' : '#ffffff',
-//                             boxShadow: 'none',
-//                             border: `1px solid ${theme.palette.divider}`,
-//                             borderRadius: 2,
-//                             p: 2,
-//                           }}>
-//                               <Typography variant='subtitle1' gutterBottom sx={{ fontWeight: 'bold'}}>INFORMAÇÕES DO EQUIPAMENTO</Typography>
-//                               <Typography><strong>Descrição patrimonial:</strong> {descricaoPatrimonial}</Typography>
-//                               <Typography sx={{ mt: 1 }}><strong>Unidade:</strong>  {nomeUnidadeBem}</Typography>
-//                           </Box>
-//                         </Grid>
-//                         {/* Card com informações da requisição */}
-//                         <Grid item xs={6}>
-//                           <Box sx={{
-//                             height: '100%',
-//                             background: theme.palette.mode === 'dark' ? '#2D333A' : '#ffffff',
-//                             boxShadow: 'none',
-//                             border: `1px solid ${theme.palette.divider}`,
-//                             borderRadius: 2,
-//                             p: 2,
-//                           }}>
-//                               <Typography variant='subtitle1' gutterBottom sx={{ fontWeight: 'bold'}}>INFORMAÇÕES DA REQUISIÇÃO</Typography>
-//                                 {numeroRequisicao ? (
-//                                   <>
-//                                     <Typography><strong>Número da Requisição:</strong> {numeroRequisicao}</Typography>
-//                                     <Typography sx={{ mt: 1 }}><strong>Título:</strong> {titulo}</Typography>
-//                                   </>
-//                                 ) : (
-//                                   <Typography>{titulo}</Typography>
-//                                 )}
-//                           </Box>
-//                         </Grid>
-//                       </Grid>
-//                     </Grid>
-//                   </>
-//                 )}
+        return (
+          <Typography variant="body2">
+            {nomeCombustivel}
+          </Typography>
+        );
+      }
+    },
+    {
+      field: 'situacao',
+      headerName: 'Situação',
+      flex: 1,
+      renderCell: (params) => {
+        if (!params.row.ativo) {
+          return (
+            <Typography
+              color="textSecondary"
+              fontStyle="italic"
+              fontWeight={500}
+            >
+              INATIVO
+            </Typography>
+          );
+        }
 
-//                 <Grid item xs={12}>
-//                   <FormControl
-//                     component={"fieldset"}
-//                     error={errorForm.situacao}
-//                       sx={{
-//                       '& .MuiInputLabel-root': {
-//                         color: theme.palette.text.secondary,
-//                         '&.Mui-focused': {
-//                           color: theme.palette.text.secondary,
-//                         },
-//                       },
-//                       '& .MuiOutlinedInput-root': {
-//                         '& fieldset': {
-//                           borderColor: theme.palette.divider,
-//                         },
-//                         '&:hover fieldset': {
-//                           borderColor: theme.palette.text.secondary,
-//                         },
-//                         '&.Mui-focused fieldset': {
-//                           borderColor: theme.palette.text.secondary,
-//                         },
-//                       },
-//                     }}>
-//                     <FormLabel
-//                       id="situacao-equipamento"
-//                       sx={{
-//                         color: situacao !== null ? theme.palette.text.primary : theme.palette.text.secondary,
-//                         '&.Mui-focused': {
-//                           color: theme.palette.text.primary,
-//                         },
-//                         '&.Mui-error': {
-//                           color: theme.palette.error.main,
-//                         },
-//                       }}
-//                       >Situação
-//                     </FormLabel>
-//                     <RadioGroup
-//                       row
-//                       aria-labelledby="situacao-equipamento"
-//                       name="situacao-equipamento"
-//                       value={situacao}
-//                       onChange={(e) => setSituacao(e.target.value as BemSituacaoEnum)}
-//                       >
-//                       <FormControlLabel
-//                         value={BemSituacaoEnum.OBSOLETO}
-//                         control={<Radio />} label="Obsoleto"
-//                         sx={{
-//                           '& .MuiFormControlLabel-label': {
-//                             color: situacao === BemSituacaoEnum.OBSOLETO ? theme.palette.text.primary : theme.palette.text.secondary,
-//                           },
-//                         }}
-//                       />
-//                       <FormControlLabel
-//                         value={BemSituacaoEnum.NAO_REPARADO}
-//                         control={<Radio />} label="Não reparado"
-//                         sx={{
-//                           '& .MuiFormControlLabel-label': {
-//                             color: situacao === BemSituacaoEnum.NAO_REPARADO ? theme.palette.text.primary : theme.palette.text.secondary,
-//                           },
-//                         }}
-//                       />
-//                     </RadioGroup>
-//                     {errorForm.situacao && (
-//                       <FormHelperText>Selecione uma situação para o equipamento.</FormHelperText>
-//                     )}
-//                   </FormControl>
-//                 </Grid>
+        let color, texto;
+        switch (params.value) {
+          case 'DISPONIVEL':
+            color = theme.palette.success.main;
+            texto = 'Disponível';
+            break;
+          case 'VIAGEM':
+            color = theme.palette.info.main;
+            texto = 'Em Viagem';
+            break;
+          case 'MANUTENCAO':
+            color = theme.palette.warning.main;
+            texto = 'Manutenção';
+            break;
+          default:
+            color = theme.palette.text.secondary;
+            texto = 'Indisponivel';
+        }
+        return (
+          <Typography
+            style={{ color, fontWeight: 600 }}
+            variant="body2"
+          >
+            {texto}
+          </Typography>
+        );
+      }
+    },
+    {
+      field: 'acoes',
+      headerName: 'Ações',
+      flex: 1,
+      renderCell: (params) => (
+        <Box display="flex" gap={1}>
+          {/* Botão Editar - agora abre o FormularioVeiculos */}
+          <Tooltip title="Editar veículo">
+            <IconButton
+              color="primary"
+              size="small"
+              onClick={() => handleOpenEditar(params.row)}
+            >
+              <Edit fontSize="small" />
+            </IconButton>
+          </Tooltip>
 
-//                 <Grid item xs={12}>
-//                   <TextField
-//                     label="Problema"
-//                     fullWidth
-//                     multiline
-//                     rows={4}
-//                     value={problema}
-//                     onChange={(e) => setProblema(e.target.value)}
-//                     error={errorForm.problema}
-//                     helperText={errorForm.problema ? "O problema deve ter pelo menos 5 caracteres" : ""}
-//                     sx={{
-//                       '& .MuiInputLabel-root': {
-//                         color: theme.palette.text.secondary,
-//                         '&.Mui-focused': {
-//                           color: theme.palette.text.secondary,
-//                         },
-//                       },
-//                       '& .MuiOutlinedInput-root': {
-//                         '& fieldset': {
-//                           borderColor: theme.palette.divider,
-//                         },
-//                         '&:hover fieldset': {
-//                           borderColor: theme.palette.text.secondary,
-//                         },
-//                         '&.Mui-focused fieldset': {
-//                           borderColor: theme.palette.text.secondary,
-//                         },
-//                       },
-//                     }}
-//                   />
-//                 </Grid>
+          <Tooltip title={params.row.ativo ? "Inativar veículo" : "Ativar veículo"}>
+            <IconButton
+              color={params.row.ativo ? "error" : "success"}
+              size="small"
+              onClick={() => handleAbrirModalAtivacao(params.row)}
+            >
+              {params.row.ativo ?
+                <Cancel fontSize="small" /> :
+                <CheckCircle fontSize="small" />
+              }
+            </IconButton>
+          </Tooltip>
+        </Box>
+      )
+    }
+  ];
 
-//                 <Grid item xs={12}>
-//                   <TextField
-//                     label="Justificativa"
-//                     fullWidth
-//                     multiline
-//                     rows={4}
-//                     value={justificativa}
-//                     onChange={(e) => setJustificativa(e.target.value)}
-//                     error={errorForm.justificativa}
-//                     helperText={errorForm.justificativa ? "A justificativa deve ter pelo menos 10 caracteres" : ""}
-//                     sx={{
-//                       '& .MuiInputLabel-root': {
-//                         color: theme.palette.text.secondary,
-//                         '&.Mui-focused': {
-//                           color: theme.palette.text.secondary,
-//                         },
-//                       },
-//                       '& .MuiOutlinedInput-root': {
-//                         '& fieldset': {
-//                           borderColor: theme.palette.divider,
-//                         },
-//                         '&:hover fieldset': {
-//                           borderColor: theme.palette.text.secondary,
-//                         },
-//                         '&.Mui-focused fieldset': {
-//                           borderColor: theme.palette.text.secondary,
-//                         },
-//                       },
-//                     }}
-//                   />
-//                 </Grid>
+  return (
+    <>
+      <Menu />
+      <Box sx={{
+        p: 3,
+        backgroundColor: theme.palette.background.default,
+        minHeight: '100vh'
+      }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+          <Typography variant="h5" fontWeight="bold" color="textPrimary">
+            Listagem de Veículos
+          </Typography>
 
-//                 <Grid item xs={12}>
-//                   <TextField
-//                     label="Observação"
-//                     fullWidth
-//                     multiline
-//                     rows={4}
-//                     value={observacao}
-//                     onChange={(e) => setObservacao(e.target.value)}
-//                     error={errorForm.observacao}
-//                     helperText={errorForm.observacao ? "A observação deve ter pelo menos 10 caracteres" : ""}
-//                     sx={{
-//                       '& .MuiInputLabel-root': {
-//                         color: theme.palette.text.secondary,
-//                         '&.Mui-focused': {
-//                           color: theme.palette.text.secondary,
-//                         },
-//                       },
-//                       '& .MuiOutlinedInput-root': {
-//                         '& fieldset': {
-//                           borderColor: theme.palette.divider,
-//                         },
-//                         '&:hover fieldset': {
-//                           borderColor: theme.palette.text.secondary,
-//                         },
-//                         '&.Mui-focused fieldset': {
-//                           borderColor: theme.palette.text.secondary,
-//                         },
-//                       },
-//                     }}
-//                   />
-//                 </Grid>
+          {/* Botão Novo Veículo - agora abre o FormularioVeiculos */}
+          <Button
+            variant="contained"
+            onClick={handleOpenCriar}
+            startIcon={<Add />}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 600,
+              boxShadow: theme.shadows[2]
+            }}
+          >
+            Novo Veículo
+          </Button>
+        </Box>
 
-//                 {/* Botão de confirmar cadastro/edição de laudo */}
-//                 <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-//                   <Button
-//                     variant="contained"
-//                     type="submit"
-//                     size="large"
-//                     sx={{
-//                       bgcolor: 'primary.main',
-//                       '&:hover': {
-//                         bgcolor: 'primary.dark',
-//                       }
-//                     }}
-//                   >
-//                     {modoEdicao ? "Salvar Edição" : "Cadastrar Laudo"}
-//                   </Button>
-//                 </Grid>
-//               </Grid>
-//             </Box>
-//            </Box>
-//     </Modal>
-//     );
-// };
+        {/* Filtros por status (Ativos/Inativos) */}
+        <Box sx={{
+          width: '100%',
+          mb: 3,
+          borderBottom: 1,
+          borderColor: 'divider',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <Box sx={{
+            display: 'flex',
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+            '&::-webkit-scrollbar': { display: 'none' }
+          }}>
+            {[
+              { label: 'ATIVOS', value: 'ATIVOS', count: qtdAtivos, color: theme.palette.success.main },
+              { label: 'INATIVOS', value: 'INATIVOS', count: qtdInativos, color: theme.palette.error.main },
+              { label: 'TODOS', value: 'TODOS', count: carros.length, color: theme.palette.text.secondary }
+            ].map((tab) => (
+              <Button
+                key={tab.value}
+                disableRipple
+                onClick={() => setFiltroStatus(tab.value)}
+                sx={{
+                  minWidth: 'fit-content',
+                  px: 3,
+                  py: 1.5,
+                  borderRadius: 0,
+                  borderBottom: filtroStatus === tab.value ? 2 : 0,
+                  borderColor: 'primary.main',
+                  color: filtroStatus === tab.value ? 'primary.main' : 'text.primary',
+                  fontWeight: filtroStatus === tab.value ? 600 : 400,
+                  textTransform: 'none',
+                  position: 'relative',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {tab.label}
+                <Box sx={{
+                  ml: 1,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 24,
+                  height: 24,
+                  borderRadius: '50%',
+                  bgcolor: filtroStatus === tab.value ? 'primary.main' : tab.color,
+                  color: 'white',
+                  fontSize: '0.75rem',
+                  fontWeight: 600
+                }}>
+                  {tab.count}
+                </Box>
+              </Button>
+            ))}
+          </Box>
 
-// export default FormularioLaudo;
+          <TextField
+            placeholder="Buscar veículos..."
+            variant="outlined"
+            size="small"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            sx={{
+              width: 250,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                backgroundColor: theme.palette.background.paper
+              }
+            }}
+          />
+        </Box>
+
+        {/* Filtros por situação operacional */}
+        <Box sx={{
+          display: 'flex',
+          gap: 1,
+          mb: 3,
+          flexWrap: 'wrap',
+          rowGap: 2
+        }}>
+          {[
+            { label: 'DISPONÍVEL', value: 'DISPONIVEL', count: qtdDisponivel },
+            { label: 'EM VIAGEM', value: 'VIAGEM', count: qtdViagem },
+            { label: 'EM MANUTENÇÃO', value: 'MANUTENCAO', count: qtdManutencao }
+          ].map((tab) => (
+            <Button
+              key={tab.value}
+              variant={filtroSituacao === tab.value ? "contained" : "outlined"}
+              onClick={() => setFiltroSituacao(tab.value)}
+              sx={{
+                textTransform: 'none',
+                borderRadius: 2,
+                px: 2,
+                fontWeight: filtroSituacao === tab.value ? 600 : 500,
+                color: filtroSituacao === tab.value ? 'white' : 'text.primary',
+                bgcolor: filtroSituacao === tab.value ? 'primary.main' : 'background.paper',
+                '&:hover': {
+                  bgcolor: filtroSituacao === tab.value ? 'primary.dark' : theme.palette.action.hover,
+                }
+              }}
+            >
+              {tab.label}
+              <Box sx={{
+                ml: 1,
+                fontWeight: 600,
+                backgroundColor: filtroSituacao === tab.value ? 'rgba(255,255,255,0.2)' : theme.palette.grey[200],
+                px: 1,
+                borderRadius: 12
+              }}>
+                {tab.count}
+              </Box>
+            </Button>
+          ))}
+        </Box>
+
+        <DataGrid
+          rows={filteredCarros}
+          columns={colunas}
+          getRowId={(row) => row.idCarros}
+          initialState={{
+            pagination: {
+              paginationModel: { pageSize: 10, page: 0 },
+            },
+          }}
+          pageSizeOptions={[10, 20, 30, 50, 100]}
+          autoHeight
+          sx={{
+            '& .MuiDataGrid-cell': {
+              borderBottom: `1px solid ${theme.palette.divider}`,
+              py: 1.5,
+            },
+            '& .MuiDataGrid-columnHeaders': {
+              backgroundColor: theme.palette.mode === 'dark'
+                ? theme.palette.grey[800]
+                : theme.palette.grey[100],
+              fontWeight: 'bold',
+              borderRadius: 1,
+              borderBottom: `2px solid ${theme.palette.divider}`
+            },
+            '& .MuiDataGrid-row': {
+              '&:hover': {
+                backgroundColor: theme.palette.action.hover,
+              },
+              '&.Mui-selected': {
+                backgroundColor: theme.palette.action.selected,
+                '&:hover': {
+                  backgroundColor: theme.palette.action.selected,
+                }
+              }
+            },
+            '& .MuiDataGrid-footerContainer': {
+              borderTop: `1px solid ${theme.palette.divider}`,
+            },
+            boxShadow: theme.shadows[1],
+            borderRadius: 2,
+            border: 'none',
+            backgroundColor: theme.palette.background.paper
+          }}
+          rowSelection={false}
+        />
+      </Box>
+
+      {/* FormularioVeiculos para criação e edição */}
+      <FormularioVeiculos
+        idVeiculo={modoFormulario === 'editar' && selectedCarroForEdit ? selectedCarroForEdit.idCarros || null : null}
+        open={openFormulario}
+        onClose={handleCloseFormulario}
+        onSuccess={handleSuccessFormulario}
+        onError={handleErrorFormulario}
+      />
+
+      {/* Modal de Edição de Situação (mantido para compatibilidade) */}
+      <Modal
+        open={openEditModal}
+        onClose={handleCloseEditModal}
+        aria-labelledby="modal-situacao-title"
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 400,
+            bgcolor: 'background.paper',
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            Editar Situação
+          </Typography>
+          <Typography variant="body1" gutterBottom>
+            Veículo: {selectedCarroForEdit?.placa}
+          </Typography>
+          {/* Aqui você pode adicionar os controles para editar a situação se necessário */}
+          <Box display="flex" justifyContent="flex-end" gap={1} mt={2}>
+            <Button onClick={handleCloseEditModal} variant="outlined">
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveSituacao} variant="contained">
+              Salvar
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+
+      {/* Modal de Ativar/Inativar Veículo */}
+      <Modal
+        open={showModalAtivacao}
+        onClose={() => setShowModalAtivacao(false)}
+        aria-labelledby="modal-ativacao-title"
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 500,
+            bgcolor: 'background.paper',
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+          }}
+        >
+          <Typography id="modal-ativacao-title" variant="h6" component="h2" gutterBottom>
+            Alterar Status do Veículo
+          </Typography>
+          <Typography variant="body1" className='pb-4' gutterBottom>
+            Você está prestes a {selectedCarro?.ativo ? "inativar" : "ativar"} o veículo {selectedCarro?.placa}.
+          </Typography>
+          <Box display="flex" justifyContent="flex-end" gap={2}>
+            <Button
+              onClick={handleConfirmarToggleAtivo}
+              variant="contained"
+              color={selectedCarro?.ativo ? "error" : "success"}
+            >
+              {selectedCarro?.ativo ? "Inativar" : "Ativar"}
+            </Button>
+            <Button
+              onClick={() => setShowModalAtivacao(false)}
+              variant="outlined"
+            >
+              Cancelar
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+    </>
+  );
+}

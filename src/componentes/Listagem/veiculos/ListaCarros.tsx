@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { CarrosDto, CarrosService } from "../../../api/carrosService"; 
 import { TipoCombustivel } from '../../../api/tipoCombustivelService'; 
 import Menu from "../../Menu"; 
@@ -112,13 +112,7 @@ export default function ListaCarros() {
   };
 
 
-  // Cria um mapa de ID para nome
-  const mapaCombustiveis = tiposCombustivel.reduce((map, tipo) => {
-    if (tipo.id_tipo_combustivel) {
-      map[tipo.id_tipo_combustivel] = tipo.nome;
-    }
-    return map;
-  }, {} as Record<number, string>);
+
   
   // Função de filtro (mantida)
   const filteredCarros = carros.filter(carro => {
@@ -202,27 +196,16 @@ export default function ListaCarros() {
     { field: 'modelo', headerName: 'Modelo', flex: 2 },
     { field: 'ano', headerName: 'Ano', flex: 1 },
     { field: 'localidade_fisica', headerName: 'Localidade', flex: 1 },
+    { field: 'tombo', headerName: 'Tombo', flex: 1 },
     {
-      field: 'tipo_combustivel',
+      field: 'nomeTipoCombustivel',
       headerName: 'Combustível',
       flex: 1,
       renderCell: (params) => {
-        const valor = params.value;
-        let nomeCombustivel = 'Não definido';
-
-        if (typeof valor === 'number') {
-          nomeCombustivel = mapaCombustiveis[valor] || 'Não definido';
-        }
-        else if (valor && typeof valor === 'object' && 'nome' in valor) {
-          nomeCombustivel = (valor as { nome: string }).nome;
-        }
-        else if (valor && typeof valor === 'object') {
-          nomeCombustivel = (valor as { nome?: string }).nome || 'Não definido';
-        }
-
+        console.log(params.value);
         return (
           <Typography variant="body2">
-            {nomeCombustivel}
+            {params.value || 'Não definido'}
           </Typography>
         );
       }
@@ -309,7 +292,7 @@ export default function ListaCarros() {
   return (
     <>
       <Menu />
-      <Box sx={{
+        <Box sx={{ 
         p: 3,
         backgroundColor: theme.palette.background.default,
         minHeight: '100vh'
@@ -318,8 +301,7 @@ export default function ListaCarros() {
           <Typography variant="h5" fontWeight="bold" color="textPrimary">
             Listagem de Veículos
           </Typography>
-
-          {/* Botão Novo Veículo - agora abre o FormularioVeiculos */}
+          
           <Button
             variant="contained"
             onClick={handleOpenCriar}
@@ -329,27 +311,13 @@ export default function ListaCarros() {
               fontWeight: 600,
               boxShadow: theme.shadows[2]
             }}
-          >
-            Novo Veículo
-          </Button>
+            >
+              Novo Veículo
+            </Button>
         </Box>
 
         {/* Filtros por status (Ativos/Inativos) */}
-        <Box sx={{
-          width: '100%',
-          mb: 3,
-          borderBottom: 1,
-          borderColor: 'divider',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <Box sx={{
-            display: 'flex',
-            overflowX: 'auto',
-            scrollbarWidth: 'none',
-            '&::-webkit-scrollbar': { display: 'none' }
-          }}>
+        <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
             {[
               { label: 'ATIVOS', value: 'ATIVOS', count: qtdAtivos, color: theme.palette.success.main },
               { label: 'INATIVOS', value: 'INATIVOS', count: qtdInativos, color: theme.palette.error.main },
@@ -357,35 +325,29 @@ export default function ListaCarros() {
             ].map((tab) => (
               <Button
                 key={tab.value}
-                disableRipple
+                variant={filtroStatus === tab.value ? "contained" : "outlined"}
                 onClick={() => setFiltroStatus(tab.value)}
                 sx={{
-                  minWidth: 'fit-content',
-                  px: 3,
-                  py: 1.5,
-                  borderRadius: 0,
-                  borderBottom: filtroStatus === tab.value ? 2 : 0,
-                  borderColor: 'primary.main',
-                  color: filtroStatus === tab.value ? 'primary.main' : 'text.primary',
-                  fontWeight: filtroStatus === tab.value ? 600 : 400,
                   textTransform: 'none',
-                  position: 'relative',
-                  whiteSpace: 'nowrap',
+                  borderRadius: 2,
+                  px: 2,
+                  fontWeight: filtroStatus === tab.value ? 600 : 500,
+                  color: filtroStatus === tab.value ? 'white' : 'text.primary',
+                  bgcolor: filtroStatus === tab.value ? tab.color : 'background.paper',
+                  '&:hover': {
+                    bgcolor: filtroStatus === tab.value
+                      ? theme.palette.primary.dark
+                      : theme.palette.action.hover,
+                  }
                 }}
               >
                 {tab.label}
                 <Box sx={{
                   ml: 1,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 24,
-                  height: 24,
-                  borderRadius: '50%',
-                  bgcolor: filtroStatus === tab.value ? 'primary.main' : tab.color,
-                  color: 'white',
-                  fontSize: '0.75rem',
-                  fontWeight: 600
+                  fontWeight: 600,
+                  backgroundColor: filtroStatus === tab.value ? 'rgba(255,255,255,0.2)' : theme.palette.grey[200],
+                  px: 1,
+                  borderRadius: 12
                 }}>
                   {tab.count}
                 </Box>
@@ -393,26 +355,24 @@ export default function ListaCarros() {
             ))}
           </Box>
 
+        {/* Busca */}
+        <Box sx={{ mb: 3 }}>
           <TextField
-            placeholder="Buscar veículos..."
+            placeholder="Buscar corridas..."
             variant="outlined"
             size="small"
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            sx={{
-              width: 250,
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 2,
-                backgroundColor: theme.palette.background.paper
-              }
-            }}
+            fullWidth
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, backgroundColor: theme.palette.background.paper } }}
           />
         </Box>
+      
 
         {/* Filtros por situação operacional */}
-        <Box sx={{
-          display: 'flex',
-          gap: 1,
+        {/* <Box sx={{ 
+          display: 'flex', 
+          gap: 1, 
           mb: 3,
           flexWrap: 'wrap',
           rowGap: 2
@@ -438,9 +398,9 @@ export default function ListaCarros() {
                 }
               }}
             >
-              {tab.label}
-              <Box sx={{
-                ml: 1,
+              {tab.label} 
+              <Box sx={{ 
+                ml: 1, 
                 fontWeight: 600,
                 backgroundColor: filtroSituacao === tab.value ? 'rgba(255,255,255,0.2)' : theme.palette.grey[200],
                 px: 1,
@@ -450,7 +410,7 @@ export default function ListaCarros() {
               </Box>
             </Button>
           ))}
-        </Box>
+        </Box> */}
 
         <DataGrid
           rows={filteredCarros}
@@ -469,8 +429,8 @@ export default function ListaCarros() {
               py: 1.5,
             },
             '& .MuiDataGrid-columnHeaders': {
-              backgroundColor: theme.palette.mode === 'dark'
-                ? theme.palette.grey[800]
+              backgroundColor: theme.palette.mode === 'dark' 
+                ? theme.palette.grey[800] 
                 : theme.palette.grey[100],
               fontWeight: 'bold',
               borderRadius: 1,
