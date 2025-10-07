@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { 
+import {
   Modal,
   Box,
   Typography,
   TextField,
   Button,
   CircularProgress,
-  //useTheme
 } from '@mui/material';
-import axiosConnect from '../../../../services/axiosConnect';
+import { OcorrenciaService } from '../../../../api/ocorrenciasService';
 
 interface CadastrarOcorrenciaProps {
   open: boolean;
@@ -35,30 +34,46 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    if (!descricao.trim()) {
+      onError('A descrição é obrigatória');
+      return;
+    }
+
     setLoading(true);
 
     try {
       const dadosOcorrencia = {
-        descricao,
+        descricao: descricao.trim(),
         idCorrida: corrida,
         dataRegistro: new Date(),
-        
       };
 
-      await axiosConnect.post('/ocorrencias', dadosOcorrencia);
+      await OcorrenciaService.criar(dadosOcorrencia);
+      
       resetForm();
       onSuccess('Ocorrência cadastrada com sucesso!');
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao cadastrar ocorrência:', error);
-      onError(error);
+      
+      if (error.response?.status === 401) {
+        onError('Sessão expirada. Faça login novamente.');
+      } else {
+        onError(error.response?.data?.message || 'Erro ao cadastrar ocorrência');
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal open={open} onClose={handleClose}>
       <Box
         component="form"
         onSubmit={handleSubmit}
@@ -88,10 +103,12 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
           rows={3}
           variant="outlined"
           margin="normal"
+          error={!descricao.trim() && descricao !== ''}
+          helperText={!descricao.trim() && descricao !== '' ? "Descrição não pode estar vazia" : ""}
         />
 
         <Box mt={3} display="flex" justifyContent="flex-end" gap={2}>
-          <Button variant="outlined" onClick={onClose} disabled={loading}>
+          <Button variant="outlined" onClick={handleClose} disabled={loading}>
             Cancelar
           </Button>
           <Button

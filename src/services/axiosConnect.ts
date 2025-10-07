@@ -2,16 +2,34 @@
 import axios from "axios";
 
 const axiosConnect = axios.create({
-  baseURL: import.meta.env.VITE_API_URL, // Defina a URL base da sua API
-  timeout: 10000, // Defina um tempo limite se necessário
+  baseURL: import.meta.env.VITE_API_URL,
+  timeout: 10000,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
+axiosConnect.interceptors.request.use(
+  (config) => {
+    // Pega o token do localStorage
+    const token = localStorage.getItem("token");
+    
+    // Se existir token, adiciona no header Authorization
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
+    console.log('Enviando requisição:', config.url, 'com token:', !!token);
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // Interceptor para capturar erros de autenticação
 axiosConnect.interceptors.response.use(
-  (response) => response, // Retorna a resposta normalmente, se não houver erro
+  (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
       // Limpa o token e outros dados no localStorage
