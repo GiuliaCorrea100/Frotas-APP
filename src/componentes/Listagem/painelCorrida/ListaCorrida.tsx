@@ -18,7 +18,7 @@ import { CorridaFrontend, CorridaDto, getCorridas, CorridaService, atualizarSitu
 import Menu from "../../Menu";
 import SalvarEdicaoCorrida from "./modais/editarPainelCorrida";
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import CadastrarCorrida from '../../cadastros/corrida/modais/CadastrarCorrida';
+import CadastrarCorrida from '../../cadastros/corrida/modais/cadastrarCorrida';
 
 const formatDate = (dateString: string | null) => {
   if (!dateString) return 'Em andamento';
