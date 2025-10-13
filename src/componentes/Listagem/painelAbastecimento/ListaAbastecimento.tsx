@@ -50,9 +50,9 @@
 //     const contadoresIniciais: Record<string, number> = { TODOS: abastecimentos.length };
     
 //     tiposCombustivel.forEach(tc => {
-//       if(tc.id_tipo_combustivel) {
-//         contadoresIniciais[tc.id_tipo_combustivel] = abastecimentos.filter(
-//           a => a.tipo_combustivel?.id_tipo_combustivel === tc.id_tipo_combustivel
+//       if(tc.tivel) {
+//         contadoresIniciais[tc.tivel] = abastecimentos.filter(
+//           a => a.tipoCombustivel?.tivel === tc.tivel
 //         ).length;
 //       }
 //     });
@@ -90,9 +90,9 @@
 //         a.litros.toString().toLowerCase().includes(termoBusca) ||
 //         a.precoFinal.toString().toLowerCase().includes(termoBusca) ||
 //         a.dataAbastecimento.toLowerCase().includes(termoBusca) ||
-//         (a.tipo_combustivel?.nome?.toLowerCase() || '').includes(termoBusca);
+//         (a.tipoCombustivel?.nome?.toLowerCase() || '').includes(termoBusca);
 
-//       const idCombustivel = a.tipo_combustivel?.id_tipo_combustivel;
+//       const idCombustivel = a.tipoCombustivel?.tivel;
 //       const matchesFilter = filtroCombustivel === "TODOS" || String(idCombustivel) === filtroCombustivel;
 
 //       return matchesSearch && matchesFilter;
@@ -144,7 +144,7 @@
 //     // Validação
 //     const novosErros = {
 //       justificativa: !justificativa,
-//       tipoCombustivel: !abastecimentoSelecionado.tipo_combustivel?.id_tipo_combustivel,
+//       tipoCombustivel: !abastecimentoSelecionado.tipoCombustivel?.tivel,
 //     };
 
 //     setErros(novosErros);
@@ -157,7 +157,7 @@
 //       const dadosAtualizacao = {
 //         ...abastecimentoSelecionado,
 //         justificativaAlteracao: justificativa,
-//         tipo_combustivel: abastecimentoSelecionado.tipo_combustivel
+//         tipoCombustivel: abastecimentoSelecionado.tipoCombustivel
 //       };
 
 //       await AbastecimentoService.AtualizarAbastecimento(
@@ -177,12 +177,12 @@
 //   const handleChangeTipoCombustivel = (id: number) => {
 //     if (!abastecimentoSelecionado) return;
 
-//     const tipoSelecionado = tiposCombustivel.find(tc => tc.id_tipo_combustivel === id);
+//     const tipoSelecionado = tiposCombustivel.find(tc => tc.tivel === id);
     
 //     if (tipoSelecionado) {
 //       setAbastecimentoSelecionado({
 //         ...abastecimentoSelecionado,
-//         tipo_combustivel: tipoSelecionado
+//         tipoCombustivel: tipoSelecionado
 //       });
 //     }
 
@@ -197,11 +197,11 @@
 //       renderCell: (params) => <Typography>{params.value}</Typography>
 //     },
 //      {
-//     field: 'id_tipo_combustivel',
+//     field: 'tivel',
 //     headerName: 'Combustível',
 //     flex: 1,
 //     renderCell: (params) => {
-//     const tipo = tiposCombustivel.find(tc => tc.id_tipo_combustivel === params.value);
+//     const tipo = tiposCombustivel.find(tc => tc.tivel === params.value);
 //     return <Typography>{tipo ? tipo.nome : 'N/A'}</Typography>;
 //     }
 //   },
@@ -383,13 +383,13 @@
             
 //             {tiposCombustivel.map(tc => (
 //               <Button
-//                 key={tc.id_tipo_combustivel}
-//                 onClick={() => setFiltroCombustivel(tc.id_tipo_combustivel!.toString())}
-//                 variant={filtroCombustivel === tc.id_tipo_combustivel?.toString() ? "contained" : "outlined"}
+//                 key={tc.tivel}
+//                 onClick={() => setFiltroCombustivel(tc.tivel!.toString())}
+//                 variant={filtroCombustivel === tc.tivel?.toString() ? "contained" : "outlined"}
 //               >
 //                 {tc.nome}
 //                 <Box component="span" sx={{ ml: 1, px: 1, borderRadius: 12, fontWeight: 600 }}>
-//                   {contadores[tc.id_tipo_combustivel!] || 0}
+//                   {contadores[tc.tivel!] || 0}
 //                 </Box>
 //               </Button>
 //             ))}
@@ -473,12 +473,12 @@
 //             <InputLabel id="tipo-combustivel-label">Tipo de Combustível</InputLabel>
 //             <Select
 //               labelId="tipo-combustivel-label"
-//               value={abastecimentoSelecionado?.tipo_combustivel?.id_tipo_combustivel || ''}
+//               value={abastecimentoSelecionado?.tipoCombustivel?.tivel || ''}
 //               label="Tipo de Combustível"
 //               onChange={(e) => handleChangeTipoCombustivel(Number(e.target.value))}
 //             >
 //               {tiposCombustivel.map((tipo) => (
-//                 <MenuItem key={tipo.id_tipo_combustivel} value={tipo.id_tipo_combustivel}>
+//                 <MenuItem key={tipo.tivel} value={tipo.tivel}>
 //                   {tipo.nome}
 //                 </MenuItem>
 //               ))}

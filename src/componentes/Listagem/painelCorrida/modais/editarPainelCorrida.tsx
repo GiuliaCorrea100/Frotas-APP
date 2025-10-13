@@ -18,7 +18,7 @@ interface CorridaDto {
   distanciaKm?: string;
   idMotorista: number;
   chaveEmprestada: boolean;
-  idCarros: number;
+  idCarro: number;
   nomeMotorista?: string;
   placaVeiculo?: string;
   situacao?: string;
@@ -98,7 +98,7 @@ export default function EditarInfoCorrida({
     setLoading(true);
     try {
       let idMotorista = corrida.idMotorista;
-      let idCarros = corrida.idCarros;
+      let idCarro = corrida.idCarro;
       
       // Verifica alteração de motorista
       if (motorista !== (corrida.nomeMotorista || '')) {
@@ -112,8 +112,8 @@ export default function EditarInfoCorrida({
       // Verifica alteração de placa
       if (veiculo !== (corrida.placaVeiculo || '')){
         const resVeiculo = await api.get(`/carros/buscar-placa/${veiculo}`);
-        idCarros = resVeiculo.data?.[0]?.idCarros;
-        if (!idCarros){
+        idCarro = resVeiculo.data?.[0]?.idCarro;
+        if (!idCarro){
           throw new Error('Carro não encontrado!');
         }
       }
@@ -121,7 +121,7 @@ export default function EditarInfoCorrida({
       const dadosAtualizados: CorridaDto = {
         idCorrida: corrida.idCorrida,
         idMotorista,
-        idCarros,
+        idCarro,
         dataInicio: dataInicio ? new Date(dataInicio) : corrida.dataInicio,
         dataTermino: dataFim ? new Date(dataFim) : corrida.dataTermino,
         chaveEmprestada: corrida.chaveEmprestada,

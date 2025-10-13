@@ -165,7 +165,7 @@ const dadosConsumoPorCampus = useMemo(() => {
 
         // Abastecimentos
         const custoPorCombustivel = dadosFiltrados.abastecimentos.reduce((acc: { [key: string]: number }, abs) => {
-            const tipo = abs.tipo_combustivel?.nome || 'Não especificado';
+            const tipo = abs.tipoCombustivel?.nome || 'Não especificado';
             acc[tipo] = (acc[tipo] || 0) + parseFloat(abs.valorTotal || 0);
             return acc;
         }, {});
@@ -566,7 +566,7 @@ const dadosConsumoPorCampus = useMemo(() => {
                                             placa: veiculo.placa,
                                             modelo: veiculo.modelo || 'N/A',
                                             situacao: veiculo.situacao || 'N/A',
-                                            localidade_fisica: veiculo.localidade_fisica || 'N/A',
+                                            localidadeFisica: veiculo.localidadeFisica || 'N/A',
                                             totalCorridas: corridasVeiculo.length,
                                             statusUtilizacao: statusUtilizacao,
                                         };
@@ -575,7 +575,7 @@ const dadosConsumoPorCampus = useMemo(() => {
                                         { field: 'placa', headerName: 'Placa', flex: 1 },
                                         { field: 'modelo', headerName: 'Modelo', flex: 1 },
                                         { field: 'situacao', headerName: 'Situação', flex: 1 },
-                                        { field: 'localidade_fisica', headerName: 'Campus', flex: 1 },
+                                        { field: 'localidadeFisica', headerName: 'Campus', flex: 1 },
                                         { field: 'totalCorridas', headerName: 'Total de Corridas', flex: 1, type: 'number' },
                                         { 
                                             field: 'statusUtilizacao', 

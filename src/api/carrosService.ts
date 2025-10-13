@@ -2,7 +2,7 @@ import api from "../config/axiosConfig";
 
 // Definição do tipo de dados do carro (DTO)
 export interface CarrosDto {
-  idCarros?: number;
+  idCarro?: number;
   tombo: number;
   qrCode: string;
   placa: string;
@@ -11,14 +11,14 @@ export interface CarrosDto {
   ano: number;
 
   //adicionei as colunas
-  localidade_fisica: string;
+  localidadeFisica: string;
   situacao?: string;
   ativo: boolean; // Adicionando campo ativo
-  tipo_combustivel: number | TipoCombustivel; // Pode ser um número, um objeto TipoCombustivel ou null
+  tipoCombustivel: number | TipoCombustivel; // Pode ser um número, um objeto TipoCombustivel ou null
   nomeTipoCombustivel?: string;
 }
 export interface TipoCombustivel {
-  id_tipo_combustivel?: number;
+  idTipoCombustivel?: number;
   nome: string;
 }
 
@@ -39,8 +39,8 @@ export class CarrosService {
     return resposta.data;
   }
   // Buscar um carro por ID
-  static async buscarPorId(idCarros: number): Promise<CarrosDto> {
-    const resposta = await api.get<CarrosDto>(`/carros/${idCarros}`);
+  static async buscarPorId(idCarro: number): Promise<CarrosDto> {
+    const resposta = await api.get<CarrosDto>(`/carros/${idCarro}`);
     return resposta.data;
   }
 
@@ -60,12 +60,12 @@ export class CarrosService {
     return resposta.data;
   }
   // Inativar um carro (define ativo = false)
-  static async inativar(idCarros: number): Promise<CarrosDto> {
-    const resposta = await api.patch<CarrosDto>(`/carros/${idCarros}/inativar`);
+  static async inativar(idCarro: number): Promise<CarrosDto> {
+    const resposta = await api.patch<CarrosDto>(`/carros/${idCarro}/inativar`);
     return resposta.data;
   }
 
-  static async deletar(idCarros: number): Promise<void> {
-    await api.delete(`/carros/${idCarros}`);
+  static async deletar(idCarro: number): Promise<void> {
+    await api.delete(`/carros/${idCarro}`);
   }
 }

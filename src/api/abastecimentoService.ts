@@ -15,7 +15,7 @@ export interface Corrida {
   idMotorista: number;
   situacao: string; // "PENDENTE", "CONCLUIDA"
   chaveEmprestada: boolean;
-  idCarros: number;
+  idCarro: number;
 }
 
 export interface Abastecimento {
@@ -154,7 +154,7 @@ export class AbastecimentoService {
   ): Promise<any> {
     try {
       const response = await axiosConnect.patch(
-        `/abastecimento/${idAbastecimento}/edicao-abastecimento`,
+        `/abastecimento/edicao-abastecimento/${idAbastecimento}`,
         dados
       );
       return response.data;

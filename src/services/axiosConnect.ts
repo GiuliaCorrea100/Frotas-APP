@@ -13,13 +13,12 @@ axiosConnect.interceptors.request.use(
   (config) => {
     // Pega o token do localStorage
     const token = localStorage.getItem("token");
-    
+
     // Se existir token, adiciona no header Authorization
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
-    console.log('Enviando requisição:', config.url, 'com token:', !!token);
+
     return config;
   },
   (error) => {

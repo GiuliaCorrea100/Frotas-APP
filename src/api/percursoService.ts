@@ -7,7 +7,7 @@ export interface PercursoBackend {
   saidaOdometro: number;
   saidaHora?: Date;
   chegadaHora?: Date | null;
-  chegadaodometro?: number;
+  chegadaOdometro?: number;
   localOrigem?: string;
 }
 
@@ -17,7 +17,7 @@ export interface PercursoDto {
   saidaOdometro: number;
   localDestino: string;
   chegadaHora?: Date | null | undefined;
-  chegadaodometro?: number;
+  chegadaOdometro?: number;
   localOrigem?: string;
 }
 
@@ -126,7 +126,7 @@ export const atualizarPercurso = async (
   try {
     const payload = {
       saidaOdometro: data.saidaOdometro,
-      chegadaodometro: data.chegadaOdometro,
+      chegadaOdometro: data.chegadaOdometro,
       localDestino: data.localDestino,
       localOrigem: data.localOrigem,
       saidaHora: data.saidaHora,
@@ -160,7 +160,7 @@ export const inserirPercursoCompleto = async (
     const payload = {
       idCorrida: idCorrida,
       saidaOdometro: data.saidaOdometro,
-      chegadaodometro: data.chegadaOdometro,
+      chegadaOdometro: data.chegadaOdometro,
       localDestino: data.localDestino,
       localOrigem: data.localOrigem,
       saidaHora: data.saidaHora,

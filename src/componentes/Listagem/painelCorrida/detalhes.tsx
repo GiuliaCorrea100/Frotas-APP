@@ -262,7 +262,7 @@ const DetalhesRequisicao: React.FC = () => {
         ),
       },
       {
-        field: "chegadaodometro",
+        field: "chegadaOdometro",
         headerName: "Odômetro chegada",
         flex: 1,
         sortable: false,

@@ -172,10 +172,10 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
         idMotorista: corrida.motoristaId!,
         situacao: "AGENDADA",
         chaveEmprestada: false,
-        idCarros: carro.idCarros,
+        idCarro: carro.idCarro,
       };
 
-      await atualizarSituacaoCarro(carro.idCarros, "RESERVADO");
+      await atualizarSituacaoCarro(carro.idCarro, "RESERVADO");
       
       await createCorrida(corridaParaEnviar);
       
@@ -242,7 +242,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
                 setCarro(newValue); 
                 setErrors(prev => ({ ...prev, carro: false }));
               }}
-              isOptionEqualToValue={(option, value) => option.idCarros === value.idCarros} 
+              isOptionEqualToValue={(option, value) => option.idCarro === value.idCarro} 
               noOptionsText="Digite pelo menos 3 caracteres para buscar"
               sx={{ 
                 width: '100%',
