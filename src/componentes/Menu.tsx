@@ -26,7 +26,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 interface JwtPayload {
   sub: number; 
   login: string;
-  permissao: number;
+  administrador: boolean;
   iat: number;
   exp: number;
 }
@@ -47,7 +47,7 @@ interface MotoristaDashboard {
 }
 
 const Menu: React.FC = () => {
-  const { isAuthenticated, cpf, logout, permissao, nome, email } = useAuth();
+  const { isAuthenticated, cpf, logout, administrador, nome, email } = useAuth();
   const navigate = useNavigate();
   const location = useLocation(); 
   const [showModalDadosPerfil, setShowModalDadosPerfil] = useState(false);
@@ -234,7 +234,7 @@ const Menu: React.FC = () => {
             <>
               {!isMobile && (
                 <>
-                  {Number(permissao) === 2 && (
+                  {administrador === true && (
                     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                       <Button 
                         color="inherit" 
@@ -308,7 +308,7 @@ const Menu: React.FC = () => {
                 }}
               >
                 <>
-                  {Number(permissao) === 2 && (
+                  {administrador === true && (
                     <>
                       <DropdownItem 
                         component={Link} 

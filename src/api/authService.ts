@@ -11,7 +11,7 @@ interface AuthResponse {
   user: {
     idUsuario: number;
     idPessoaSingu: number;
-    permissao: string;
+    administrador: boolean;
   };
 }
 

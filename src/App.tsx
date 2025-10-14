@@ -41,7 +41,7 @@ const App: React.FC = () => {
         <Route path="/" element={<PaginaDeLogin />} />
 
         {/*rotas de administrador*/}
-        <Route element={<PrivateRoute requiredPermission={2} />}>
+        <Route element={<PrivateRoute requiredPermission={true} />}>
           {/*Paginas de Cadastro*/}
           <Route path="/CadastroMotorista" element={<CadastroMotorista />} />
           <Route path="/CadastroMotorista2" element={<CadastroMotorista2 />} />
@@ -60,15 +60,10 @@ const App: React.FC = () => {
           {/*Paginas de Corridas */}
           {/*ALTERAR DEPOIS, PARA QUE NAO POSSAM SER ACESSADOS VIA URL*/}
           <Route path="/IniciarCorrida" element={<IniciarCorrida />} />
-          
         </Route>
 
-
-      
         {/* Rotas usuario comum */}
         <Route path="/HistoricoIndividual" element={<HistoricoIndividual/>} />
-        
-        
 
         {/* Rota para acesso negado */}
         <Route path="/unauthorized" element={<Unauthorized />} />

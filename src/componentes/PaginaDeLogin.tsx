@@ -40,8 +40,8 @@ const PaginaDeLogin: React.FC = () => {
           password: password,
         });
 
-        const { token, username, permissao, nome, email } = response.data;
-        login(token, username, permissao, nome, email);
+        const { token, username, administrador, nome, email } = response.data;
+        login(token, username, administrador, nome, email);
         navigate('/menu');
       } catch (error) {
         

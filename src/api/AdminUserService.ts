@@ -1,55 +1,38 @@
 import api from "../config/axiosConfig";
 
-// DTO combinado com permissao, nome e email
+// DTO combinado com administrador, nome e email
 export interface AdminUserDto {
   idUsuario: number;
-  idPessoaSingu: number;
-  permissao: number;
+  idPessoaSigaa: number;
+  administrador: boolean;
   nome: string;
-  email: string;
 }
 
 interface UserDto {
   idUsuario: number;
-  idPessoaSingu: number;
-  permissao: number;
-}
-
-interface UserSinguDto {
-  idPessoa: number;
+  idPessoaSigaa: number;
+  administrador: boolean;
   nome: string;
-  email: string;
 }
 
 export class AdminUserService {
   static async buscarTodos(): Promise<AdminUserDto[]> {
-    const respUsers = await api.get<UserDto[]>("/usuarios");
+    const respUsers = await api.get<UserDto[]>("/usuarios", {
+      params: {
+        administrador: true
+      }
+    });
 
-    const users = respUsers.data.filter((user) => user.permissao === 2);
+    const users = respUsers.data;
 
     const combinados: AdminUserDto[] = await Promise.all(
       users.map(async (user) => {
-        try {
-          const resp = await api.get<UserSinguDto>(
-            `/usersingu/buscar-id/${user.idPessoaSingu}`
-          );
-
-          return {
+           return {
             idUsuario: user.idUsuario,
-            idPessoaSingu: user.idPessoaSingu,
-            permissao: user.permissao,
-            nome: resp.data.nome,
-            email: resp.data.email,
+            idPessoaSigaa: user.idPessoaSigaa,
+            administrador: user.administrador,
+            nome: user.nome,
           };
-        } catch (err) {
-          return {
-            idUsuario: user.idUsuario,
-            idPessoaSingu: user.idPessoaSingu,
-            permissao: user.permissao,
-            nome: "-",
-            email: "-",
-          };
-        }
       })
     );
 

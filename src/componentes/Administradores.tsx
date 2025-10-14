@@ -21,8 +21,8 @@ import React from 'react';
 
 interface AdminUserDto {
   idUsuario: number;
-  idPessoaSingu: number;
-  permissao: number;
+  idPessoaSigaa: number;
+  administrador: boolean;
   nome: string;
   email: string;
 }
@@ -106,17 +106,17 @@ export default function ListaAdministradores() {
         </Typography>
       )
     },
-    { field: 'email', headerName: 'E-mail', flex: 1 },
+    // { field: 'email', headerName: 'E-mail', flex: 1 },
     {
       field: 'acoes',
       headerName: 'Controle de acesso',
-      flex: 0.5,
+      flex: 1,
       sortable: false,
       filterable: false,
       renderCell: (params) => (
         <Box 
           display="flex" 
-          justifyContent="center" 
+          justifyContent="space-between" 
           width="100%"
         >
           <Button
@@ -326,7 +326,7 @@ export default function ListaAdministradores() {
             onClick={async () => {
               if (SelectedUsuario) {
                 try {
-                  await AdminUserService.confirmarCadastro(SelectedUsuario.idPessoaSingu);
+                  await AdminUserService.confirmarCadastro(SelectedUsuario.idPessoaSigaa);
                   const dadosAtualizados = await AdminUserService.buscarTodos();
                   setAdmins(dadosAtualizados);
                   setShowModalConfirmar(false);

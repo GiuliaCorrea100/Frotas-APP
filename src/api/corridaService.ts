@@ -131,13 +131,13 @@ export class CorridaService {
   ): Promise<void> {
     try {
       console.log("buscando pessoa no banco singu");
-      const { data } = await api.get(`/usuarios/buscar-singu/${idMotorista}`);
+      const { data } = await api.get(`/usuarios/buscar-usuario/${idMotorista}`);
 
-      const idSingu = data;
-      console.log("idSingu:", idSingu);
+      const idSigaa = data.idPessoaSigaa;
+      console.log("idSigaa:", idSigaa);
 
       const { data: senhaValida } = await api.get(
-        `/usersingu/conferir-senha/${idSingu}/${senha}`
+        `/usersingu/conferir-senha/${idSigaa}/${senha}`
       );
 
       if (senhaValida === true) {

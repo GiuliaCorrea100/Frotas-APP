@@ -6,11 +6,11 @@ import { decodeToken } from '../utils/jwtDecodeHelper';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  login: (cpf: string, password: string, permissao: string, nome: string, email: string) => void;
+  login: (cpf: string, password: string, administrador: boolean, nome: string, email: string) => void;
   logout: () => void;
   cpf: string | null;
   token: string | null;
-  permissao: string | null; 
+  administrador: boolean | null; 
   nome: string | null;
   email: string | null;
 
@@ -24,7 +24,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [cpf, setCpf] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [permissao, setPermissao] = useState<string | null>(null);
+  const [administrador, setAdministrador] = useState<string | null>(null);
   const [nome, setNome] = useState<string | null>(null);
   const [email, setEmail ] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,15 +32,15 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
     const storedCpf = localStorage.getItem('cpf');
-    const storedPermissao = localStorage.getItem('permissao');
+    const storedAdministrador = localStorage.getItem('administrador');
     const storedNome = localStorage.getItem('nome');
     const storedEmail = localStorage.getItem('email');
 
     //manter logado mesmo após refresh
-    if (storedToken && storedCpf && storedPermissao) {
+    if (storedToken && storedCpf && storedAdministrador) {
       setToken(storedToken);
       setCpf(storedCpf);
-      setPermissao(storedPermissao);
+      setAdministrador(storedAdministrador);
       setNome(storedNome);
       setEmail(storedEmail);
       setIsAuthenticated(true);
@@ -69,17 +69,17 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   }, [token]);
 
 
-    const login = (token: string, cpf: string, permissao: string, nome: string, email: string) => {
+    const login = (token: string, cpf: string, administrador: string, nome: string, email: string) => {
       localStorage.setItem('token', token);
       localStorage.setItem('cpf', cpf);
-      localStorage.setItem('permissao', permissao); 
+      localStorage.setItem('administrador', administrador); 
       localStorage.setItem('nome', nome);
       localStorage.setItem('email', email);
 
 
       setToken(token);
       setCpf(cpf);
-      setPermissao(permissao);
+      setAdministrador(administrador);
       setNome(nome);
       setEmail(email);
       setIsAuthenticated(true);
@@ -88,13 +88,13 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       const logout = () => {
       localStorage.removeItem('token');
       localStorage.removeItem('cpf');
-      localStorage.removeItem('permissao');
+      localStorage.removeItem('administrador');
       localStorage.removeItem('nome');
       localStorage.removeItem('email');
 
       setToken(null);
       setCpf(null);
-      setPermissao(null);
+      setAdministrador(null);
       setNome(null);
       setEmail(null);
       setIsAuthenticated(false);
@@ -102,7 +102,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
     return (
     <AuthContext.Provider
-      value={{ isAuthenticated, login, logout, cpf, token, permissao, nome, email }}
+      value={{ isAuthenticated, login, logout, cpf, token, administrador, nome, email }}
     >
       {!isLoading && children}
     </AuthContext.Provider>
