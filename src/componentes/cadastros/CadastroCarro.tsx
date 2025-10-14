@@ -41,7 +41,7 @@ const [tipoCombustivelSelecionado, setTipoCombustivelSelecionado] = useState<Tip
   const handleSelectChange = (e: SelectChangeEvent) => {
   const idSelecionado = e.target.value;
   const tipoSelecionado = tiposCombustivelDisponiveis.find(
-    tipo => tipo.id_tipo_combustivel?.toString() === idSelecionado
+    tipo => tipo.idTipoCombustivel?.toString() === idSelecionado
   );
   
   if (tipoSelecionado) {
@@ -70,10 +70,10 @@ const [tipoCombustivelSelecionado, setTipoCombustivelSelecionado] = useState<Tip
       ano: Number(ano),
       tombo: Number(tombo),
       qrCode: "",
-      localidade_fisica: localidadeFisica,
+      localidadeFisica: localidadeFisica,
       situacao: "DISPONIVEL",
       ativo: true,
-      tipo_combustivel: tipoCombustivelSelecionado,
+      tipoCombustivel: tipoCombustivelSelecionado,
     };
 
     try {
@@ -173,14 +173,14 @@ const [tipoCombustivelSelecionado, setTipoCombustivelSelecionado] = useState<Tip
             <FormControl fullWidth margin="normal" error={!!erroTipoCombustivel}>
             <InputLabel>Tipo de Combustível</InputLabel>
             <Select
-                  value={tipoCombustivelSelecionado?.id_tipo_combustivel?.toString() || ""}
+                  value={tipoCombustivelSelecionado?.idTipoCombustivel?.toString() || ""}
                   onChange={handleSelectChange}
                   label="Tipo de Combustível"
                 >
                   {tiposCombustivelDisponiveis.map((tipo) => (
                     <MenuItem
-                      key={tipo.id_tipo_combustivel}
-                      value={tipo.id_tipo_combustivel?.toString()}
+                      key={tipo.idTipoCombustivel}
+                      value={tipo.idTipoCombustivel?.toString()}
                     >
                       {tipo.nome}
                     </MenuItem>

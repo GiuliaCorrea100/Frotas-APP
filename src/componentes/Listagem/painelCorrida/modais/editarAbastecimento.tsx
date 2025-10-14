@@ -242,8 +242,8 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
             >
               {tiposCombustivel.map((tipo) => (
                 <MenuItem
-                  key={tipo.id_tipo_combustivel}
-                  value={tipo.id_tipo_combustivel}
+                  key={tipo.idTipoCombustivel}
+                  value={tipo.idTipoCombustivel}
                 >
                   {tipo.nome}
                 </MenuItem>

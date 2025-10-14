@@ -122,8 +122,8 @@ const FormularioVeiculos: React.FC<FormularioVeiculosProps> = ({
     setModelo(veiculo.modelo || '');
     setAno(veiculo.ano || 0);
     setTombo(veiculo.tombo?.toString() || '');
-    setLocalidadeFisica(veiculo.localidade_fisica || '');
-    setTipoCombustivelSelecionado(veiculo.tipo_combustivel || null);
+    setLocalidadeFisica(veiculo.localidadeFisica || '');
+    setTipoCombustivelSelecionado(veiculo.tipoCombustivel || null);
   };
 
   // Função para consultar veículo (similar ao handleConsultarBem)
@@ -204,7 +204,7 @@ const FormularioVeiculos: React.FC<FormularioVeiculosProps> = ({
   const handleSelectChange = (e: SelectChangeEvent) => {
     const idSelecionado = e.target.value;
     const tipoSelecionado = tiposCombustivelDisponiveis.find(
-      (tipo) => tipo.id_tipo_combustivel?.toString() === idSelecionado
+      (tipo) => tipo.idTipoCombustivel?.toString() === idSelecionado
     );
 
     setTipoCombustivelSelecionado(tipoSelecionado || null);
@@ -318,9 +318,9 @@ const FormularioVeiculos: React.FC<FormularioVeiculosProps> = ({
           ano: Number(ano),
           tombo: Number(tombo),
           qrCode: '', 
-          localidade_fisica: localidadeFisica,
+          localidadeFisica: localidadeFisica,
           ativo: true, 
-          tipo_combustivel: tipoCombustivelSelecionado as TipoCombustivel,
+          tipoCombustivel: tipoCombustivelSelecionado as TipoCombustivel,
           // Não inclui situacao - no modo edição mantém a atual, no criação o service define como DISPONIVEL
       };
 
@@ -508,15 +508,15 @@ const FormularioVeiculos: React.FC<FormularioVeiculosProps> = ({
             <InputLabel>Tipo de Combustível</InputLabel>
             <Select
               name="tipoCombustivel"
-              value={tipoCombustivelSelecionado?.id_tipo_combustivel?.toString() || ''}
+              value={tipoCombustivelSelecionado?.idTipoCombustivel?.toString() || ''}
               onChange={handleSelectChange}
               label="Tipo de Combustível"
               disabled={loading}
             >
               {tiposCombustivelDisponiveis.map((tipo) => (
                 <MenuItem
-                  key={tipo.id_tipo_combustivel}
-                  value={tipo.id_tipo_combustivel?.toString()}
+                  key={tipo.idTipoCombustivel}
+                  value={tipo.idTipoCombustivel?.toString()}
                 >
                   {tipo.nome}
                 </MenuItem>

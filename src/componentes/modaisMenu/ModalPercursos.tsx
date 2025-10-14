@@ -130,7 +130,7 @@ const ModalPercursos: React.FC<ModalPercursosProps> = ({ corridaId, situacaoCorr
                         {percurso.chegadaHora ? formatTime(percurso.chegadaHora.toString()) : '-'}
                       </TableCell>
                       <TableCell>
-                        {percurso.saidaOdometro} → {percurso.chegadaodometro || '-'}
+                        {percurso.saidaOdometro} → {percurso.chegadaOdometro || '-'}
                       </TableCell>
                     </TableRow>
                   ))}

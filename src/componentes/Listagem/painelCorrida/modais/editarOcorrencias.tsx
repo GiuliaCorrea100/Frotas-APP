@@ -42,7 +42,7 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
 
     setLoading(true);
     try {
-      await axiosConnect.patch(`/ocorrencias/${ocorrencia.idOcorrencia}/descricao`, {
+      await axiosConnect.patch(`/ocorrencia/${ocorrencia.idOcorrencia}/descricao`, {
         descricao,
       });
 

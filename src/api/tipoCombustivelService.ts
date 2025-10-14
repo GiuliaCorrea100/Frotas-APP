@@ -1,7 +1,7 @@
 import api from "../config/axiosConfig";
 
 export interface TipoCombustivel {
-  id_tipo_combustivel?: number;
+  idTipoCombustivel?: number;
   nome: string;
 }
 

@@ -17,11 +17,11 @@ interface OcorrenciaBackend {
 export class OcorrenciaService {
   static async buscarTodos(): Promise<OcorrenciaDto[]> {
     try {
-      const token = localStorage.getItem('token');
-      const respOcorrencias = await api.get<OcorrenciaDto[]>("/ocorrencias", {
+      const token = localStorage.getItem("token");
+      const respOcorrencias = await api.get<OcorrenciaDto[]>("/ocorrencia", {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       return respOcorrencias.data;
@@ -33,11 +33,11 @@ export class OcorrenciaService {
 
   static async criar(dados: OcorrenciaBackend): Promise<void> {
     try {
-      const token = localStorage.getItem('token');
-      await api.post("/ocorrencias", dados, {
+      const token = localStorage.getItem("token");
+      await api.post("/ocorrencia", dados, {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
     } catch (err) {
       console.error("Erro ao salvar ocorrência:", err);
@@ -47,13 +47,13 @@ export class OcorrenciaService {
 
   static async buscarPorCorrida(idCorrida: number): Promise<OcorrenciaDto[]> {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const response = await api.get<OcorrenciaDto[]>(
-        `/ocorrencias/buscar-por-corrida/${idCorrida}`,
+        `/ocorrencia/buscar-por-corrida/${idCorrida}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
       return response.data;
@@ -66,15 +66,19 @@ export class OcorrenciaService {
     }
   }
 
-  static async atualizarDescricao(id: number, descricao: string): Promise<void> {
+  static async atualizarDescricao(
+    id: number,
+    descricao: string
+  ): Promise<void> {
     try {
-      const token = localStorage.getItem('token');
-      await api.patch(`/ocorrencias/${id}/descricao`,
+      const token = localStorage.getItem("token");
+      await api.patch(
+        `/ocorrencia/${id}/descricao`,
         { descricao },
         {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
     } catch (error) {
@@ -85,11 +89,11 @@ export class OcorrenciaService {
 
   static async excluir(idOcorrencia: number): Promise<void> {
     try {
-      const token = localStorage.getItem('token');
-      await api.delete(`/ocorrencias/${idOcorrencia}`, {
+      const token = localStorage.getItem("token");
+      await api.delete(`/ocorrencia/${idOcorrencia}`, {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
     } catch (error) {
       console.error(`Erro ao excluir ocorrência ${idOcorrencia}:`, error);
