@@ -8,7 +8,7 @@ export interface CorridaBackend {
   idMotorista: number;
   situacao: string;
   chaveEmprestada: boolean;
-  idCarros: number;
+  idCarro: number;
 }
 
 export interface CorridaFrontend {
@@ -52,7 +52,6 @@ export const createCorrida = async (
         : null,
     };
 
-    console.log("Enviando para o backend:", payload);
     const response = await api.post(`/corrida`, payload);
     return response.data;
   } catch (error) {
@@ -137,13 +136,11 @@ export class CorridaService {
       const idSingu = data;
       console.log("idSingu:", idSingu);
 
-      console.log("enviando senha e id para ver se são compatíveis");
       const { data: senhaValida } = await api.get(
         `/usersingu/conferir-senha/${idSingu}/${senha}`
       );
 
       if (senhaValida === true) {
-        console.log("enviando patch para mudar o estado da chave");
         await api.patch(`/corrida/emprestar-chave/${idCorrida}`);
         console.log("chave emprestada com sucesso APP");
       } else {

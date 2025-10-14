@@ -166,7 +166,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
     // Encontrar o tipo de combustível selecionado
     const tipoCombustivelSelecionado = tiposCombustivel.find(
-      tipo => tipo.id_tipo_combustivel === parseInt(formData.tipoCombustivelId)
+      tipo => tipo.idTipoCombustivel === parseInt(formData.tipoCombustivelId)
     );
 
     if (!tipoCombustivelSelecionado) {
@@ -181,7 +181,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       dataAbastecimento: formData.dataAbastecimento,
       valorUnitario: formData.valorUnitario ? parseFloat(formData.valorUnitario) : 0,
       justificativaAlteracao: formData.justificativaAlteracao || '',
-      tipoCombustivel: tipoCombustivelSelecionado.id_tipo_combustivel as number, // Corrigido
+      tipoCombustivel: tipoCombustivelSelecionado.idTipoCombustivel as number, // Corrigido
       idCorrida: parseInt(formData.idCorrida), // Corrigido
     };
 
@@ -410,7 +410,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                   <MenuItem value="">Carregando tipos de combustível...</MenuItem>
                 ) : (
                   tiposCombustivel.map((tipo) => (
-                    <MenuItem key={tipo.id_tipo_combustivel} value={tipo.id_tipo_combustivel}>
+                    <MenuItem key={tipo.idTipoCombustivel} value={tipo.idTipoCombustivel}>
                       {tipo.nome}
                     </MenuItem>
                   ))

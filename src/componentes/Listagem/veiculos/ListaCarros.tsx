@@ -141,10 +141,10 @@ export default function ListaCarros() {
 
   // Confirma a alteração de status (Ativar/Inativar)
   const handleConfirmarToggleAtivo = async () => {
-    if (!selectedCarro || !selectedCarro.idCarros) return;
+    if (!selectedCarro || !selectedCarro.idCarro) return;
 
     try {
-      await CarrosService.inativar(selectedCarro.idCarros); 
+      await CarrosService.inativar(selectedCarro.idCarro); 
       await carregarCarros();
       setShowModalAtivacao(false);
     } catch (error) {
@@ -155,11 +155,10 @@ export default function ListaCarros() {
 
   // Lógica de salvamento da Situação (mantida para compatibilidade)
   const handleSaveSituacao = async () => {
-    if (!selectedCarroForEdit || !selectedCarroForEdit.idCarros) return;
+    if (!selectedCarroForEdit || !selectedCarroForEdit.idCarro) return;
     try {
-      console.log('Enviando para API:', selectedCarroForEdit.idCarros, { situacao: novaSituacao });
       await CarrosService.atualizar(
-        selectedCarroForEdit.idCarros,
+        selectedCarroForEdit.idCarro,
         {
           situacao: novaSituacao,
           tombo: 0,
@@ -168,9 +167,9 @@ export default function ListaCarros() {
           odometro: '',
           modelo: '',
           ano: 0,
-          localidade_fisica: '',
+          localidadeFisica: '',
           ativo: false,
-          tipo_combustivel: 0
+          tipoCombustivel: 0
         }
       );
       await carregarCarros();
@@ -195,14 +194,13 @@ export default function ListaCarros() {
     },
     { field: 'modelo', headerName: 'Modelo', flex: 2 },
     { field: 'ano', headerName: 'Ano', flex: 1 },
-    { field: 'localidade_fisica', headerName: 'Localidade', flex: 1 },
+    { field: 'localidadeFisica', headerName: 'Localidade', flex: 1 },
     { field: 'tombo', headerName: 'Tombo', flex: 1 },
     {
       field: 'nomeTipoCombustivel',
       headerName: 'Combustível',
       flex: 1,
       renderCell: (params) => {
-        console.log(params.value);
         return (
           <Typography variant="body2">
             {params.value || 'Não definido'}
@@ -358,7 +356,7 @@ export default function ListaCarros() {
         {/* Busca */}
         <Box sx={{ mb: 3 }}>
           <TextField
-            placeholder="Buscar corridas..."
+            placeholder="Buscar veículos..."
             variant="outlined"
             size="small"
             value={busca}
@@ -415,7 +413,7 @@ export default function ListaCarros() {
         <DataGrid
           rows={filteredCarros}
           columns={colunas}
-          getRowId={(row) => row.idCarros}
+          getRowId={(row) => row.idCarro}
           initialState={{
             pagination: {
               paginationModel: { pageSize: 10, page: 0 },
@@ -461,7 +459,7 @@ export default function ListaCarros() {
 
       {/* FormularioVeiculos para criação e edição */}
       <FormularioVeiculos
-        idVeiculo={modoFormulario === 'editar' && selectedCarroForEdit ? selectedCarroForEdit.idCarros || null : null}
+        idVeiculo={modoFormulario === 'editar' && selectedCarroForEdit ? selectedCarroForEdit.idCarro || null : null}
         open={openFormulario}
         onClose={handleCloseFormulario}
         onSuccess={handleSuccessFormulario}
