@@ -108,10 +108,8 @@ export default function ListaAdministradores() {
     let usuarioAlvo;
     
     if (showModalCadastro) {
-      // Veio do modal de CADASTRO
       usuarioAlvo = SelectedAdmin;
     } else if (showModalConfirmar) {
-      // Veio do modal de REVOGAR
       usuarioAlvo = SelectedUsuario;
     }
     
@@ -136,7 +134,7 @@ export default function ListaAdministradores() {
       // Alterar permissão de administrador
       await AdminUserService.confirmarCadastro(idUsuarioAdministrador);
       
-      // 4. Atualizar lista
+      // Atualizar lista
       const dadosAtualizados = await AdminUserService.buscarTodos();
       setAdmins(dadosAtualizados);
       
@@ -147,7 +145,6 @@ export default function ListaAdministradores() {
       setSelectedUsuario(null);
       setErro('');
       setErroVinculo('');
-      
 
     } catch (error) {
       console.error('Erro ao alterar permissão:', error);
