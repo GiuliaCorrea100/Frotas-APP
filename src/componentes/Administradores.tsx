@@ -75,10 +75,18 @@ export default function ListaAdministradores() {
       return;
     }
 
-    try {
+     try {
       setLoadingAdmin(true);
-      const response = await axiosConnect.get(`usersingu/buscar-nome/${nome}`);
-      setUsuariosDisponiveis(response.data);
+      const response = await axiosConnect.get(`/userSigaa?nome=${nome}`);
+
+      const usuariosRetornados = response.data;
+      const uniqueUsuariosMap = new Map();
+      usuariosRetornados.forEach((user: any) => {
+        uniqueUsuariosMap.set(user.idPessoaSigaa, user);
+      });
+      const usuariosUnicosEOrdenados = Array.from(uniqueUsuariosMap.values());
+
+      setUsuariosDisponiveis(usuariosUnicosEOrdenados);
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
       setUsuariosDisponiveis([]);
@@ -93,6 +101,58 @@ export default function ListaAdministradores() {
       return;
     }
     setSelectedAdmin(usuario);
+  };
+
+  const handleSubmit = async () => {
+  
+    let usuarioAlvo;
+    
+    if (showModalCadastro) {
+      // Veio do modal de CADASTRO
+      usuarioAlvo = SelectedAdmin;
+    } else if (showModalConfirmar) {
+      // Veio do modal de REVOGAR
+      usuarioAlvo = SelectedUsuario;
+    }
+    
+    if (!usuarioAlvo) {
+      setErroVinculo('Nenhum usuário selecionado.');
+      return;
+    }
+
+    try {
+      const response = await axiosConnect.get(`/usuarios/consultaCadastro/${usuarioAlvo.idPessoaSigaa}`, {
+        params: {
+          nome: usuarioAlvo.nome
+        }
+      });
+
+      const idUsuarioAdministrador = response.data.idUsuario;
+      
+      if (!idUsuarioAdministrador) {
+        throw new Error("Não foi possível obter o ID do usuário no sistema");
+      }
+
+      // Alterar permissão de administrador
+      await AdminUserService.confirmarCadastro(idUsuarioAdministrador);
+      
+      // 4. Atualizar lista
+      const dadosAtualizados = await AdminUserService.buscarTodos();
+      setAdmins(dadosAtualizados);
+      
+      // 5. Fechar modais e limpar estados
+      setShowModalCadastro(false);
+      setShowModalConfirmar(false);
+      setSelectedAdmin(null);
+      setSelectedUsuario(null);
+      setErro('');
+      setErroVinculo('');
+      
+
+    } catch (error) {
+      console.error('Erro ao alterar permissão:', error);
+      setErroVinculo('Erro ao alterar permissão do usuário. Tente novamente.');
+    }
   };
 
   const colunas: GridColDef[] = [
@@ -272,21 +332,7 @@ export default function ListaAdministradores() {
             Cancelar
           </Button>
           <Button
-            onClick={async () => {
-              if (SelectedAdmin) {
-                try {
-                  await AdminUserService.confirmarCadastro(SelectedAdmin.idPessoa);
-                  const dadosAtualizados = await AdminUserService.buscarTodos();
-                  setAdmins(dadosAtualizados);
-                  setShowModalCadastro(false);
-                  setSelectedAdmin(null);
-                } catch (error) {
-                  setErroVinculo("Erro ao alterar permissão. Tente novamente.");
-                }
-              } else {
-                setErroVinculo("Selecione um usuário antes de confirmar.");
-              }
-            }}
+             onClick={handleSubmit}
             variant="contained"
             sx={{ borderRadius: 2 }}
           >
@@ -323,18 +369,7 @@ export default function ListaAdministradores() {
             Cancelar
           </Button>
           <Button 
-            onClick={async () => {
-              if (SelectedUsuario) {
-                try {
-                  await AdminUserService.confirmarCadastro(SelectedUsuario.idPessoaSigaa);
-                  const dadosAtualizados = await AdminUserService.buscarTodos();
-                  setAdmins(dadosAtualizados);
-                  setShowModalConfirmar(false);
-                } catch (error) {
-                  console.error(error);
-                }
-              }
-            }}
+            onClick={handleSubmit}
             variant="contained"
             color="primary"
             sx={{ borderRadius: 2 }}
