@@ -5,8 +5,6 @@ import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import PaginaDeLogin from './componentes/PaginaDeLogin';
 
 import CadastroCarro from './componentes/cadastros/CadastroCarro';
-import CadastroMotorista from './componentes/cadastros/CadastroMotorista';
-import CadastroMotorista2 from './componentes/cadastros/CadastroMotorista2';
 //import CadastroMulta from './componentes/cadastros/CadastroMulta';
 
 import ListaCarros from './componentes/Listagem/veiculos/ListaCarros';
@@ -43,8 +41,6 @@ const App: React.FC = () => {
         {/*rotas de administrador*/}
         <Route element={<PrivateRoute requiredPermission={true} />}>
           {/*Paginas de Cadastro*/}
-          <Route path="/CadastroMotorista" element={<CadastroMotorista />} />
-          <Route path="/CadastroMotorista2" element={<CadastroMotorista2 />} />
           <Route path="/CadastroCarro" element={<CadastroCarro />} />
           <Route path="/Relatorios" element={<Relatorios />} />
 
