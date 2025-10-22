@@ -1,0 +1,259 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+/*BOTOES*/
+.button-main {
+    width: 100%;
+    background: #0d6efd;
+    color: #e2e3e5;
+    padding: 12px;
+    border-radius: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    margin-top: 20px; /* Aumente o espaçamento superior */
+    display: block; /* Garante que o botão ocupe toda a largura */
+    box-sizing: border-box; /* Garante que o padding não cause overflow */
+}
+  
+.button-main:hover {
+    background: #0b5ed7;
+}
+
+.button-main.disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+  
+.button-main.active {
+    background-color: #007bff;
+    cursor: pointer;
+}
+
+/*MENSSAGEM-ERRO*/
+.input-error {
+    border: 1px solid red;
+}
+  
+.error-message {
+    color: red;
+    font-family: inherit;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+/*HEADERS-CADASTROS*/
+.header {
+    text-align: left;
+    margin-bottom: 10px;
+}
+  
+.header h2 {
+    color: #333;
+}
+
+/*MENU-FIXO-TOPP
+.Menu {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+*/
+
+/*PAGINA-LOGIN*/
+.login-container {
+    display: flex;
+    flex-direction: column;     
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #f8f6f6f5;
+    padding: 20px;
+}
+  
+.login-logo {
+    width: 150px;
+    margin-bottom: 20px;
+}
+  
+.login-box {
+    background: #ffffff;
+    padding: 20px;
+    width: 100%;
+    max-width: 350px;
+    text-align: center;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+  
+.input-group {
+    margin-bottom: 25px;
+}
+  
+.input-wrapper {
+    position: relative;
+}
+  
+.input-wrapper input {
+    width: 100%;
+    padding: 12px;
+    padding-right: 30px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    box-sizing: border-box;
+    outline: none;
+    background-color: #ffffffd8;
+    border-radius: 5px;
+}
+
+.input-wrapper input:focus {
+    border-color: #0d6efd;
+}
+  
+.icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+    cursor: pointer;
+}
+
+/*PAGINA-CADASTRO-MOTORISTA*/
+
+.cadastro-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+  
+.cadastro-form {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+  
+.form-group {
+    margin-bottom: 20px;
+}
+  
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+  
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    padding-right: 30px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    box-sizing: border-box;
+    outline: none;
+    background-color: #ffffffd8;
+    border-radius: 5px;
+}
+
+.form-group input:focus {
+    border-color: #0d6efd;
+}
+
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    background-color: white;
+    outline: none;
+}
+
+/*TESTE (MULTAS)*/
+.cadastro-multa-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+}
+
+.cadastro-multa-form {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.cadastro-multa-sucesso {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.detalhes-multa {
+    background: white;
+    padding: 15px;
+    border-radius: 5px;
+    margin: 15px 0;
+    text-align: left;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.detalhes-multa p {
+    margin: 10px 0;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.detalhes-multa p:last-child {
+    border-bottom: none;
+}
+
+@media (max-width: 600px) {
+    .cadastro-container {
+      padding: 15px;
+    }
+    
+    .cadastro-form {
+      padding: 15px;
+    }
+    
+    .form-group input {
+      padding: 8px;
+      font-size: 14px;
+    }
+
+    /*TESTE(MULTAS)*/
+    .cadastro-multa-container {
+        padding: 15px;
+        height: auto;
+        max-height: 100vh;
+    }
+    
+    .cadastro-multa-form {
+        padding: 15px;
+    }
+    
+    .cadastro-multa .form-group input {
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    /* LISTAGEM */
+    .lista-container {
+        padding: 16px;
+      }
+
+  }
+
+  

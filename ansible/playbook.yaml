@@ -1,0 +1,48 @@
+- name: deploy
+  hosts: all
+  become: true
+  vars:
+    app_fqdn: "{{ lookup('env', 'APP_FQDN') }}"
+    app_name: "{{ lookup('env', 'CI_PROJECT_NAME') }}"
+    docker_registry: "{{ lookup('env', 'CI_REGISTRY') }}"
+    docker_user: "{{ lookup('env', 'CI_REGISTRY_USER') }}"
+    docker_pass: "{{ lookup('env', 'CI_REGISTRY_PASSWORD') }}"
+    compose_project_path: "/opt/compose/{{ lookup('env', 'CI_PROJECT_NAME') }}"
+    compose_template_src: ./templates/compose.yml.j2
+    compose_file_dest: "{{ compose_project_path }}/compose.yml"
+    docker_image: "{{ lookup('env', 'DOCKER_IMAGE_NAME') }}"
+  tasks:
+    - name: Cria diretório do projeto
+      file:
+        path: "{{ compose_project_path }}"
+        state: directory
+        mode: '0755'
+
+    - name: Gera arquivo docker-compose a partir do template
+      template:
+        src: "{{ compose_template_src }}"
+        dest: "{{ compose_file_dest }}"
+        mode: '0644'
+
+    - name: Copia arquivos .env
+      copy:
+        src: .env.production
+        dest: "{{ compose_project_path }}/.env.production"
+        mode: '0644'
+
+    - name: Login no GitLab Container Registry
+      community.docker.docker_login:
+        registry_url: "{{ docker_registry }}"
+        username: "{{ docker_user }}"
+        password: "{{ docker_pass }}"
+
+    - name: Sobe os containers com Docker Compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ compose_project_path }}"
+        recreate: always
+        state: present
+
+    - name: Fazer logout do Docker Hub
+      community.docker.docker_login:
+        registry_url: "{{ docker_registry }}"
+        state: absent
