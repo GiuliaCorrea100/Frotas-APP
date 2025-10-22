@@ -19,6 +19,7 @@ import Menu from "../../Menu";
 import SalvarEdicaoCorrida from "./modais/editarPainelCorrida";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CadastrarCorrida from '../../cadastros/corrida/modais/cadastrarCorrida';
+import { CarrosService } from '../../../api/carrosService';
 
 const formatDate = (dateString: string | null) => {
   if (!dateString) return 'Em andamento';
@@ -370,14 +371,22 @@ export default function ListaCorridas() {
             onClick={async () => {
               if (selectedCorrida) {
                 try {
-                  await CorridaService.confirmarLiberarChave(selectedCorrida.idCorrida, selectedCorrida.idMotorista, senhaLiberarChave);
+                  await CorridaService.confirmarLiberarChave(
+                    selectedCorrida.idCorrida, 
+                    selectedCorrida.idMotorista, 
+                    senhaLiberarChave
+                  );
+                  
+                  await CarrosService.atualizarSituacaoCarro(selectedCorrida.idCarro, "VIAGEM");
+                  
                   const dadosAtualizados = await getCorridas();
                   setCorridas(dadosAtualizados);
                   setShowModalLiberarChave(false);
                   setSenhaLiberarChave('');
+                  
                 } catch (error) {
-                  console.error(error);
-                }
+                  console.error("Erro ao processar liberação da chave:", error);
+                            }
               }
             }}
             variant="contained"
@@ -451,11 +460,15 @@ export default function ListaCorridas() {
               if (selectedCorrida) {
                 try {
                   await CorridaService.confirmarReceberChave(selectedCorrida.idCorrida);
+                  
+                  await CarrosService.atualizarSituacaoCarro(selectedCorrida.idCarro, "DISPONIVEL");
+                  
                   const dadosAtualizados = await getCorridas();
                   setCorridas(dadosAtualizados);
                   setShowModalReceberChave(false);
+                  
                 } catch (error) {
-                  console.error(error);
+                  console.error("Erro ao processar recebimento da chave:", error);
                 }
               }
             }}

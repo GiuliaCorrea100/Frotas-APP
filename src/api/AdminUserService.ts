@@ -1,4 +1,4 @@
-import api from "../config/axiosConfig";
+import axiosConnect from "../services/axiosConnect";
 
 // DTO combinado com administrador, nome e email
 export interface AdminUserDto {
@@ -17,7 +17,7 @@ interface UserDto {
 
 export class AdminUserService {
   static async buscarTodos(): Promise<AdminUserDto[]> {
-    const respUsers = await api.get<UserDto[]>("/usuarios", {
+    const respUsers = await axiosConnect.get<UserDto[]>("/usuario", {
       params: {
         administrador: true
       }
@@ -41,7 +41,7 @@ export class AdminUserService {
 
   static async confirmarCadastro(idUsuario: number): Promise<void> {
     try {
-      await api.patch(`/usuarios/mudar-permissao/${idUsuario}`);
+      await axiosConnect.patch(`/usuario/mudar-permissao/${idUsuario}`);
     } catch (error) {
       console.error("Erro ao confirmar cadastro", error);
       throw error;

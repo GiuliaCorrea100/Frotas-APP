@@ -77,7 +77,7 @@ export default function ListaAdministradores() {
 
      try {
       setLoadingAdmin(true);
-      const response = await axiosConnect.get(`/userSigaa?nome=${nome}`);
+      const response = await axiosConnect.get(`/usuarioSigaa?nome=${nome}`);
 
       const usuariosRetornados = response.data;
       const uniqueUsuariosMap = new Map();
@@ -103,25 +103,17 @@ export default function ListaAdministradores() {
     setSelectedAdmin(usuario);
   };
 
-  const handleSubmit = async () => {
-  
-    let usuarioAlvo;
+  const handleSubmitCadastro = async () => {
     
-    if (showModalCadastro) {
-      usuarioAlvo = SelectedAdmin;
-    } else if (showModalConfirmar) {
-      usuarioAlvo = SelectedUsuario;
-    }
-    
-    if (!usuarioAlvo) {
+    if (!SelectedAdmin) {
       setErroVinculo('Nenhum usuário selecionado.');
       return;
     }
 
     try {
-      const response = await axiosConnect.get(`/usuarios/consultaCadastro/${usuarioAlvo.idPessoaSigaa}`, {
+      const response = await axiosConnect.get(`/usuario/consultaCadastro/${SelectedAdmin.idPessoaSigaa}`, {
         params: {
-          nome: usuarioAlvo.nome
+          nome: SelectedAdmin.nome
         }
       });
 
@@ -140,8 +132,33 @@ export default function ListaAdministradores() {
       
       // 5. Fechar modais e limpar estados
       setShowModalCadastro(false);
-      setShowModalConfirmar(false);
       setSelectedAdmin(null);
+      setErro('');
+      setErroVinculo('');
+
+    } catch (error) {
+      console.error('Erro ao alterar permissão:', error);
+      setErroVinculo('Erro ao alterar permissão do usuário. Tente novamente.');
+    }
+  };
+
+  const handleSubmitRevogacao = async () => {
+    
+    if (!SelectedUsuario) {
+      setErroVinculo('Nenhum usuário selecionado.');
+      return;
+    }
+
+    try {
+      // Alterar permissão de administrador
+      await AdminUserService.confirmarCadastro(SelectedUsuario.idUsuario);
+      
+      // Atualizar lista
+      const dadosAtualizados = await AdminUserService.buscarTodos();
+      setAdmins(dadosAtualizados);
+      
+      // 5. Fechar modais e limpar estados
+      setShowModalConfirmar(false);
       setSelectedUsuario(null);
       setErro('');
       setErroVinculo('');
@@ -286,8 +303,13 @@ export default function ListaAdministradores() {
         <DialogContent>
           <Autocomplete
             options={usuariosDisponiveis}
-            getOptionLabel={(option) => option.nome || ''}
-            isOptionEqualToValue={(option, value) => option.idPessoa === value.idPessoa}
+            getOptionLabel={(option) => {
+                  if (option.nome && option.cpf) {
+                    return `${option.nome} (${option.cpf})`;
+                  }
+                  return option.nome || ''; 
+                }}
+            isOptionEqualToValue={(option, value) => option.cpf === value.cpf}
             loading={loadingAdmin}
             onInputChange={(_, value) => {
               setNomeAdmin(value);
@@ -329,7 +351,7 @@ export default function ListaAdministradores() {
             Cancelar
           </Button>
           <Button
-             onClick={handleSubmit}
+             onClick={handleSubmitCadastro}
             variant="contained"
             sx={{ borderRadius: 2 }}
           >
@@ -366,7 +388,7 @@ export default function ListaAdministradores() {
             Cancelar
           </Button>
           <Button 
-            onClick={handleSubmit}
+            onClick={handleSubmitRevogacao}
             variant="contained"
             color="primary"
             sx={{ borderRadius: 2 }}

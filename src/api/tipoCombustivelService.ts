@@ -1,4 +1,4 @@
-import api from "../config/axiosConfig";
+import axiosConnect from "../services/axiosConnect";
 
 export interface TipoCombustivel {
   idTipoCombustivel?: number;
@@ -8,23 +8,23 @@ export interface TipoCombustivel {
 export const TipoCombustivelService = {
   // Listar todos
   listar: (): Promise<{ data: TipoCombustivel[] }> =>
-    api.get("/tipo-combustivel"),
+    axiosConnect.get("/tipo-combustivel"),
 
   buscarPorId: (id: number): Promise<{ data: TipoCombustivel }> =>
-    api.get(`/tipo-combustivel/${id}`),
+    axiosConnect.get(`/tipo-combustivel/${id}`),
 
   // Criar novo
   criar: (dados: TipoCombustivel): Promise<{ data: TipoCombustivel }> =>
-    api.post("/tipo-combustivel", dados),
+    axiosConnect.post("/tipo-combustivel", dados),
 
   // Atualizar existente
   atualizar: (
     id: number,
     dados: TipoCombustivel
   ): Promise<{ data: TipoCombustivel }> =>
-    api.put(`/tipo-combustivel/${id}`, dados),
+    axiosConnect.put(`/tipo-combustivel/${id}`, dados),
 
   // Deletar por ID
   deletar: (id: number): Promise<{ data: any }> =>
-    api.delete(`/tipo-combustivel/${id}`),
+    axiosConnect.delete(`/tipo-combustivel/${id}`),
 };

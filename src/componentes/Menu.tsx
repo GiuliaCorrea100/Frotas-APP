@@ -19,7 +19,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import axiosConnect from "../services/axiosConnect";
-import MenuGrid from "./MenuGrid";
+import PainelCorridaMotorista from "./painelCorridaMotorista/PainelCorridaMotorista";
 import { useMediaQuery } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 
@@ -35,7 +35,7 @@ interface Corrida {
   idCorrida: number;
   dataInicio: string; 
   itinerario: string;
-  situacao: 'EM_ANDAMENTO' | 'FINALIZADA' | 'PENDENTE' | 'AGENDADA' | 'ANDAMENTO'; // Tipos ajustados para maior compatibilidade
+  situacao: 'AGENDADA' | 'ANDAMENTO' | 'FINALIZADA' | 'CANCELADA';
   placaVeiculo?: string;
   nomeMotorista?: string;
   dataTermino?: string | null;
@@ -147,7 +147,7 @@ const Menu: React.FC = () => {
     }
 
     if (dashboardData.corridaDeHoje && dashboardData.corridaDeHoje.situacao !== 'FINALIZADA') {
-      return <MenuGrid corrida={dashboardData.corridaDeHoje} onCorridaUpdate={carregarDadosDoDashboard} />;
+      return <PainelCorridaMotorista corrida={dashboardData.corridaDeHoje} onCorridaUpdate={carregarDadosDoDashboard} />;
     }
     
     if (dashboardData.proximasCorridas.length > 0) {

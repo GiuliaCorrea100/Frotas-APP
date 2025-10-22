@@ -1,4 +1,3 @@
-import api from "../config/axiosConfig";
 import axiosConnect from "../services/axiosConnect";
 
 // Tipagem padronizada com camelCase
@@ -56,7 +55,7 @@ export interface AbastecimentoUpdate {
 export class AbastecimentoService {
   async ConsumoPorCampus(): Promise<{ campus: string; litrosTotal: number }[]> {
     try {
-      const response = await api.get("abastecimento/consumoPorCampus/");
+      const response = await axiosConnect.get("abastecimento/consumoPorCampus/");
       return response.data;
     } catch (error) {
       console.error("Erro ao buscar consumo por campus:", error);
@@ -70,7 +69,7 @@ export class AbastecimentoService {
     expand?: boolean;
   }): Promise<Abastecimento[]> {
     try {
-      const response = await api.get(`/abastecimento`, { params });
+      const response = await axiosConnect.get(`/abastecimento`, { params });
       return response.data;
     } catch (error) {
       throw error;
@@ -82,7 +81,7 @@ export class AbastecimentoService {
     expand = true
   ): Promise<Abastecimento> {
     try {
-      const response = await api.get(`/abastecimento/${id}`, {
+      const response = await axiosConnect.get(`/abastecimento/${id}`, {
         params: expand ? { expand: true } : {},
       });
       return response.data;
@@ -93,7 +92,7 @@ export class AbastecimentoService {
 
   async buscarPorCorrida(idCorrida: number): Promise<Abastecimento[]> {
     try {
-      const response = await api.get<Abastecimento[]>(
+      const response = await axiosConnect.get<Abastecimento[]>(
         `/abastecimento/buscar-por-corrida/${idCorrida}`
       );
       return response.data;
@@ -126,7 +125,7 @@ export class AbastecimentoService {
 
       console.log("Payload de cadastro de abastecimento:", payload);
 
-      const response = await api.post(`/abastecimento`, payload);
+      const response = await axiosConnect.post(`/abastecimento`, payload);
       return response.data as Abastecimento;
     } catch (error: unknown) {
       console.error("Erro ao cadastrar abastecimento:", error);
@@ -142,7 +141,7 @@ export class AbastecimentoService {
     abastecimento: Partial<AbastecimentoRequest>
   ): Promise<void> {
     try {
-      await api.put(`/abastecimento/${id}`, abastecimento);
+      await axiosConnect.put(`/abastecimento/${id}`, abastecimento);
     } catch (error) {
       throw error;
     }
@@ -166,7 +165,7 @@ export class AbastecimentoService {
 
   async deletarAbastecimento(id: number): Promise<void> {
     try {
-      await api.delete(`/abastecimento/${id}`);
+      await axiosConnect.delete(`/abastecimento/${id}`);
     } catch (error) {
       throw error;
     }
@@ -174,7 +173,7 @@ export class AbastecimentoService {
 
   async buscarGastosPorCampus(): Promise<GastoPorCampus[]> {
     try {
-      const response = await api.get(`/abastecimento/gastos-por-campus`);
+      const response = await axiosConnect.get(`/abastecimento/gastos-por-campus`);
       return response.data;
     } catch (error) {
       throw error;

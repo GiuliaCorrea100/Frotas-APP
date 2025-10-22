@@ -19,7 +19,7 @@ import {
 import { DirectionsCar, Close, Save, Search } from '@mui/icons-material';
 import { CarrosDto, CarrosService } from '../../../api/carrosService';
 import { TipoCombustivel, TipoCombustivelService } from '../../../api/tipoCombustivelService';
-import api from '../../../config/axiosConfig';
+import axiosConnect from "../../../services/axiosConnect";
 
 const modalStyle = {
   position: 'absolute' as 'absolute',
@@ -82,7 +82,7 @@ const FormularioVeiculos: React.FC<FormularioVeiculosProps> = ({
 
     try {
       // Verifica se já existe um veículo com este tombo
-      const response = await api.get(`/carros/por-tombo/${tomboConsulta}`);
+      const response = await axiosConnect.get(`/carros/por-tombo/${tomboConsulta}`);
       const veiculo = response.data;
       
       if (veiculo) {

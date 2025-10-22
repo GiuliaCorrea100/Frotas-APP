@@ -1,4 +1,4 @@
-import api from "../config/axiosConfig";
+import axiosConnect from "../services/axiosConnect";
 
 //Define como devem ser os dados de login (CPF e senha)
 interface LoginData {
@@ -18,7 +18,7 @@ interface AuthResponse {
 export const loginUser = async (data: LoginData): Promise<AuthResponse> => {
   //Envia CPF/senha para o backend
   try {
-    const response = await api.post("/auth/login", {
+    const response = await axiosConnect.post("/auth/login", {
       username: data.cpf,
       password: data.password,
     });

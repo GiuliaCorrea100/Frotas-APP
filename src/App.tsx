@@ -3,27 +3,14 @@ import React from 'react';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
 import PaginaDeLogin from './componentes/PaginaDeLogin';
-
 import CadastroCarro from './componentes/cadastros/CadastroCarro';
-//import CadastroMulta from './componentes/cadastros/CadastroMulta';
-
 import ListaCarros from './componentes/Listagem/veiculos/ListaCarros';
-import ListaMotorista from './componentes/Listagem/ListaMotorista';
 import ListaMulta from './componentes/Listagem/multas/ListaMulta';
-
-//import ListaCorridas from './componentes/Listagem/ListaCorridas';
-import IniciarCorrida from './componentes/cadastros/corrida/IniciarCorrida';
-
 import Menu from './componentes/Menu';
-
 import Unauthorized from './componentes/Unauthorized';
-
 import ListaAdministrador from './componentes/Administradores';
-
 import { AuthProvider } from './context/AuthContext';
-
 import Relatorios  from './componentes/Relatorios/Relatorios';
-
 import PrivateRoute from './componentes/PrivateRoute';
 import ListaCorrida from './componentes/Listagem/painelCorrida/ListaCorrida';
 import DetalhesRequisicao from './componentes/Listagem/painelCorrida/detalhes';
@@ -43,19 +30,11 @@ const App: React.FC = () => {
           {/*Paginas de Cadastro*/}
           <Route path="/CadastroCarro" element={<CadastroCarro />} />
           <Route path="/Relatorios" element={<Relatorios />} />
-
-          {/*Paginas de Cadastro*/}
           <Route path="/ListaMultas" element={<ListaMulta />} />
-          <Route path="/ListaMotoristas" element={<ListaMotorista />} />
-
           <Route path="/Administradores" element={<ListaAdministrador />} />
           <Route path="/ListaCarros" element={<ListaCarros />} />
           <Route path="/ListaCorrida" element={<ListaCorrida />} />
           <Route path="/DetalhesCorrida/:id" element={< DetalhesRequisicao/>} />
-          
-          {/*Paginas de Corridas */}
-          {/*ALTERAR DEPOIS, PARA QUE NAO POSSAM SER ACESSADOS VIA URL*/}
-          <Route path="/IniciarCorrida" element={<IniciarCorrida />} />
         </Route>
 
         {/* Rotas usuario comum */}
