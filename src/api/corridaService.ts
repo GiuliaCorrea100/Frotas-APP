@@ -1,4 +1,4 @@
-import api from "../config/axiosConfig";
+import axiosConnect from "../services/axiosConnect";
 
 export interface CorridaBackend {
   idCorrida?: number;
@@ -21,6 +21,7 @@ export interface CorridaFrontend {
   placaVeiculo?: string;
   situacao?: string;
   chaveEmprestada: boolean;
+  idCarro: number;
 }
 
 export interface CorridaDto {
@@ -33,6 +34,7 @@ export interface CorridaDto {
   placaVeiculo?: string;
   situacao?: string;
   chaveEmprestada: boolean;
+  idCarro: number;
 }
 
 export const createCorrida = async (
@@ -52,7 +54,7 @@ export const createCorrida = async (
         : null,
     };
 
-    const response = await api.post(`/corrida`, payload);
+    const response = await axiosConnect.post(`/corrida`, payload);
     return response.data;
   } catch (error) {
     //
@@ -64,7 +66,7 @@ export const getCorridaById = async (
   idCorrida: number
 ): Promise<CorridaFrontend> => {
   try {
-    const response = await api.get<CorridaBackend>(`/corrida/${idCorrida}`);
+    const response = await axiosConnect.get<CorridaBackend>(`/corrida/${idCorrida}`);
     return formatCorrida(response.data);
   } catch (error) {
     throw error;
@@ -73,7 +75,7 @@ export const getCorridaById = async (
 
 export const getCorridas = async (): Promise<CorridaFrontend[]> => {
   try {
-    const response = await api.get<CorridaBackend[]>(`/corrida`);
+    const response = await axiosConnect.get<CorridaBackend[]>(`/corrida`);
     return response.data.map(formatCorrida);
   } catch (error) {
     throw error;
@@ -84,7 +86,7 @@ export const buscarCorridaPorId = async (
   idCorrida: number
 ): Promise<CorridaBackend> => {
   try {
-    const response = await api.get(`/corrida/${idCorrida}`);
+    const response = await axiosConnect.get(`/corrida/${idCorrida}`);
     return response.data;
   } catch (error) {
     console.error("Erro ao buscar corrida:", error);
@@ -97,7 +99,7 @@ export const atualizarSituacaoCorrida = async (
   situacao: string
 ): Promise<void> => {
   try {
-    await api.patch(`/corrida/${idCorrida}/situacao`, { situacao });
+    await axiosConnect.patch(`/corrida/${idCorrida}/situacao`, { situacao });
   } catch (error) {
     throw error;
   }
@@ -120,6 +122,7 @@ function formatCorrida(corrida: CorridaBackend): CorridaFrontend {
     chaveEmprestada: corrida.chaveEmprestada ?? false,
     placaVeiculo: (corrida as any).placaVeiculo || "Não informada",
     situacao: corrida.situacao || "Desconhecida",
+    idCarro: corrida.idCarro
   };
 }
 
@@ -130,19 +133,16 @@ export class CorridaService {
     senha: string
   ): Promise<void> {
     try {
-      console.log("buscando pessoa no banco singu");
-      const { data } = await api.get(`/usuarios/buscar-singu/${idMotorista}`);
+      const { data } = await axiosConnect.get(`/usuario/buscar-usuario/${idMotorista}`);
 
-      const idSingu = data;
-      console.log("idSingu:", idSingu);
+      const idSigaa = data.idPessoaSigaa;
 
-      const { data: senhaValida } = await api.get(
-        `/usersingu/conferir-senha/${idSingu}/${senha}`
+      const { data: senhaValida } = await axiosConnect.get(
+        `/usuarioSigaa/conferir-senha/${idSigaa}/${senha}`
       );
 
       if (senhaValida === true) {
-        await api.patch(`/corrida/emprestar-chave/${idCorrida}`);
-        console.log("chave emprestada com sucesso APP");
+        await axiosConnect.patch(`/corrida/emprestar-chave/${idCorrida}`);
       } else {
         console.error("Senha inválida!");
         throw new Error("Senha inválida!");
@@ -155,7 +155,7 @@ export class CorridaService {
 
   static async confirmarReceberChave(idCorrida: number): Promise<void> {
     try {
-      await api.patch(`/corrida/emprestar-chave/${idCorrida}`);
+      await axiosConnect.patch(`/corrida/emprestar-chave/${idCorrida}`);
       console.log("chave emprestada com sucesso APP");
     } catch (error) {
       console.error("Erro ao emprestar chave", error);
@@ -165,7 +165,7 @@ export class CorridaService {
 
   static async cancelarCorrida(idCorrida: number): Promise<void> {
     try {
-      await api.patch(`/corrida/cancelar/${idCorrida}`);
+      await axiosConnect.patch(`/corrida/cancelar/${idCorrida}`);
       console.log("corrida cancelada com sucesso - APP");
     } catch (error) {
       console.error("Erro ao cancelar corrida", error);

@@ -7,9 +7,9 @@ import {
   Button,
   CircularProgress,
   Alert,
-  Autocomplete, // Importe o componente Alert do Material-UI
+  Autocomplete,
 } from '@mui/material';
-import api from '../../../../config/axiosConfig';
+import axiosConnect from "../../../../services/axiosConnect";
 
 interface CorridaDto {
   idCorrida?: number;
@@ -28,112 +28,157 @@ interface EditarInfoCorridaProps {
   open: boolean;
   onClose: () => void;
   onSuccess: (message: string) => void;
-  onError: (error: any) => void;
   corrida: CorridaDto | null;
+}
+
+interface Usuario {
+  idUsuario: number;
+  idPessoaSigaa: number;
+  nome: string;
+  cpf: string;
+}
+
+interface Veiculo {
+  idCarro: number;
+  modelo: string;
+  placa: string;
 }
 
 export default function EditarInfoCorrida({
   open,
   onClose,
   onSuccess,
-  //onError,
   corrida,
 }: EditarInfoCorridaProps) {
-  const [motorista, setMotorista] = useState('');
-  const [veiculo, setVeiculo] = useState('');
-  const [dataInicio, setDataInicio] = useState('');
-  const [dataFim, setDataFim] = useState('');
+  const [formData, setFormData] = useState({
+    dataInicio: '',
+    dataFim: ''
+  });
+  const [selectedMotorista, setSelectedMotorista] = useState<Usuario | null>(null);
+  const [selectedVeiculo, setSelectedVeiculo] = useState<Veiculo | null>(null);
   const [loading, setLoading] = useState(false);
-  const [validationError, setValidationError] = useState(''); // Estado para a mensagem de erro de validação
-  const [usuariosDisponiveis, setUsuariosDisponiveis] = useState<any[]>([]);
+  const [error, setError] = useState('');
+  const [motoristasDisponiveis, setMotoristasDisponiveis] = useState<Usuario[]>([]);
+  const [carrosDisponiveis, setCarrosDisponiveis] = useState<Veiculo[]>([]);
   const [loadingMotorista, setLoadingMotorista] = useState(false);
-  const [selectedMotorista, setSelectedMotorista] = useState<any>(null);
+  const [loadingVeiculo, setLoadingVeiculo] = useState(false);
 
   useEffect(() => {
-    if (corrida) {
-      setMotorista(corrida.nomeMotorista || '');
-      setVeiculo(corrida.placaVeiculo || '');
-      setDataInicio(corrida.dataInicio ? new Date(corrida.dataInicio).toISOString().slice(0, 16) : '');
-      setDataFim(corrida.dataTermino ? new Date(corrida.dataTermino).toISOString().slice(0, 16) : '');
-    }
-  }, [corrida]);
+    const carregarDadosIniciais = async () => {
+      if (!open || !corrida) return;
 
-  const buscarUsuario = async (nome: string) => {
-      if (nome.length < 3) {
-        setUsuariosDisponiveis([]);
-        return;
-      }
-  
       try {
-        setLoadingMotorista(true);
-        const response = await api.get(`usersingu/buscar-nome/${nome}`);
-        setUsuariosDisponiveis(response.data);
+        // Buscar dados do motorista atual
+        if (corrida.idMotorista) {
+          setLoadingMotorista(true);
+          const response = await axiosConnect.get(`/usuario/buscar-usuario/${corrida.idMotorista}`);
+          if (response.data) {
+            setSelectedMotorista(response.data);
+          }
+        }
+
+        // Buscar dados do veículo atual
+        if (corrida.idCarro) {
+          setLoadingVeiculo(true);
+          const response = await axiosConnect.get(`/carros/${corrida.idCarro}`);
+          if (response.data) {
+            setSelectedVeiculo(response.data);
+          }
+        }
+
+        // Configurar datas
+        setFormData({
+          dataInicio: corrida.dataInicio ? new Date(corrida.dataInicio).toISOString().split('T')[0] : '',
+          dataFim: corrida.dataTermino ? new Date(corrida.dataTermino).toISOString().split('T')[0] : ''
+        });
+
       } catch (error) {
-        console.error('Erro ao buscar usuários:', error);
-        setUsuariosDisponiveis([]);
+        console.error('Erro ao carregar dados iniciais:', error);
       } finally {
         setLoadingMotorista(false);
+        setLoadingVeiculo(false);
       }
-  };
+    };
 
-  const handleSelecionarUsuario = (usuario: any) => {
-    if (!usuario) {
-      setSelectedMotorista(null);
+    carregarDadosIniciais();
+  }, [open, corrida]);
+
+  const buscarUsuario = async (nome: string) => {
+    if (nome.length < 3) {
+      setMotoristasDisponiveis([]);
       return;
     }
-    setSelectedMotorista(usuario);
+
+    try {
+      setLoadingMotorista(true);
+      const response = await axiosConnect.get(`/usuarioSigaa?nome=${nome}`);
+      const usuariosRetornados = response.data;
+      const uniqueUsuariosMap = new Map();
+      usuariosRetornados.forEach((user: any) => {
+        uniqueUsuariosMap.set(user.idPessoaSigaa, user);
+      });
+      const usuariosUnicosEOrdenados = Array.from(uniqueUsuariosMap.values());
+
+      setMotoristasDisponiveis(usuariosUnicosEOrdenados);
+    } catch (error) {
+      console.error('Erro ao buscar usuários:', error);
+      setMotoristasDisponiveis([]);
+    } finally {
+      setLoadingMotorista(false);
+    }
+  };
+
+  const buscarVeiculo = async (modeloPlaca: string) => {
+    if (modeloPlaca.length < 3) {
+      setCarrosDisponiveis([]);
+      return;
+    }
+    try {
+      setLoadingVeiculo(true);
+      const response = await axiosConnect.get(`/carros/buscar-modelo-placa/${modeloPlaca}`);
+      setCarrosDisponiveis(response.data);
+    } catch (error) {
+      console.error('Erro ao buscar veículos:', error);
+      setCarrosDisponiveis([]);
+    } finally {
+      setLoadingVeiculo(false);
+    }
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!corrida) return;
+    if (!corrida?.idCorrida) return;
 
-    if (!motorista.trim() || !veiculo.trim() || !dataInicio.trim()) {
-      setValidationError('Por favor, preencha todos os campos obrigatórios: Motorista, Veículo e Data de Início.');
-      return; 
+    if (!selectedMotorista || !selectedVeiculo || !formData.dataInicio) {
+      setError('Por favor, preencha todos os campos obrigatórios: Motorista, Veículo e Data de Início.');
+      return;
     }
 
-    setValidationError(''); 
-
+    setError('');
     setLoading(true);
+
     try {
-      let idMotorista = corrida.idMotorista;
-      let idCarro = corrida.idCarro;
-      
-      // Verifica alteração de motorista
-      if (motorista !== (corrida.nomeMotorista || '')) {
-        const resMotorista = await api.get(`/usuarios/buscar-por-nome/${motorista}`);
-        idMotorista = resMotorista.data?.[0]?.idUsuario;
-        if (!idMotorista) {
-          throw new Error('Motorista não encontrado!');
-        }
-      }
+      const response = await axiosConnect.get(`/usuario/consultaCadastro/${selectedMotorista.idPessoaSigaa}`, {
+          params: {
+            nome: selectedMotorista.nome
+          }
+        });
+    
+      const idUsuarioMotorista = response.data.idUsuario;
 
-      // Verifica alteração de placa
-      if (veiculo !== (corrida.placaVeiculo || '')){
-        const resVeiculo = await api.get(`/carros/buscar-placa/${veiculo}`);
-        idCarro = resVeiculo.data?.[0]?.idCarro;
-        if (!idCarro){
-          throw new Error('Carro não encontrado!');
-        }
-      }
-
-      const dadosAtualizados: CorridaDto = {
-        idCorrida: corrida.idCorrida,
-        idMotorista,
-        idCarro,
-        dataInicio: dataInicio ? new Date(dataInicio) : corrida.dataInicio,
-        dataTermino: dataFim ? new Date(dataFim) : corrida.dataTermino,
+      const dadosAtualizados = {
+        idMotorista: idUsuarioMotorista,
+        idCarro: selectedVeiculo.idCarro,
+        dataInicio: new Date(formData.dataInicio),
+        dataTermino: formData.dataFim ? new Date(formData.dataFim) : corrida.dataTermino,
         chaveEmprestada: corrida.chaveEmprestada,
       };
 
-      await api.patch(`/corrida/salvar-edicao-adm/${corrida.idCorrida}`, dadosAtualizados);
-
-      onSuccess('Edições salvas com sucesso!');
+      await axiosConnect.patch(`/corrida/salvar-edicao-adm/${corrida.idCorrida}`, dadosAtualizados);
+      onSuccess('Corrida atualizada com sucesso!');
       onClose();
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Erro ao salvar edições.';
-      setValidationError(errorMessage);
+      setError(error.response?.data?.message || error.message || 'Erro ao salvar edições.');
     } finally {
       setLoading(false);
     }
@@ -141,86 +186,124 @@ export default function EditarInfoCorrida({
 
   return (
     <Modal open={open} onClose={onClose}>
-      <Box sx={{ p: 4, backgroundColor: 'white', borderRadius: 2, maxWidth: 500, mx: 'auto', mt: '10%' }}>
-        <Typography variant="h6" mb={2}>Editar Corrida</Typography>
+      <Box sx={{ 
+        p: 4, 
+        backgroundColor: 'white', 
+        borderRadius: 2, 
+        maxWidth: 500, 
+        mx: 'auto', 
+        mt: '10%',
+        maxHeight: '90vh',
+        overflow: 'auto'
+      }}>
+        <Typography variant="h6" mb={2}>
+          Editar Corrida
+        </Typography>
+        
         <form onSubmit={handleSubmit}>
-          {validationError && (
+          {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
-              {validationError}
+              {error}
             </Alert>
           )}
 
-
+          {/* Autocomplete Motorista */}
           <Autocomplete
-            options={usuariosDisponiveis}
-            getOptionLabel={(option) => option.nome || ''}
-            isOptionEqualToValue={(option, value) => option.idPessoa === value.idPessoa}
-            loading={loadingMotorista}
+            options={motoristasDisponiveis}
+            value={selectedMotorista}
+            getOptionLabel={(option) => {
+              if (option.cpf) {
+                return `${option.nome} (${option.cpf})`;
+              }
+              return option.nome || '';
+            }}
+            isOptionEqualToValue={(option, value) => option.idPessoaSigaa === value?.idPessoaSigaa}
             onInputChange={(_, value) => {
-              setMotorista(value);
               buscarUsuario(value);
             }}
-            onChange={(_, value) => handleSelecionarUsuario(value)}
-            filterOptions={(x) => x}
+            onChange={(_, novoValor) => {
+              setSelectedMotorista(novoValor);
+            }}
+            loading={loadingMotorista}
             renderInput={(params) => (
               <TextField
                 {...params}
-                fullWidth
-                label="Buscar motorista"
-                placeholder="Digite pelo menos 3 caracteres"
-                value={motorista}
+                label="Motorista"
+                required
                 sx={{ mb: 2 }}
+                placeholder={loadingMotorista ? "Carregando..." : "Digite para buscar"}
                 InputProps={{
                   ...params.InputProps,
                   endAdornment: (
                     <>
-                      {loadingMotorista ? <CircularProgress color="inherit" size={20} /> : null}
+                      {loadingMotorista && <CircularProgress size={20} />}
                       {params.InputProps.endAdornment}
                     </>
                   ),
                 }}
               />
             )}
-
           />
 
-
-
-          {/* <TextField
-            fullWidth
-            label="Motorista"
-            value={motorista}
-            onChange={(e) => setMotorista(e.target.value)}
-            sx={{ mb: 2 }}
-          /> */}
-
-          <TextField
-            fullWidth
-            label="Veículo"
-            value={veiculo}
-            onChange={(e) => setVeiculo(e.target.value)}
-            sx={{ mb: 2 }}
+          {/* Autocomplete Veículo */}
+          <Autocomplete
+            options={carrosDisponiveis}
+            value={selectedVeiculo}
+            getOptionLabel={(option) => `${option.modelo} Placa: ${option.placa}`}
+            isOptionEqualToValue={(option, value) => option.idCarro === value?.idCarro}
+            onInputChange={(_, value) => {
+              buscarVeiculo(value);
+            }}
+            onChange={(_, novoValor) => {
+              setSelectedVeiculo(novoValor);
+            }}
+            loading={loadingVeiculo}
+            noOptionsText="Digite pelo menos 3 caracteres para buscar"
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Veículo"
+                required
+                sx={{ mb: 2 }}
+                placeholder={loadingVeiculo ? "Carregando..." : "Digite para buscar"}
+                InputProps={{
+                  ...params.InputProps,
+                  endAdornment: (
+                    <>
+                      {loadingVeiculo && <CircularProgress size={20} />}
+                      {params.InputProps.endAdornment}
+                    </>
+                  ),
+                }}
+              />
+            )}
           />
+
           <TextField
             fullWidth
             label="Data Início"
-            type="datetime-local"
-            value={dataInicio}
-            onChange={(e) => setDataInicio(e.target.value)}
+            type="date"
+            value={formData.dataInicio}
+            onChange={(e) => setFormData(prev => ({ ...prev, dataInicio: e.target.value }))}
+            required
             sx={{ mb: 2 }}
             InputLabelProps={{ shrink: true }}
           />
+
           <TextField
             fullWidth
             label="Data Fim"
-            type="datetime-local"
-            value={dataFim}
-            onChange={(e) => setDataFim(e.target.value)}
+            type="date"
+            value={formData.dataFim}
+            onChange={(e) => setFormData(prev => ({ ...prev, dataFim: e.target.value }))}
             sx={{ mb: 2 }}
             InputLabelProps={{ shrink: true }}
           />
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-            <Button onClick={onClose} sx={{ mr: 2}}>Cancelar</Button>
+
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
+            <Button onClick={onClose}>
+              Cancelar
+            </Button>
             <Button type="submit" variant="contained" disabled={loading}>
               {loading ? <CircularProgress size={24} /> : 'Salvar'}
             </Button>

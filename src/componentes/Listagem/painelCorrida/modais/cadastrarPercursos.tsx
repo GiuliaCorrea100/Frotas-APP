@@ -16,6 +16,7 @@ import {
   AttachMoney,
   CalendarToday,
   Close,
+  AddLocationAlt,
 } from "@mui/icons-material";
 import { inserirPercursoCompleto } from "../../../../api/percursoService";
 
@@ -101,12 +102,9 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
         {/* Cabeçalho */}
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Box display="flex" alignItems="center">
-            <LocalGasStation color="primary" sx={{ mr: 1 }} />
+            <AddLocationAlt color="primary" sx={{ mr: 1 }} />
             <Typography variant="h6">Cadastro de Percurso</Typography>
           </Box>
-          <IconButton onClick={onClose}>
-            <Close />
-          </IconButton>
         </Box>
 
         {/* Conteúdo */}
@@ -204,7 +202,6 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
               type="submit"
               variant="contained"
               color="primary"
-              startIcon={!loading && <AttachMoney />}
               disabled={loading}
             >
               {loading ? <CircularProgress size={24} /> : "Cadastrar"}

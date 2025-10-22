@@ -1,4 +1,4 @@
-import api from "../services/axiosConnect";
+import axiosConnect from "../services/axiosConnect";
 
 export interface PercursoBackend {
   idPercurso?: number;
@@ -37,7 +37,7 @@ export const iniciarPercurso = async (
       localOrigem: data.localOrigem || null,
     };
 
-    const response = await api.post(`/percurso`, payload);
+    const response = await axiosConnect.post(`/percurso`, payload);
     return response.data as PercursoBackend;
   } catch (error: unknown) {
     //
@@ -55,7 +55,7 @@ export const finalizarPercurso = async (
   }
 ) => {
   try {
-    const response = await api.put(`/percurso/${idPercurso}/finalizar`, {
+    const response = await axiosConnect.put(`/percurso/${idPercurso}/finalizar`, {
       chegadaOdometro: data.chegadaOdometro,
     });
     return response.data as PercursoBackend;
@@ -71,7 +71,7 @@ export const buscarUltimoPercursoFinalizado = async (
   idCorrida: number
 ): Promise<PercursoBackend | null> => {
   try {
-    const response = await api.get(
+    const response = await axiosConnect.get(
       `percurso/corrida/${idCorrida}/ultimo-finalizado`
     );
     return response.data as PercursoBackend;
@@ -85,7 +85,7 @@ export const buscarPercursoAtivo = async (
   idCorrida: number
 ): Promise<PercursoBackend | null> => {
   try {
-    const response = await api.get(`percurso/corrida/${idCorrida}/ativo`);
+    const response = await axiosConnect.get(`percurso/corrida/${idCorrida}/ativo`);
     return response.data as PercursoBackend;
   } catch (error) {
     console.error("Erro ao buscar percurso ativo:", error);
@@ -97,7 +97,7 @@ export const buscarPercursosDaCorrida = async (
   idCorrida: number
 ): Promise<PercursoBackend[]> => {
   try {
-    const response = await api.get(`percurso/corrida/${idCorrida}`);
+    const response = await axiosConnect.get(`percurso/corrida/${idCorrida}`);
 
     // Ordena os percursos por ID em ordem crescente
     const percursosOrdenados = (response.data as PercursoBackend[]).sort(
@@ -133,7 +133,7 @@ export const atualizarPercurso = async (
       chegadaHora: data.chegadaHora,
     };
 
-    const response = await api.patch(
+    const response = await axiosConnect.patch(
       `/percurso/${idPercurso}/atualizar-percurso`,
       payload
     );

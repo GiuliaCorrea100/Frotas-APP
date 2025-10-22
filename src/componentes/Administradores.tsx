@@ -21,8 +21,8 @@ import React from 'react';
 
 interface AdminUserDto {
   idUsuario: number;
-  idPessoaSingu: number;
-  permissao: number;
+  idPessoaSigaa: number;
+  administrador: boolean;
   nome: string;
   email: string;
 }
@@ -75,10 +75,18 @@ export default function ListaAdministradores() {
       return;
     }
 
-    try {
+     try {
       setLoadingAdmin(true);
-      const response = await axiosConnect.get(`usersingu/buscar-nome/${nome}`);
-      setUsuariosDisponiveis(response.data);
+      const response = await axiosConnect.get(`/usuarioSigaa?nome=${nome}`);
+
+      const usuariosRetornados = response.data;
+      const uniqueUsuariosMap = new Map();
+      usuariosRetornados.forEach((user: any) => {
+        uniqueUsuariosMap.set(user.idPessoaSigaa, user);
+      });
+      const usuariosUnicosEOrdenados = Array.from(uniqueUsuariosMap.values());
+
+      setUsuariosDisponiveis(usuariosUnicosEOrdenados);
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
       setUsuariosDisponiveis([]);
@@ -95,6 +103,72 @@ export default function ListaAdministradores() {
     setSelectedAdmin(usuario);
   };
 
+  const handleSubmitCadastro = async () => {
+    
+    if (!SelectedAdmin) {
+      setErroVinculo('Nenhum usuário selecionado.');
+      return;
+    }
+
+    try {
+      const response = await axiosConnect.get(`/usuario/consultaCadastro/${SelectedAdmin.idPessoaSigaa}`, {
+        params: {
+          nome: SelectedAdmin.nome
+        }
+      });
+
+      const idUsuarioAdministrador = response.data.idUsuario;
+      
+      if (!idUsuarioAdministrador) {
+        throw new Error("Não foi possível obter o ID do usuário no sistema");
+      }
+
+      // Alterar permissão de administrador
+      await AdminUserService.confirmarCadastro(idUsuarioAdministrador);
+      
+      // Atualizar lista
+      const dadosAtualizados = await AdminUserService.buscarTodos();
+      setAdmins(dadosAtualizados);
+      
+      // 5. Fechar modais e limpar estados
+      setShowModalCadastro(false);
+      setSelectedAdmin(null);
+      setErro('');
+      setErroVinculo('');
+
+    } catch (error) {
+      console.error('Erro ao alterar permissão:', error);
+      setErroVinculo('Erro ao alterar permissão do usuário. Tente novamente.');
+    }
+  };
+
+  const handleSubmitRevogacao = async () => {
+    
+    if (!SelectedUsuario) {
+      setErroVinculo('Nenhum usuário selecionado.');
+      return;
+    }
+
+    try {
+      // Alterar permissão de administrador
+      await AdminUserService.confirmarCadastro(SelectedUsuario.idUsuario);
+      
+      // Atualizar lista
+      const dadosAtualizados = await AdminUserService.buscarTodos();
+      setAdmins(dadosAtualizados);
+      
+      // 5. Fechar modais e limpar estados
+      setShowModalConfirmar(false);
+      setSelectedUsuario(null);
+      setErro('');
+      setErroVinculo('');
+
+    } catch (error) {
+      console.error('Erro ao alterar permissão:', error);
+      setErroVinculo('Erro ao alterar permissão do usuário. Tente novamente.');
+    }
+  };
+
   const colunas: GridColDef[] = [
     { 
       field: 'nome', 
@@ -106,17 +180,17 @@ export default function ListaAdministradores() {
         </Typography>
       )
     },
-    { field: 'email', headerName: 'E-mail', flex: 1 },
+    // { field: 'email', headerName: 'E-mail', flex: 1 },
     {
       field: 'acoes',
       headerName: 'Controle de acesso',
-      flex: 0.5,
+      flex: 1,
       sortable: false,
       filterable: false,
       renderCell: (params) => (
         <Box 
           display="flex" 
-          justifyContent="center" 
+          justifyContent="space-between" 
           width="100%"
         >
           <Button
@@ -229,8 +303,13 @@ export default function ListaAdministradores() {
         <DialogContent>
           <Autocomplete
             options={usuariosDisponiveis}
-            getOptionLabel={(option) => option.nome || ''}
-            isOptionEqualToValue={(option, value) => option.idPessoa === value.idPessoa}
+            getOptionLabel={(option) => {
+                  if (option.nome && option.cpf) {
+                    return `${option.nome} (${option.cpf})`;
+                  }
+                  return option.nome || ''; 
+                }}
+            isOptionEqualToValue={(option, value) => option.cpf === value.cpf}
             loading={loadingAdmin}
             onInputChange={(_, value) => {
               setNomeAdmin(value);
@@ -272,21 +351,7 @@ export default function ListaAdministradores() {
             Cancelar
           </Button>
           <Button
-            onClick={async () => {
-              if (SelectedAdmin) {
-                try {
-                  await AdminUserService.confirmarCadastro(SelectedAdmin.idPessoa);
-                  const dadosAtualizados = await AdminUserService.buscarTodos();
-                  setAdmins(dadosAtualizados);
-                  setShowModalCadastro(false);
-                  setSelectedAdmin(null);
-                } catch (error) {
-                  setErroVinculo("Erro ao alterar permissão. Tente novamente.");
-                }
-              } else {
-                setErroVinculo("Selecione um usuário antes de confirmar.");
-              }
-            }}
+             onClick={handleSubmitCadastro}
             variant="contained"
             sx={{ borderRadius: 2 }}
           >
@@ -323,18 +388,7 @@ export default function ListaAdministradores() {
             Cancelar
           </Button>
           <Button 
-            onClick={async () => {
-              if (SelectedUsuario) {
-                try {
-                  await AdminUserService.confirmarCadastro(SelectedUsuario.idPessoaSingu);
-                  const dadosAtualizados = await AdminUserService.buscarTodos();
-                  setAdmins(dadosAtualizados);
-                  setShowModalConfirmar(false);
-                } catch (error) {
-                  console.error(error);
-                }
-              }
-            }}
+            onClick={handleSubmitRevogacao}
             variant="contained"
             color="primary"
             sx={{ borderRadius: 2 }}

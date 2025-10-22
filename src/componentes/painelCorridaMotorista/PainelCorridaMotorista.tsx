@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-import { atualizarSituacaoCorrida, buscarCorridaPorId } from "../api/corridaService";
+import { atualizarSituacaoCorrida, buscarCorridaPorId } from "../../api/corridaService";
 import { 
   iniciarPercurso, 
   finalizarPercurso, 
@@ -15,14 +15,14 @@ import {
   buscarPercursoAtivo, 
   PercursoBackend,
   buscarPercursosDaCorrida 
-} from "../api/percursoService";
-import ModalIniciarPercurso from "./modaisMenu/ModalIniciarPercurso";
-import ModalFinalizarPercurso from "./modaisMenu/ModalFinalizarPercurso";
-import ModalSucesso from "./modaisMenu/ModalSucesso";
-import CadastrarOcorrencia from "./cadastros/corrida/modais/ocorrenciasModal";
-import AbastecimentoModal from "./cadastros/abastecimento/ModalCadastroAbastecimento";
-import ModalConfirmacaoUltimoPercurso from "./modaisMenu/ModalConfirmacaoUltimoPercurso";
-import ModalPercursos from "./modaisMenu/ModalPercursos";
+} from "../../api/percursoService";
+import ModalIniciarPercurso from "./modais/ModalIniciarPercurso";
+import ModalFinalizarPercurso from "./modais/ModalFinalizarPercurso";
+import ModalSucesso from "./modais/ModalSucesso";
+import CadastrarOcorrencia from "../cadastros/corrida/modais/ocorrenciasModal";
+import AbastecimentoModal from "../cadastros/abastecimento/ModalCadastroAbastecimento";
+import ModalConfirmacaoUltimoPercurso from "./modais/ModalConfirmacaoUltimoPercurso";
+import ModalPercursos from "./modais/ModalPercursos";
 
 interface Corrida {
   idCorrida: number;
@@ -31,11 +31,14 @@ interface Corrida {
   placaVeiculo?: string;
   nomeMotorista?: string;
   dataTermino?: string | null;
-  local_de_saida?: string;
+  localDeSaida?: string;
   situacao?: string;
+  percursoAtivo?: any;
+  ocorrencias?: any[]; 
+  multas?: any[];
 }
 
-interface MenuGridProps {
+interface PainelCorridaMotoristaProps {
   corrida: Corrida;
   onCorridaUpdate?: (corridaAtualizada: Corrida) => void;
 }
@@ -57,7 +60,7 @@ const formatDate = (dateString: string | null) => {
   }
 };
 
-const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
+const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida, onCorridaUpdate }) => {
   const navigate = useNavigate();
 
   const [modalIniciarOpen, setModalIniciarOpen] = useState(false);
@@ -131,10 +134,10 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
           if (modalIniciarOpen) {
               try {
                   const ultimoPercurso = await buscarUltimoPercursoFinalizado(corrida.idCorrida);
-                  setUltimoDestino(ultimoPercurso ? ultimoPercurso.localDestino : corrida.local_de_saida || "");
+                  setUltimoDestino(ultimoPercurso ? ultimoPercurso.localDestino : corrida.localDeSaida || "");
               } catch (error) {
                   console.error("Erro ao buscar último percurso finalizado:", error);
-                  setUltimoDestino(corrida.local_de_saida || "");
+                  setUltimoDestino(corrida.localDeSaida || "");
               }
           }
       };
@@ -142,7 +145,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
       if (corrida.situacao !== 'FINALIZADE') {
         fetchUltimoDestino();
       }
-  }, [modalIniciarOpen, corrida.idCorrida, corrida.local_de_saida, corrida.situacao]);
+  }, [modalIniciarOpen, corrida.idCorrida, corrida.localDeSaida, corrida.situacao]);
 
   if (corrida.situacao === 'FINALIZADA') {
     return (
@@ -202,7 +205,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
     setModalConfirmacaoOpen(false);
     
     if (isUltimo) {
-      setDestino(corridaLocal.local_de_saida || "");
+      setDestino(corridaLocal.localDeSaida || "");
       setIsUltimoPercurso(true);
     } else {
       setIsUltimoPercurso(false);
@@ -273,7 +276,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
         chegadaOdometro: parseFloat(odometroFinal)
       });
       
-      if (isUltimoPercurso && percursoAtual.localDestino === corridaLocal.local_de_saida) {
+      if (isUltimoPercurso && percursoAtual.localDestino === corridaLocal.localDeSaida) {
         await atualizarSituacaoCorrida(corridaLocal.idCorrida, 'FINALIZADA');
         
         const corridaAtualizada = { ...corridaLocal, situacao: 'FINALIZADA' };
@@ -398,6 +401,7 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
         })}
       </Box>
 
+      {modalOcorrenciaAberto && (
       <CadastrarOcorrencia 
         open={modalOcorrenciaAberto} 
         onClose={fecharModalOcorrencia} 
@@ -410,7 +414,9 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
           console.error("Erro ao salvar ocorrência:", erro);
         }}
       />
+      )}
 
+      {modalAbastecimentoAberto && (
       <AbastecimentoModal
         open={modalAbastecimentoAberto}
         onClose={fecharModalAbastecimento}
@@ -420,14 +426,18 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
           fecharModalAbastecimento();
         }}
       />
+      )}
       
+      {modalConfirmacaoOpen && (
       <ModalConfirmacaoUltimoPercurso
         open={modalConfirmacaoOpen}
         onClose={handleCloseConfirmacaoModal}
         onConfirm={handleConfirmacaoUltimoPercurso}
-        localOrigem={corridaLocal.local_de_saida || ""}
+        localOrigem={corridaLocal.localDeSaida || ""}
       />
+      )}
 
+      {modalIniciarOpen && (
       <ModalIniciarPercurso
         open={modalIniciarOpen}
         onClose={handleCloseIniciarModal}
@@ -440,9 +450,11 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
         percursosAtivosCount={percursosAtivosCount}
         chaveEmprestada={chaveEmprestada}
         isUltimoPercurso={isUltimoPercurso}
-        localOrigemCorrida={corridaLocal.local_de_saida || ""}
+        localOrigemCorrida={corridaLocal.localDeSaida || ""}
       />
+      )}
 
+      {modalFinalizarOpen && (
       <ModalFinalizarPercurso
         open={modalFinalizarOpen}
         onClose={handleCloseFinalizarModal}
@@ -451,20 +463,25 @@ const MenuGrid: React.FC<MenuGridProps> = ({ corrida, onCorridaUpdate }) => {
         setOdometroFinal={setOdometroFinal}
         percursoAtual={percursoAtual}
       />
+      )}
 
+      {modalFinalizarOpen && (
       <ModalSucesso
         open={successModalOpen}
         onClose={handleSuccessClose}
         title="Percurso iniciado com sucesso"
       />
+      )}
 
+      {finalizeSuccessModalOpen && (
       <ModalSucesso
         open={finalizeSuccessModalOpen}
         onClose={handleFinalizeSuccessClose}
         title="Percurso finalizado com sucesso"
       />
+      )}
     </Box>
   );
 };
 
-export default MenuGrid;
+export default PainelCorridaMotorista;
