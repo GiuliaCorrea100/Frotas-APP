@@ -34,7 +34,7 @@ axiosConnect.interceptors.response.use(
       // Limpa o token e outros dados no localStorage
       localStorage.removeItem("token");
       localStorage.removeItem("cpf");
-      localStorage.removeItem("idPermissao");
+      localStorage.removeItem("administrador");
 
       // Redireciona o usuário para a página de login
       window.location.href = "/";

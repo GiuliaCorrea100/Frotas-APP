@@ -285,9 +285,6 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
               Cadastro de Abastecimento
             </Typography>
           </Box>
-          <IconButton onClick={handleClose}>
-            <Close />
-          </IconButton>
         </Box>
 
         {successMessage && (
@@ -439,7 +436,6 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
               type="submit"
               variant="contained"
               disabled={loading}
-              startIcon={<AttachMoney />}
             >
               {loading ? 'Cadastrando...' : 'Cadastrar'}
             </Button>

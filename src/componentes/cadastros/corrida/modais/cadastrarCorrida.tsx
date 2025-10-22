@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../../../config/axiosConfig';
+import axiosConnect from "../../../../services/axiosConnect";
 import { Button, Box, TextField, Typography, Modal, Autocomplete, Dialog, DialogTitle, DialogActions } from "@mui/material";
 import axios, { AxiosError } from 'axios';
 import { createCorrida } from '../../../../api/corridaService';
+import { CarrosService } from '../../../../api/carrosService';
 
-interface MotoristaOption {
+interface MotoristaDTO {
   idUsuario: number;
   nome: string;
+  cpf: string;
 }
 
 interface CadastrarCorridaProps {
@@ -30,21 +32,22 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
   const [corrida, setCorrida] = useState({
     dataInicio: '',
     dataTermino: '',
-    local_de_saida: '',
+    localDeSaida: '',
     distanciaKm: '0',
     chaveEmprestada: false,
     situacao: 'AGENDADA',
     motoristaId: null as number | null,
   });
   
-  const [motoristaOptions, setMotoristaOptions] = useState<MotoristaOption[]>([]);
-  const [carrosOptions, setCarrosOptions] = useState<any[]>([]);
+  const [motoristasDisponiveis, setMotoristasDisponiveis] = useState<MotoristaDTO[]>([]);
+  const [motoristaSelecionado, setMotoristaSelecionado] = useState<any>(null);
+  const [carrosDisponiveis, setCarrosDisponiveis] = useState<any[]>([]);
   const [errors, setErrors] = useState({
     carro: false,
     dataInicio: false,
     dataTermino: false,
     motorista: false,
-    local_de_saida: false
+    localDeSaida: false
   });
   
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
@@ -55,12 +58,12 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
   const buscarCarro = async (modeloPlaca: string) => {
 
     if (modeloPlaca.length < 3) {
-      setCarrosOptions([]);
+      setCarrosDisponiveis([]);
       return;
     }
     try {
-      const response = await api.get(`/carros/buscar-modelo-placa/${modeloPlaca}`);
-      setCarrosOptions(response.data);
+      const response = await axiosConnect.get(`/carros/buscar-modelo-placa/${modeloPlaca}`);
+      setCarrosDisponiveis(response.data);
     } catch (error) {
       const err = error as AxiosError;
       if (err.response?.status === 404) {
@@ -90,32 +93,27 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
 
   const buscarMotoristas = async (nome: string) => {
     if (nome.length < 3) {
-      setMotoristaOptions([]);
+      setMotoristasDisponiveis([]);
       return;
     }
 
-    try {
-      const response = await api.get(`/usuarios/buscar-por-nome/${nome}`);
-      setMotoristaOptions(response.data);
-    } catch (error) {
-      console.error("Erro ao buscar motoristas:", error);
-      setMotoristaOptions([]);
-    }
-  };
+     try {
+      setLoading(true);
+      const response = await axiosConnect.get(`/usuarioSigaa?nome=${nome}`);
 
-  const atualizarSituacaoCarro = async (idCarro: number, situacao: string) => {
-    try {
-      const carroAtual = await api.get(`/carros/${idCarro}`);
-      
-      const dadosAtualizados = {
-        ...carroAtual.data,
-        situacao: situacao
-      };
+      const usuariosRetornados = response.data;
+      const uniqueUsuariosMap = new Map();
+      usuariosRetornados.forEach((user: any) => {
+        uniqueUsuariosMap.set(user.idPessoaSigaa, user);
+      });
+      const usuariosUnicosEOrdenados = Array.from(uniqueUsuariosMap.values());
 
-      await api.put(`/carros/${idCarro}`, dadosAtualizados);
+      setMotoristasDisponiveis(usuariosUnicosEOrdenados);
     } catch (error) {
-      console.error("Erro ao atualizar situação do carro:", error);
-      throw error;
+      console.error('Erro ao buscar usuários:', error);
+      setMotoristasDisponiveis([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -127,7 +125,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
       dataInicio: false,
       dataTermino: false,
       motorista: false,
-      local_de_saida: false
+      localDeSaida: false
     };
 
     if (!carro) {
@@ -135,7 +133,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
       hasError = true;
     }
 
-    if (!corrida.motoristaId) {
+    if (!motoristaSelecionado) {
       newErrors.motorista = true;
       hasError = true;
     }
@@ -150,8 +148,8 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
       hasError = true;
     }
 
-    if (!corrida.local_de_saida) {
-      newErrors.local_de_saida = true;
+    if (!corrida.localDeSaida) {
+      newErrors.localDeSaida = true;
       hasError = true;
     }
 
@@ -164,18 +162,29 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
     }
 
     try {
+
+      const response = await axiosConnect.get(`/usuario/consultaCadastro/${motoristaSelecionado.idPessoaSigaa}`, {
+        params: {
+          nome: motoristaSelecionado.nome
+        }
+      });
+  
+      const idUsuarioMotorista = response.data.idUsuario;
+
       const corridaParaEnviar = {
         dataInicio: new Date(corrida.dataInicio),
         dataTermino: new Date(corrida.dataTermino),
-        local_de_saida: corrida.local_de_saida,
+        localDeSaida: corrida.localDeSaida,
         distanciaKm: "",
-        idMotorista: corrida.motoristaId!,
+        idMotorista: idUsuarioMotorista,
         situacao: "AGENDADA",
         chaveEmprestada: false,
         idCarro: carro.idCarro,
       };
 
-      await atualizarSituacaoCarro(carro.idCarro, "RESERVADO");
+      console.log(corridaParaEnviar);
+
+      await CarrosService.atualizarSituacaoCarro(carro.idCarro, "RESERVADO");
       
       await createCorrida(corridaParaEnviar);
       
@@ -230,7 +239,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
 
           {error && <Typography color="error" sx={{ mb: 3 }}>{error}</Typography>}
             <Autocomplete
-              options={carrosOptions}
+              options={carrosDisponiveis}
               getOptionLabel={(option) => {
                 if (option.modelo && option.placa) {
                   return `${option.modelo} Placa: ${option.placa}`;
@@ -260,36 +269,42 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
             />
 
               <TextField
-                name="local_de_saida"
+                name="localDeSaida"
                 label="Local de Saída"
-                value={corrida.local_de_saida}
+                value={corrida.localDeSaida}
                 onChange={(e) => {
                   const value = e.target.value.toUpperCase();
                   setCorrida(prev => ({
                     ...prev,
-                    local_de_saida: value
+                    localDeSaida: value
                   }));
-                  setErrors(prev => ({ ...prev, local_de_saida: false }));
+                  setErrors(prev => ({ ...prev, localDeSaida: false }));
                 }}
                 fullWidth
                 required
-                error={errors.local_de_saida}
-                helperText={errors.local_de_saida ? "Informe o local de saída" : ""}
+                error={errors.localDeSaida}
+                helperText={errors.localDeSaida ? "Informe o local de saída" : ""}
                 sx={{ mb: 2 }}
               />
 
               <Autocomplete
-                options={motoristaOptions}
-                getOptionLabel={(option) => `${option.nome}`}
+                options={motoristasDisponiveis}
+                getOptionLabel={(option) => {
+                  if (option.nome && option.cpf) {
+                    return `${option.nome} (${option.cpf})`;
+                  }
+                  return option.nome || ''; 
+                }}
                 onInputChange={(_, value) => buscarMotoristas(value)}
                 onChange={(_, value) => {
+                  setMotoristaSelecionado(value);
                   setCorrida(prev => ({
                     ...prev,
                     motoristaId: value?.idUsuario || null,
                   }));
                   setErrors(prev => ({ ...prev, motorista: false }));
                 }}
-                isOptionEqualToValue={(option, value) => option.idUsuario === value.idUsuario}
+                isOptionEqualToValue={(option, value) => option.cpf === value.cpf}
                 noOptionsText="Digite pelo menos 3 caracteres para buscar"
                 renderInput={(params) => (
                   <TextField

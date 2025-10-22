@@ -19,14 +19,14 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import axiosConnect from "../services/axiosConnect";
-import MenuGrid from "./MenuGrid";
+import PainelCorridaMotorista from "./painelCorridaMotorista/PainelCorridaMotorista";
 import { useMediaQuery } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 
 interface JwtPayload {
   sub: number; 
   login: string;
-  permissao: number;
+  administrador: boolean;
   iat: number;
   exp: number;
 }
@@ -35,7 +35,7 @@ interface Corrida {
   idCorrida: number;
   dataInicio: string; 
   itinerario: string;
-  situacao: 'EM_ANDAMENTO' | 'FINALIZADA' | 'PENDENTE' | 'AGENDADA' | 'ANDAMENTO'; // Tipos ajustados para maior compatibilidade
+  situacao: 'AGENDADA' | 'ANDAMENTO' | 'FINALIZADA' | 'CANCELADA';
   placaVeiculo?: string;
   nomeMotorista?: string;
   dataTermino?: string | null;
@@ -47,7 +47,7 @@ interface MotoristaDashboard {
 }
 
 const Menu: React.FC = () => {
-  const { isAuthenticated, cpf, logout, permissao, nome, email } = useAuth();
+  const { isAuthenticated, cpf, logout, administrador, nome, email } = useAuth();
   const navigate = useNavigate();
   const location = useLocation(); 
   const [showModalDadosPerfil, setShowModalDadosPerfil] = useState(false);
@@ -147,7 +147,7 @@ const Menu: React.FC = () => {
     }
 
     if (dashboardData.corridaDeHoje && dashboardData.corridaDeHoje.situacao !== 'FINALIZADA') {
-      return <MenuGrid corrida={dashboardData.corridaDeHoje} onCorridaUpdate={carregarDadosDoDashboard} />;
+      return <PainelCorridaMotorista corrida={dashboardData.corridaDeHoje} onCorridaUpdate={carregarDadosDoDashboard} />;
     }
     
     if (dashboardData.proximasCorridas.length > 0) {
@@ -234,7 +234,7 @@ const Menu: React.FC = () => {
             <>
               {!isMobile && (
                 <>
-                  {Number(permissao) === 2 && (
+                  {administrador === true && (
                     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                       <Button 
                         color="inherit" 
@@ -308,7 +308,7 @@ const Menu: React.FC = () => {
                 }}
               >
                 <>
-                  {Number(permissao) === 2 && (
+                  {administrador === true && (
                     <>
                       <DropdownItem 
                         component={Link} 

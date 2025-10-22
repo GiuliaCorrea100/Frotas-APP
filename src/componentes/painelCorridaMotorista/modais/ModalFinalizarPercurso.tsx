@@ -9,7 +9,7 @@ import {
   Typography,
   Box
 } from '@mui/material';
-import { PercursoBackend } from '../../api/percursoService';
+import { PercursoBackend } from '../../../api/percursoService';
 
 interface ModalFinalizarPercursoProps {
   open: boolean;

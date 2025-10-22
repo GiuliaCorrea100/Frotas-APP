@@ -1,4 +1,4 @@
-import api from "../config/axiosConfig";
+import axiosConnect from "../services/axiosConnect";
 
 export interface OcorrenciaDto {
   idOcorrencia: number;
@@ -18,7 +18,7 @@ export class OcorrenciaService {
   static async buscarTodos(): Promise<OcorrenciaDto[]> {
     try {
       const token = localStorage.getItem("token");
-      const respOcorrencias = await api.get<OcorrenciaDto[]>("/ocorrencia", {
+      const respOcorrencias = await axiosConnect.get<OcorrenciaDto[]>("/ocorrencia", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -34,7 +34,7 @@ export class OcorrenciaService {
   static async criar(dados: OcorrenciaBackend): Promise<void> {
     try {
       const token = localStorage.getItem("token");
-      await api.post("/ocorrencia", dados, {
+      await axiosConnect.post("/ocorrencia", dados, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -48,7 +48,7 @@ export class OcorrenciaService {
   static async buscarPorCorrida(idCorrida: number): Promise<OcorrenciaDto[]> {
     try {
       const token = localStorage.getItem("token");
-      const response = await api.get<OcorrenciaDto[]>(
+      const response = await axiosConnect.get<OcorrenciaDto[]>(
         `/ocorrencia/buscar-por-corrida/${idCorrida}`,
         {
           headers: {
@@ -72,7 +72,7 @@ export class OcorrenciaService {
   ): Promise<void> {
     try {
       const token = localStorage.getItem("token");
-      await api.patch(
+      await axiosConnect.patch(
         `/ocorrencia/${id}/descricao`,
         { descricao },
         {
@@ -90,7 +90,7 @@ export class OcorrenciaService {
   static async excluir(idOcorrencia: number): Promise<void> {
     try {
       const token = localStorage.getItem("token");
-      await api.delete(`/ocorrencia/${idOcorrencia}`, {
+      await axiosConnect.delete(`/ocorrencia/${idOcorrencia}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
