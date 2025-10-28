@@ -115,7 +115,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
      try {
       setLoading(true);
       
-      if (authMode === 'TEST') {
+      if (authMode === 'MOCK') {
         // Lista estática de motoristas no modo TEST
         const motoristasTeste: MotoristaDTO[] = [
           {
@@ -201,9 +201,9 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
     }
 
     try {
-      // No modo TEST, usar diretamente o idUsuario do motorista selecionado
+      // No modo MOCK, usar diretamente o idUsuario do motorista selecionado
       let idUsuarioMotorista: number;
-      if (authMode === 'TEST') {
+      if (authMode === 'MOCK') {
         idUsuarioMotorista = motoristaSelecionado.idUsuario;
       } else {
         // No modo SIGAA, consultar o endpoint /usuario/consultaCadastro

@@ -86,8 +86,8 @@ export default function EditarInfoCorrida({
         // Buscar dados do motorista atual
         if (corrida.idMotorista) {
           setLoadingMotorista(true);
-          if (authMode === 'TEST') {
-            // No modo TEST, buscar na lista estática
+          if (authMode === 'MOCK') {
+            // No modo MOCK, buscar na lista estática
             const motoristasTeste: Usuario[] = [
               {
                 idUsuario: 1,
@@ -151,8 +151,8 @@ export default function EditarInfoCorrida({
 
     try {
       setLoadingMotorista(true);
-      if (authMode === 'TEST') {
-        // Lista estática de motoristas no modo TEST
+      if (authMode === 'MOCK') {
+        // Lista estática de motoristas no modo MOCK
         const motoristasTeste: Usuario[] = [
           {
             idUsuario: 1,
@@ -221,7 +221,7 @@ export default function EditarInfoCorrida({
 
     try {
       let idUsuarioMotorista: number;
-      if (authMode === 'TEST') {
+      if (authMode === 'MOCK') {
         idUsuarioMotorista = selectedMotorista.idUsuario;
       } else {
         const response = await axiosConnect.get(`/usuario/consultaCadastro/${selectedMotorista.idPessoaSigaa}`, {
