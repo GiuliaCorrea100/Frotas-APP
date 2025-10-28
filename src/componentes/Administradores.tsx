@@ -12,7 +12,7 @@ import {
   Autocomplete,
   CircularProgress,
 } from "@mui/material";
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 import { useEffect, useState } from 'react';
 import { AdminUserService } from '../api/AdminUserService';
 import Menu from './Menu';
@@ -214,10 +214,12 @@ export default function ListaAdministradores() {
   return (
     <>
       <Menu />
-      <Box sx={{ 
+      <Box sx={{
         p: 3,
         backgroundColor: theme.palette.background.default,
-        minHeight: '100vh'
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1 
       }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Typography variant="h5" fontWeight="bold" color="textPrimary">
@@ -248,7 +250,8 @@ export default function ListaAdministradores() {
               paginationModel: { pageSize: 10, page: 0 },
             },
           }}
-          pageSizeOptions={[10, 20, 30, 50, 100]}
+          pageSizeOptions={[10, 25, 50]}
+          localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
           autoHeight
           sx={{
             '& .MuiDataGrid-cell': {
@@ -276,6 +279,14 @@ export default function ListaAdministradores() {
             },
             '& .MuiDataGrid-footerContainer': {
               borderTop: `1px solid ${theme.palette.divider}`,
+            },
+            '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+              marginBottom: 0,
+              alignSelf: 'center',
+            },
+            '& .MuiTablePagination-toolbar': {
+              minHeight: '52px',
+              alignItems: 'center',
             },
             boxShadow: theme.shadows[1],
             borderRadius: 2,

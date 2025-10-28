@@ -459,7 +459,15 @@ const Menu: React.FC = () => {
       </AppBar>
 
       {location.pathname === '/menu' && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', width: '100%', mt: 4, p: 2 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'flex-start', 
+          width: '100%', 
+          mt: 4, 
+          p: 2,
+          flex: 1
+        }}>
           {renderContent()}
         </Box>
       )}

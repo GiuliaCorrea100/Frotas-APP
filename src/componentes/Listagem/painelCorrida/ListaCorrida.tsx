@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import CreateIcon from '@mui/icons-material/Create';
 import CancelIcon from '@mui/icons-material/Cancel';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 import { CorridaFrontend, CorridaDto, getCorridas, CorridaService, atualizarSituacaoCorrida } from '../../../api/corridaService';
 import Menu from "../../Menu";
 import SalvarEdicaoCorrida from "./modais/editarPainelCorrida";
@@ -242,7 +242,13 @@ export default function ListaCorridas() {
   return (
     <>
       <Menu />
-      <Box sx={{ p: 3, backgroundColor: theme.palette.background.default, minHeight: '100vh'}}>
+      <Box sx={{
+        p: 3,
+        backgroundColor: theme.palette.background.default,
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1 
+      }}>
         {/* Header */}
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Typography variant="h5" fontWeight="bold" color="textPrimary">
@@ -318,8 +324,9 @@ export default function ListaCorridas() {
             columns={columns}
             loading={loading}
             getRowId={(row) => row.idCorrida}
-            initialState={{ pagination: { paginationModel: { pageSize: 10, page: 0 } } }}
-            pageSizeOptions={[5, 10, 20, 50]}
+            initialState={{ pagination: { paginationModel: { pageSize: 8, page: 0 } } }}
+            pageSizeOptions={[8, 16, 24]}
+            localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
             sx={{
               '& .MuiDataGrid-cell': { borderBottom: `1px solid ${theme.palette.divider}`, py: 1.5 },
               '& .MuiDataGrid-columnHeaders': {
@@ -330,6 +337,14 @@ export default function ListaCorridas() {
               },
               '& .MuiDataGrid-row': { '&:hover': { backgroundColor: theme.palette.action.hover }, '&.Mui-selected': { backgroundColor: theme.palette.action.selected } },
               '& .MuiDataGrid-footerContainer': { borderTop: `1px solid ${theme.palette.divider}` },
+              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                marginBottom: 0,
+                alignSelf: 'center',
+              },
+              '& .MuiTablePagination-toolbar': {
+                minHeight: '52px',
+                alignItems: 'center',
+              },
               boxShadow: theme.shadows[1],
               borderRadius: 2,
               border: 'none',

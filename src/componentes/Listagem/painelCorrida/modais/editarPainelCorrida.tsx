@@ -62,6 +62,21 @@ export default function EditarInfoCorrida({
   const [carrosDisponiveis, setCarrosDisponiveis] = useState<Veiculo[]>([]);
   const [loadingMotorista, setLoadingMotorista] = useState(false);
   const [loadingVeiculo, setLoadingVeiculo] = useState(false);
+  const [authMode, setAuthMode] = useState<string>('SIGAA');
+
+
+  useEffect(() => {
+    const fetchAuthMode = async () => {
+      try {
+        const response = await axiosConnect.get('/auth/mode');
+        setAuthMode(response.data.mode);
+      } catch (error) {
+        console.error('Erro ao buscar modo de autenticação:', error);
+        setAuthMode('SIGAA'); // Fallback para SIGAA
+      }
+    };
+    fetchAuthMode();
+  }, []);
 
   useEffect(() => {
     const carregarDadosIniciais = async () => {
@@ -71,9 +86,34 @@ export default function EditarInfoCorrida({
         // Buscar dados do motorista atual
         if (corrida.idMotorista) {
           setLoadingMotorista(true);
-          const response = await axiosConnect.get(`/usuario/buscar-usuario/${corrida.idMotorista}`);
-          if (response.data) {
-            setSelectedMotorista(response.data);
+          if (authMode === 'TEST') {
+            // No modo TEST, buscar na lista estática
+            const motoristasTeste: Usuario[] = [
+              {
+                idUsuario: 1,
+                idPessoaSigaa: 999998,
+                nome: 'ADMINISTRADOR FROTAS',
+                cpf: '11111111111',
+              },
+              {
+                idUsuario: 2,
+                idPessoaSigaa: 999999,
+                nome: 'MOTORISTA FROTAS',
+                cpf: '22222222222',
+              },
+            ];
+            const motorista = motoristasTeste.find(m => m.idUsuario === corrida.idMotorista);
+            if (motorista) {
+              setSelectedMotorista(motorista);
+            } else {
+              setError('Motorista não encontrado na lista de teste.');
+            }
+          } else {
+            // No modo SIGAA, buscar no endpoint
+            const response = await axiosConnect.get(`/usuario/buscar-usuario/${corrida.idMotorista}`);
+            if (response.data) {
+              setSelectedMotorista(response.data);
+            }
           }
         }
 
@@ -111,15 +151,37 @@ export default function EditarInfoCorrida({
 
     try {
       setLoadingMotorista(true);
-      const response = await axiosConnect.get(`/usuarioSigaa?nome=${nome}`);
-      const usuariosRetornados = response.data;
-      const uniqueUsuariosMap = new Map();
-      usuariosRetornados.forEach((user: any) => {
-        uniqueUsuariosMap.set(user.idPessoaSigaa, user);
-      });
-      const usuariosUnicosEOrdenados = Array.from(uniqueUsuariosMap.values());
-
-      setMotoristasDisponiveis(usuariosUnicosEOrdenados);
+      if (authMode === 'TEST') {
+        // Lista estática de motoristas no modo TEST
+        const motoristasTeste: Usuario[] = [
+          {
+            idUsuario: 1,
+            idPessoaSigaa: 999998,
+            nome: 'ADMINISTRADOR FROTAS',
+            cpf: '11111111111',
+          },
+          {
+            idUsuario: 2,
+            idPessoaSigaa: 999999,
+            nome: 'MOTORISTA FROTAS',
+            cpf: '22222222222',
+          },
+        ];
+        const filteredMotoristas = motoristasTeste.filter(motorista =>
+          motorista.nome.toLowerCase().includes(nome.toLowerCase())
+        );
+        setMotoristasDisponiveis(filteredMotoristas);
+      } else {
+        // Busca no endpoint /usuarioSigaa no modo SIGAA
+        const response = await axiosConnect.get(`/usuarioSigaa?nome=${nome}`);
+        const usuariosRetornados = response.data;
+        const uniqueUsuariosMap = new Map<number, Usuario>();
+        usuariosRetornados.forEach((user: any) => {
+          uniqueUsuariosMap.set(user.idPessoaSigaa, user);
+        });
+        const usuariosUnicosEOrdenados = Array.from(uniqueUsuariosMap.values());
+        setMotoristasDisponiveis(usuariosUnicosEOrdenados);
+      }
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
       setMotoristasDisponiveis([]);
@@ -158,13 +220,18 @@ export default function EditarInfoCorrida({
     setLoading(true);
 
     try {
-      const response = await axiosConnect.get(`/usuario/consultaCadastro/${selectedMotorista.idPessoaSigaa}`, {
+      let idUsuarioMotorista: number;
+      if (authMode === 'TEST') {
+        idUsuarioMotorista = selectedMotorista.idUsuario;
+      } else {
+        const response = await axiosConnect.get(`/usuario/consultaCadastro/${selectedMotorista.idPessoaSigaa}`, {
           params: {
             nome: selectedMotorista.nome
           }
         });
     
-      const idUsuarioMotorista = response.data.idUsuario;
+        idUsuarioMotorista = response.data.idUsuario;      
+      }      
 
       const dadosAtualizados = {
         idMotorista: idUsuarioMotorista,

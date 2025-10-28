@@ -10,7 +10,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from "react-router-dom";
 import { CarrosDto, CarrosService } from "../../../api/carrosService"; 
@@ -290,10 +290,12 @@ export default function ListaCarros() {
   return (
     <>
       <Menu />
-        <Box sx={{ 
+      <Box sx={{
         p: 3,
         backgroundColor: theme.palette.background.default,
-        minHeight: '100vh'
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1 
       }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Typography variant="h5" fontWeight="bold" color="textPrimary">
@@ -366,60 +368,17 @@ export default function ListaCarros() {
           />
         </Box>
       
-
-        {/* Filtros por situação operacional */}
-        {/* <Box sx={{ 
-          display: 'flex', 
-          gap: 1, 
-          mb: 3,
-          flexWrap: 'wrap',
-          rowGap: 2
-        }}>
-          {[
-            { label: 'DISPONÍVEL', value: 'DISPONIVEL', count: qtdDisponivel },
-            { label: 'EM VIAGEM', value: 'VIAGEM', count: qtdViagem },
-            { label: 'EM MANUTENÇÃO', value: 'MANUTENCAO', count: qtdManutencao }
-          ].map((tab) => (
-            <Button
-              key={tab.value}
-              variant={filtroSituacao === tab.value ? "contained" : "outlined"}
-              onClick={() => setFiltroSituacao(tab.value)}
-              sx={{
-                textTransform: 'none',
-                borderRadius: 2,
-                px: 2,
-                fontWeight: filtroSituacao === tab.value ? 600 : 500,
-                color: filtroSituacao === tab.value ? 'white' : 'text.primary',
-                bgcolor: filtroSituacao === tab.value ? 'primary.main' : 'background.paper',
-                '&:hover': {
-                  bgcolor: filtroSituacao === tab.value ? 'primary.dark' : theme.palette.action.hover,
-                }
-              }}
-            >
-              {tab.label} 
-              <Box sx={{ 
-                ml: 1, 
-                fontWeight: 600,
-                backgroundColor: filtroSituacao === tab.value ? 'rgba(255,255,255,0.2)' : theme.palette.grey[200],
-                px: 1,
-                borderRadius: 12
-              }}>
-                {tab.count}
-              </Box>
-            </Button>
-          ))}
-        </Box> */}
-
         <DataGrid
           rows={filteredCarros}
           columns={colunas}
           getRowId={(row) => row.idCarro}
           initialState={{
             pagination: {
-              paginationModel: { pageSize: 10, page: 0 },
+              paginationModel: { pageSize: 8, page: 0 },
             },
           }}
-          pageSizeOptions={[10, 20, 30, 50, 100]}
+          pageSizeOptions={[8, 16, 24]}
+          localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
           autoHeight
           sx={{
             '& .MuiDataGrid-cell': {
@@ -447,6 +406,14 @@ export default function ListaCarros() {
             },
             '& .MuiDataGrid-footerContainer': {
               borderTop: `1px solid ${theme.palette.divider}`,
+            },
+            '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+              marginBottom: 0,
+              alignSelf: 'center',
+            },
+            '& .MuiTablePagination-toolbar': {
+              minHeight: '52px',
+              alignItems: 'center',
             },
             boxShadow: theme.shadows[1],
             borderRadius: 2,
