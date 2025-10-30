@@ -7,7 +7,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Menu as DropdownMenu, 
+  Menu as DropdownMenu,
   MenuItem as DropdownItem,
   Paper,
   Toolbar,
@@ -24,7 +24,7 @@ import { useMediaQuery } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 
 interface JwtPayload {
-  sub: number; 
+  sub: number;
   login: string;
   administrador: boolean;
   iat: number;
@@ -33,7 +33,7 @@ interface JwtPayload {
 
 interface Corrida {
   idCorrida: number;
-  dataInicio: string; 
+  dataInicio: string;
   itinerario: string;
   situacao: 'AGENDADA' | 'ANDAMENTO' | 'FINALIZADA' | 'CANCELADA';
   placaVeiculo?: string;
@@ -49,12 +49,12 @@ interface MotoristaDashboard {
 const Menu: React.FC = () => {
   const { isAuthenticated, cpf, logout, administrador, nome, email } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation(); 
+  const location = useLocation();
   const [showModalDadosPerfil, setShowModalDadosPerfil] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<MotoristaDashboard | null>(null);
   const isMobile = useMediaQuery('(max-width:768px)');
-  const [showMobileMenu, setShowMobileMenu] = useState(false); 
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -80,8 +80,7 @@ const Menu: React.FC = () => {
         const response = await axiosConnect.get<MotoristaDashboard>(`/corrida/motorista-dashboard/${idUsuario}`);
         setDashboardData(response.data);
       }
-    } catch (error) {
-      console.error("Erro ao carregar dados do dashboard:", error);
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -92,7 +91,7 @@ const Menu: React.FC = () => {
   }, [carregarDadosDoDashboard]);
 
   const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return 'Em andamento'; 
+    if (!dateString) return 'Em andamento';
     try {
       const date = new Date(dateString);
       const userTimezoneOffset = date.getTimezoneOffset() * 60000;
@@ -103,19 +102,19 @@ const Menu: React.FC = () => {
   };
 
   const columns: GridColDef<Corrida>[] = [
-    { 
+    {
       field: 'nomeMotorista',
-      headerName: 'Motorista', 
+      headerName: 'Motorista',
       flex: 1,
       renderCell: (params: GridRenderCellParams) => (
         <Link to={`/corrida/${params.row.idCorrida}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-          {nome} 
+          {nome}
         </Link>
       )
     },
-    { 
+    {
       field: 'placaVeiculo',
-      headerName: 'Veículo', 
+      headerName: 'Veículo',
       flex: 1,
       renderCell: (params: GridRenderCellParams) => (
         <Link to={`/corrida/${params.row.idCorrida}`} style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -123,14 +122,14 @@ const Menu: React.FC = () => {
         </Link>
       )
     },
-    { 
-      field: 'dataInicio', 
+    {
+      field: 'dataInicio',
       headerName: 'Data/Hora Início',
       flex: 1,
       renderCell: (params) => formatDate(params.value as string)
     },
-    { 
-      field: 'dataTermino', 
+    {
+      field: 'dataTermino',
       headerName: 'Data/Hora Término',
       flex: 1,
       renderCell: (params) => formatDate(params.value as string | null)
@@ -138,18 +137,13 @@ const Menu: React.FC = () => {
   ];
 
   const renderContent = () => {
-    if (loading) {
-      return <CircularProgress />;
-    }
-
-    if (!isAuthenticated || !dashboardData) {
-      return null;
-    }
+    if (loading) return <CircularProgress />;
+    if (!isAuthenticated || !dashboardData) return null;
 
     if (dashboardData.corridaDeHoje && dashboardData.corridaDeHoje.situacao !== 'FINALIZADA') {
       return <PainelCorridaMotorista corrida={dashboardData.corridaDeHoje} onCorridaUpdate={carregarDadosDoDashboard} />;
     }
-    
+
     if (dashboardData.proximasCorridas.length > 0) {
       return (
         <Box sx={{ p: { xs: 1, md: 3 }, width: '100%', maxWidth: '900px', mt: 2 }}>
@@ -180,7 +174,7 @@ const Menu: React.FC = () => {
         </Box>
       );
     }
-    
+
     return (
       <Typography variant="h6" sx={{ mt: 4 }}>
         Nenhuma corrida agendada.
@@ -193,8 +187,8 @@ const Menu: React.FC = () => {
       <AppBar position="static">
         <Toolbar sx={{ flexWrap: 'wrap', gap: 1 }}>
           {isMobile && (
-            <Button 
-              color="inherit" 
+            <Button
+              color="inherit"
               onClick={() => setShowMobileMenu(!showMobileMenu)}
               sx={{ minWidth: 'auto', px: 1 }}
               className="mobile-menu-button"
@@ -205,9 +199,9 @@ const Menu: React.FC = () => {
 
           <Typography
             variant="h6"
-            sx={{ 
-              flexGrow: isMobile ? 1 : 0, 
-              textDecoration: "none", 
+            sx={{
+              flexGrow: isMobile ? 1 : 0,
+              textDecoration: "none",
               color: "inherit",
               fontFamily: "inherit",
               mr: 2,
@@ -220,242 +214,268 @@ const Menu: React.FC = () => {
           </Typography>
 
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'flex-end', flex: 1, alignItems: 'center' }}>
-          {isAuthenticated && (
-            <>
-              {!isMobile && (
-                <>
-                  <Button 
-                    color="inherit" 
-                    component={Link} 
-                    to="/menu"
-                    sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
-                  >
-                    Menu
-                  </Button>
+            {isAuthenticated && (
+              <>
+                {!isMobile && (
+                  <>
+                    <Button
+                      color="inherit"
+                      component={Link}
+                      to="/menu"
+                      sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
+                    >
+                      Menu
+                    </Button>
 
-                  {administrador === true && (
-                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                      <Button 
-                        color="inherit" 
-                        component={Link} 
-                        to="/ListaCorrida"
-                        sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
+                    {dashboardData?.corridaDeHoje && (
+                      <Typography
+                        sx={{
+                          fontFamily: "inherit",
+                          fontSize: '0.875rem',
+                          color: 'inherit',
+                          ml: 1
+                        }}
                       >
-                        Painel Corrida
-                      </Button>
-                      <Button 
-                        color="inherit" 
-                        component={Link} 
-                        to="/ListaCarros"
-                        sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
-                      >
-                        Veículos
-                      </Button>
-                      <Button 
-                        color="inherit" 
-                        component={Link} 
-                        to="/ListaMultas"
-                        sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
-                      >
-                        Multas
-                      </Button>
-                      <Button 
-                        color="inherit" 
-                        component={Link} 
-                        to="/Administradores"
-                        sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
-                      >
-                        Administradores
-                      </Button>
+                        ID CORRIDA {dashboardData.corridaDeHoje.idCorrida}
+                      </Typography>
+                    )}
 
-                      <Button 
-                        color="inherit" 
-                        component={Link} 
-                        to="/Relatorios"
-                        sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
+                    {administrador === true && (
+                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                        <Button
+                          color="inherit"
+                          component={Link}
+                          to="/ListaCorrida"
+                          sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
+                        >
+                          Painel Corrida
+                        </Button>
+                        <Button
+                          color="inherit"
+                          component={Link}
+                          to="/ListaCarros"
+                          sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
+                        >
+                          Veículos
+                        </Button>
+                        <Button
+                          color="inherit"
+                          component={Link}
+                          to="/ListaMultas"
+                          sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
+                        >
+                          Multas
+                        </Button>
+                        <Button
+                          color="inherit"
+                          component={Link}
+                          to="/Administradores"
+                          sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
+                        >
+                          Administradores
+                        </Button>
+                        <Button
+                          color="inherit"
+                          component={Link}
+                          to="/Relatorios"
+                          sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
+                        >
+                          Relatórios
+                        </Button>
+                      </Box>
+                    )}
+
+                    <Button
+                      color="inherit"
+                      component={Link}
+                      to="/HistoricoIndividual"
+                      sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
+                    >
+                      Historico
+                    </Button>
+                  </>
+                )}
+
+                <DropdownMenu
+                  anchorEl={isMobile ? document.querySelector('.mobile-menu-button') : null}
+                  open={isMobile && showMobileMenu}
+                  onClose={() => setShowMobileMenu(false)}
+                  PaperProps={{
+                    sx: {
+                      mt: 1,
+                      minWidth: 200,
+                      backgroundColor: 'background.paper',
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                      borderRadius: 1,
+                    }
+                  }}
+                >
+                  <>
+                    <DropdownItem
+                      component={Link}
+                      to="/menu"
+                      onClick={() => setShowMobileMenu(false)}
+                      sx={{ fontSize: '0.9rem', py: 1 }}
+                    >
+                      Menu
+                    </DropdownItem>
+
+                    {dashboardData?.corridaDeHoje && (
+                      <DropdownItem
+                        disabled
+                        sx={{
+                          fontSize: '0.9rem',
+                          py: 1,
+                          opacity: 0.8,
+                          cursor: 'default'
+                        }}
                       >
-                        Relatórios
-                      </Button>
-                    </Box>
-                  )}
+                        Corrida #{dashboardData.corridaDeHoje.idCorrida}
+                      </DropdownItem>
+                    )}
 
-                  <Button 
-                    color="inherit" 
-                    component={Link} 
-                    to="/HistoricoIndividual"
-                    sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
-                  >
-                    Historico
-                  </Button>
-                </>
-              )}
+                    {administrador === true && (
+                      <>
+                        <DropdownItem
+                          component={Link}
+                          to="/ListaCorrida"
+                          onClick={() => setShowMobileMenu(false)}
+                          sx={{ fontSize: '0.9rem', py: 1 }}
+                        >
+                          Painel Corrida
+                        </DropdownItem>
+                        <DropdownItem
+                          component={Link}
+                          to="/ListaCarros"
+                          onClick={() => setShowMobileMenu(false)}
+                          sx={{ fontSize: '0.9rem', py: 1 }}
+                        >
+                          Veículos
+                        </DropdownItem>
+                        <DropdownItem
+                          component={Link}
+                          to="/ListaMultas"
+                          onClick={() => setShowMobileMenu(false)}
+                          sx={{ fontSize: '0.9rem', py: 1 }}
+                        >
+                          Multas
+                        </DropdownItem>
+                        <DropdownItem
+                          component={Link}
+                          to="/Administradores"
+                          onClick={() => setShowMobileMenu(false)}
+                          sx={{ fontSize: '0.9rem', py: 1 }}
+                        >
+                          Administradores
+                        </DropdownItem>
+                      </>
+                    )}
 
-              <DropdownMenu
-                anchorEl={isMobile ? document.querySelector('.mobile-menu-button') : null}
-                open={isMobile && showMobileMenu}
-                onClose={() => setShowMobileMenu(false)}
-                PaperProps={{
-                  sx: {
-                    mt: 1,
-                    minWidth: 200,
-                    backgroundColor: 'background.paper',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                    borderRadius: 1,
-                  }
-                }}
-              >
-                <>
-                  <DropdownItem 
-                    component={Link} 
-                    to="/menu"
-                    onClick={() => setShowMobileMenu(false)}
-                    sx={{ fontSize: '0.9rem', py: 1 }}
-                  >
-                    Menu
-                  </DropdownItem>
+                    <DropdownItem
+                      component={Link}
+                      to="/HistoricoIndividual"
+                      onClick={() => setShowMobileMenu(false)}
+                      sx={{ fontSize: '0.9rem', py: 1 }}
+                    >
+                      Histórico Individual
+                    </DropdownItem>
 
-                  {administrador === true && (
+                    <DropdownItem
+                      component={Link}
+                      to="/Relatorios"
+                      onClick={() => setShowMobileMenu(false)}
+                      sx={{ fontSize: '0.9rem', py: 1 }}
+                    >
+                      Relatórios
+                    </DropdownItem>
+                  </>
+                </DropdownMenu>
+
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'nowrap' }}>
+                  {nome && (
                     <>
-                      <DropdownItem 
-                        component={Link} 
-                        to="/ListaCorrida"
-                        onClick={() => setShowMobileMenu(false)}
-                        sx={{ fontSize: '0.9rem', py: 1 }}
+                      <Button
+                        color="inherit"
+                        onClick={handleAbrirModalDadosPerfil}
+                        sx={{
+                          fontFamily: "inherit",
+                          fontSize: isMobile ? '0.8rem' : '0.875rem',
+                          maxWidth: isMobile ? '120px' : 'none',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                        title={nome}
                       >
-                        Painel Corrida
-                      </DropdownItem>
-                      <DropdownItem 
-                        component={Link} 
-                        to="/ListaCarros"
-                        onClick={() => setShowMobileMenu(false)}
-                        sx={{ fontSize: '0.9rem', py: 1 }}
+                        {isMobile ? `${nome.split(' ')[0]}...` : nome}
+                      </Button>
+                      <Dialog
+                        open={showModalDadosPerfil}
+                        onClose={handleFecharModalDadosPerfil}
+                        fullWidth
+                        maxWidth="sm"
+                        PaperProps={{
+                          sx: {
+                            borderRadius: 2,
+                            p: 2
+                          }
+                        }}
                       >
-                        Veículos
-                      </DropdownItem>
-                      <DropdownItem 
-                        component={Link} 
-                        to="/ListaMultas"
-                        onClick={() => setShowMobileMenu(false)}
-                        sx={{ fontSize: '0.9rem', py: 1 }}
-                      >
-                        Multas
-                      </DropdownItem>
-                      <DropdownItem 
-                        component={Link} 
-                        to="/Administradores"
-                        onClick={() => setShowMobileMenu(false)}
-                        sx={{ fontSize: '0.9rem', py: 1 }}
-                      >
-                        Administradores
-                      </DropdownItem>
+                        <DialogTitle sx={{ fontSize: '1.25rem', p: 2 }}>Seus Dados</DialogTitle>
+                        <DialogContent sx={{ p: 2 }}>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <Box sx={{ display: 'flex' }}>
+                              <Typography sx={{ minWidth: 80 }}>Nome:</Typography>
+                              <Typography fontWeight="medium">{nome}</Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex' }}>
+                              <Typography sx={{ minWidth: 80 }}>Email:</Typography>
+                              <Typography fontWeight="medium">{email}</Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex' }}>
+                              <Typography sx={{ minWidth: 80 }}>CPF:</Typography>
+                              <Typography fontWeight="medium">{cpf}</Typography>
+                            </Box>
+                          </Box>
+                        </DialogContent>
+                        <DialogActions sx={{ p: 2 }}>
+                          <Button
+                            onClick={handleFecharModalDadosPerfil}
+                            variant="contained"
+                            sx={{
+                              borderRadius: 1,
+                              textTransform: 'none',
+                              px: 3
+                            }}
+                          >
+                            Fechar
+                          </Button>
+                        </DialogActions>
+                      </Dialog>
                     </>
                   )}
 
-                  <DropdownItem 
-                    component={Link} 
-                    to="/HistoricoIndividual"
-                    onClick={() => setShowMobileMenu(false)}
-                    sx={{ fontSize: '0.9rem', py: 1 }}
+                  <Button
+                    color="inherit"
+                    onClick={handleLogout}
+                    sx={{ fontFamily: "inherit", fontSize: isMobile ? '0.8rem' : '0.875rem' }}
                   >
-                    Histórico Individual
-                  </DropdownItem>
+                    Sair
+                  </Button>
+                </Box>
+              </>
+            )}
 
-                  <DropdownItem 
-                    component={Link} 
-                    to="/Relatorios"
-                    onClick={() => setShowMobileMenu(false)}
-                    sx={{ fontSize: '0.9rem', py: 1 }}
-                  >
-                    Relatórios
-                  </DropdownItem>
-                </>
-              </DropdownMenu>
-
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'nowrap' }}>
-                {nome && (
-                  <>
-                    <Button 
-                      color="inherit" 
-                      onClick={handleAbrirModalDadosPerfil}
-                      sx={{ 
-                        fontFamily: "inherit", 
-                        fontSize: isMobile ? '0.8rem' : '0.875rem',
-                        maxWidth: isMobile ? '120px' : 'none', 
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}
-                      title={nome}
-                    >
-                      {isMobile ? `${nome.split(' ')[0]}...` : nome}
-                    </Button>
-                  <Dialog
-                    open={showModalDadosPerfil}
-                    onClose={handleFecharModalDadosPerfil}
-                    fullWidth
-                    maxWidth="sm"
-                    PaperProps={{
-                      sx: {
-                        borderRadius: 2,
-                        p: 2
-                      }
-                    }}
-                  >
-                    <DialogTitle sx={{ fontSize: '1.25rem', p: 2 }}>Seus Dados</DialogTitle>
-                    <DialogContent sx={{ p: 2 }}>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <Box sx={{ display: 'flex' }}>
-                          <Typography sx={{ minWidth: 80 }}>Nome:</Typography>
-                          <Typography fontWeight="medium">{nome}</Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex' }}>
-                          <Typography sx={{ minWidth: 80 }}>Email:</Typography>
-                          <Typography fontWeight="medium">{email}</Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex' }}>
-                          <Typography sx={{ minWidth: 80 }}>CPF:</Typography>
-                          <Typography fontWeight="medium">{cpf}</Typography>
-                        </Box>
-                      </Box>
-                    </DialogContent>
-                    <DialogActions sx={{ p: 2 }}>
-                      <Button
-                        onClick={handleFecharModalDadosPerfil}
-                        variant="contained"
-                        sx={{
-                          borderRadius: 1,
-                          textTransform: 'none',
-                          px: 3
-                        }}
-                      >
-                        Fechar
-                      </Button>
-                    </DialogActions>
-                  </Dialog>
-                </>
-              )}
-
-                <Button 
-                  color="inherit" 
-                  onClick={handleLogout}
-                  sx={{ fontFamily: "inherit", fontSize: isMobile ? '0.8rem' : '0.875rem' }}
-                >
-                  Sair
-                </Button>
-              </Box>
-            </>
-          )}
-
-          {!isAuthenticated && (
-            <Button 
-              color="inherit" 
-              component={Link} 
-              to="/"
-              sx={{ fontFamily: "inherit" }}
-            >
-              Login
-            </Button>
-          )}
+            {!isAuthenticated && (
+              <Button
+                color="inherit"
+                component={Link}
+                to="/"
+                sx={{ fontFamily: "inherit" }}
+              >
+                Login
+              </Button>
+            )}
           </Box>
         </Toolbar>
       </AppBar>
