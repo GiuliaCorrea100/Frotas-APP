@@ -1,7 +1,7 @@
 import axiosConnect from "../services/axiosConnect";
 
 // Definição do tipo de dados do carro (DTO)
-export interface CarrosDto {
+export interface CarroDto {
   idCarro?: number;
   tombo: number;
   qrCode: string;
@@ -29,55 +29,55 @@ export interface ParametrosBusca {
 }
 
 // Serviço para lidar com requisições relacionadas a carros
-export class CarrosService {
+export class CarroService {
   // Buscar todos os carros com filtros opcionais
   static async buscarTodos(
     params?: Partial<ParametrosBusca>
-  ): Promise<CarrosDto[]> {
-    const resposta = await axiosConnect.get<CarrosDto[]>(`/carros`, { params });
+  ): Promise<CarroDto[]> {
+    const resposta = await axiosConnect.get<CarroDto[]>(`/carro`, { params });
 
     return resposta.data;
   }
   // Buscar um carro por ID
-  static async buscarPorId(idCarro: number): Promise<CarrosDto> {
-    const resposta = await axiosConnect.get<CarrosDto>(`/carros/${idCarro}`);
+  static async buscarPorId(idCarro: number): Promise<CarroDto> {
+    const resposta = await axiosConnect.get<CarroDto>(`/carro/${idCarro}`);
     return resposta.data;
   }
 
   // Criar um novo carro
-  static async criar(carro: CarrosDto): Promise<CarrosDto> {
+  static async criar(carro: CarroDto): Promise<CarroDto> {
     const carroCompleto = {
       ...carro,
       situacao: carro.situacao || "DISPONIVEL", // Se não vier, usa DISPONIVEL
     };
-    const resposta = await axiosConnect.post<CarrosDto>(`/carros`, carroCompleto);
+    const resposta = await axiosConnect.post<CarroDto>(`/carro`, carroCompleto);
     return resposta.data;
   }
 
   // Atualizar um carro existente
-  static async atualizar(id: number, carro: CarrosDto): Promise<CarrosDto> {
-    const resposta = await axiosConnect.put<CarrosDto>(`/carros/${id}`, carro);
+  static async atualizar(id: number, carro: CarroDto): Promise<CarroDto> {
+    const resposta = await axiosConnect.put<CarroDto>(`/carro/${id}`, carro);
     return resposta.data;
   }
 
   static async atualizarSituacaoCarro(idCarro: number, situacao: string) {
-      const carroAtual = await axiosConnect.get(`/carros/${idCarro}`);
+      const carroAtual = await axiosConnect.get(`/carro/${idCarro}`);
       
       const dadosAtualizados = {
         ...carroAtual.data,
         situacao: situacao
       };
 
-      await axiosConnect.put(`/carros/${idCarro}`, dadosAtualizados);
+      await axiosConnect.put(`/carro/${idCarro}`, dadosAtualizados);
   }
 
   // Inativar um carro (define ativo = false)
-  static async inativar(idCarro: number): Promise<CarrosDto> {
-    const resposta = await axiosConnect.patch<CarrosDto>(`/carros/${idCarro}/inativar`);
+  static async inativar(idCarro: number): Promise<CarroDto> {
+    const resposta = await axiosConnect.patch<CarroDto>(`/carro/${idCarro}/inativar`);
     return resposta.data;
   }
 
   static async deletar(idCarro: number): Promise<void> {
-    await axiosConnect.delete(`/carros/${idCarro}`);
+    await axiosConnect.delete(`/carro/${idCarro}`);
   }
 }

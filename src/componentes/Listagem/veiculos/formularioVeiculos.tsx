@@ -17,7 +17,7 @@ import {
   Grid,
 } from '@mui/material';
 import { DirectionsCar, Close, Save, Search } from '@mui/icons-material';
-import { CarrosDto, CarrosService } from '../../../api/carrosService';
+import { CarroDto, CarroService } from '../../../api/CarroService';
 import { TipoCombustivel, TipoCombustivelService } from '../../../api/tipoCombustivelService';
 import axiosConnect from "../../../services/axiosConnect";
 
@@ -151,7 +151,7 @@ const FormularioVeiculos: React.FC<FormularioVeiculosProps> = ({
       
       const fetchDadosVeiculo = async () => {
         try {
-          const response = await CarrosService.buscarPorId(idVeiculo);
+          const response = await CarroService.buscarPorId(idVeiculo);
           const veiculoData = response;
           
           setVeiculoExistente(veiculoData);
@@ -311,7 +311,7 @@ const FormularioVeiculos: React.FC<FormularioVeiculosProps> = ({
           return;
       }
 
-      const dadosVeiculo: CarrosDto = {
+      const dadosVeiculo: CarroDto = {
           placa,
           odometro: odometro, // mantém como string
           modelo,
@@ -329,9 +329,9 @@ const FormularioVeiculos: React.FC<FormularioVeiculosProps> = ({
           let veiculoSalvo;
           
           if (modoEdicao && idVeiculo) {
-              veiculoSalvo = await CarrosService.atualizar(idVeiculo, dadosVeiculo);
+              veiculoSalvo = await CarroService.atualizar(idVeiculo, dadosVeiculo);
           } else {
-              veiculoSalvo = await CarrosService.criar(dadosVeiculo);
+              veiculoSalvo = await CarroService.criar(dadosVeiculo);
           }
           
           const mensagem = modoEdicao 
