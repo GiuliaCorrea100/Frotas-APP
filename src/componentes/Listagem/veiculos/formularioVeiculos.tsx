@@ -82,7 +82,7 @@ const FormularioVeiculos: React.FC<FormularioVeiculosProps> = ({
 
     try {
       // Verifica se já existe um veículo com este tombo
-      const response = await axiosConnect.get(`/carros/por-tombo/${tomboConsulta}`);
+      const response = await axiosConnect.get(`/carro/por-tombo/${tomboConsulta}`);
       const veiculo = response.data;
       
       if (veiculo) {

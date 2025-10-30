@@ -120,7 +120,7 @@ export default function EditarInfoCorrida({
         // Buscar dados do veículo atual
         if (corrida.idCarro) {
           setLoadingVeiculo(true);
-          const response = await axiosConnect.get(`/carros/${corrida.idCarro}`);
+          const response = await axiosConnect.get(`/carro/${corrida.idCarro}`);
           if (response.data) {
             setSelectedVeiculo(response.data);
           }
