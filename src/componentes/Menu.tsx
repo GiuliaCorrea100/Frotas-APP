@@ -191,10 +191,7 @@ const Menu: React.FC = () => {
   return (
     <>
       <AppBar position="static">
-        <Toolbar sx={{ 
-          flexWrap: 'wrap', 
-          gap: 1,
-        }}>
+        <Toolbar sx={{ flexWrap: 'wrap', gap: 1 }}>
           {isMobile && (
             <Button 
               color="inherit" 
@@ -222,18 +219,20 @@ const Menu: React.FC = () => {
             FROTAS UNIR
           </Typography>
 
-          <Box sx={{ 
-            display: 'flex', 
-            gap: 1, 
-            flexWrap: 'wrap',
-            justifyContent: 'flex-end',
-            flex: 1,
-            alignItems: 'center'
-          }}>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'flex-end', flex: 1, alignItems: 'center' }}>
           {isAuthenticated && (
             <>
               {!isMobile && (
                 <>
+                  <Button 
+                    color="inherit" 
+                    component={Link} 
+                    to="/menu"
+                    sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
+                  >
+                    Menu
+                  </Button>
+
                   {administrador === true && (
                     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                       <Button 
@@ -288,8 +287,6 @@ const Menu: React.FC = () => {
                   >
                     Historico
                   </Button>
-
-                  
                 </>
               )}
 
@@ -308,6 +305,15 @@ const Menu: React.FC = () => {
                 }}
               >
                 <>
+                  <DropdownItem 
+                    component={Link} 
+                    to="/menu"
+                    onClick={() => setShowMobileMenu(false)}
+                    sx={{ fontSize: '0.9rem', py: 1 }}
+                  >
+                    Menu
+                  </DropdownItem>
+
                   {administrador === true && (
                     <>
                       <DropdownItem 
@@ -365,11 +371,7 @@ const Menu: React.FC = () => {
                 </>
               </DropdownMenu>
 
-              <Box sx={{ 
-                display: 'flex', 
-                gap: 1, 
-                flexWrap: 'nowrap'
-              }}>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'nowrap' }}>
                 {nome && (
                   <>
                     <Button 
@@ -459,15 +461,7 @@ const Menu: React.FC = () => {
       </AppBar>
 
       {location.pathname === '/menu' && (
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'flex-start', 
-          width: '100%', 
-          mt: 4, 
-          p: 2,
-          flex: 1
-        }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', width: '100%', mt: 4, p: 2, flex: 1 }}>
           {renderContent()}
         </Box>
       )}
