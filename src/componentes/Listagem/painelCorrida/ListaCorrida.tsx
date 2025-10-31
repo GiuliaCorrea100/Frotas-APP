@@ -38,7 +38,7 @@ const mapToDto = (c: CorridaFrontend): CorridaDto => ({
   dataTermino: c.dataTermino ? new Date(c.dataTermino) : null,
 });
 
-export default function ListaCorridas() {
+export default function ListaCorrida() {
   const theme = useTheme();
 
   const [busca, setBusca] = useState('');
@@ -431,6 +431,7 @@ export default function ListaCorridas() {
                 try {
                   await atualizarSituacaoCorrida(selectedCorrida.idCorrida, 'CANCELADA');
                   
+                  // Atualizar situação do carro para DISPONIVEL quando a corrida for cancelada
                   await CarroService.atualizarSituacaoCarro(selectedCorrida.idCarro, "DISPONIVEL");
                   
                   const dadosAtualizados = await getCorridas();
