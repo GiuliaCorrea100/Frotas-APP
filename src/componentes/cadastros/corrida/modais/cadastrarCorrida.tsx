@@ -4,7 +4,7 @@ import axiosConnect from "../../../../services/axiosConnect";
 import { Button, Box, TextField, Typography, Modal, Autocomplete, Dialog, DialogTitle, DialogActions } from "@mui/material";
 import axios, { AxiosError } from 'axios';
 import { createCorrida } from '../../../../api/corridaService';
-import { CarrosService } from '../../../../api/carrosService';
+import { CarroService } from '../../../../api/CarroService';
 
 interface MotoristaDTO {
   idUsuario: number;
@@ -226,7 +226,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
         idCarro: carro.idCarro,
       };
 
-      await CarrosService.atualizarSituacaoCarro(carro.idCarro, "RESERVADO");
+      await CarroService.atualizarSituacaoCarro(carro.idCarro, "RESERVADO");
       
       await createCorrida(corridaParaEnviar);
       

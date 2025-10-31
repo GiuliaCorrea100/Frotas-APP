@@ -23,7 +23,7 @@ import {
 } from "@mui/icons-material";
 import { Abastecimento } from "../../../../api/abastecimentoService";
 import abastecimentoService from "../../../../api/abastecimentoService";
-import { TipoCombustivel } from "../../../../api/carrosService";
+import { TipoCombustivel } from "../../../../api/CarroService";
 import { CorridaFrontend, getCorridas } from "../../../../api/corridaService";
 import { TipoCombustivelService } from "../../../../api/tipoCombustivelService";
 
