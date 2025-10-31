@@ -13,7 +13,7 @@ import {
 import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from "react-router-dom";
-import { CarrosDto, CarrosService } from "../../../api/carrosService"; 
+import { CarroDto, CarroService } from "../../../api/CarroService"; 
 import { TipoCombustivel } from '../../../api/tipoCombustivelService'; 
 import Menu from "../../Menu"; 
 import FormularioVeiculos from './formularioVeiculos';
@@ -21,9 +21,9 @@ import FormularioVeiculos from './formularioVeiculos';
 export default function ListaCarros() {
   const theme = useTheme();
   const location = useLocation();
-  const carroCadastrado = location.state?.carroCadastrado as CarrosDto | undefined;
+  const carroCadastrado = location.state?.carroCadastrado as CarroDto | undefined;
   const [busca, setBusca] = useState("");
-  const [carros, setCarros] = useState<CarrosDto[]>([]);
+  const [carros, setCarros] = useState<CarroDto[]>([]);
   const [filtroStatus, setFiltroStatus] = useState<string>('ATIVOS');
   const [filtroSituacao, setFiltroSituacao] = useState<string>('TODOS');
   const [qtdAtivos, setQtdAtivos] = useState<number>(0);
@@ -37,11 +37,11 @@ export default function ListaCarros() {
 
   // Estados para o modal de confirmação (Ativar/Inativar)
   const [showModalAtivacao, setShowModalAtivacao] = useState(false);
-  const [selectedCarro, setSelectedCarro] = useState<CarrosDto | null>(null);
+  const [selectedCarro, setSelectedCarro] = useState<CarroDto | null>(null);
 
   // Estados para o FormularioVeiculos
   const [openFormulario, setOpenFormulario] = useState(false);
-  const [selectedCarroForEdit, setSelectedCarroForEdit] = useState<CarrosDto | null>(null);
+  const [selectedCarroForEdit, setSelectedCarroForEdit] = useState<CarroDto | null>(null);
   const [modoFormulario, setModoFormulario] = useState<'criar' | 'editar'>('criar');
 
   // Estados para situação de veiculo (Modal Editar Situação - mantido para compatibilidade)
@@ -56,7 +56,7 @@ export default function ListaCarros() {
   };
 
   // Abrir modal de edição
-  const handleOpenEditar = (carro: CarrosDto) => {
+  const handleOpenEditar = (carro: CarroDto) => {
     setModoFormulario('editar');
     setSelectedCarroForEdit(carro);
     setOpenFormulario(true);
@@ -85,7 +85,7 @@ export default function ListaCarros() {
   // Função para carregar carros
   const carregarCarros = async () => {
     try {
-      const lista = await CarrosService.buscarTodos();
+      const lista = await CarroService.buscarTodos();
 
       // Calcular contadores
       setQtdAtivos(lista.filter(c => c.ativo).length);
@@ -134,7 +134,7 @@ export default function ListaCarros() {
   });
 
   // Abre o modal de confirmação (Ativar/Inativar)
-  const handleAbrirModalAtivacao = (carro: CarrosDto) => {
+  const handleAbrirModalAtivacao = (carro: CarroDto) => {
     setSelectedCarro(carro);
     setShowModalAtivacao(true);
   };
@@ -144,7 +144,7 @@ export default function ListaCarros() {
     if (!selectedCarro || !selectedCarro.idCarro) return;
 
     try {
-      await CarrosService.inativar(selectedCarro.idCarro); 
+      await CarroService.inativar(selectedCarro.idCarro); 
       await carregarCarros();
       setShowModalAtivacao(false);
     } catch (error) {
@@ -157,7 +157,7 @@ export default function ListaCarros() {
   const handleSaveSituacao = async () => {
     if (!selectedCarroForEdit || !selectedCarroForEdit.idCarro) return;
     try {
-      await CarrosService.atualizar(
+      await CarroService.atualizar(
         selectedCarroForEdit.idCarro,
         {
           situacao: novaSituacao,

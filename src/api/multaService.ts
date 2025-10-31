@@ -24,7 +24,7 @@ export interface MultaBackend {
 export class MultaService {
   static async listarMultas(): Promise<MultaDto[]> {
     try {
-      const response = await axiosConnect.get<MultaDto[]>("/multas");
+      const response = await axiosConnect.get<MultaDto[]>("/multa");
       return response.data;
     } catch (error) {
       console.error("Erro ao listar multas:", error);
@@ -34,7 +34,7 @@ export class MultaService {
 
   static async criarMulta(dados: MultaBackend): Promise<void> {
     try {
-      await axiosConnect.post("/multas", dados);
+      await axiosConnect.post("/multa", dados);
     } catch (error) {
       console.error("Erro ao cadastrar multa:", error);
       throw error;
@@ -47,7 +47,7 @@ export class MultaService {
   ): Promise<void> {
     try {
       console.log(idMulta);
-      await axiosConnect.put(`/multas/${idMulta}`, dados);
+      await axiosConnect.put(`/multa/${idMulta}`, dados);
     } catch (error) {
       console.error(`Erro ao atualizar multa ${idMulta}:`, error);
       throw error;
@@ -56,7 +56,7 @@ export class MultaService {
 
   static async removerMulta(idMulta: number): Promise<void> {
     try {
-      await axiosConnect.patch(`/multas/deletar-multa/${idMulta}`);
+      await axiosConnect.patch(`/multa/deletar-multa/${idMulta}`);
       console.log(`Multa ${idMulta} marcada como deletada`);
     } catch (error) {
       console.error(`Erro ao deletar multa ${idMulta}:`, error);
