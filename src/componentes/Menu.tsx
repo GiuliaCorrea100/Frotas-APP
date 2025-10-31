@@ -224,6 +224,20 @@ const Menu: React.FC = () => {
 
           <Box sx={{ flex: 1 }} />
 
+          {/* EXIBIÇÃO DO ID DA CORRIDA ATUAL */}
+          {isAuthenticated && dashboardData?.corridaDeHoje && (
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: "inherit", 
+                mr: 2,
+                display: { xs: 'none', sm: 'block' }
+              }}
+            >
+              Corrida: #{dashboardData.corridaDeHoje.idCorrida}
+            </Typography>
+          )}
+
           {isAuthenticated ? (
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Button color="inherit" onClick={handleAbrirModalDadosPerfil}>{nome}</Button>
