@@ -94,8 +94,7 @@ const Menu: React.FC = () => {
     if (!dateString) return 'Em andamento';
     try {
       const date = new Date(dateString);
-      const userTimezoneOffset = date.getTimezoneOffset() * 60000;
-      return isNaN(date.getTime()) ? 'Data inválida' : new Date(date.getTime() + userTimezoneOffset).toLocaleString('pt-BR');
+      return isNaN(date.getTime()) ? 'Data inválida' : date.toLocaleString('pt-BR', { timeZone: 'UTC' });
     } catch {
       return 'Data inválida';
     }
