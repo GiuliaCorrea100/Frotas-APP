@@ -142,7 +142,7 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
           }
       };
       
-      if (corrida.situacao !== 'FINALIZADE') {
+      if (corrida.situacao !== 'FINALIZADA') {
         fetchUltimoDestino();
       }
   }, [modalIniciarOpen, corrida.idCorrida, corrida.localDeSaida, corrida.situacao]);
@@ -465,7 +465,7 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
       />
       )}
 
-      {modalFinalizarOpen && (
+      {successModalOpen && (
       <ModalSucesso
         open={successModalOpen}
         onClose={handleSuccessClose}
