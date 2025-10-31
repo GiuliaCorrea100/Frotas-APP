@@ -60,15 +60,14 @@ export class CarroService {
     return resposta.data;
   }
 
-  static async atualizarSituacaoCarro(idCarro: number, situacao: string) {
-      const carroAtual = await axiosConnect.get(`/carro/${idCarro}`);
-      
-      const dadosAtualizados = {
-        ...carroAtual.data,
-        situacao: situacao
-      };
-
-      await axiosConnect.put(`/carro/${idCarro}`, dadosAtualizados);
+  static async atualizarSituacaoCarro(idCarro: number, situacao: string): Promise<void> {
+    try {
+      const response = await axiosConnect.patch(`/carro/${idCarro}/situacao`, { situacao });
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao atualizar situação do carro:', error);
+      throw error;
+    }
   }
 
   // Inativar um carro (define ativo = false)
