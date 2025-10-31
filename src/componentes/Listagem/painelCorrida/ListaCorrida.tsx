@@ -38,7 +38,7 @@ const mapToDto = (c: CorridaFrontend): CorridaDto => ({
   dataTermino: c.dataTermino ? new Date(c.dataTermino) : null,
 });
 
-export default function ListaCorridas() {
+export default function ListaCorrida() {
   const theme = useTheme();
 
   const [busca, setBusca] = useState('');
@@ -249,7 +249,6 @@ export default function ListaCorridas() {
         flexDirection: 'column',
         flex: 1 
       }}>
-        {/* Header */}
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Typography variant="h5" fontWeight="bold" color="textPrimary">
             Listagem de Corridas
@@ -263,7 +262,6 @@ export default function ListaCorridas() {
           </Button>
         </Box>
 
-        {/* Filtros */}
         <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
           {[
             { label: 'AGENDADA', value: 'AGENDADA', count: qtdAgendadas, color: theme.palette.info.main },
@@ -304,7 +302,6 @@ export default function ListaCorridas() {
           ))}
         </Box>
 
-        {/* Busca */}
         <Box sx={{ mb: 3 }}>
           <TextField
             placeholder="Buscar corridas..."
@@ -317,7 +314,6 @@ export default function ListaCorridas() {
           />
         </Box>
 
-        {/* DataGrid */}
         <Box sx={{ width: '100%', height: 600 }}>
           <DataGrid
             rows={dadosFiltrados}
@@ -355,7 +351,6 @@ export default function ListaCorridas() {
         </Box>
       </Box>
 
-      {/* Modais */}
       <Dialog
         open={showModalLiberarChave}
         onClose={() => setShowModalLiberarChave(false)}
@@ -435,11 +430,15 @@ export default function ListaCorridas() {
               if (selectedCorrida) {
                 try {
                   await atualizarSituacaoCorrida(selectedCorrida.idCorrida, 'CANCELADA');
+                  
+                  // Atualizar situação do carro para DISPONIVEL quando a corrida for cancelada
+                  await CarroService.atualizarSituacaoCarro(selectedCorrida.idCarro, "DISPONIVEL");
+                  
                   const dadosAtualizados = await getCorridas();
                   setCorridas(dadosAtualizados);
                   setShowModalCancelar(false);
                 } catch (error) {
-                  console.error(error);
+                  console.error("Erro ao cancelar corrida:", error);
                 }
               }
             }}
