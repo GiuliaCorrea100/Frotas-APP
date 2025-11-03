@@ -20,7 +20,7 @@ import { ValueType } from 'recharts/types/component/DefaultTooltipContent';
 
 // Importe seus serviços
 import AbastecimentoService from "../../api/abastecimentoService";
-import { CarroService } from "../../api/CarroService";
+import { CarroService } from "../../api/carroService";
 import { getCorridas } from "../../api/corridaService";
 import { OcorrenciaService } from "../../api/ocorrenciasService";
 import { MultaService } from "../../api/multaService";
