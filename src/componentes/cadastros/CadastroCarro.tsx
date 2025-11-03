@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import React, { FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CarroDto, CarroService } from "../../api/CarroService";
+import { CarroDto, CarroService } from "../../api/carroService";
 import { TipoCombustivel, TipoCombustivelService } from "../../api/tipoCombustivelService";
 import Menu from "../Menu";
 
@@ -73,7 +73,7 @@ const [tipoCombustivelSelecionado, setTipoCombustivelSelecionado] = useState<Tip
       localidadeFisica: localidadeFisica,
       situacao: "DISPONIVEL",
       ativo: true,
-      tipoCombustivel: tipoCombustivelSelecionado,
+      idTipoCombustivel: tipoCombustivelSelecionado,
     };
 
     try {
