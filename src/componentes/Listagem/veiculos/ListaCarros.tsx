@@ -13,7 +13,7 @@ import {
 import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from "react-router-dom";
-import { CarroDto, CarroService } from "../../../api/CarroService"; 
+import { CarroDto, CarroService } from "../../../api/carroService"; 
 import { TipoCombustivel } from '../../../api/tipoCombustivelService'; 
 import Menu from "../../Menu"; 
 import FormularioVeiculos from './formularioVeiculos';

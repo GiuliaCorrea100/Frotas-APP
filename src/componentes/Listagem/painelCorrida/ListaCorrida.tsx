@@ -19,7 +19,7 @@ import Menu from "../../Menu";
 import SalvarEdicaoCorrida from "./modais/editarPainelCorrida";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CadastrarCorrida from '../../cadastros/corrida/modais/cadastrarCorrida';
-import { CarroService } from '../../../api/CarroService';
+import { CarroService } from '../../../api/carroService';
 import axiosConnect from '../../../services/axiosConnect';
 
 const formatDate = (dateString: string | null) => {
