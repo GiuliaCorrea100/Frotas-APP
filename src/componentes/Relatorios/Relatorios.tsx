@@ -20,7 +20,7 @@ import { ValueType } from 'recharts/types/component/DefaultTooltipContent';
 
 // Importe seus serviços
 import AbastecimentoService from "../../api/abastecimentoService";
-import { CarrosService } from "../../api/carrosService";
+import { CarroService } from "../../api/carroService";
 import { getCorridas } from "../../api/corridaService";
 import { OcorrenciaService } from "../../api/ocorrenciasService";
 import { MultaService } from "../../api/multaService";
@@ -87,7 +87,7 @@ const Relatorios: React.FC = () => {
             try {
                 const [corridasData, carrosData, abastecData, ocorrData, multasData] = await Promise.all([
                     getCorridas(),
-                    CarrosService.buscarTodos(),
+                    CarroService.buscarTodos(),
                     AbastecimentoService.buscarTodosAbastecimentos({ expand: true }),
                     OcorrenciaService.buscarTodos(),
                     MultaService.listarMultas(),

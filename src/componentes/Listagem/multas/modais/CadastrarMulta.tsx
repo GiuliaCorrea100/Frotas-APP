@@ -49,7 +49,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
   const [classificacao, setClassificacao] = useState("");
   const [valorInfracao, setValorInfracao] = useState<number>(0);
   const [placaVeiculo, setPlacaVeiculo] = useState("");
-  const [dataInfracao, setDataInfracao] = useState<Date | null>(null);
+  const [dataInfracao, setDataInfracao] = useState<string>("");
   const [autoInfracao, setAutoInfracao] = useState<number>(0);
 
   const [loading, setLoading] = useState(false);
@@ -60,7 +60,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
       setAutoInfracao(0);
       setClassificacao("");
       setCodigoInfracao(0);
-      setDataInfracao(null);
+      setDataInfracao("");
       setPlacaVeiculo("");
       setValorInfracao(0);
     }
@@ -71,12 +71,15 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
     setLoading(true);
 
     try {
+      // Criar a data considerando o fuso horário de Porto Velho -4
+      const dataInfracaoUTC = new Date(dataInfracao + 'T04:00:00.000Z');
+
       const dadosMultas = {
         codigoInfracao,
         classificacao,
         valorInfracao,
         placaVeiculo,
-        dataInfracao,
+        dataInfracao : dataInfracaoUTC,
         autoInfracao,
       };
 
@@ -170,11 +173,11 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
 
           
           <TextField
-            label="Data e Hora da Infração"
-            type="datetime-local"
+            label="Data da Infração"
+            type="date"
             fullWidth
-            value={dataInfracao ? dataInfracao.toISOString().slice(0, 16) : ""}
-            onChange={(e) => setDataInfracao(new Date(e.target.value))}
+            value={dataInfracao}
+            onChange={(e) => setDataInfracao(e.target.value)}
             InputLabelProps={{ shrink: true }}
             InputProps={{
               startAdornment: (

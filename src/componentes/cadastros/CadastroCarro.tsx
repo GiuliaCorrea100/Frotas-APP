@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import React, { FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CarrosDto, CarrosService } from "../../api/carrosService";
+import { CarroDto, CarroService } from "../../api/carroService";
 import { TipoCombustivel, TipoCombustivelService } from "../../api/tipoCombustivelService";
 import Menu from "../Menu";
 
@@ -63,7 +63,7 @@ const [tipoCombustivelSelecionado, setTipoCombustivelSelecionado] = useState<Tip
       return;
     }
 
-    const novoCarro: CarrosDto = {
+    const novoCarro: CarroDto = {
       placa,
       odometro,
       modelo,
@@ -73,11 +73,11 @@ const [tipoCombustivelSelecionado, setTipoCombustivelSelecionado] = useState<Tip
       localidadeFisica: localidadeFisica,
       situacao: "DISPONIVEL",
       ativo: true,
-      tipoCombustivel: tipoCombustivelSelecionado,
+      idTipoCombustivel: tipoCombustivelSelecionado,
     };
 
     try {
-      const carroCadastrado = await CarrosService.criar(novoCarro);
+      const carroCadastrado = await CarroService.criar(novoCarro);
       setCadastroConcluido(true);
       navigate('/ListaCarros', {
         state: {

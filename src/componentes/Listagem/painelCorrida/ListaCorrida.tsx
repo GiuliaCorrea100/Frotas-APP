@@ -13,19 +13,20 @@ import {
 } from "@mui/material";
 import CreateIcon from '@mui/icons-material/Create';
 import CancelIcon from '@mui/icons-material/Cancel';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 import { CorridaFrontend, CorridaDto, getCorridas, CorridaService, atualizarSituacaoCorrida } from '../../../api/corridaService';
 import Menu from "../../Menu";
 import SalvarEdicaoCorrida from "./modais/editarPainelCorrida";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CadastrarCorrida from '../../cadastros/corrida/modais/cadastrarCorrida';
-import { CarrosService } from '../../../api/carrosService';
+import { CarroService } from '../../../api/carroService';
+import axiosConnect from '../../../services/axiosConnect';
 
 const formatDate = (dateString: string | null) => {
   if (!dateString) return 'Em andamento';
   try {
     const date = new Date(dateString);
-    return isNaN(date.getTime()) ? 'Data inválida' : date.toLocaleString('pt-BR');
+    return isNaN(date.getTime()) ? 'Data inválida' : date.toLocaleString('pt-BR', { timeZone: 'UTC' });
   } catch {
     return 'Data inválida';
   }
@@ -38,7 +39,7 @@ const mapToDto = (c: CorridaFrontend): CorridaDto => ({
   dataTermino: c.dataTermino ? new Date(c.dataTermino) : null,
 });
 
-export default function ListaCorridas() {
+export default function ListaCorrida() {
   const theme = useTheme();
 
   const [busca, setBusca] = useState('');
@@ -56,8 +57,23 @@ export default function ListaCorridas() {
   const [showModalCancelar, setShowModalCancelar] = useState(false);
 
   const [filtroSituacao, setFiltroSituacao] = useState<string>('TODOS');
+  const [authMode, setAuthMode] = useState<string>('SIGAA');
 
   const navigate = useNavigate();
+
+  // Buscar o modo de autenticação na inicialização
+  useEffect(() => {
+    const fetchAuthMode = async () => {
+      try {
+        const response = await axiosConnect.get('/auth/mode');
+        setAuthMode(response.data.mode);
+      } catch (error) {
+        console.error('Erro ao buscar modo de autenticação:', error);
+        setAuthMode('SIGAA');
+      }
+    };
+    fetchAuthMode();
+  }, []);
 
   useEffect(() => {
       carregarCorridas(); 
@@ -242,8 +258,13 @@ export default function ListaCorridas() {
   return (
     <>
       <Menu />
-      <Box sx={{ p: 3, backgroundColor: theme.palette.background.default, minHeight: '100vh'}}>
-        {/* Header */}
+      <Box sx={{
+        p: 3,
+        backgroundColor: theme.palette.background.default,
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1 
+      }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Typography variant="h5" fontWeight="bold" color="textPrimary">
             Listagem de Corridas
@@ -257,7 +278,6 @@ export default function ListaCorridas() {
           </Button>
         </Box>
 
-        {/* Filtros */}
         <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
           {[
             { label: 'AGENDADA', value: 'AGENDADA', count: qtdAgendadas, color: theme.palette.info.main },
@@ -298,7 +318,6 @@ export default function ListaCorridas() {
           ))}
         </Box>
 
-        {/* Busca */}
         <Box sx={{ mb: 3 }}>
           <TextField
             placeholder="Buscar corridas..."
@@ -311,15 +330,15 @@ export default function ListaCorridas() {
           />
         </Box>
 
-        {/* DataGrid */}
         <Box sx={{ width: '100%', height: 600 }}>
           <DataGrid
             rows={dadosFiltrados}
             columns={columns}
             loading={loading}
             getRowId={(row) => row.idCorrida}
-            initialState={{ pagination: { paginationModel: { pageSize: 10, page: 0 } } }}
-            pageSizeOptions={[5, 10, 20, 50]}
+            initialState={{ pagination: { paginationModel: { pageSize: 8, page: 0 } } }}
+            pageSizeOptions={[8, 16, 24]}
+            localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
             sx={{
               '& .MuiDataGrid-cell': { borderBottom: `1px solid ${theme.palette.divider}`, py: 1.5 },
               '& .MuiDataGrid-columnHeaders': {
@@ -330,6 +349,14 @@ export default function ListaCorridas() {
               },
               '& .MuiDataGrid-row': { '&:hover': { backgroundColor: theme.palette.action.hover }, '&.Mui-selected': { backgroundColor: theme.palette.action.selected } },
               '& .MuiDataGrid-footerContainer': { borderTop: `1px solid ${theme.palette.divider}` },
+              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                marginBottom: 0,
+                alignSelf: 'center',
+              },
+              '& .MuiTablePagination-toolbar': {
+                minHeight: '52px',
+                alignItems: 'center',
+              },
               boxShadow: theme.shadows[1],
               borderRadius: 2,
               border: 'none',
@@ -340,7 +367,6 @@ export default function ListaCorridas() {
         </Box>
       </Box>
 
-      {/* Modais */}
       <Dialog
         open={showModalLiberarChave}
         onClose={() => setShowModalLiberarChave(false)}
@@ -354,6 +380,7 @@ export default function ListaCorridas() {
             Você está entregando a chave do carro ao motorista:
             <strong> {selectedCorrida?.nomeMotorista}</strong>
           </Typography>
+          
           <TextField
             label=" "
             type="password"
@@ -371,13 +398,28 @@ export default function ListaCorridas() {
             onClick={async () => {
               if (selectedCorrida) {
                 try {
-                  await CorridaService.confirmarLiberarChave(
-                    selectedCorrida.idCorrida, 
-                    selectedCorrida.idMotorista, 
-                    senhaLiberarChave
-                  );
+                  // No modo MOCK, validar com senha fixa
+                  if (authMode === 'MOCK') {
+                    if (senhaLiberarChave !== 'secret') {
+                      alert('Senha incorreta. No modo TESTE use a senha: secret');
+                      return;
+                    }
+                    
+                    // Simular a liberação da chave no modo MOCK
+                    await CorridaService.confirmarLiberarChaveMock(
+                      selectedCorrida.idCorrida, 
+                      selectedCorrida.idMotorista
+                    );
+                  } else {
+                    // Modo SIGAA normal
+                    await CorridaService.confirmarLiberarChave(
+                      selectedCorrida.idCorrida, 
+                      selectedCorrida.idMotorista, 
+                      senhaLiberarChave
+                    );
+                  }
                   
-                  await CarrosService.atualizarSituacaoCarro(selectedCorrida.idCarro, "VIAGEM");
+                  await CarroService.atualizarSituacaoCarro(selectedCorrida.idCarro, "VIAGEM");
                   
                   const dadosAtualizados = await getCorridas();
                   setCorridas(dadosAtualizados);
@@ -386,7 +428,11 @@ export default function ListaCorridas() {
                   
                 } catch (error) {
                   console.error("Erro ao processar liberação da chave:", error);
-                            }
+                  if (authMode !== 'MOCK') {
+                    // Mostrar mensagem de erro apenas no modo SIGAA
+                    alert('Erro ao liberar chave. Verifique a senha.');
+                  }
+                }
               }
             }}
             variant="contained"
@@ -420,11 +466,15 @@ export default function ListaCorridas() {
               if (selectedCorrida) {
                 try {
                   await atualizarSituacaoCorrida(selectedCorrida.idCorrida, 'CANCELADA');
+                  
+                  // Atualizar situação do carro para DISPONIVEL quando a corrida for cancelada
+                  await CarroService.atualizarSituacaoCarro(selectedCorrida.idCarro, "DISPONIVEL");
+                  
                   const dadosAtualizados = await getCorridas();
                   setCorridas(dadosAtualizados);
                   setShowModalCancelar(false);
                 } catch (error) {
-                  console.error(error);
+                  console.error("Erro ao cancelar corrida:", error);
                 }
               }
             }}
@@ -461,7 +511,7 @@ export default function ListaCorridas() {
                 try {
                   await CorridaService.confirmarReceberChave(selectedCorrida.idCorrida);
                   
-                  await CarrosService.atualizarSituacaoCarro(selectedCorrida.idCarro, "DISPONIVEL");
+                  await CarroService.atualizarSituacaoCarro(selectedCorrida.idCarro, "DISPONIVEL");
                   
                   const dadosAtualizados = await getCorridas();
                   setCorridas(dadosAtualizados);

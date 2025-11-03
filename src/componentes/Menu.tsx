@@ -12,6 +12,8 @@ import {
   Paper,
   Toolbar,
   Typography,
+  IconButton,
+  Badge,
 } from "@mui/material";
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { jwtDecode } from 'jwt-decode';
@@ -22,6 +24,9 @@ import axiosConnect from "../services/axiosConnect";
 import PainelCorridaMotorista from "./painelCorridaMotorista/PainelCorridaMotorista";
 import { useMediaQuery } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 
 interface JwtPayload {
   sub: number; 
@@ -54,7 +59,8 @@ const Menu: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<MotoristaDashboard | null>(null);
   const isMobile = useMediaQuery('(max-width:768px)');
-  const [showMobileMenu, setShowMobileMenu] = useState(false); 
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleLogout = async () => {
     await logout();
@@ -63,6 +69,14 @@ const Menu: React.FC = () => {
 
   const handleAbrirModalDadosPerfil = () => setShowModalDadosPerfil(true);
   const handleFecharModalDadosPerfil = () => setShowModalDadosPerfil(false);
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
 
   const carregarDadosDoDashboard = useCallback(async () => {
     setLoading(true);
@@ -188,6 +202,11 @@ const Menu: React.FC = () => {
     );
   };
 
+  // Verifica se há corrida em andamento ou agendada para hoje
+  const hasActiveRide = dashboardData?.corridaDeHoje && 
+    (dashboardData.corridaDeHoje.situacao === 'ANDAMENTO' || 
+    dashboardData.corridaDeHoje.situacao === 'AGENDADA');
+
   return (
     <>
       <AppBar position="static">
@@ -196,14 +215,14 @@ const Menu: React.FC = () => {
           gap: 1,
         }}>
           {isMobile && (
-            <Button 
+            <IconButton 
               color="inherit" 
               onClick={() => setShowMobileMenu(!showMobileMenu)}
-              sx={{ minWidth: 'auto', px: 1 }}
+              sx={{ px: 1 }}
               className="mobile-menu-button"
             >
               <MenuIcon />
-            </Button>
+            </IconButton>
           )}
 
           <Typography
@@ -234,6 +253,29 @@ const Menu: React.FC = () => {
             <>
               {!isMobile && (
                 <>
+                  {/* Menu para Corrida Ativa */}
+                  {hasActiveRide && (
+                    <IconButton 
+                      color="inherit" 
+                      component={Link} 
+                      to="/menu"
+                      title="Corrida em Andamento"
+                      sx={{ 
+                        position: 'relative',
+                        animation: hasActiveRide ? 'pulse 2s infinite' : 'none',
+                        '@keyframes pulse': {
+                          '0%': { opacity: 1 },
+                          '50%': { opacity: 0.6 },
+                          '100%': { opacity: 1 },
+                        }
+                      }}
+                    >
+                      <Badge color="error" variant="dot">
+                        <DirectionsCarIcon />
+                      </Badge>
+                    </IconButton>
+                  )}
+
                   {administrador === true && (
                     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                       <Button 
@@ -242,7 +284,7 @@ const Menu: React.FC = () => {
                         to="/ListaCorrida"
                         sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
                       >
-                        Painel Corrida
+                        Corridas
                       </Button>
                       <Button 
                         color="inherit" 
@@ -288,8 +330,6 @@ const Menu: React.FC = () => {
                   >
                     Historico
                   </Button>
-
-                  
                 </>
               )}
 
@@ -308,6 +348,24 @@ const Menu: React.FC = () => {
                 }}
               >
                 <>
+                  {/* Item de Corrida em Andamento no menu mobile */}
+                  {hasActiveRide && (
+                    <DropdownItem 
+                      component={Link} 
+                      to="/corrida-andamento"
+                      onClick={() => setShowMobileMenu(false)}
+                      sx={{ 
+                        fontSize: '0.9rem', 
+                        py: 1,
+                        color: 'error.main',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      <DirectionsCarIcon sx={{ mr: 1, fontSize: '1.2rem' }} />
+                      Corrida em Andamento
+                    </DropdownItem>
+                  )}
+
                   {administrador === true && (
                     <>
                       <DropdownItem 
@@ -368,79 +426,77 @@ const Menu: React.FC = () => {
               <Box sx={{ 
                 display: 'flex', 
                 gap: 1, 
-                flexWrap: 'nowrap'
+                flexWrap: 'nowrap',
+                alignItems: 'center'
               }}>
-                {nome && (
-                  <>
-                    <Button 
-                      color="inherit" 
-                      onClick={handleAbrirModalDadosPerfil}
-                      sx={{ 
-                        fontFamily: "inherit", 
-                        fontSize: isMobile ? '0.8rem' : '0.875rem',
-                        maxWidth: isMobile ? '120px' : 'none', 
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}
-                      title={nome}
-                    >
-                      {isMobile ? `${nome.split(' ')[0]}...` : nome}
-                    </Button>
-                  <Dialog
-                    open={showModalDadosPerfil}
-                    onClose={handleFecharModalDadosPerfil}
-                    fullWidth
-                    maxWidth="sm"
-                    PaperProps={{
-                      sx: {
-                        borderRadius: 2,
-                        p: 2
-                      }
-                    }}
-                  >
-                    <DialogTitle sx={{ fontSize: '1.25rem', p: 2 }}>Seus Dados</DialogTitle>
-                    <DialogContent sx={{ p: 2 }}>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <Box sx={{ display: 'flex' }}>
-                          <Typography sx={{ minWidth: 80 }}>Nome:</Typography>
-                          <Typography fontWeight="medium">{nome}</Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex' }}>
-                          <Typography sx={{ minWidth: 80 }}>Email:</Typography>
-                          <Typography fontWeight="medium">{email}</Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex' }}>
-                          <Typography sx={{ minWidth: 80 }}>CPF:</Typography>
-                          <Typography fontWeight="medium">{cpf}</Typography>
-                        </Box>
-                      </Box>
-                    </DialogContent>
-                    <DialogActions sx={{ p: 2 }}>
-                      <Button
-                        onClick={handleFecharModalDadosPerfil}
-                        variant="contained"
-                        sx={{
-                          borderRadius: 1,
-                          textTransform: 'none',
-                          px: 3
-                        }}
-                      >
-                        Fechar
-                      </Button>
-                    </DialogActions>
-                  </Dialog>
-                </>
-              )}
+                {/* Ícone do usuário */}
+                <IconButton 
+                  color="inherit" 
+                  onClick={handleAbrirModalDadosPerfil}
+                  title={nome || "Perfil"}
+                  sx={{ 
+                    p: 1
+                  }}
+                >
+                  <AccountCircleIcon />
+                </IconButton>
 
-                <Button 
+                {/* Ícone de sair */}
+                <IconButton 
                   color="inherit" 
                   onClick={handleLogout}
-                  sx={{ fontFamily: "inherit", fontSize: isMobile ? '0.8rem' : '0.875rem' }}
+                  title="Sair"
+                  sx={{ 
+                    p: 1
+                  }}
                 >
-                  Sair
-                </Button>
+                  <ExitToAppIcon />
+                </IconButton>
               </Box>
+
+              <Dialog
+                open={showModalDadosPerfil}
+                onClose={handleFecharModalDadosPerfil}
+                fullWidth
+                maxWidth="sm"
+                PaperProps={{
+                  sx: {
+                    borderRadius: 2,
+                    p: 2
+                  }
+                }}
+              >
+                <DialogTitle sx={{ fontSize: '1.25rem', p: 2 }}>Seus Dados</DialogTitle>
+                <DialogContent sx={{ p: 2 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Box sx={{ display: 'flex' }}>
+                      <Typography sx={{ minWidth: 80 }}>Nome:</Typography>
+                      <Typography fontWeight="medium">{nome}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex' }}>
+                      <Typography sx={{ minWidth: 80 }}>Email:</Typography>
+                      <Typography fontWeight="medium">{email}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex' }}>
+                      <Typography sx={{ minWidth: 80 }}>CPF:</Typography>
+                      <Typography fontWeight="medium">{cpf}</Typography>
+                    </Box>
+                  </Box>
+                </DialogContent>
+                <DialogActions sx={{ p: 2 }}>
+                  <Button
+                    onClick={handleFecharModalDadosPerfil}
+                    variant="contained"
+                    sx={{
+                      borderRadius: 1,
+                      textTransform: 'none',
+                      px: 3
+                    }}
+                  >
+                    Fechar
+                  </Button>
+                </DialogActions>
+              </Dialog>
             </>
           )}
 
@@ -459,7 +515,15 @@ const Menu: React.FC = () => {
       </AppBar>
 
       {location.pathname === '/menu' && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', width: '100%', mt: 4, p: 2 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'flex-start', 
+          width: '100%', 
+          mt: 4, 
+          p: 2,
+          flex: 1
+        }}>
           {renderContent()}
         </Box>
       )}

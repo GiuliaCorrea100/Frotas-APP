@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosConnect from "../../../../services/axiosConnect";
 import { Button, Box, TextField, Typography, Modal, Autocomplete, Dialog, DialogTitle, DialogActions } from "@mui/material";
 import axios, { AxiosError } from 'axios';
 import { createCorrida } from '../../../../api/corridaService';
-import { CarrosService } from '../../../../api/carrosService';
+import { CarroService } from '../../../../api/carroService';
 
 interface MotoristaDTO {
   idUsuario: number;
@@ -52,8 +52,23 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
   
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [alertOpen, setAlertOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<string>('SIGAA');
 
   const navigate = useNavigate();
+
+  // Buscar o modo de autenticação na inicialização
+  useEffect(() => {
+    const fetchAuthMode = async () => {
+      try {
+        const response = await axiosConnect.get('/auth/mode');
+        setAuthMode(response.data.mode);
+      } catch (error) {
+        console.error('Erro ao buscar modo de autenticação:', error);
+        setAuthMode('SIGAA');
+      }
+    };
+    fetchAuthMode();
+  }, []);
 
   const buscarCarro = async (modeloPlaca: string) => {
 
@@ -62,7 +77,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
       return;
     }
     try {
-      const response = await axiosConnect.get(`/carros/buscar-modelo-placa/${modeloPlaca}`);
+      const response = await axiosConnect.get(`/carro/buscar-modelo-placa/${modeloPlaca}`);
       setCarrosDisponiveis(response.data);
     } catch (error) {
       const err = error as AxiosError;
@@ -99,16 +114,40 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
 
      try {
       setLoading(true);
-      const response = await axiosConnect.get(`/usuarioSigaa?nome=${nome}`);
+      
+      if (authMode === 'MOCK') {
+        // Lista estática de motoristas no modo TEST
+        const motoristasTeste: MotoristaDTO[] = [
+          {
+            idUsuario: 1,
+            nome: 'ADMINISTRADOR FROTAS',
+            cpf: '11111111111',
+          },
+          {
+            idUsuario: 2,
+            nome: 'MOTORISTA FROTAS',
+            cpf: '22222222222',
+          },
+        ];
+        // Filtrar motoristas com base no nome digitado
+        const filteredMotoristas = motoristasTeste.filter(motorista =>
+          motorista.nome.toLowerCase().includes(nome.toLowerCase())
+        );
+        setMotoristasDisponiveis(filteredMotoristas);
+      } else {
+        // Busca no endpoint /usuarioSigaa no modo SIGAA
+        const response = await axiosConnect.get(`/usuarioSigaa?nome=${nome}`);
+        const usuariosRetornados = response.data;
+        const uniqueUsuariosMap = new Map();
+        usuariosRetornados.forEach((user: any) => {
+          uniqueUsuariosMap.set(user.idPessoaSigaa, user);
+        });
+        const usuariosUnicosEOrdenados = Array.from(uniqueUsuariosMap.values());
 
-      const usuariosRetornados = response.data;
-      const uniqueUsuariosMap = new Map();
-      usuariosRetornados.forEach((user: any) => {
-        uniqueUsuariosMap.set(user.idPessoaSigaa, user);
-      });
-      const usuariosUnicosEOrdenados = Array.from(uniqueUsuariosMap.values());
+        //console.log('Motoristas: ', usuariosUnicosEOrdenados);
+        setMotoristasDisponiveis(usuariosUnicosEOrdenados);
+      }
 
-      setMotoristasDisponiveis(usuariosUnicosEOrdenados);
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
       setMotoristasDisponiveis([]);
@@ -162,14 +201,19 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
     }
 
     try {
-
-      const response = await axiosConnect.get(`/usuario/consultaCadastro/${motoristaSelecionado.idPessoaSigaa}`, {
-        params: {
-          nome: motoristaSelecionado.nome
-        }
-      });
-  
-      const idUsuarioMotorista = response.data.idUsuario;
+      // No modo MOCK, usar diretamente o idUsuario do motorista selecionado
+      let idUsuarioMotorista: number;
+      if (authMode === 'MOCK') {
+        idUsuarioMotorista = motoristaSelecionado.idUsuario;
+      } else {
+        // No modo SIGAA, consultar o endpoint /usuario/consultaCadastro
+        const response = await axiosConnect.get(`/usuario/consultaCadastro/${motoristaSelecionado.idPessoaSigaa}`, {
+          params: {
+            nome: motoristaSelecionado.nome
+          }
+        });
+        idUsuarioMotorista = response.data.idUsuario;
+      }
 
       const corridaParaEnviar = {
         dataInicio: new Date(corrida.dataInicio),
@@ -182,9 +226,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
         idCarro: carro.idCarro,
       };
 
-      console.log(corridaParaEnviar);
-
-      await CarrosService.atualizarSituacaoCarro(carro.idCarro, "RESERVADO");
+      await CarroService.atualizarSituacaoCarro(carro.idCarro, "RESERVADO");
       
       await createCorrida(corridaParaEnviar);
       

@@ -25,6 +25,7 @@ export interface Abastecimento {
   dataAbastecimento: Date; //MUDEI AQUI, TAVA string antes
   valorUnitario?: number;
   justificativaAlteracao?: string;
+  idTipoCombustivel?: number;
   nomeTipoCombustivel?: string;
 
   // Relacionamentos

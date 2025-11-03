@@ -14,7 +14,7 @@ import {
   Alert,
   InputAdornment
 } from "@mui/material";
-import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridRenderCellParams, ptBR } from '@mui/x-data-grid';
 import { Search, DirectionsCar, CalendarToday, AccessTime, Warning } from '@mui/icons-material';
 import { CorridaFrontend, getCorridas } from '../../api/corridaService';
 import { OcorrenciaService } from '../../api/ocorrenciasService';
@@ -26,7 +26,7 @@ const formatDate = (dateString: string | null) => {
   if (!dateString) return 'Em andamento';
   try {
     const date = new Date(dateString);
-    return isNaN(date.getTime()) ? 'Data inválida' : date.toLocaleString('pt-BR');
+    return isNaN(date.getTime()) ? 'Data inválida' : date.toLocaleString('pt-BR', { timeZone: 'UTC' });
   } catch {
     return 'Data inválida';
   }
@@ -268,6 +268,7 @@ export default function HistoricoIndividual() {
               },
             }}
             pageSizeOptions={[5, 10, 20]}
+            localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
             sx={{
               '& .MuiDataGrid-cell': {
                 display: 'flex',
@@ -279,11 +280,13 @@ export default function HistoricoIndividual() {
                 color: 'white',
                 fontSize: 16,
               },
-            }}
-            localeText={{
-              noRowsLabel: 'Nenhuma corrida encontrada',
-              MuiTablePagination: {
-                labelRowsPerPage: 'Linhas por página',
+              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                marginBottom: 0,
+                alignSelf: 'center',
+              },
+              '& .MuiTablePagination-toolbar': {
+                minHeight: '52px',
+                alignItems: 'center',
               },
             }}
           />
