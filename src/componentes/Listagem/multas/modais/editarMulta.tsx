@@ -62,7 +62,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
     try {
       const dateObj = date instanceof Date ? date : new Date(date);
       return !isNaN(dateObj.getTime()) 
-        ? dateObj.toISOString().slice(0, 16)
+        ? dateObj.toISOString().split('T')[0] // Apenas a parte da data
         : "";
     } catch {
       return "";
@@ -85,14 +85,15 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
     setLoading(true);
 
     try {
-      const dataInfracaoDate = dataInfracao ? new Date(dataInfracao) : null;
+      // Criar a data considerando o fuso horário de Porto Velho -4
+      const dataInfracaoUTC = new Date(dataInfracao + 'T04:00:00.000Z');
 
       const dadosMultas = {
         codigoInfracao,
         classificacao,
         valorInfracao,
         placaVeiculo,
-        dataInfracao: dataInfracaoDate,
+        dataInfracao: dataInfracaoUTC,
         autoInfracao,
       };
 
@@ -181,8 +182,8 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
           />
 
           <TextField
-            label="Data e Hora da Infração"
-            type="datetime-local"
+            label="Data da Infração"
+            type="date"
             fullWidth
             value={dataInfracao}
             onChange={(e) => setDataInfracao(e.target.value)}

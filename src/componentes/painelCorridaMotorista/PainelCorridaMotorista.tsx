@@ -54,7 +54,7 @@ const formatDate = (dateString: string | null) => {
   if (!dateString) return "data não disponível";
   try {
     const date = new Date(dateString);
-    return isNaN(date.getTime()) ? "Data inválida" : date.toLocaleString("pt-BR");
+    return isNaN(date.getTime()) ? 'Data inválida' : date.toLocaleString('pt-BR', { timeZone: 'UTC' });
   } catch {
     return "Data inválida";
   }
@@ -142,7 +142,7 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
           }
       };
       
-      if (corrida.situacao !== 'FINALIZADE') {
+      if (corrida.situacao !== 'FINALIZADA') {
         fetchUltimoDestino();
       }
   }, [modalIniciarOpen, corrida.idCorrida, corrida.localDeSaida, corrida.situacao]);
@@ -465,7 +465,7 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
       />
       )}
 
-      {modalFinalizarOpen && (
+      {successModalOpen && (
       <ModalSucesso
         open={successModalOpen}
         onClose={handleSuccessClose}

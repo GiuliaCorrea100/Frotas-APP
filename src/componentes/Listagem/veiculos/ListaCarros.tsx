@@ -10,10 +10,10 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from "react-router-dom";
-import { CarrosDto, CarrosService } from "../../../api/carrosService"; 
+import { CarroDto, CarroService } from "../../../api/carroService"; 
 import { TipoCombustivel } from '../../../api/tipoCombustivelService'; 
 import Menu from "../../Menu"; 
 import FormularioVeiculos from './formularioVeiculos';
@@ -21,9 +21,9 @@ import FormularioVeiculos from './formularioVeiculos';
 export default function ListaCarros() {
   const theme = useTheme();
   const location = useLocation();
-  const carroCadastrado = location.state?.carroCadastrado as CarrosDto | undefined;
+  const carroCadastrado = location.state?.carroCadastrado as CarroDto | undefined;
   const [busca, setBusca] = useState("");
-  const [carros, setCarros] = useState<CarrosDto[]>([]);
+  const [carros, setCarros] = useState<CarroDto[]>([]);
   const [filtroStatus, setFiltroStatus] = useState<string>('ATIVOS');
   const [filtroSituacao, setFiltroSituacao] = useState<string>('TODOS');
   const [qtdAtivos, setQtdAtivos] = useState<number>(0);
@@ -37,11 +37,11 @@ export default function ListaCarros() {
 
   // Estados para o modal de confirmação (Ativar/Inativar)
   const [showModalAtivacao, setShowModalAtivacao] = useState(false);
-  const [selectedCarro, setSelectedCarro] = useState<CarrosDto | null>(null);
+  const [selectedCarro, setSelectedCarro] = useState<CarroDto | null>(null);
 
   // Estados para o FormularioVeiculos
   const [openFormulario, setOpenFormulario] = useState(false);
-  const [selectedCarroForEdit, setSelectedCarroForEdit] = useState<CarrosDto | null>(null);
+  const [selectedCarroForEdit, setSelectedCarroForEdit] = useState<CarroDto | null>(null);
   const [modoFormulario, setModoFormulario] = useState<'criar' | 'editar'>('criar');
 
   // Estados para situação de veiculo (Modal Editar Situação - mantido para compatibilidade)
@@ -56,7 +56,7 @@ export default function ListaCarros() {
   };
 
   // Abrir modal de edição
-  const handleOpenEditar = (carro: CarrosDto) => {
+  const handleOpenEditar = (carro: CarroDto) => {
     setModoFormulario('editar');
     setSelectedCarroForEdit(carro);
     setOpenFormulario(true);
@@ -85,7 +85,7 @@ export default function ListaCarros() {
   // Função para carregar carros
   const carregarCarros = async () => {
     try {
-      const lista = await CarrosService.buscarTodos();
+      const lista = await CarroService.buscarTodos();
 
       // Calcular contadores
       setQtdAtivos(lista.filter(c => c.ativo).length);
@@ -134,7 +134,7 @@ export default function ListaCarros() {
   });
 
   // Abre o modal de confirmação (Ativar/Inativar)
-  const handleAbrirModalAtivacao = (carro: CarrosDto) => {
+  const handleAbrirModalAtivacao = (carro: CarroDto) => {
     setSelectedCarro(carro);
     setShowModalAtivacao(true);
   };
@@ -144,7 +144,7 @@ export default function ListaCarros() {
     if (!selectedCarro || !selectedCarro.idCarro) return;
 
     try {
-      await CarrosService.inativar(selectedCarro.idCarro); 
+      await CarroService.inativar(selectedCarro.idCarro); 
       await carregarCarros();
       setShowModalAtivacao(false);
     } catch (error) {
@@ -157,7 +157,7 @@ export default function ListaCarros() {
   const handleSaveSituacao = async () => {
     if (!selectedCarroForEdit || !selectedCarroForEdit.idCarro) return;
     try {
-      await CarrosService.atualizar(
+      await CarroService.atualizar(
         selectedCarroForEdit.idCarro,
         {
           situacao: novaSituacao,
@@ -290,10 +290,12 @@ export default function ListaCarros() {
   return (
     <>
       <Menu />
-        <Box sx={{ 
+      <Box sx={{
         p: 3,
         backgroundColor: theme.palette.background.default,
-        minHeight: '100vh'
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1 
       }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Typography variant="h5" fontWeight="bold" color="textPrimary">
@@ -366,60 +368,17 @@ export default function ListaCarros() {
           />
         </Box>
       
-
-        {/* Filtros por situação operacional */}
-        {/* <Box sx={{ 
-          display: 'flex', 
-          gap: 1, 
-          mb: 3,
-          flexWrap: 'wrap',
-          rowGap: 2
-        }}>
-          {[
-            { label: 'DISPONÍVEL', value: 'DISPONIVEL', count: qtdDisponivel },
-            { label: 'EM VIAGEM', value: 'VIAGEM', count: qtdViagem },
-            { label: 'EM MANUTENÇÃO', value: 'MANUTENCAO', count: qtdManutencao }
-          ].map((tab) => (
-            <Button
-              key={tab.value}
-              variant={filtroSituacao === tab.value ? "contained" : "outlined"}
-              onClick={() => setFiltroSituacao(tab.value)}
-              sx={{
-                textTransform: 'none',
-                borderRadius: 2,
-                px: 2,
-                fontWeight: filtroSituacao === tab.value ? 600 : 500,
-                color: filtroSituacao === tab.value ? 'white' : 'text.primary',
-                bgcolor: filtroSituacao === tab.value ? 'primary.main' : 'background.paper',
-                '&:hover': {
-                  bgcolor: filtroSituacao === tab.value ? 'primary.dark' : theme.palette.action.hover,
-                }
-              }}
-            >
-              {tab.label} 
-              <Box sx={{ 
-                ml: 1, 
-                fontWeight: 600,
-                backgroundColor: filtroSituacao === tab.value ? 'rgba(255,255,255,0.2)' : theme.palette.grey[200],
-                px: 1,
-                borderRadius: 12
-              }}>
-                {tab.count}
-              </Box>
-            </Button>
-          ))}
-        </Box> */}
-
         <DataGrid
           rows={filteredCarros}
           columns={colunas}
           getRowId={(row) => row.idCarro}
           initialState={{
             pagination: {
-              paginationModel: { pageSize: 10, page: 0 },
+              paginationModel: { pageSize: 8, page: 0 },
             },
           }}
-          pageSizeOptions={[10, 20, 30, 50, 100]}
+          pageSizeOptions={[8, 16, 24]}
+          localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
           autoHeight
           sx={{
             '& .MuiDataGrid-cell': {
@@ -447,6 +406,14 @@ export default function ListaCarros() {
             },
             '& .MuiDataGrid-footerContainer': {
               borderTop: `1px solid ${theme.palette.divider}`,
+            },
+            '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+              marginBottom: 0,
+              alignSelf: 'center',
+            },
+            '& .MuiTablePagination-toolbar': {
+              minHeight: '52px',
+              alignItems: 'center',
             },
             boxShadow: theme.shadows[1],
             borderRadius: 2,

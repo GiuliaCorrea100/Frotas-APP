@@ -61,15 +61,20 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
   const [chegadaHora, setChegadaHora] = useState<Date | null>(null);
   const [chegadaOdometro, setChegadaOdometro] = useState<number>(0);
   const [localOrigem, setLocalOrigem] = useState("");
-
   const [loading, setLoading] = useState(false);
+
+  // Função para converter UTC para Local
+  const utcToLocal = (utcDate: Date | null): Date | null => {
+    if (!utcDate) return null;
+    return new Date(utcDate.getTime() - utcDate.getTimezoneOffset() * 60000);
+  };
 
   useEffect(() => {
     if(percurso){
-      setChegadaHora(percurso.chegadaHora ? new Date(percurso.chegadaHora) : null);
-      setSaidaHora(percurso.saidaHora ? new Date(percurso.saidaHora) : null);
+      setChegadaHora(percurso.chegadaHora ? utcToLocal(new Date(percurso.chegadaHora)) : null);
+      setSaidaHora(percurso.saidaHora ? utcToLocal(new Date(percurso.saidaHora)) : null);
 
-      setChegadaOdometro(percurso.chegadaodometro ?? 0);
+      setChegadaOdometro(percurso.chegadaOdometro ?? 0);
       setSaidaOdometro(percurso.saidaOdometro ?? 0);
 
       setLocalDestino(percurso.localDestino ?? "");

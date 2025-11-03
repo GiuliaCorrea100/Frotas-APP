@@ -153,6 +153,18 @@ export class CorridaService {
     }
   }
 
+  static async confirmarLiberarChaveMock(
+    idCorrida: number,
+    idMotorista: number
+  ): Promise<void> {
+    try {
+      await axiosConnect.patch(`/corrida/emprestar-chave/${idCorrida}`);
+    } catch (error) {
+      console.error("Erro ao liberar chave no modo MOCK:", error);
+      throw error;
+    }
+  }
+
   static async confirmarReceberChave(idCorrida: number): Promise<void> {
     try {
       await axiosConnect.patch(`/corrida/emprestar-chave/${idCorrida}`);
