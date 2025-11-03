@@ -168,7 +168,7 @@ export const inserirPercursoCompleto = async (
     };
 
     console.log(payload);
-    const response = await api.post(
+    const response = await axiosConnect.post(
       `/percurso/percurso-completo/${idCorrida}`,
       payload
     );

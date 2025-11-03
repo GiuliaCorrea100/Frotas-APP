@@ -20,12 +20,13 @@ import SalvarEdicaoCorrida from "./modais/editarPainelCorrida";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CadastrarCorrida from '../../cadastros/corrida/modais/cadastrarCorrida';
 import { CarroService } from '../../../api/CarroService';
+import axiosConnect from '../../../services/axiosConnect';
 
 const formatDate = (dateString: string | null) => {
   if (!dateString) return 'Em andamento';
   try {
     const date = new Date(dateString);
-    return isNaN(date.getTime()) ? 'Data inválida' : date.toLocaleString('pt-BR');
+    return isNaN(date.getTime()) ? 'Data inválida' : date.toLocaleString('pt-BR', { timeZone: 'UTC' });
   } catch {
     return 'Data inválida';
   }
@@ -56,8 +57,23 @@ export default function ListaCorrida() {
   const [showModalCancelar, setShowModalCancelar] = useState(false);
 
   const [filtroSituacao, setFiltroSituacao] = useState<string>('TODOS');
+  const [authMode, setAuthMode] = useState<string>('SIGAA');
 
   const navigate = useNavigate();
+
+  // Buscar o modo de autenticação na inicialização
+  useEffect(() => {
+    const fetchAuthMode = async () => {
+      try {
+        const response = await axiosConnect.get('/auth/mode');
+        setAuthMode(response.data.mode);
+      } catch (error) {
+        console.error('Erro ao buscar modo de autenticação:', error);
+        setAuthMode('SIGAA');
+      }
+    };
+    fetchAuthMode();
+  }, []);
 
   useEffect(() => {
       carregarCorridas(); 
@@ -364,6 +380,7 @@ export default function ListaCorrida() {
             Você está entregando a chave do carro ao motorista:
             <strong> {selectedCorrida?.nomeMotorista}</strong>
           </Typography>
+          
           <TextField
             label=" "
             type="password"
@@ -381,11 +398,26 @@ export default function ListaCorrida() {
             onClick={async () => {
               if (selectedCorrida) {
                 try {
-                  await CorridaService.confirmarLiberarChave(
-                    selectedCorrida.idCorrida, 
-                    selectedCorrida.idMotorista, 
-                    senhaLiberarChave
-                  );
+                  // No modo MOCK, validar com senha fixa
+                  if (authMode === 'MOCK') {
+                    if (senhaLiberarChave !== 'secret') {
+                      alert('Senha incorreta. No modo TESTE use a senha: secret');
+                      return;
+                    }
+                    
+                    // Simular a liberação da chave no modo MOCK
+                    await CorridaService.confirmarLiberarChaveMock(
+                      selectedCorrida.idCorrida, 
+                      selectedCorrida.idMotorista
+                    );
+                  } else {
+                    // Modo SIGAA normal
+                    await CorridaService.confirmarLiberarChave(
+                      selectedCorrida.idCorrida, 
+                      selectedCorrida.idMotorista, 
+                      senhaLiberarChave
+                    );
+                  }
                   
                   await CarroService.atualizarSituacaoCarro(selectedCorrida.idCarro, "VIAGEM");
                   
@@ -396,7 +428,11 @@ export default function ListaCorrida() {
                   
                 } catch (error) {
                   console.error("Erro ao processar liberação da chave:", error);
-                            }
+                  if (authMode !== 'MOCK') {
+                    // Mostrar mensagem de erro apenas no modo SIGAA
+                    alert('Erro ao liberar chave. Verifique a senha.');
+                  }
+                }
               }
             }}
             variant="contained"

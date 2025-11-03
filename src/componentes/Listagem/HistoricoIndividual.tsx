@@ -26,7 +26,7 @@ const formatDate = (dateString: string | null) => {
   if (!dateString) return 'Em andamento';
   try {
     const date = new Date(dateString);
-    return isNaN(date.getTime()) ? 'Data inválida' : date.toLocaleString('pt-BR');
+    return isNaN(date.getTime()) ? 'Data inválida' : date.toLocaleString('pt-BR', { timeZone: 'UTC' });
   } catch {
     return 'Data inválida';
   }

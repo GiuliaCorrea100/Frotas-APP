@@ -1,4 +1,4 @@
-import React, { FormEvent, useCallback, useEffect, useState } from 'react';
+import React, { FormEvent, useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -14,12 +14,10 @@ import {
   Divider,
   IconButton,
   SelectChangeEvent,
-  Grid,
 } from '@mui/material';
-import { DirectionsCar, Close, Save, Search } from '@mui/icons-material';
+import { DirectionsCar, Close, Save } from '@mui/icons-material';
 import { CarroDto, CarroService } from '../../../api/CarroService';
 import { TipoCombustivel, TipoCombustivelService } from '../../../api/tipoCombustivelService';
-import axiosConnect from "../../../services/axiosConnect";
 
 const modalStyle = {
   position: 'absolute' as 'absolute',
@@ -65,141 +63,75 @@ const FormularioVeiculos: React.FC<FormularioVeiculosProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [modoEdicao, setModoEdicao] = useState(false);
-  const [veiculoExistente, setVeiculoExistente] = useState<any>(null);
-  const [errorTombo, setErrorTombo] = useState<string | null>(null);
-
-  const hasInitializedNovoVeiculo = React.useRef(false);
-
-  // Função para buscar detalhes do veículo pelo tombo
-  const fetchDetalhesVeiculo = useCallback(async (tomboConsulta: string) => {
-    setErrorTombo(null);
-    setErrors(prev => ({ ...prev, tombo: '' }));
-
-    if (tomboConsulta.trim() === '') {
-      setErrors(prev => ({ ...prev, tombo: 'O campo Tombo não pode estar vazio.' }));
-      return;
-    }
-
-    try {
-      // Verifica se já existe um veículo com este tombo
-      const response = await axiosConnect.get(`/carro/por-tombo/${tomboConsulta}`);
-      const veiculo = response.data;
-      
-      if (veiculo) {
-        setVeiculoExistente(veiculo);
-        // Se estiver no modo cadastro e já existir veículo, mostra erro
-        if (!modoEdicao) {
-          setErrorTombo('Já existe um veículo cadastrado com este tombo.');
-          return;
-        }
-        // Se estiver no modo edição, preenche os dados para edição
-        if (modoEdicao && idVeiculo === veiculo.id) {
-          preencherDadosVeiculo(veiculo);
-        }
-      } else {
-        setVeiculoExistente(null);
-        if (modoEdicao) {
-          setErrorTombo('Veículo não encontrado para edição.');
-        }
-      }
-    } catch (error: any) {
-      if (error.response?.status === 404) {
-        setVeiculoExistente(null);
-        if (modoEdicao) {
-          setErrorTombo('Veículo não encontrado.');
-        }
-      } else {
-        setErrorTombo('Erro ao consultar veículo. Tente novamente.');
-        console.error('Erro ao consultar veículo:', error);
-      }
-    }
-  }, [modoEdicao, idVeiculo]);
 
   // Função para preencher dados do veículo no formulário
-  const preencherDadosVeiculo = (veiculo: any) => {
+  const preencherDadosVeiculo = (veiculo: CarroDto, tiposCombustivel: TipoCombustivel[]) => {
     setPlaca(veiculo.placa || '');
     setOdometro(veiculo.odometro?.toString() || '');
     setModelo(veiculo.modelo || '');
     setAno(veiculo.ano || 0);
     setTombo(veiculo.tombo?.toString() || '');
     setLocalidadeFisica(veiculo.localidadeFisica || '');
-    setTipoCombustivelSelecionado(veiculo.tipoCombustivel || null);
+    
+    if (veiculo.idTipoCombustivel && tiposCombustivel.length > 0) {
+      const tipoEncontrado = tiposCombustivel.find(
+        tipo => tipo.idTipoCombustivel === veiculo.idTipoCombustivel
+      );
+      setTipoCombustivelSelecionado(tipoEncontrado || null);
+    }
   };
 
-  // Função para consultar veículo (similar ao handleConsultarBem)
-  const handleConsultarVeiculo = useCallback(async () => {
-    setLoading(true);
-    setErrorTombo('');
-    setErrors(prev => ({ ...prev, tombo: '' }));
-
-    if (tombo.trim() === '') {
-      setErrors(prev => ({ ...prev, tombo: 'O campo Tombo não pode estar vazio.' }));
-      setLoading(false);
-      return;
-    }
-
-    await fetchDetalhesVeiculo(tombo);
-    setLoading(false);
-  }, [tombo, fetchDetalhesVeiculo]);
-
-  // Efeito para carregar dados quando em modo edição
+  // Efeito unificado para carregar dados do formulário
   useEffect(() => {
-    if (open && idVeiculo) {
-      setModoEdicao(true);
+    if (!open) return;
+
+    const carregarDadosFormulario = async () => {
       setLoading(true);
-      hasInitializedNovoVeiculo.current = false;
-      
-      const fetchDadosVeiculo = async () => {
-        try {
-          const response = await CarroService.buscarPorId(idVeiculo);
-          const veiculoData = response;
-          
-          setVeiculoExistente(veiculoData);
-          preencherDadosVeiculo(veiculoData);
-          
-          // Se houver tombo, consulta para verificar existência
-          if (veiculoData.tombo) {
-            await fetchDetalhesVeiculo(veiculoData.tombo.toString());
-          }
-          
-        } catch (err: any) {
-          console.error('Erro ao buscar os dados do veículo:', err);
-          onError('Erro ao carregar dados do veículo. Tente novamente.');
-          handleClose();
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchDadosVeiculo();
-    } else if (open) {
-      // Modo cadastro - reseta estados
-      setModoEdicao(false);
-      setVeiculoExistente(null);
-      setErrorTombo(null);
-      hasInitializedNovoVeiculo.current = true;
-    }
-  }, [open, idVeiculo, onError, fetchDetalhesVeiculo]);
-
-  // Efeito para carregar tipos de combustível
-  useEffect(() => {
-    if (open) {
       setErrors({});
       setSuccessMessage('');
-      
-      const buscarTipos = async () => {
-        try {
-          const res = await TipoCombustivelService.listar();
-          const tipos = res.data && Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
-          setTiposCombustivelDisponiveis(tipos);
-        } catch (error) {
-          console.error('Erro ao carregar tipos de combustível:', error);
-          setErrors({ geral: 'Erro ao carregar tipos de combustível.' });
+
+      try {
+        // 1. Carrega tipos de combustível primeiro
+        const response = await TipoCombustivelService.listar();
+        const tiposCombustivel = response.data;
+        setTiposCombustivelDisponiveis(tiposCombustivel);
+
+        // 2. Se for edição, carrega dados do veículo
+        if (idVeiculo) {
+          setModoEdicao(true);
+          const veiculoData = await CarroService.buscarPorId(idVeiculo);
+          preencherDadosVeiculo(veiculoData, tiposCombustivel);
+        } else {
+          setModoEdicao(false);
+          resetForm();
         }
-      };
-      buscarTipos();
-    }
-  }, [open]);
+      } catch (error: any) {
+        console.error('Erro ao carregar dados do formulário:', error);
+        const mensagemErro = idVeiculo 
+          ? 'Erro ao carregar dados do veículo.' 
+          : 'Erro ao carregar tipos de combustível.';
+        setErrors({ geral: mensagemErro });
+        onError(mensagemErro);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    carregarDadosFormulario();
+  }, [open, idVeiculo]);
+
+  // Função para resetar o formulário
+  const resetForm = () => {
+    setPlaca('');
+    setOdometro('');
+    setModelo('');
+    setAno(0);
+    setTombo('');
+    setLocalidadeFisica('');
+    setTipoCombustivelSelecionado(null);
+    setErrors({});
+    setSuccessMessage('');
+  };
 
   const handleSelectChange = (e: SelectChangeEvent) => {
     const idSelecionado = e.target.value;
@@ -231,12 +163,6 @@ const FormularioVeiculos: React.FC<FormularioVeiculosProps> = ({
         delete newErrors[name];
         return newErrors;
       });
-    }
-    
-    // Limpa erro do tombo quando usuário digita
-    if (name === 'tombo') {
-      setErrorTombo(null);
-      setVeiculoExistente(null);
     }
     
     switch (name) {
@@ -274,29 +200,12 @@ const FormularioVeiculos: React.FC<FormularioVeiculosProps> = ({
     if (!localidadeFisica) newErrors.localidadeFisica = 'Localidade Física é obrigatória.';
     if (!tipoCombustivelSelecionado) newErrors.tipoCombustivel = 'Tipo de Combustível é obrigatório.';
 
-    // Validação adicional para evitar duplicação em modo cadastro
-    if (!modoEdicao && veiculoExistente) {
-      newErrors.tombo = 'Já existe um veículo com este tombo.';
-    }
-
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0 && !errorTombo;
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleClose = () => {
-    // Resetar o estado ao fechar
-    setPlaca('');
-    setOdometro('');
-    setModelo('');
-    setAno(0);
-    setTombo('');
-    setLocalidadeFisica('');
-    setTipoCombustivelSelecionado(null);
-    setErrors({});
-    setSuccessMessage('');
-    setErrorTombo(null);
-    setVeiculoExistente(null);
-    setModoEdicao(false);
+    resetForm();
     onClose();
   };
 
@@ -305,23 +214,16 @@ const FormularioVeiculos: React.FC<FormularioVeiculosProps> = ({
 
       if (!validateForm()) return;
 
-      // Validação final para evitar cadastro duplicado
-      if (!modoEdicao && veiculoExistente) {
-          setErrorTombo('Não é possível cadastrar: já existe um veículo com este tombo.');
-          return;
-      }
-
       const dadosVeiculo: CarroDto = {
           placa,
-          odometro: odometro, // mantém como string
+          odometro: odometro,
           modelo,
           ano: Number(ano),
           tombo: Number(tombo),
           qrCode: '', 
           localidadeFisica: localidadeFisica,
           ativo: true, 
-          tipoCombustivel: tipoCombustivelSelecionado as TipoCombustivel,
-          // Não inclui situacao - no modo edição mantém a atual, no criação o service define como DISPONIVEL
+          idTipoCombustivel: tipoCombustivelSelecionado?.idTipoCombustivel as number,
       };
 
       try {
@@ -349,7 +251,7 @@ const FormularioVeiculos: React.FC<FormularioVeiculosProps> = ({
           const mensagemErro = error.response?.data?.message || 'Erro ao salvar veículo. Tente novamente.';
           
           if (error.response?.status === 409) {
-              setErrorTombo('Já existe um veículo cadastrado com este tombo.');
+              setErrors({ tombo: 'Já existe um veículo cadastrado com este tombo.' });
           } else {
               setErrors({ geral: mensagemErro });
           }
@@ -393,39 +295,21 @@ const FormularioVeiculos: React.FC<FormularioVeiculosProps> = ({
         )}
 
         <form onSubmit={handleSubmit}>
-          {/* Campo Tombo com consulta */}
-          <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={10}>
-              <TextField
-                label="Tombo"
-                name="tombo"
-                value={tombo}
-                onChange={handleInputChange}
-                required
-                error={!!errors.tombo || !!errorTombo}
-                helperText={errorTombo || errors.tombo || " "}
-                fullWidth
-                disabled={loading || modoEdicao} // Em modo edição, não permite alterar tombo
-              />
-            </Grid>
-            <Grid item xs={2} sx={{ display: 'flex', alignItems: 'center' }}>
-              <Button
-                variant="contained"
-                onClick={handleConsultarVeiculo}
-                disabled={!tombo.trim() || loading}
-                sx={{ minWidth: '100%', height: '56px' }}
-              >
-                <Search />
-              </Button>
-            </Grid>
-          </Grid>
-
-          {/* Exibe informações do veículo existente */}
-          {veiculoExistente && modoEdicao && (
-            <Alert severity="info" sx={{ mb: 2 }}>
-              Editando veículo: {veiculoExistente.modelo} - Placa: {veiculoExistente.placa}
-            </Alert>
-          )}
+          {/* Campo Tombo como campo simples */}
+          <Box sx={{ mb: 3 }}>
+            <TextField
+              label="Tombo"
+              name="tombo"
+              value={tombo}
+              onChange={handleInputChange}
+              required
+              error={!!errors.tombo}
+              helperText={errors.tombo || "Número de identificação do veículo no patrimônio"}
+              fullWidth
+              disabled={loading} 
+              placeholder="Digite o número do tombo"
+            />
+          </Box>
 
           {/* Linha 1: Placa e Odômetro */}
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
@@ -513,14 +397,18 @@ const FormularioVeiculos: React.FC<FormularioVeiculosProps> = ({
               label="Tipo de Combustível"
               disabled={loading}
             >
-              {tiposCombustivelDisponiveis.map((tipo) => (
-                <MenuItem
-                  key={tipo.idTipoCombustivel}
-                  value={tipo.idTipoCombustivel?.toString()}
-                >
-                  {tipo.nome}
-                </MenuItem>
-              ))}
+              {loading ? (
+                <MenuItem disabled>Carregando tipos de combustível...</MenuItem>
+              ) : (
+                tiposCombustivelDisponiveis.map((tipo) => (
+                  <MenuItem
+                    key={tipo.idTipoCombustivel}
+                    value={tipo.idTipoCombustivel?.toString()}
+                  >
+                    {tipo.nome}
+                  </MenuItem>
+                ))
+              )}
             </Select>
             {errors.tipoCombustivel && (
               <Typography variant="caption" color="error" sx={{ ml: 2, mt: 0.5 }}>
@@ -546,7 +434,7 @@ const FormularioVeiculos: React.FC<FormularioVeiculosProps> = ({
               variant="contained"
               color="primary"
               startIcon={<Save />}
-              disabled={loading || !!successMessage || !!errorTombo}
+              disabled={loading || !!successMessage}
               sx={{ textTransform: 'none', fontWeight: 600 }}
             >
               {loading 

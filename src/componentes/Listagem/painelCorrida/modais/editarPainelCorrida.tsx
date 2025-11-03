@@ -197,7 +197,7 @@ export default function EditarInfoCorrida({
     }
     try {
       setLoadingVeiculo(true);
-      const response = await axiosConnect.get(`/carros/buscar-modelo-placa/${modeloPlaca}`);
+      const response = await axiosConnect.get(`/carro/buscar-modelo-placa/${modeloPlaca}`);
       setCarrosDisponiveis(response.data);
     } catch (error) {
       console.error('Erro ao buscar veículos:', error);

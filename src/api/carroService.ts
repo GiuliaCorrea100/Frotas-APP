@@ -14,7 +14,7 @@ export interface CarroDto {
   localidadeFisica: string;
   situacao?: string;
   ativo: boolean; // Adicionando campo ativo
-  tipoCombustivel: number | TipoCombustivel; // Pode ser um número, um objeto TipoCombustivel ou null
+  idTipoCombustivel: number | TipoCombustivel; // Pode ser um número, um objeto TipoCombustivel ou null
   nomeTipoCombustivel?: string;
 }
 export interface TipoCombustivel {
