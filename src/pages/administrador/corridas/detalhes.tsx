@@ -13,19 +13,19 @@ import {
 
 import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
 import Menu from "../../Menu";
-import { CorridaFrontend, getCorridaById } from "../../../api/corridaService";
-import { OcorrenciaDto, OcorrenciaService } from "../../../api/ocorrenciasService";
-import { buscarPercursosDaCorrida, PercursoDto } from "../../../api/percursoService";
+import { CorridaFrontend, getCorridaById } from "../../api/corridaService";
+import { OcorrenciaDto, OcorrenciaService } from "../../api/ocorrenciasService";
+import { buscarPercursosDaCorrida, PercursoDto } from "../../api/percursoService";
 
-import ModalEditarOcorrencia from "./modais/editarOcorrencias";
+import ModalEditarOcorrencia from "../Listagem/painelCorrida/modais/editarOcorrencias";
 import { Add } from "@mui/icons-material";
-import CadastrarOcorrencia from "../../cadastros/corrida/modais/ocorrenciasModal";
-import AbastecimentoModal from "../../cadastros/abastecimento/ModalCadastroAbastecimento";
-import { Abastecimento } from "../../../api/abastecimentoService";
-import AbastecimentoService from "../../../api/abastecimentoService";
-import EdicaoAbastecimentoModal from "./modais/editarAbastecimento";
-import EdicaoPercursosModal from "./modais/editarPercursos";
-import CadastrarPercursosModal from "./modais/cadastrarPercursos";
+import CadastrarOcorrencia from "../x/cadastros/corrida/modais/ocorrenciasModal";
+import AbastecimentoModal from "./ModalCadastroAbastecimento";
+import { Abastecimento } from "../../api/abastecimentoService";
+import AbastecimentoService from "../../api/abastecimentoService";
+import EdicaoAbastecimentoModal from "../Listagem/painelCorrida/modais/editarAbastecimento";
+import EdicaoPercursosModal from "../Listagem/painelCorrida/modais/editarPercursos";
+import CadastrarPercursosModal from "../Listagem/painelCorrida/modais/cadastrarPercursos";
 
 const DetalhesRequisicao: React.FC = () => {
   const theme = useTheme();

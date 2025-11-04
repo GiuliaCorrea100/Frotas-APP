@@ -16,9 +16,9 @@ import {
   IconButton
 } from '@mui/material';
 import { LocalGasStation, Close, AttachMoney, CalendarToday } from '@mui/icons-material';
-import { CorridaFrontend, getCorridas } from '../../../api/corridaService';
-import { TipoCombustivel, TipoCombustivelService } from '../../../api/tipoCombustivelService';
-import AbastecimentoService from '../../../api/abastecimentoService';
+import { CorridaFrontend, getCorridas } from '../../api/corridaService';
+import { TipoCombustivel, TipoCombustivelService } from '../../api/tipoCombustivelService';
+import AbastecimentoService from '../../api/abastecimentoService';
 
 // Estilo para o modal
 const modalStyle = {

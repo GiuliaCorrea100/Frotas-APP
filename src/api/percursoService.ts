@@ -1,4 +1,4 @@
-import axiosConnect from "../services/axiosConnect";
+import axiosConnect from "./services/axiosConnect";
 
 export interface PercursoBackend {
   idPercurso?: number;

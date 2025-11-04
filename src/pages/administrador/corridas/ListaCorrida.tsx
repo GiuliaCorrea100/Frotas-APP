@@ -14,13 +14,13 @@ import {
 import CreateIcon from '@mui/icons-material/Create';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
-import { CorridaFrontend, CorridaDto, getCorridas, CorridaService, atualizarSituacaoCorrida } from '../../../api/corridaService';
-import Menu from "../../Menu";
+import { CorridaFrontend, CorridaDto, getCorridas, CorridaService, atualizarSituacaoCorrida } from '../../api/corridaService';
+import Menu from "../../components/Menu";
 import SalvarEdicaoCorrida from "./modais/editarPainelCorrida";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CadastrarCorrida from '../../cadastros/corrida/modais/cadastrarCorrida';
-import { CarroService } from '../../../api/carroService';
-import axiosConnect from '../../../services/axiosConnect';
+import { CarroService } from '../../api/carroService';
+import axiosConnect from '../../api/services/axiosConnect';
 
 const formatDate = (dateString: string | null) => {
   if (!dateString) return 'Em andamento';

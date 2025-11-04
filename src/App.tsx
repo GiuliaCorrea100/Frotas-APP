@@ -2,19 +2,19 @@ import '@govbr-ds/core/dist/core.min.css';
 import React from 'react';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
-import PaginaDeLogin from './componentes/PaginaDeLogin';
-import CadastroCarro from './componentes/cadastros/CadastroCarro';
-import ListaCarros from './componentes/Listagem/veiculos/ListaCarros';
-import ListaMulta from './componentes/Listagem/multas/ListaMulta';
-import Menu from './componentes/Menu';
-import Unauthorized from './componentes/Unauthorized';
-import ListaAdministrador from './componentes/Administradores';
+import PaginaDeLogin from './pages/Login';
+import CadastroCarro from './components/cadastros/CadastroCarro';
+import ListaCarros from './pages/painelCorridaMotorista/Listagem/veiculos/ListaCarros';
+import ListaMulta from './pages/painelCorridaMotorista/Listagem/multas/ListaMulta';
+import Menu from './components/Menu';
+import Unauthorized from './pages/Unauthorized';
+import ListaAdministrador from './components/Administradores';
 import { AuthProvider } from './context/AuthContext';
-import Relatorios  from './componentes/Relatorios/Relatorios';
-import PrivateRoute from './componentes/PrivateRoute';
-import ListaCorrida from './componentes/Listagem/painelCorrida/ListaCorrida';
-import DetalhesRequisicao from './componentes/Listagem/painelCorrida/detalhes';
-import HistoricoIndividual from './componentes/Listagem/HistoricoIndividual';
+import Relatorios  from './components/Relatorios/Relatorios';
+import PrivateRoute from './pages/PrivateRoute';
+import ListaCorrida from './pages/administrador/ListaCorrida';
+import DetalhesRequisicao from './pages/painelCorridaMotorista/Listagem/painelCorrida/detalhes';
+import HistoricoIndividual from './pages/painelCorridaMotorista/Listagem/HistoricoIndividual';
 
 const App: React.FC = () => {
   return (

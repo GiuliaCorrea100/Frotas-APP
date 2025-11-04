@@ -7,7 +7,7 @@ import {
   Button,
   CircularProgress,
 } from '@mui/material';
-import { OcorrenciaService } from '../../../../api/ocorrenciasService';
+import { OcorrenciaService } from '../../../../../api/ocorrenciasService';
 
 interface CadastrarOcorrenciaProps {
   open: boolean;

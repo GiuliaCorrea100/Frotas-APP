@@ -1,4 +1,4 @@
-import axiosConnect from "../services/axiosConnect";
+import axiosConnect from "./services/axiosConnect";
 
 //Define como devem ser os dados de login (CPF e senha)
 interface LoginData {

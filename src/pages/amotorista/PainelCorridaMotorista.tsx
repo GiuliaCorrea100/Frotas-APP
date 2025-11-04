@@ -16,13 +16,13 @@ import {
   PercursoBackend,
   buscarPercursosDaCorrida 
 } from "../../api/percursoService";
-import ModalIniciarPercurso from "./modais/ModalIniciarPercurso";
-import ModalFinalizarPercurso from "./modais/ModalFinalizarPercurso";
-import ModalSucesso from "./modais/ModalSucesso";
-import CadastrarOcorrencia from "../cadastros/corrida/modais/ocorrenciasModal";
-import AbastecimentoModal from "../cadastros/abastecimento/ModalCadastroAbastecimento";
-import ModalConfirmacaoUltimoPercurso from "./modais/ModalConfirmacaoUltimoPercurso";
-import ModalPercursos from "./modais/ModalPercursos";
+import ModalIniciarPercurso from "./ModalIniciarPercurso";
+import ModalFinalizarPercurso from "../painelCorridaMotorista/modais/ModalFinalizarPercurso";
+import ModalSucesso from "./ModalSucesso";
+import CadastrarOcorrencia from "../x/cadastros/corrida/modais/ocorrenciasModal";
+import AbastecimentoModal from "../administrador/ModalCadastroAbastecimento";
+import ModalConfirmacaoUltimoPercurso from "./ModalConfirmacaoUltimoPercurso";
+import ModalPercursos from "../painelCorridaMotorista/modais/ModalPercursos";
 
 interface Corrida {
   idCorrida: number;

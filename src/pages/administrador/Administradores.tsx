@@ -14,9 +14,9 @@ import {
 } from "@mui/material";
 import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 import { useEffect, useState } from 'react';
-import { AdminUserService } from '../api/AdminUserService';
+import { AdminUserService } from '../../api/AdminUserService';
 import Menu from './Menu';
-import axiosConnect from '../services/axiosConnect';
+import axiosConnect from '../../api/services/axiosConnect';
 import React from 'react';
 
 interface AdminUserDto {

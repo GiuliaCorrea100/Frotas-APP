@@ -9,7 +9,7 @@ import {
   Alert,
   Autocomplete,
 } from '@mui/material';
-import axiosConnect from "../../../../services/axiosConnect";
+import axiosConnect from "../../../../api/services/axiosConnect";
 
 interface CorridaDto {
   idCorrida?: number;
