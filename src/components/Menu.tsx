@@ -20,7 +20,7 @@ import { jwtDecode } from 'jwt-decode';
 import React, { useEffect, useState, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import axiosConnect from "../api/services/axiosConnect";
+import axiosConnect from "../services/services/axiosConnect";
 import PainelCorridaMotorista from "../pages/amotorista/PainelCorridaMotorista";
 import { useMediaQuery } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';

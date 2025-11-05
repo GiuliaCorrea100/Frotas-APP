@@ -21,10 +21,10 @@ import {
   CalendarToday,
   Close,
 } from "@mui/icons-material";
-import { Abastecimento } from "../../../../api/abastecimentoService";
-import abastecimentoService from "../../../../api/abastecimentoService";
-import { TipoCombustivel } from "../../../../api/CarroService";
-import { TipoCombustivelService } from "../../../../api/tipoCombustivelService";
+import { Abastecimento } from "../../../../services/abastecimentoService";
+import abastecimentoService from "../../../../services/abastecimentoService";
+import { TipoCombustivel } from "../../../../services/CarroService";
+import { TipoCombustivelService } from "../../../../services/TipoCombustivelService";
 
 interface EdicaoAbastecimentoModalProps {
   open: boolean;

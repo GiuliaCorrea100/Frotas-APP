@@ -19,11 +19,11 @@ import { ptBR } from '@mui/x-data-grid/locales';
 import { ValueType } from 'recharts/types/component/DefaultTooltipContent';
 
 // Importe seus serviços
-import AbastecimentoService from "../../api/abastecimentoService";
-import { CarroService } from "../../api/carroService";
-import { getCorridas } from "../../api/corridaService";
-import { OcorrenciaService } from "../../api/ocorrenciasService";
-import { MultaService } from "../../api/multaService";
+import AbastecimentoService from "../../services/abastecimentoService";
+import { CarroService } from "../../services/CarroService";
+import { getCorridas } from "../../services/CorridaService";
+import { OcorrenciaService } from "../../services/OcorrenciaService";
+import { MultaService } from "../../services/MultaService";
 import Menu from "../Menu";
 
 // --- Paletas de Cores Consistentes ---

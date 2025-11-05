@@ -16,7 +16,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 import { CorridaFrontend, CorridaDto, getCorridas, CorridaService, atualizarSituacaoCorrida } from '../../api/corridaService';
 import Menu from "../../components/Menu";
-import SalvarEdicaoCorrida from "./modais/editarPainelCorrida";
+import SalvarEdicaoCorrida from "./modais/ModalEdicaoPainelCorrida";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CadastrarCorrida from '../../cadastros/corrida/modais/cadastrarCorrida';
 import { CarroService } from '../../api/carroService';

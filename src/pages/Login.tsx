@@ -2,7 +2,7 @@ import React, { ChangeEvent, useState } from "react";
 import logoUNIR from "../assets/logoUNIR.png";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import axiosConnect from '../api/services/axiosConnect';
+import axiosConnect from '../services/services/axiosConnect';
 
 const PaginaDeLogin: React.FC = () => {
   const navigate = useNavigate();

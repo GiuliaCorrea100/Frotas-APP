@@ -14,7 +14,7 @@ import {
   Schedule,
   CheckCircle
 } from "@mui/icons-material";
-import { PercursoBackend, buscarPercursosDaCorrida } from "../../../api/percursoService";
+import { PercursoBackend, buscarPercursosDaCorrida } from "../../../services/PercursoService";
 
 interface ModalPercursosProps {
   corridaId: number;

@@ -13,16 +13,16 @@ import {
 
 import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
 import Menu from "../../Menu";
-import { CorridaFrontend, getCorridaById } from "../../../api/corridaService";
-import { OcorrenciaDto, OcorrenciaService } from "../../../api/ocorrenciasService";
-import { buscarPercursosDaCorrida, PercursoDto } from "../../../api/percursoService";
+import { CorridaFrontend, getCorridaById } from "../../../services/CorridaService";
+import { OcorrenciaDto, OcorrenciaService } from "../../../services/OcorrenciaService";
+import { buscarPercursosDaCorrida, PercursoDto } from "../../../services/PercursoService";
 
 import ModalEditarOcorrencia from "../Listagem/painelCorrida/modais/editarOcorrencias";
 import { Add } from "@mui/icons-material";
 import CadastrarOcorrencia from "../x/cadastros/corrida/modais/ocorrenciasModal";
 import AbastecimentoModal from "../ModalCadastroAbastecimento";
-import { Abastecimento } from "../../../api/abastecimentoService";
-import AbastecimentoService from "../../../api/abastecimentoService";
+import { Abastecimento } from "../../../services/abastecimentoService";
+import AbastecimentoService from "../../../services/abastecimentoService";
 import EdicaoAbastecimentoModal from "../Listagem/painelCorrida/modais/editarAbastecimento";
 import EdicaoPercursosModal from "../Listagem/painelCorrida/modais/editarPercursos";
 import CadastrarPercursosModal from "../Listagem/painelCorrida/modais/cadastrarPercursos";

@@ -5,6 +5,10 @@ import {
   Typography,
   Button,
   TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
   Divider,
   InputAdornment,
   CircularProgress,
@@ -16,16 +20,16 @@ import {
   AttachMoney,
   CalendarToday,
   Close,
-  AddLocationAlt,
 } from "@mui/icons-material";
-import { inserirPercursoCompleto } from "../../../../api/percursoService";
+import { atualizarPercurso, PercursoDto } from "../../../../services/PercursoService";
 
-interface CadastrarModalProps {
+
+interface EdicaoPercursosModalProps {
   open: boolean;
+  percurso: PercursoDto | null;
   onClose: () => void;
   onSuccess: (message: string) => void;
   onError: (error: any) => void;
-  corrida: number;
 }
 
 const modalStyle = {
@@ -43,12 +47,13 @@ const modalStyle = {
   borderRadius: 2,
 };
 
-const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
+
+const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
   open,
+  percurso,
   onClose,
   onSuccess,
   onError,
-  corrida,
 }) => {
   const [saidaHora, setSaidaHora] = useState<Date | null>(null);
   const [saidaOdometro, setSaidaOdometro] = useState<number>(0);
@@ -56,37 +61,48 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
   const [chegadaHora, setChegadaHora] = useState<Date | null>(null);
   const [chegadaOdometro, setChegadaOdometro] = useState<number>(0);
   const [localOrigem, setLocalOrigem] = useState("");
-
   const [loading, setLoading] = useState(false);
 
-  
+  // Função para converter UTC para Local
+  const utcToLocal = (utcDate: Date | null): Date | null => {
+    if (!utcDate) return null;
+    return new Date(utcDate.getTime() - utcDate.getTimezoneOffset() * 60000);
+  };
+
   useEffect(() => {
-    if (open) {
-      setSaidaHora(null);
-      setSaidaOdometro(0);
-      setLocalDestino("");
-      setChegadaHora(null);
-      setChegadaOdometro(0);
-      setLocalOrigem("");
+    if(percurso){
+      setChegadaHora(percurso.chegadaHora ? utcToLocal(new Date(percurso.chegadaHora)) : null);
+      setSaidaHora(percurso.saidaHora ? utcToLocal(new Date(percurso.saidaHora)) : null);
+
+      setChegadaOdometro(percurso.chegadaOdometro ?? 0);
+      setSaidaOdometro(percurso.saidaOdometro ?? 0);
+
+      setLocalDestino(percurso.localDestino ?? "");
+      setLocalOrigem(percurso.localOrigem ?? "");
+
+
     }
-  }, [open]);
+  }, [percurso]);
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSalvar = async (event: React.FormEvent) => {
     event.preventDefault();
-    setLoading(true);
+    if(!percurso) return;
 
-    try {
-      const dadosPercurso = {
+    setLoading(true);
+    try{
+
+      const dadosAtualizados = {
         saidaHora,
         saidaOdometro,
         localDestino,
         chegadaHora,
         chegadaOdometro,
         localOrigem,
-      };
+      }
 
-      await inserirPercursoCompleto(corrida, dadosPercurso);
-      onSuccess("Percurso cadastrado com sucesso!");
+      await atualizarPercurso(percurso.idPercurso!, dadosAtualizados);
+
+      onSuccess("Percurso atualizado com sucesso!");
     } catch (error) {
       console.error("Erro ao salvar percurso:", error);
       onError(error);
@@ -102,13 +118,16 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
         {/* Cabeçalho */}
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Box display="flex" alignItems="center">
-            <AddLocationAlt color="primary" sx={{ mr: 1 }} />
-            <Typography variant="h6">Cadastro de Percurso</Typography>
+            <LocalGasStation color="primary" sx={{ mr: 1 }} />
+            <Typography variant="h6">Edição de Percurso</Typography>
           </Box>
+          <IconButton onClick={onClose}>
+            <Close />
+          </IconButton>
         </Box>
 
         {/* Conteúdo */}
-        <Box component="form" onSubmit={handleSubmit}>
+        <Box component="form" onSubmit={handleSalvar}>
           {/* Informações de Saída */}
           <Typography variant="subtitle1" gutterBottom>
             Informações de Saída
@@ -149,7 +168,7 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
             }}
             sx={{ mb: 2 }}
           />
-
+          
           <Divider sx={{ my: 2 }} />
 
           {/* Informações de Chegada */}
@@ -202,9 +221,10 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
               type="submit"
               variant="contained"
               color="primary"
+              startIcon={!loading && <AttachMoney />}
               disabled={loading}
             >
-              {loading ? <CircularProgress size={24} /> : "Cadastrar"}
+              {loading ? <CircularProgress size={24} /> : "Atualizar"}
             </Button>
           </Box>
         </Box>
@@ -213,4 +233,5 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
   );
 };
 
-export default CadastrarPercursosModal;
+
+export default EdicaoPercursosModal;

@@ -9,8 +9,8 @@ import {
   CircularProgress,
   Box,
 } from "@mui/material";
-import { OcorrenciaDto } from "../../../../api/ocorrenciasService";
-import axiosConnect from "../../../../api/services/axiosConnect";
+import { OcorrenciaDto } from "../../../../services/OcorrenciaService";
+import axiosConnect from "../../../../services/services/axiosConnect";
 
 interface ModalEditarOcorrenciaProps {
   open: boolean;

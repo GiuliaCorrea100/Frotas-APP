@@ -16,8 +16,8 @@ import {
 } from "@mui/material";
 import { DataGrid, GridColDef, GridRenderCellParams, ptBR } from '@mui/x-data-grid';
 import { Search, DirectionsCar, CalendarToday, AccessTime, Warning } from '@mui/icons-material';
-import { CorridaFrontend, getCorridas } from '../../api/corridaService';
-import { OcorrenciaService } from '../../api/ocorrenciasService';
+import { CorridaFrontend, getCorridas } from '../../services/CorridaService';
+import { OcorrenciaService } from '../../services/OcorrenciaService';
 import Menu from "../Menu";
 import { decodeToken } from '../../utils/jwtDecodeHelper';
 import { useAuth } from "../../context/AuthContext";

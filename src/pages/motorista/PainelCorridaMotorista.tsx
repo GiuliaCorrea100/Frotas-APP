@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-import { atualizarSituacaoCorrida, buscarCorridaPorId } from "../../api/corridaService";
+import { atualizarSituacaoCorrida, buscarCorridaPorId } from "../../services/CorridaService";
 import { 
   iniciarPercurso, 
   finalizarPercurso, 
@@ -15,7 +15,7 @@ import {
   buscarPercursoAtivo, 
   PercursoBackend,
   buscarPercursosDaCorrida 
-} from "../../api/percursoService";
+} from "../../services/PercursoService";
 import ModalIniciarPercurso from "./modais/ModalIniciarPercurso";
 import ModalFinalizarPercurso from "../painelCorridaMotorista/modais/ModalFinalizarPercurso";
 import ModalSucesso from "./modais/ModalSucesso";
