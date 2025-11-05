@@ -1,4 +1,4 @@
-import axiosConnect from "./services/axiosConnect";
+import axiosConnect from "./axios/axiosConnect";
 
 // Definição do tipo de dados do carro (DTO)
 export interface CarroDto {

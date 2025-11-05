@@ -1,4 +1,4 @@
-import axiosConnect from "./services/axiosConnect";
+import axiosConnect from "./axios/axiosConnect";
 
 // DTO combinado com administrador, nome e email
 export interface AdminUserDto {

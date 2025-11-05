@@ -15,7 +15,8 @@ import {
   CalendarToday,
   Close,
 } from "@mui/icons-material";
-import { MultaService } from "../../../../api/multaService";
+import { MultaService } from "../../../services/MultaService";
+
 
 interface CadastrarModalProps {
   open: boolean;

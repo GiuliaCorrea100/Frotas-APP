@@ -14,10 +14,10 @@ import {
 } from "@mui/material";
 import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 import { useEffect, useState } from 'react';
-import { AdminUserService } from '../../services/AdminUserService';
-import Menu from './Menu';
-import axiosConnect from '../../services/services/axiosConnect';
 import React from 'react';
+import { AdminUserService } from '../../services/AdministradorService';
+import Menu from '../../components/Menu';
+import axiosConnect from '../../services/axios/axiosConnect';
 
 interface AdminUserDto {
   idUsuario: number;

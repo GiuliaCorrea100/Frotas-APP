@@ -3,18 +3,17 @@ import React from 'react';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
 import PaginaDeLogin from './pages/Login';
-import CadastroCarro from './components/cadastros/CadastroCarro';
-import ListaCarros from './pages/painelCorridaMotorista/Listagem/veiculos/ListaCarros';
-import ListaMulta from './pages/painelCorridaMotorista/Listagem/multas/ListaMulta';
 import Menu from './components/Menu';
 import Unauthorized from './pages/Unauthorized';
-import ListaAdministrador from './components/Administradores';
 import { AuthProvider } from './context/AuthContext';
-import Relatorios  from './components/Relatorios/Relatorios';
 import PrivateRoute from './pages/PrivateRoute';
-import ListaCorrida from './pages/administrador/ListaCorrida';
-import DetalhesRequisicao from './pages/painelCorridaMotorista/Listagem/painelCorrida/detalhes';
-import HistoricoIndividual from './pages/painelCorridaMotorista/Listagem/HistoricoIndividual';
+import Relatorios from './pages/administrador/Relatorios';
+import ListaCorrida from './pages/administrador/corridas/Corridas';
+import DetalhesRequisicao from './pages/administrador/corridas/Detalhes';
+import HistoricoIndividual from './pages/motorista/HistoricoIndividual';
+import ListaCarros from './pages/administrador/veiculos/ListaCarros';
+import ListaMulta from './pages/administrador/multas/Multas';
+import ListaAdministradores from './pages/administrador/Administradores';
 
 const App: React.FC = () => {
   return (
@@ -28,10 +27,9 @@ const App: React.FC = () => {
         {/*rotas de administrador*/}
         <Route element={<PrivateRoute requiredPermission={true} />}>
           {/*Paginas de Cadastro*/}
-          <Route path="/CadastroCarro" element={<CadastroCarro />} />
           <Route path="/Relatorios" element={<Relatorios />} />
           <Route path="/ListaMultas" element={<ListaMulta />} />
-          <Route path="/Administradores" element={<ListaAdministrador />} />
+          <Route path="/Administradores" element={<ListaAdministradores />} />
           <Route path="/ListaCarros" element={<ListaCarros />} />
           <Route path="/ListaCorrida" element={<ListaCorrida />} />
           <Route path="/DetalhesCorrida/:id" element={< DetalhesRequisicao/>} />

@@ -17,12 +17,12 @@ import {
   buscarPercursosDaCorrida 
 } from "../../services/PercursoService";
 import ModalIniciarPercurso from "./modais/ModalIniciarPercurso";
-import ModalFinalizarPercurso from "../painelCorridaMotorista/modais/ModalFinalizarPercurso";
 import ModalSucesso from "./modais/ModalSucesso";
-import CadastrarOcorrencia from "../x/cadastros/corrida/modais/ocorrenciasModal";
-import AbastecimentoModal from "../administrador/ModalCadastroAbastecimento";
 import ModalConfirmacaoUltimoPercurso from "./modais/ModalConfirmacaoUltimoPercurso";
-import ModalPercursos from "../painelCorridaMotorista/modais/ModalPercursos";
+import ModalPercursos from "./modais/ModalPercursos";
+import AbastecimentoModal from "../administrador/corridas/modais/ModalCadastroAbastecimento";
+import CadastrarOcorrencia from "../administrador/corridas/modais/ModalCadastroOcorrencia";
+import ModalFinalizarPercurso from "./modais/ModalFinalizarPercurso";
 
 interface Corrida {
   idCorrida: number;

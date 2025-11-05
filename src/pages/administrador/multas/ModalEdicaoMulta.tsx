@@ -15,7 +15,8 @@ import {
   CalendarToday,
   Close,
 } from "@mui/icons-material";
-import { MultaDto, MultaService } from "../../../../api/multaService";
+import { MultaDto, MultaService } from "../../../services/MultaService";
+
 
 interface EdicaoModalProps {
   open: boolean;

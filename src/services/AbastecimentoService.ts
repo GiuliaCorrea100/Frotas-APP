@@ -1,4 +1,4 @@
-import axiosConnect from "./services/axiosConnect";
+import axiosConnect from "./axios/axiosConnect";
 
 // Tipagem padronizada com camelCase
 export interface TipoCombustivel {

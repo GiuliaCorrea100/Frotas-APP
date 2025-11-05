@@ -18,9 +18,9 @@ import { DataGrid, GridColDef, GridRenderCellParams, ptBR } from '@mui/x-data-gr
 import { Search, DirectionsCar, CalendarToday, AccessTime, Warning } from '@mui/icons-material';
 import { CorridaFrontend, getCorridas } from '../../services/CorridaService';
 import { OcorrenciaService } from '../../services/OcorrenciaService';
-import Menu from "../Menu";
 import { decodeToken } from '../../utils/jwtDecodeHelper';
 import { useAuth } from "../../context/AuthContext";
+import Menu from '../../components/Menu';
 
 const formatDate = (dateString: string | null) => {
   if (!dateString) return 'Em andamento';
