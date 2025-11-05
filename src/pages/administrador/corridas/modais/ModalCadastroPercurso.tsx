@@ -9,13 +9,9 @@ import {
   InputAdornment,
   CircularProgress,
   Paper,
-  IconButton,
 } from "@mui/material";
 import {
-  LocalGasStation,
-  AttachMoney,
   CalendarToday,
-  Close,
   AddLocationAlt,
 } from "@mui/icons-material";
 import { inserirPercursoCompleto } from "../../../../services/PercursoService";

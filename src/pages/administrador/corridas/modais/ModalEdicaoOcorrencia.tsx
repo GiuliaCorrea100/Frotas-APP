@@ -10,7 +10,8 @@ import {
   Box,
 } from "@mui/material";
 import { OcorrenciaDto } from "../../../../services/OcorrenciaService";
-import axiosConnect from "../../../../services/services/axiosConnect";
+import axiosConnect from "../../../../services/axios/axiosConnect";
+
 
 interface ModalEditarOcorrenciaProps {
   open: boolean;

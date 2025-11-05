@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axiosConnect from "../../../../../api/services/axiosConnect";
+
 import { Button, Box, TextField, Typography, Modal, Autocomplete, Dialog, DialogTitle, DialogActions } from "@mui/material";
 import axios, { AxiosError } from 'axios';
-import { createCorrida } from '../../../../../api/corridaService';
-import { CarroService } from '../../../../../api/carroService';
+import { createCorrida } from '../../../../services/CorridaService';
+import { CarroService } from '../../../../services/CarroService';
+import axiosConnect from '../../../../services/axios/axiosConnect';
 
 interface MotoristaDTO {
   idUsuario: number;

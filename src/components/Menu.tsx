@@ -20,13 +20,13 @@ import { jwtDecode } from 'jwt-decode';
 import React, { useEffect, useState, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import axiosConnect from "../services/services/axiosConnect";
-import PainelCorridaMotorista from "../pages/amotorista/PainelCorridaMotorista";
+import PainelCorridaMotorista from "../pages/motorista/PainelCorridaMotorista";
 import { useMediaQuery } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
+import axiosConnect from "../services/axios/axiosConnect";
 
 interface JwtPayload {
   sub: number; 
