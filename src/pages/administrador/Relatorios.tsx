@@ -24,7 +24,8 @@ import { CarroService } from "../../services/CarroService";
 import { getCorridas } from "../../services/CorridaService";
 import { OcorrenciaService } from "../../services/OcorrenciaService";
 import { MultaService } from "../../services/MultaService";
-import Menu from "../Menu";
+import Menu from '../../components/Menu';
+
 
 // --- Paletas de Cores Consistentes ---
 const PIE_COLORS = ['#FF9800', '#4CAF50', '#2196F3', '#F44336', '#9C27B0', '#795548', '#607D8B'];
