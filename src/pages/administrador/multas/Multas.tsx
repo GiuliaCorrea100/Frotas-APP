@@ -14,11 +14,11 @@ import {
 } from "@mui/material";
 import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 import { useEffect, useState } from 'react';
-import Menu from '../../Menu';
-import { MultaService, MultaDto } from '../../api/multaService';
 import React from 'react';
-import CadastroMultaModal from './modais/CadastrarMulta';
-import EditarMultaModal from './modais/editarMulta';
+import Menu from '../../../components/Menu';
+import { MultaDto, MultaService } from '../../../services/MultaService';
+import EditarMultaModal from './ModalEdicaoMulta';
+import CadastroMultaModal from './ModalCadastroMulta';
 
 
 export default function ListaMulta() {

@@ -16,8 +16,9 @@ import {
   SelectChangeEvent,
 } from '@mui/material';
 import { DirectionsCar, Close, Save } from '@mui/icons-material';
-import { CarroDto, CarroService } from '../../api/carroService';
-import { TipoCombustivel, TipoCombustivelService } from '../../api/tipoCombustivelService';
+import { CarroDto, CarroService } from '../../../services/CarroService';
+import { TipoCombustivel, TipoCombustivelService } from '../../../services/TipoCombustivelService';
+
 
 const modalStyle = {
   position: 'absolute' as 'absolute',

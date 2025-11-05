@@ -4,7 +4,6 @@ import {
   Button,
   IconButton,
   Modal,
-  SelectChangeEvent,
   TextField,
   Tooltip,
   Typography,
@@ -12,11 +11,12 @@ import {
 } from "@mui/material";
 import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation } from "react-router-dom";
-import { CarroDto, CarroService } from "../../api/carroService"; 
-import { TipoCombustivel } from '../../api/tipoCombustivelService'; 
-import Menu from "../../Menu"; 
+import { useLocation } from "react-router-dom";
+
 import FormularioVeiculos from './ModalCadastroEdicaoVeiculo';
+import { CarroDto, CarroService } from '../../../services/CarroService';
+import { TipoCombustivel } from '../../../services/TipoCombustivelService';
+import Menu from '../../../components/Menu';
 
 export default function ListaCarros() {
   const theme = useTheme();
@@ -169,7 +169,8 @@ export default function ListaCarros() {
           ano: 0,
           localidadeFisica: '',
           ativo: false,
-          tipoCombustivel: 0
+          idTipoCombustivel: 0
+          //tipoCombustivel: 0
         }
       );
       await carregarCarros();
