@@ -232,7 +232,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
       await createCorrida(corridaParaEnviar);
       
       setTimeout(() => {
-          navigate('/ListaCorrida');
+          navigate('/Corridas');
       }, 1500);
 
       onSuccess('Corrida cadastrada com sucesso!');

@@ -18,7 +18,7 @@ import { CarroDto, CarroService } from '../../../services/CarroService';
 import { TipoCombustivel } from '../../../services/TipoCombustivelService';
 import Menu from '../../../components/Menu';
 
-export default function ListaCarros() {
+export default function ListaVeiculos() {
   const theme = useTheme();
   const location = useLocation();
   const carroCadastrado = location.state?.carroCadastrado as CarroDto | undefined;

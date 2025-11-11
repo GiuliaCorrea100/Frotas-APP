@@ -11,9 +11,9 @@ import Relatorios from './pages/administrador/Relatorios';
 import ListaCorrida from './pages/administrador/corridas/Corridas';
 import DetalhesRequisicao from './pages/administrador/corridas/Detalhes';
 import HistoricoIndividual from './pages/motorista/HistoricoIndividual';
-import ListaCarros from './pages/administrador/veiculos/ListaCarros';
 import ListaMulta from './pages/administrador/multas/Multas';
 import ListaAdministradores from './pages/administrador/Administradores';
+import ListaVeiculos from './pages/administrador/veiculos/ListaVeiculo';
 
 const App: React.FC = () => {
   return (
@@ -28,10 +28,10 @@ const App: React.FC = () => {
         <Route element={<PrivateRoute requiredPermission={true} />}>
           {/*Paginas de Cadastro*/}
           <Route path="/Relatorios" element={<Relatorios />} />
-          <Route path="/ListaMultas" element={<ListaMulta />} />
+          <Route path="/Multas" element={<ListaMulta />} />
           <Route path="/Administradores" element={<ListaAdministradores />} />
-          <Route path="/ListaCarros" element={<ListaCarros />} />
-          <Route path="/ListaCorrida" element={<ListaCorrida />} />
+          <Route path="/Veiculos" element={<ListaVeiculos />} />
+          <Route path="/Corridas" element={<ListaCorrida />} />
           <Route path="/DetalhesCorrida/:id" element={< DetalhesRequisicao/>} />
         </Route>
 

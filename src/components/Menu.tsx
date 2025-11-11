@@ -281,7 +281,7 @@ const Menu: React.FC = () => {
                       <Button 
                         color="inherit" 
                         component={Link} 
-                        to="/ListaCorrida"
+                        to="/Corridas"
                         sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
                       >
                         Corridas
@@ -289,7 +289,7 @@ const Menu: React.FC = () => {
                       <Button 
                         color="inherit" 
                         component={Link} 
-                        to="/ListaCarros"
+                        to="/Veiculos"
                         sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
                       >
                         Veículos
@@ -297,7 +297,7 @@ const Menu: React.FC = () => {
                       <Button 
                         color="inherit" 
                         component={Link} 
-                        to="/ListaMultas"
+                        to="/Multas"
                         sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
                       >
                         Multas
@@ -370,7 +370,7 @@ const Menu: React.FC = () => {
                     <>
                       <DropdownItem 
                         component={Link} 
-                        to="/ListaCorrida"
+                        to="/Corridas"
                         onClick={() => setShowMobileMenu(false)}
                         sx={{ fontSize: '0.9rem', py: 1 }}
                       >
@@ -378,7 +378,7 @@ const Menu: React.FC = () => {
                       </DropdownItem>
                       <DropdownItem 
                         component={Link} 
-                        to="/ListaCarros"
+                        to="/Veiculos"
                         onClick={() => setShowMobileMenu(false)}
                         sx={{ fontSize: '0.9rem', py: 1 }}
                       >
@@ -386,7 +386,7 @@ const Menu: React.FC = () => {
                       </DropdownItem>
                       <DropdownItem 
                         component={Link} 
-                        to="/ListaMultas"
+                        to="/Multas"
                         onClick={() => setShowMobileMenu(false)}
                         sx={{ fontSize: '0.9rem', py: 1 }}
                       >
