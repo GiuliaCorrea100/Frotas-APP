@@ -2,19 +2,18 @@ import '@govbr-ds/core/dist/core.min.css';
 import React from 'react';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
-import PaginaDeLogin from './componentes/PaginaDeLogin';
-import CadastroCarro from './componentes/cadastros/CadastroCarro';
-import ListaCarros from './componentes/Listagem/veiculos/ListaCarros';
-import ListaMulta from './componentes/Listagem/multas/ListaMulta';
-import Menu from './componentes/Menu';
-import Unauthorized from './componentes/Unauthorized';
-import ListaAdministrador from './componentes/Administradores';
+import PaginaDeLogin from './pages/Login';
+import Menu from './components/Menu';
+import Unauthorized from './pages/Unauthorized';
 import { AuthProvider } from './context/AuthContext';
-import Relatorios  from './componentes/Relatorios/Relatorios';
-import PrivateRoute from './componentes/PrivateRoute';
-import ListaCorrida from './componentes/Listagem/painelCorrida/ListaCorrida';
-import DetalhesRequisicao from './componentes/Listagem/painelCorrida/detalhes';
-import HistoricoIndividual from './componentes/Listagem/HistoricoIndividual';
+import PrivateRoute from './pages/PrivateRoute';
+import Relatorios from './pages/administrador/Relatorios';
+import ListaCorrida from './pages/administrador/corridas/Corridas';
+import DetalhesRequisicao from './pages/administrador/corridas/Detalhes';
+import HistoricoIndividual from './pages/motorista/HistoricoIndividual';
+import ListaMulta from './pages/administrador/multas/Multas';
+import ListaAdministradores from './pages/administrador/Administradores';
+import ListaVeiculos from './pages/administrador/veiculos/ListaVeiculo';
 
 const App: React.FC = () => {
   return (
@@ -28,12 +27,11 @@ const App: React.FC = () => {
         {/*rotas de administrador*/}
         <Route element={<PrivateRoute requiredPermission={true} />}>
           {/*Paginas de Cadastro*/}
-          <Route path="/CadastroCarro" element={<CadastroCarro />} />
           <Route path="/Relatorios" element={<Relatorios />} />
-          <Route path="/ListaMultas" element={<ListaMulta />} />
-          <Route path="/Administradores" element={<ListaAdministrador />} />
-          <Route path="/ListaCarros" element={<ListaCarros />} />
-          <Route path="/ListaCorrida" element={<ListaCorrida />} />
+          <Route path="/Multas" element={<ListaMulta />} />
+          <Route path="/Administradores" element={<ListaAdministradores />} />
+          <Route path="/Veiculos" element={<ListaVeiculos />} />
+          <Route path="/Corridas" element={<ListaCorrida />} />
           <Route path="/DetalhesCorrida/:id" element={< DetalhesRequisicao/>} />
         </Route>
 
