@@ -13,6 +13,7 @@ interface CadastrarOcorrenciaProps {
   open: boolean;
   onClose: () => void;
   onSuccess: (message: string) => void;
+  chaveEmprestada: boolean;
   onError: (error: any) => void;
   corrida: number;
   dataRegistro?: Date;
@@ -22,11 +23,13 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
   open,
   onClose,
   onSuccess,
+  chaveEmprestada,
   onError,
   corrida
 }) => {
   const [descricao, setDescricao] = useState('');
   const [loading, setLoading] = useState(false);
+  const [mostrarAlertaChave, setMostrarAlertaChave] = useState(false);
 
   const resetForm = () => {
     setDescricao('');
