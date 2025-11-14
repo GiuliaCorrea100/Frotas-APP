@@ -73,7 +73,7 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
 
   const handleDestinoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!isUltimoPercurso || !confirmacaoUltimoPercurso) {
-      setDestino(e.target.value);
+      setDestino(e.target.value.toUpperCase());
     }
   };
 

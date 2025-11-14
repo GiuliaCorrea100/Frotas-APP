@@ -59,7 +59,7 @@ export default function ListaCorrida() {
   const [showModalEditar, setShowModalEditar] = useState(false);
   const [showModalCancelar, setShowModalCancelar] = useState(false);
 
-  const [filtroSituacao, setFiltroSituacao] = useState<string>('TODOS');
+  const [filtroSituacao, setFiltroSituacao] = useState<string>('AGENDADA');
   const [authMode, setAuthMode] = useState<string>('SIGAA');
 
   const navigate = useNavigate();
@@ -131,6 +131,14 @@ export default function ListaCorrida() {
   };
 
   const columns: GridColDef<CorridaFrontend>[] = [
+    {
+      field: 'idCorrida',
+      headerName: 'Nº',
+      flex: 0.2,
+      renderCell: (params) => (
+        <Typography>{params.value}</Typography>
+      )
+    },
     {
       field: 'nomeMotorista',
       headerName: 'Motorista',
@@ -283,11 +291,11 @@ export default function ListaCorrida() {
 
         <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
           {[
-            { label: 'AGENDADA', value: 'AGENDADA', count: qtdAgendadas, color: theme.palette.info.main },
+            { label: 'AGENDADAS', value: 'AGENDADA', count: qtdAgendadas, color: theme.palette.info.main },
             { label: 'EM ANDAMENTO', value: 'ANDAMENTO', count: qtdEmAndamento, color: theme.palette.warning.main },
-            { label: 'FINALIZADA', value: 'FINALIZADA', count: qtdFinalizadas, color: theme.palette.success.main },
-            {label: 'CANCELADA', value: 'CANCELADA', count: qtdCanceladas, color: theme.palette.success.main },
-            { label: 'TODOS', value: 'TODOS', count: corridas.length, color: theme.palette.text.secondary }
+            { label: 'FINALIZADAS', value: 'FINALIZADA', count: qtdFinalizadas, color: theme.palette.success.main },
+            {label: 'CANCELADAS', value: 'CANCELADA', count: qtdCanceladas, color: theme.palette.success.main },
+            { label: 'TODAS', value: 'TODOS', count: corridas.length, color: theme.palette.text.secondary }
           ].map((tab) => (
             <Button
               key={tab.value}
