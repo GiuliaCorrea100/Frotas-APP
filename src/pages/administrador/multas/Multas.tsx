@@ -41,7 +41,7 @@ export default function ListaMulta() {
     setLoading(true);
     try {
       const dados = await MultaService.listarMultas();
-      const multasAtivas = dados.filter((m) => !m.deletada);
+      const multasAtivas = dados.filter((m) => m.ativa);
       setMultas(multasAtivas);
     } catch (error) {
       console.error("Erro ao carregar multas:", error);

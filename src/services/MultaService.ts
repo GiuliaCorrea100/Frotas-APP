@@ -9,7 +9,7 @@ export interface MultaDto {
   placaVeiculo: string;
   dataInfracao: Date | null;
   autoInfracao: number;
-  deletada?: boolean;
+  ativa?: boolean;
 }
 
 export interface MultaBackend {
