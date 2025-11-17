@@ -79,7 +79,7 @@ export default function ListaMulta() {
   };
 
   const handleConfirmarExclusao = async () => {
-    console.log(multaSelecionada);
+    //console.log(multaSelecionada);
     if (!multaSelecionada) return;
     
     try {
@@ -264,7 +264,7 @@ export default function ListaMulta() {
           rowSelection={false}
         />
 
-        {/* Dialog de Exclusão - CORRIGIDO */}
+        
         <Dialog
           open={modalExcluirAberto}
           onClose={handleFecharModalExcluirMulta}
