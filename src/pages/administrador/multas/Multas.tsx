@@ -1,4 +1,4 @@
-import { Add, Cancel,Edit } from '@mui/icons-material';
+import { Add, Cancel, Edit } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -13,18 +13,18 @@ import {
   useTheme,
 } from "@mui/material";
 import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import React from 'react';
 import Menu from '../../../components/Menu';
 import { MultaDto, MultaService } from '../../../services/MultaService';
 import EditarMultaModal from './ModalEdicaoMulta';
 import CadastroMultaModal from './ModalCadastroMulta';
 
-
 export default function ListaMulta() {
   const theme = useTheme();
   const [busca, setBusca] = useState("");
   const [multas, setMultas] = useState<MultaDto[]>([]);
+  const [filtroClassificacao, setFiltroClassificacao] = useState<string>('TODOS');
   const [loading, setLoading] = useState(false);
 
   const [modalCadastrarAberto, setModalCadastroAberto] = useState(false);
@@ -49,6 +49,35 @@ export default function ListaMulta() {
       setLoading(false);
     }
   };
+
+  // Estatísticas para os filtros
+  const estatisticas = useMemo(() => {
+    return {
+      LEVE: multas.filter(m => m.classificacao === 'LEVE').length,
+      MEDIA: multas.filter(m => m.classificacao === 'MEDIA').length,
+      GRAVE: multas.filter(m => m.classificacao === 'GRAVE').length,
+      GRAVISSIMA: multas.filter(m => m.classificacao === 'GRAVISSIMA').length,
+      TODOS: multas.length
+    };
+  }, [multas]);
+
+  // Filtragem dos dados
+  const dadosFiltrados = useMemo(() => {
+    return multas.filter(multa => {
+      // Filtro por busca
+      const matchesSearch = busca === '' || 
+        Object.values(multa).some(valor =>
+          String(valor).toLowerCase().includes(busca.toLowerCase())
+        );
+
+      // Filtro por classificação
+      const matchesClassificacao = 
+        filtroClassificacao === 'TODOS' || 
+        multa.classificacao === filtroClassificacao;
+
+      return matchesSearch && matchesClassificacao;
+    });
+  }, [multas, busca, filtroClassificacao]);
 
   const handleAbrirModalCadastrarMulta = () => {
     setModalCadastroAberto(true);
@@ -79,7 +108,6 @@ export default function ListaMulta() {
   };
 
   const handleConfirmarExclusao = async () => {
-    //console.log(multaSelecionada);
     if (!multaSelecionada) return;
     
     try {
@@ -90,12 +118,6 @@ export default function ListaMulta() {
       console.error("Erro ao excluir multa:", error);
     }
   };
-
-  const dadosFiltrados = multas.filter((multa) =>
-    Object.values(multa).some((valor) =>
-      String(valor).toLowerCase().includes(busca.toLowerCase())
-    )
-  );
 
   const columns: GridColDef[] = [
     { field: 'codigoInfracao', headerName: 'Código Infração', flex: 1 },
@@ -181,90 +203,124 @@ export default function ListaMulta() {
           </Button>
         </Box>
 
-        {/* Filtros e busca */}
-        <Box sx={{
-          width: '100%',
-          mb: 3,
-          borderBottom: 1,
-          borderColor: 'divider',
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center'
-        }}>
+        {/* Filtros por Classificação */}
+        <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
+          {[
+            { label: 'LEVES', value: 'LEVE', count: estatisticas.LEVE, color: theme.palette.success.main },
+            { label: 'MÉDIAS', value: 'MEDIA', count: estatisticas.MEDIA, color: theme.palette.warning.main },
+            { label: 'GRAVES', value: 'GRAVE', count: estatisticas.GRAVE, color: theme.palette.error.main },
+            { label: 'GRAVÍSSIMAS', value: 'GRAVISSIMA', count: estatisticas.GRAVISSIMA, color: theme.palette.error.dark },
+            { label: 'TODAS', value: 'TODOS', count: estatisticas.TODOS, color: theme.palette.text.secondary }
+          ].map((tab) => (
+            <Button
+              key={tab.value}
+              variant={filtroClassificacao === tab.value ? "contained" : "outlined"}
+              onClick={() => setFiltroClassificacao(tab.value)}
+              sx={{
+                textTransform: 'none',
+                borderRadius: 2,
+                px: 2,
+                fontWeight: filtroClassificacao === tab.value ? 600 : 500,
+                color: filtroClassificacao === tab.value ? 'white' : 'text.primary',
+                bgcolor: filtroClassificacao === tab.value ? tab.color : 'background.paper',
+                '&:hover': {
+                  bgcolor: filtroClassificacao === tab.value
+                    ? theme.palette.primary.dark
+                    : theme.palette.action.hover,
+                }
+              }}
+            >
+              {tab.label}
+              <Box sx={{
+                ml: 1,
+                fontWeight: 600,
+                backgroundColor: filtroClassificacao === tab.value ? 'rgba(255,255,255,0.2)' : theme.palette.grey[200],
+                px: 1,
+                borderRadius: 12
+              }}>
+                {tab.count}
+              </Box>
+            </Button>
+          ))}
+        </Box>
+
+        {/* Campo de Busca */}
+        <Box sx={{ mb: 3 }}>
           <TextField
             placeholder="Buscar multas..."
             variant="outlined"
             size="small"
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            sx={{
-              width: 250,
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 2,
-                backgroundColor: theme.palette.background.paper
-              }
+            fullWidth
+            sx={{ 
+              '& .MuiOutlinedInput-root': { 
+                borderRadius: 2, 
+                backgroundColor: theme.palette.background.paper 
+              } 
             }}
           />
         </Box>
 
         {/* Tabela */}
-        <DataGrid
-          rows={dadosFiltrados}
-          columns={columns}
-          loading={loading}
-          getRowId={(row) => row.idMulta}
-          initialState={{
-            pagination: {
-              paginationModel: { pageSize: 8, page: 0 },
-            },
-          }}
-          pageSizeOptions={[8, 16, 24]}
-          localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
-          autoHeight
-          sx={{
-            '& .MuiDataGrid-cell': {
-              borderBottom: `1px solid ${theme.palette.divider}`,
-              py: 1.5,
-            },
-            '& .MuiDataGrid-columnHeaders': {
-              backgroundColor: theme.palette.mode === 'dark'
-                ? theme.palette.grey[800]
-                : theme.palette.grey[100],
-              fontWeight: 'bold',
-              borderRadius: 1,
-              borderBottom: `2px solid ${theme.palette.divider}`
-            },
-            '& .MuiDataGrid-row': {
-              '&:hover': {
-                backgroundColor: theme.palette.action.hover,
+        <Box sx={{ width: '100%', height: 600 }}>
+          <DataGrid
+            rows={dadosFiltrados}
+            columns={columns}
+            loading={loading}
+            getRowId={(row) => row.idMulta}
+            initialState={{
+              pagination: {
+                paginationModel: { pageSize: 8, page: 0 },
               },
-              '&.Mui-selected': {
-                backgroundColor: theme.palette.action.selected,
+            }}
+            pageSizeOptions={[8, 16, 24]}
+            localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+            sx={{
+              '& .MuiDataGrid-cell': {
+                borderBottom: `1px solid ${theme.palette.divider}`,
+                py: 1.5,
+              },
+              '& .MuiDataGrid-columnHeaders': {
+                backgroundColor: theme.palette.mode === 'dark'
+                  ? theme.palette.grey[800]
+                  : theme.palette.grey[100],
+                fontWeight: 'bold',
+                borderRadius: 1,
+                borderBottom: `2px solid ${theme.palette.divider}`
+              },
+              '& .MuiDataGrid-row': {
                 '&:hover': {
+                  backgroundColor: theme.palette.action.hover,
+                },
+                '&.Mui-selected': {
                   backgroundColor: theme.palette.action.selected,
+                  '&:hover': {
+                    backgroundColor: theme.palette.action.selected,
+                  }
                 }
-              }
-            },
-            '& .MuiDataGrid-footerContainer': {
-              borderTop: `1px solid ${theme.palette.divider}`,
-            },
-            '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-              marginBottom: 0,
-              alignSelf: 'center',
-            },
-            '& .MuiTablePagination-toolbar': {
-              minHeight: '52px',
-              alignItems: 'center',
-            },
-            boxShadow: theme.shadows[1],
-            borderRadius: 2,
-            border: 'none',
-            backgroundColor: theme.palette.background.paper
-          }}
-          rowSelection={false}
-        />
+              },
+              '& .MuiDataGrid-footerContainer': {
+                borderTop: `1px solid ${theme.palette.divider}`,
+              },
+              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                marginBottom: 0,
+                alignSelf: 'center',
+              },
+              '& .MuiTablePagination-toolbar': {
+                minHeight: '52px',
+                alignItems: 'center',
+              },
+              boxShadow: theme.shadows[1],
+              borderRadius: 2,
+              border: 'none',
+              backgroundColor: theme.palette.background.paper
+            }}
+            rowSelection={false}
+          />
+        </Box>
 
-        
+        {/* Modal de Exclusão */}
         <Dialog
           open={modalExcluirAberto}
           onClose={handleFecharModalExcluirMulta}

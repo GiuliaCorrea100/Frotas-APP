@@ -138,6 +138,8 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
     }
   }, [quantidade, valorUnitario]);
 
+  
+
   const handleSalvar = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!abastecimento) return;

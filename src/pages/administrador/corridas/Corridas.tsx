@@ -256,7 +256,7 @@ export default function ListaCorrida() {
               size="small"
               onClick={() => handleAbrirModalReceberChave(corrida)}
               disabled={((corrida.chaveEmprestada === false) && (corrida.situacao === "AGENDADA" || corrida.situacao === "ANDAMENTO" || corrida.situacao === "FINALIZADA"|| corrida.situacao === "CANCELADA"))
-                || ((corrida.chaveEmprestada === true) && (corrida.situacao === "AGENDADA" || corrida.situacao === "ANDAMENTO"|| corrida.situacao === "CANCELADA"))}
+                || ((corrida.chaveEmprestada === true) && (corrida.situacao === "CANCELADA"))}
             >
               Receber Chave
             </Button>
