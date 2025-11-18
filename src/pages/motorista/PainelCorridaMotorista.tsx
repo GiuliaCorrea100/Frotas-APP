@@ -4,6 +4,7 @@ import {
   Typography,
   Paper,
   ButtonBase,
+  Tooltip,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
@@ -36,6 +37,7 @@ interface Corrida {
   percursoAtivo?: any;
   ocorrencias?: any[]; 
   multas?: any[];
+  chaveEmprestada?: boolean;
 }
 
 interface PainelCorridaMotoristaProps {
@@ -147,6 +149,12 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
       }
   }, [modalIniciarOpen, corrida.idCorrida, corrida.localDeSaida, corrida.situacao]);
 
+  // Lógica de desabilitação dos botões
+  const isIniciarDisabled = isCorridaIniciada;
+  const isFinalizarDisabled = !isCorridaIniciada;
+  const isAbastecimentoDisabled = !chaveEmprestada;
+  const isOcorrenciaDisabled = !chaveEmprestada;
+
   if (corrida.situacao === 'FINALIZADA') {
     return (
       <Box sx={{ p: 4, maxWidth: 800, mx: "auto", textAlign: "center" }}>
@@ -162,9 +170,6 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
       </Box>
     );
   }
-
-  const isIniciarDisabled = isCorridaIniciada;
-  const isFinalizarDisabled = !isCorridaIniciada;
 
   const handleClick = (path: string, label: string) => {
     if (label === "Iniciar Percurso") {
@@ -348,55 +353,61 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
             const isOcorrencia = item.label === "Ocorrências";
 
             let isDisabled = false;
+            let tooltipTitle = "";
 
             if (isIniciar) {
                 isDisabled = isIniciarDisabled;
+                tooltipTitle = isDisabled ? "Percurso já iniciado" : "";
             } else if (isFinalizar) {
                 isDisabled = isFinalizarDisabled;
-            }
-
-            if (isAbastecimento || isOcorrencia) {
-                isDisabled = false;
+                tooltipTitle = isDisabled ? "Nenhum percurso ativo" : "";
+            } else if (isAbastecimento) {
+                isDisabled = isAbastecimentoDisabled;
+                tooltipTitle = isDisabled ? "Chave não emprestada" : "";
+            } else if (isOcorrencia) {
+                isDisabled = isOcorrenciaDisabled;
+                tooltipTitle = isDisabled ? "Chave não emprestada" : "";
             }
 
             return (
-              <ButtonBase
-                key={item.label}
-                onClick={() => handleClick(item.path, item.label)}
-                sx={{ borderRadius: 3, width: "100%" }}
-                disabled={isDisabled}
-              >
-                <Paper
-                  elevation={4}
-                  sx={{
-                    width: "100%",
-                    p: 3,
-                    textAlign: "center",
-                    borderRadius: 3,
-                    transition: "transform 0.2s, box-shadow 0.2s",
-                    "&:hover": {
-                      transform: isDisabled ? "none" : "scale(1.03)",
-                      boxShadow: isDisabled ? 4 : 6,
-                      cursor: isDisabled ? "not-allowed" : "pointer"
-                    },
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minHeight: '120px',
-                    opacity: isDisabled ? 0.6 : 1,
-                    backgroundColor: isDisabled ? "action.disabledBackground" : "background.paper"
-                  }}
+              <Tooltip key={item.label} title={tooltipTitle} placement="top">
+                <ButtonBase
+                  onClick={() => handleClick(item.path, item.label)}
+                  sx={{ borderRadius: 3, width: "100%" }}
+                  disabled={isDisabled}
                 >
-                  <Typography
-                    sx={{ 
-                        fontWeight: "bold",
-                        color: isDisabled ? "text.disabled" : "text.primary"
+                  <Paper
+                    elevation={4}
+                    sx={{
+                      width: "100%",
+                      p: 3,
+                      textAlign: "center",
+                      borderRadius: 3,
+                      transition: "transform 0.2s, box-shadow 0.2s",
+                      "&:hover": {
+                        transform: isDisabled ? "none" : "scale(1.03)",
+                        boxShadow: isDisabled ? 4 : 6,
+                        cursor: isDisabled ? "not-allowed" : "pointer"
+                      },
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minHeight: '120px',
+                      opacity: isDisabled ? 0.6 : 1,
+                      backgroundColor: isDisabled ? "action.disabledBackground" : "background.paper"
                     }}
                   >
-                    {item.label}
-                  </Typography>
-                </Paper>
-              </ButtonBase>
+                    <Typography
+                      sx={{ 
+                          fontWeight: "bold",
+                          color: isDisabled ? "text.disabled" : "text.primary"
+                      }}
+                    >
+                      {item.label}
+                    </Typography>
+                  </Paper>
+                </ButtonBase>
+              </Tooltip>
             )
         })}
       </Box>
@@ -404,6 +415,7 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
       {modalOcorrenciaAberto && (
       <CadastrarOcorrencia 
         open={modalOcorrenciaAberto} 
+        chaveEmprestada={chaveEmprestada}
         onClose={fecharModalOcorrencia} 
         corrida={corridaLocal.idCorrida}
         onSuccess={() => {

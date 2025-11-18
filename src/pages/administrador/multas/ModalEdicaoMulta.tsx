@@ -9,6 +9,7 @@ import {
   CircularProgress,
   Paper,
   IconButton,
+  MenuItem,
 } from "@mui/material";
 import {
   LocalGasStation,
@@ -40,6 +41,14 @@ const modalStyle = {
   p: 4,
   borderRadius: 2,
 };
+
+const opcoesClassificacao = [
+  { value: "LEVE", label: "LEVE" },
+  { value: "MEDIA", label: "MÉDIA" },
+  { value: "GRAVE", label: "GRAVE" },
+  { value: "GRAVISSIMA", label: "GRAVÍSSIMA" },
+];
+
 
 const EditarMultaModal: React.FC<EdicaoModalProps> = ({
   open,
@@ -140,14 +149,23 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
             fullWidth
             sx={{ flex: "1 1 calc(50% - 8px)" }} 
           />
+          {/* Select para Classificação */}
           <TextField
+            select
             label="Classificação"
             value={classificacao}
             onChange={(e) => setClassificacao(e.target.value)}
             required
             fullWidth
             sx={{ flex: "1 1 calc(50% - 8px)" }}
-          />
+          >
+            {opcoesClassificacao.map((opcao) => (
+              <MenuItem key={opcao.value} value={opcao.value}>
+                {opcao.label}
+              </MenuItem>
+            ))}
+          </TextField>
+          
           <TextField
             label="Valor da multa (R$)"
             type="number"

@@ -9,6 +9,7 @@ import {
   CircularProgress,
   Paper,
   IconButton,
+  MenuItem, // Importando MenuItem para as opções do select
 } from "@mui/material";
 import {
   LocalGasStation,
@@ -16,7 +17,6 @@ import {
   Close,
 } from "@mui/icons-material";
 import { MultaService } from "../../../services/MultaService";
-
 
 interface CadastrarModalProps {
   open: boolean;
@@ -39,6 +39,14 @@ const modalStyle = {
   p: 4,
   borderRadius: 2,
 };
+
+// Opções para o select de classificação
+const opcoesClassificacao = [
+  { value: "LEVE", label: "LEVE" },
+  { value: "MEDIA", label: "MÉDIA" },
+  { value: "GRAVE", label: "GRAVE" },
+  { value: "GRAVISSIMA", label: "GRAVÍSSIMA" },
+];
 
 const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
   open,
@@ -98,7 +106,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
   return (
     <Modal open={open} onClose={onClose}>
       <Paper sx={modalStyle}>
-        {/* CABEÇALHO */}
+        
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Box display="flex" alignItems="center">
             <LocalGasStation color="primary" sx={{ mr: 1 }} />
@@ -127,17 +135,26 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
             onChange={(e) => setCodigoInfracao(Number(e.target.value))}
             required
             fullWidth
-            
             sx={{ flex: "1 1 calc(50% - 8px)" }} 
           />
+          
+          {/* Select para Classificação */}
           <TextField
+            select
             label="Classificação"
             value={classificacao}
             onChange={(e) => setClassificacao(e.target.value)}
             required
             fullWidth
             sx={{ flex: "1 1 calc(50% - 8px)" }}
-          />
+          >
+            {opcoesClassificacao.map((opcao) => (
+              <MenuItem key={opcao.value} value={opcao.value}>
+                {opcao.label}
+              </MenuItem>
+            ))}
+          </TextField>
+          
           <TextField
             label="Valor da multa (R$)"
             type="number"
@@ -191,7 +208,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
             sx={{ flex: "1 1 100%", mt: 1 }}
           />
 
-          {/* BOTÕES */}
+          
           <Box 
             display="flex" 
             justifyContent="flex-end" 
