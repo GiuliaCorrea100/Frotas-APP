@@ -9,6 +9,7 @@ export interface PercursoBackend {
   chegadaHora?: Date | null;
   chegadaOdometro?: number;
   localOrigem?: string;
+  ativo?: boolean;
 }
 
 export interface PercursoDto {
@@ -19,6 +20,7 @@ export interface PercursoDto {
   chegadaHora?: Date | null | undefined;
   chegadaOdometro?: number;
   localOrigem?: string;
+  ativo?: boolean;
 }
 
 export const iniciarPercurso = async (
@@ -104,7 +106,13 @@ export const buscarPercursosDaCorrida = async (
       (a, b) => (a.idPercurso ?? 0) - (b.idPercurso ?? 0)
     );
 
-    return percursosOrdenados;
+    //console.log(percursosOrdenados);
+
+    const percursosAtivos = percursosOrdenados.filter(percurso => percurso.ativo === true);
+    
+    //console.log(percursosAtivos);
+
+    return percursosAtivos;
     //return response.data as PercursoBackend[];
   } catch (error) {
     console.error("Erro ao buscar percursos da corrida:", error);
@@ -144,6 +152,19 @@ export const atualizarPercurso = async (
     throw error;
   }
 };
+
+export const removerPercurso = async (
+  idPercurso: number
+): Promise<any> => {
+  try {
+      await axiosConnect.patch(`/percurso/deletar-percurso/${idPercurso}`);
+      console.log(`Percurso ${idPercurso} marcado como deletado`);
+    } catch (error) {
+      console.error(`Erro ao deletar percurso ${idPercurso}:`, error);
+      throw error;
+    }
+};
+
 
 export const inserirPercursoCompleto = async (
   idCorrida: number,

@@ -9,13 +9,17 @@ import {
   Box,
   Stack,
   Button,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Dialog,
 } from "@mui/material";
 
 import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
 
 import { CorridaFrontend, getCorridaById } from "../../../services/CorridaService";
 import { OcorrenciaDto, OcorrenciaService } from "../../../services/OcorrenciaService";
-import { buscarPercursosDaCorrida, PercursoDto } from "../../../services/PercursoService";
+import { buscarPercursosDaCorrida, PercursoDto, removerPercurso } from "../../../services/PercursoService";
 
 
 import { Add } from "@mui/icons-material";
@@ -44,6 +48,7 @@ const DetalhesRequisicao: React.FC = () => {
   const [modalEditarAbastecimentoAberto, setModalEditarAbastecimento] = useState(false);
   const [modalCadastrarPercursoAberto, setModalCadastrarPercusoAberto] = useState(false);
   const [modalEditarPercursoAberto, setModalEditarPercursoAberto] = useState(false);
+  const [modalExcluirPercursoAberto, setModalExcluirPercursoAberto] = useState(false);
 
   const [abastecimentoSelecionado, setAbastecimentoSelecionado] = useState<Abastecimento | null>(null);
   const [ocorrenciaSelecionada, setOcorrenciaSelecionada] = useState<OcorrenciaDto | null>(null);
@@ -79,10 +84,13 @@ const DetalhesRequisicao: React.FC = () => {
         }
 
         if (Array.isArray(percursosData)) {
+          //const percursosAtivos = percursosData.filter(percurso => percurso.ativo === true);
           setPercursos(percursosData);
         } else if (percursosData) {
           setPercursos([percursosData]);
         }
+
+
       }
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -286,6 +294,14 @@ const DetalhesRequisicao: React.FC = () => {
             >
               Editar
             </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              size="small"
+              onClick={() => handleAbrirModalExcluirPercurso(percurso)}
+            >
+              Excluir
+            </Button>
           </Box>
         );
       },
@@ -337,6 +353,28 @@ const DetalhesRequisicao: React.FC = () => {
   const handleFecharModalEditarPercurso = () => {
     setModalEditarPercursoAberto(false);
   }
+
+  const handleFecharModalExcluirPercurso = () => {
+    setModalExcluirPercursoAberto(false);
+    setPercursoSelecionado(null);
+  };
+
+  const handleConfirmarExclusaoPercurso = async () => {
+      if (!percursoSelecionado) return;
+      
+      try {
+        await removerPercurso(percursoSelecionado.idPercurso!); 
+        await carregarDados(); 
+        handleFecharModalExcluirPercurso();
+      } catch (error) {
+        console.error("Erro ao excluir percurso:", error);
+      }
+    };
+
+    const handleAbrirModalExcluirPercurso = (percurso: PercursoDto) => {
+      setPercursoSelecionado(percurso);
+      setModalExcluirPercursoAberto(true);
+    };
 
   return (
     <Box sx={{ 
@@ -658,6 +696,39 @@ const DetalhesRequisicao: React.FC = () => {
         </Card>
       </Box>
 
+
+      <Dialog
+          open={modalExcluirPercursoAberto}
+          onClose={handleFecharModalExcluirPercurso}
+          fullWidth
+          maxWidth="sm"
+          PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
+        >
+          <DialogTitle sx={{ fontWeight: 600 }}>Excluir Percurso</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Você tem certeza que deseja excluir este percurso?
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ p: 3, pt: 0 }}>
+            <Button 
+              onClick={handleFecharModalExcluirPercurso} 
+              variant="outlined" 
+              sx={{ borderRadius: 2 }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfirmarExclusaoPercurso}
+              variant="contained"
+              color="error"
+              sx={{ borderRadius: 2 }}
+            >
+              Confirmar Exclusão
+            </Button>
+          </DialogActions>
+        </Dialog>
+
       {/* Modais */}
       <ModalEditarOcorrencia
         open={modalEditarOcorrenciaAberto}
@@ -678,11 +749,10 @@ const DetalhesRequisicao: React.FC = () => {
         onSuccess={async () => {
           console.log("Ocorrência salva com sucesso!");
           await carregarDados();
-        }}
+        } }
         onError={(erro) => {
           console.error("Erro ao salvar ocorrência:", erro);
-        }}
-      />
+        } } chaveEmprestada={false}      />
 
       <AbastecimentoModal
         open={modalCadastroAbertoAbastecimento}

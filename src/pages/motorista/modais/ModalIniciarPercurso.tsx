@@ -73,7 +73,7 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
 
   const handleDestinoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!isUltimoPercurso || !confirmacaoUltimoPercurso) {
-      setDestino(e.target.value);
+      setDestino(e.target.value.toUpperCase());
     }
   };
 
@@ -81,7 +81,7 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
       <DialogTitle>
         <Typography component="div" fontWeight="bold" sx={{ fontSize: "1.25rem" }}>
-          Iniciar Novo Percurso
+          Iniciar Percurso
         </Typography>
         {percursosAtivosCount > 0 && (
           <Typography variant="body2" color="warning.main">
