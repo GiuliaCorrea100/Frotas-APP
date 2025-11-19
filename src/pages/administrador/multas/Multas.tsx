@@ -120,6 +120,7 @@ export default function ListaMulta() {
   };
 
   const columns: GridColDef[] = [
+    { field: 'idMulta', headerName: 'N°', flex: 1 },
     { field: 'codigoInfracao', headerName: 'Código Infração', flex: 1 },
     {
       field: 'placaVeiculo',
