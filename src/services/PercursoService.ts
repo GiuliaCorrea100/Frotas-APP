@@ -106,14 +106,9 @@ export const buscarPercursosDaCorrida = async (
       (a, b) => (a.idPercurso ?? 0) - (b.idPercurso ?? 0)
     );
 
-    //console.log(percursosOrdenados);
-
     const percursosAtivos = percursosOrdenados.filter(percurso => percurso.ativo === true);
     
-    //console.log(percursosAtivos);
-
     return percursosAtivos;
-    //return response.data as PercursoBackend[];
   } catch (error) {
     console.error("Erro ao buscar percursos da corrida:", error);
     return [];
