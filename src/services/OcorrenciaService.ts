@@ -5,6 +5,7 @@ export interface OcorrenciaDto {
   descricao: string;
   idCorrida: number;
   dataRegistro: String;
+  ativa?: boolean;
 }
 
 interface OcorrenciaBackend {
@@ -12,6 +13,7 @@ interface OcorrenciaBackend {
   descricao: string;
   idCorrida: number;
   dataRegistro: Date;
+  ativa?: boolean;
 }
 
 export class OcorrenciaService {
@@ -56,7 +58,11 @@ export class OcorrenciaService {
           },
         }
       );
-      return response.data;
+
+      const ocorrenciasAtivas = response.data.filter(ocorrencia => ocorrencia.ativa == true);
+
+      
+      return ocorrenciasAtivas;
     } catch (error) {
       console.error(
         `Erro ao buscar ocorrências para corrida ${idCorrida}:`,
@@ -99,5 +105,18 @@ export class OcorrenciaService {
       console.error(`Erro ao excluir ocorrência ${idOcorrencia}:`, error);
       throw error;
     }
+  }
+
+  static async excluirOcorrencia(idOcorrencia: number): Promise<any> {
+    try {
+      await axiosConnect.patch(`/ocorrencia/deletar-ocorrencia/${idOcorrencia}`);
+      console.log(`ocorrencia ${idOcorrencia} marcada como deletada`);
+    } catch (error) {
+      console.error(`Erro ao deletar ocorrência ${idOcorrencia}:`, error);
+      throw error;
+    }
+
+
+
   }
 }

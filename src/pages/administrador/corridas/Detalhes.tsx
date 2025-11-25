@@ -393,7 +393,6 @@ const DetalhesRequisicao: React.FC = () => {
       setModalExcluirPercursoAberto(true);
     };
 
-  // Funções para exclusão de ocorrência
   const handleAbrirModalExcluirOcorrencia = (ocorrencia: OcorrenciaDto) => {
     setOcorrenciaSelecionada(ocorrencia);
     setModalExcluirOcorrenciaAberto(true);
@@ -408,7 +407,7 @@ const DetalhesRequisicao: React.FC = () => {
     if (!ocorrenciaSelecionada) return;
     
     try {
-      //await OcorrenciaService.excluirOcorrencia(ocorrenciaSelecionada.idOcorrencia!);
+      await OcorrenciaService.excluirOcorrencia(ocorrenciaSelecionada.idOcorrencia!);
       await carregarDados();
       handleFecharModalExcluirOcorrencia();
     } catch (error) {
