@@ -523,6 +523,8 @@ export default function ListaCorrida() {
                   await CorridaService.confirmarReceberChave(selectedCorrida.idCorrida);
                   
                   await CarroService.atualizarSituacaoCarro(selectedCorrida.idCarro, "DISPONIVEL");
+
+                  await atualizarSituacaoCorrida(selectedCorrida.idCorrida, 'FINALIZADA');
                   
                   const dadosAtualizados = await getCorridas();
                   setCorridas(dadosAtualizados);

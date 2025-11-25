@@ -168,7 +168,7 @@ export class CorridaService {
   static async confirmarReceberChave(idCorrida: number): Promise<void> {
     try {
       await axiosConnect.patch(`/corrida/emprestar-chave/${idCorrida}`);
-      console.log("chave emprestada com sucesso APP");
+      console.log("chave recebida com sucesso APP");
     } catch (error) {
       console.error("Erro ao emprestar chave", error);
       throw error;

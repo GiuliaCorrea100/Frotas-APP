@@ -47,37 +47,55 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
   corrida,
 }) => {
   const [saidaHora, setSaidaHora] = useState<Date | null>(null);
-  const [saidaOdometro, setSaidaOdometro] = useState<number>(0);
+  const [saidaOdometro, setSaidaOdometro] = useState<string>("");
   const [localDestino, setLocalDestino] = useState("");
   const [chegadaHora, setChegadaHora] = useState<Date | null>(null);
-  const [chegadaOdometro, setChegadaOdometro] = useState<number>(0);
+  const [chegadaOdometro, setChegadaOdometro] = useState<string>("");
   const [localOrigem, setLocalOrigem] = useState("");
 
   const [loading, setLoading] = useState(false);
 
-  
+  // Função para permitir apenas números
+  const handleNumericInput = (value: string, setter: React.Dispatch<React.SetStateAction<string>>) => {
+    // Remove qualquer caractere que não seja número
+    const numericValue = value.replace(/[^\d]/g, '');
+    setter(numericValue);
+  };
+
+  // Função para converter string para número (para envio)
+  const getNumericValue = (value: string): number => {
+    return value ? parseInt(value, 10) : 0;
+  };
+
   useEffect(() => {
     if (open) {
       setSaidaHora(null);
-      setSaidaOdometro(0);
+      setSaidaOdometro("");
       setLocalDestino("");
       setChegadaHora(null);
-      setChegadaOdometro(0);
+      setChegadaOdometro("");
       setLocalOrigem("");
     }
   }, [open]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    
+    // Validação dos campos obrigatórios
+    if (!saidaOdometro || !chegadaOdometro || !saidaHora || !chegadaHora) {
+      onError("Todos os campos marcados com * são obrigatórios");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const dadosPercurso = {
         saidaHora,
-        saidaOdometro,
+        saidaOdometro: getNumericValue(saidaOdometro),
         localDestino,
         chegadaHora,
-        chegadaOdometro,
+        chegadaOdometro: getNumericValue(chegadaOdometro),
         localOrigem,
       };
 
@@ -119,14 +137,15 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
             />
             <TextField
               label="Odômetro de Saída"
-              type="number"
               value={saidaOdometro}
-              onChange={(e) => setSaidaOdometro(Number(e.target.value))}
+              onChange={(e) => handleNumericInput(e.target.value, setSaidaOdometro)}
               required
               sx={{ flex: "1 1 200px" }}
               InputProps={{
                 endAdornment: <InputAdornment position="end">km</InputAdornment>,
               }}
+              placeholder="Apenas números"
+              helperText="Digite apenas números"
             />
           </Box>
           <TextField
@@ -136,6 +155,7 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
             value={saidaHora ? saidaHora.toISOString().slice(0, 16) : ""}
             onChange={(e) => setSaidaHora(new Date(e.target.value))}
             InputLabelProps={{ shrink: true }}
+            required
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -162,14 +182,15 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
             />
             <TextField
               label="Odômetro de Chegada"
-              type="number"
               value={chegadaOdometro}
-              onChange={(e) => setChegadaOdometro(Number(e.target.value))}
+              onChange={(e) => handleNumericInput(e.target.value, setChegadaOdometro)}
               required
               sx={{ flex: "1 1 200px" }}
               InputProps={{
                 endAdornment: <InputAdornment position="end">km</InputAdornment>,
               }}
+              placeholder="Apenas números"
+              helperText="Digite apenas números"
             />
           </Box>
           <TextField
@@ -179,6 +200,7 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
             value={chegadaHora ? chegadaHora.toISOString().slice(0, 16) : ""}
             onChange={(e) => setChegadaHora(new Date(e.target.value))}
             InputLabelProps={{ shrink: true }}
+            required
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
