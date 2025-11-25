@@ -49,6 +49,8 @@ const DetalhesRequisicao: React.FC = () => {
   const [modalCadastrarPercursoAberto, setModalCadastrarPercusoAberto] = useState(false);
   const [modalEditarPercursoAberto, setModalEditarPercursoAberto] = useState(false);
   const [modalExcluirPercursoAberto, setModalExcluirPercursoAberto] = useState(false);
+  const [modalExcluirOcorrenciaAberto, setModalExcluirOcorrenciaAberto] = useState(false);
+  const [modalExcluirAbastecimentoAberto, setModalExcluirAbastecimentoAberto] = useState(false);
 
   const [abastecimentoSelecionado, setAbastecimentoSelecionado] = useState<Abastecimento | null>(null);
   const [ocorrenciaSelecionada, setOcorrenciaSelecionada] = useState<OcorrenciaDto | null>(null);
@@ -84,7 +86,6 @@ const DetalhesRequisicao: React.FC = () => {
         }
 
         if (Array.isArray(percursosData)) {
-          //const percursosAtivos = percursosData.filter(percurso => percurso.ativo === true);
           setPercursos(percursosData);
         } else if (percursosData) {
           setPercursos([percursosData]);
@@ -148,6 +149,14 @@ const DetalhesRequisicao: React.FC = () => {
               onClick={() => handleAbrirModalEditarOcorrencia(ocorrencia)}
             >
               Editar
+            </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              size="small"
+              onClick={() => handleAbrirModalExcluirOcorrencia(ocorrencia)}
+            >
+              Excluir
             </Button>
           </Box>
         );
@@ -214,6 +223,14 @@ const DetalhesRequisicao: React.FC = () => {
               onClick={() => handleAbrirModalEditarAbastecimento(abastecimento)}
             >
               Editar
+            </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              size="small"
+              onClick={() => handleAbrirModalExcluirAbastecimento(abastecimento)}
+            >
+              Excluir
             </Button>
           </Box>
         );
@@ -375,6 +392,52 @@ const DetalhesRequisicao: React.FC = () => {
       setPercursoSelecionado(percurso);
       setModalExcluirPercursoAberto(true);
     };
+
+  // Funções para exclusão de ocorrência
+  const handleAbrirModalExcluirOcorrencia = (ocorrencia: OcorrenciaDto) => {
+    setOcorrenciaSelecionada(ocorrencia);
+    setModalExcluirOcorrenciaAberto(true);
+  };
+
+  const handleFecharModalExcluirOcorrencia = () => {
+    setModalExcluirOcorrenciaAberto(false);
+    setOcorrenciaSelecionada(null);
+  };
+
+  const handleConfirmarExclusaoOcorrencia = async () => {
+    if (!ocorrenciaSelecionada) return;
+    
+    try {
+      //await OcorrenciaService.excluirOcorrencia(ocorrenciaSelecionada.idOcorrencia!);
+      await carregarDados();
+      handleFecharModalExcluirOcorrencia();
+    } catch (error) {
+      console.error("Erro ao excluir ocorrência:", error);
+    }
+  };
+
+  // Funções para exclusão de abastecimento
+  const handleAbrirModalExcluirAbastecimento = (abastecimento: Abastecimento) => {
+    setAbastecimentoSelecionado(abastecimento);
+    setModalExcluirAbastecimentoAberto(true);
+  };
+
+  const handleFecharModalExcluirAbastecimento = () => {
+    setModalExcluirAbastecimentoAberto(false);
+    setAbastecimentoSelecionado(null);
+  };
+
+  const handleConfirmarExclusaoAbastecimento = async () => {
+    if (!abastecimentoSelecionado) return;
+    
+    try {
+      await AbastecimentoService.excluirAbastecimento(abastecimentoSelecionado.idAbastecimento!);
+      await carregarDados();
+      handleFecharModalExcluirAbastecimento();
+    } catch (error) {
+      console.error("Erro ao excluir abastecimento:", error);
+    }
+  };
 
   return (
     <Box sx={{ 
@@ -696,7 +759,7 @@ const DetalhesRequisicao: React.FC = () => {
         </Card>
       </Box>
 
-
+      
       <Dialog
           open={modalExcluirPercursoAberto}
           onClose={handleFecharModalExcluirPercurso}
@@ -729,7 +792,72 @@ const DetalhesRequisicao: React.FC = () => {
           </DialogActions>
         </Dialog>
 
-      {/* Modais */}
+      {/* Modal de Exclusão de Ocorrência */}
+      <Dialog
+          open={modalExcluirOcorrenciaAberto}
+          onClose={handleFecharModalExcluirOcorrencia}
+          fullWidth
+          maxWidth="sm"
+          PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
+        >
+          <DialogTitle sx={{ fontWeight: 600 }}>Excluir Ocorrência</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Você tem certeza que deseja excluir esta ocorrência?
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ p: 3, pt: 0 }}>
+            <Button 
+              onClick={handleFecharModalExcluirOcorrencia} 
+              variant="outlined" 
+              sx={{ borderRadius: 2 }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfirmarExclusaoOcorrencia}
+              variant="contained"
+              color="error"
+              sx={{ borderRadius: 2 }}
+            >
+              Confirmar Exclusão
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+      {/* Modal de Exclusão de Abastecimento */}
+      <Dialog
+          open={modalExcluirAbastecimentoAberto}
+          onClose={handleFecharModalExcluirAbastecimento}
+          fullWidth
+          maxWidth="sm"
+          PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
+        >
+          <DialogTitle sx={{ fontWeight: 600 }}>Excluir Abastecimento</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Você tem certeza que deseja excluir este abastecimento?
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ p: 3, pt: 0 }}>
+            <Button 
+              onClick={handleFecharModalExcluirAbastecimento} 
+              variant="outlined" 
+              sx={{ borderRadius: 2 }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfirmarExclusaoAbastecimento}
+              variant="contained"
+              color="error"
+              sx={{ borderRadius: 2 }}
+            >
+              Confirmar Exclusão
+            </Button>
+          </DialogActions>
+        </Dialog>
+
       <ModalEditarOcorrencia
         open={modalEditarOcorrenciaAberto}
         ocorrencia={ocorrenciaSelecionada}

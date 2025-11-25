@@ -27,6 +27,7 @@ export interface Abastecimento {
   justificativaAlteracao?: string;
   idTipoCombustivel?: number;
   nomeTipoCombustivel?: string;
+  ativo?: boolean;
 
   // Relacionamentos
   tipoCombustivel: TipoCombustivel;
@@ -71,7 +72,9 @@ export class AbastecimentoService {
   }): Promise<Abastecimento[]> {
     try {
       const response = await axiosConnect.get(`/abastecimento`, { params });
-      return response.data;
+
+      const abastecimentosAtivos = response.data.filter((abastecimento: { ativo: boolean; }) => abastecimento.ativo === true )
+      return abastecimentosAtivos;
     } catch (error) {
       throw error;
     }
@@ -96,7 +99,10 @@ export class AbastecimentoService {
       const response = await axiosConnect.get<Abastecimento[]>(
         `/abastecimento/buscar-por-corrida/${idCorrida}`
       );
-      return response.data;
+
+      const abastecimentosAtivos = response.data.filter(abastecimento => abastecimento.ativo === true )
+
+      return abastecimentosAtivos;
     } catch (error) {
       throw error;
     }
@@ -164,10 +170,12 @@ export class AbastecimentoService {
     }
   }
 
-  async deletarAbastecimento(id: number): Promise<void> {
+  async excluirAbastecimento(idAbastecimento: number): Promise<any> {
     try {
-      await axiosConnect.delete(`/abastecimento/${id}`);
+      await axiosConnect.patch(`/abastecimento/deletar-abastecimento/${idAbastecimento}`);
+      console.log(`abastecimento ${idAbastecimento} marcado como deletado`);
     } catch (error) {
+      console.error(`Erro ao deletar abastecimento ${idAbastecimento}:`, error);
       throw error;
     }
   }
