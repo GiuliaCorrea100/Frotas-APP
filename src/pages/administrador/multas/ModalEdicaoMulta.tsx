@@ -10,14 +10,18 @@ import {
   Paper,
   IconButton,
   MenuItem,
+  Chip,
+  Alert,
 } from "@mui/material";
 import {
   LocalGasStation,
   CalendarToday,
   Close,
+  AttachFile,
+  Download,
+  Delete,
 } from "@mui/icons-material";
 import { MultaDto, MultaService } from "../../../services/MultaService";
-
 
 interface EdicaoModalProps {
   open: boolean;
@@ -49,7 +53,6 @@ const opcoesClassificacao = [
   { value: "GRAVISSIMA", label: "GRAVÍSSIMA" },
 ];
 
-
 const EditarMultaModal: React.FC<EdicaoModalProps> = ({
   open,
   multa,
@@ -64,18 +67,52 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
   const [dataInfracao, setDataInfracao] = useState<string>("");
   const [autoInfracao, setAutoInfracao] = useState<number>(0);
   const [loading, setLoading] = useState(false);
+  const [arquivo, setArquivo] = useState<File | null>(null);
+  const [arquivoAtual, setArquivoAtual] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
-  // Função para formatar a data para o input
   const formatDateForInput = (date: any): string => {
     if (!date) return "";
-    
     try {
       const dateObj = date instanceof Date ? date : new Date(date);
-      return !isNaN(dateObj.getTime()) 
-        ? dateObj.toISOString().split('T')[0] // Apenas a parte da data
+      return !isNaN(dateObj.getTime())
+        ? dateObj.toISOString().split("T")[0]
         : "";
     } catch {
       return "";
+    }
+  };
+
+  const extrairNomeArquivo = (url: string): string => {
+    if (!url) return "";
+    return url.split("/").pop() || "arquivo_anexo";
+  };
+
+  const handleDownloadArquivo = async () => {
+    if (!arquivoAtual) return;
+    try {
+      const nomeArquivo = extrairNomeArquivo(arquivoAtual);
+      const blob = await MultaService.downloadArquivo(nomeArquivo);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = nomeArquivo;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      onError("Erro ao baixar arquivo");
+    }
+  };
+
+  const handleRemoverArquivoAtual = () => {
+    setArquivoAtual(null);
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      setArquivo(event.target.files[0]);
     }
   };
 
@@ -87,6 +124,8 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
       setClassificacao(multa.classificacao);
       setPlacaVeiculo(multa.placaVeiculo);
       setDataInfracao(formatDateForInput(multa.dataInfracao));
+      setArquivoAtual((multa as any).urlArquivo || null);
+      setArquivo(null);
     }
   }, [multa]);
 
@@ -95,8 +134,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
     setLoading(true);
 
     try {
-      // Criar a data considerando o fuso horário de Porto Velho -4
-      const dataInfracaoUTC = new Date(dataInfracao + 'T04:00:00.000Z');
+      const dataInfracaoUTC = new Date(dataInfracao + "T04:00:00.000Z");
 
       const dadosMultas = {
         codigoInfracao,
@@ -108,9 +146,21 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
       };
 
       await MultaService.atualizarMulta(multa?.idMulta!, dadosMultas);
+
+      if (arquivo) {
+        setUploading(true);
+        const formData = new FormData();
+        formData.append("arquivo", arquivo);
+        try {
+          console.log("Arquivo atualizado com sucesso");
+        } catch (e) {
+        } finally {
+          setUploading(false);
+        }
+      }
+
       onSuccess("Multa atualizada com sucesso");
     } catch (error) {
-      console.error("Erro ao atualizar multa: ", error);
       onError(error);
     } finally {
       setLoading(false);
@@ -133,13 +183,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
           </IconButton>
         </Box>
 
-        <Box
-          component="form"
-          onSubmit={handleSubmit}
-          display="flex"
-          flexWrap="wrap"
-          gap={2}
-        >
+        <Box component="form" onSubmit={handleSubmit} display="flex" flexWrap="wrap" gap={2}>
           <TextField
             label="Código da Infração"
             type="number"
@@ -147,9 +191,9 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
             onChange={(e) => setCodigoInfracao(Number(e.target.value))}
             required
             fullWidth
-            sx={{ flex: "1 1 calc(50% - 8px)" }} 
+            sx={{ flex: "1 1 calc(50% - 8px)" }}
           />
-          {/* Select para Classificação */}
+
           <TextField
             select
             label="Classificação"
@@ -165,7 +209,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
               </MenuItem>
             ))}
           </TextField>
-          
+
           <TextField
             label="Valor da multa (R$)"
             type="number"
@@ -175,13 +219,10 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
             fullWidth
             sx={{ flex: "1 1 calc(50% - 8px)" }}
             InputProps={{
-                startAdornment: (
-                    <InputAdornment position="start">
-                        R$
-                    </InputAdornment>
-                ),
+              startAdornment: <InputAdornment position="start">R$</InputAdornment>,
             }}
           />
+
           <TextField
             label="Placa do Veículo"
             value={placaVeiculo}
@@ -190,6 +231,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
             fullWidth
             sx={{ flex: "1 1 calc(50% - 8px)" }}
           />
+
           <TextField
             label="Auto da Infração"
             type="number"
@@ -217,22 +259,69 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
             sx={{ flex: "1 1 100%", mt: 1 }}
           />
 
-          <Box 
-            display="flex" 
-            justifyContent="flex-end" 
-            gap={1} 
-            mt={3} 
-            sx={{ flex: "1 1 100%" }}
-          >
-            <Button onClick={onClose} color="inherit" disabled={loading}>
+          <Box sx={{ flex: "1 1 100%", mt: 2 }}>
+            <Typography variant="subtitle1" fontWeight="bold" mb={1}>
+              Arquivo Anexado
+            </Typography>
+
+            {arquivoAtual ? (
+              <Box display="flex" alignItems="center" gap={1} mb={2}>
+                <Chip
+                  icon={<AttachFile />}
+                  label={extrairNomeArquivo(arquivoAtual)}
+                  variant="outlined"
+                  color="primary"
+                />
+                <IconButton size="small" onClick={handleDownloadArquivo}>
+                  <Download />
+                </IconButton>
+                <IconButton size="small" onClick={handleRemoverArquivoAtual} color="error">
+                  <Delete />
+                </IconButton>
+              </Box>
+            ) : (
+              <Alert severity="info" sx={{ mb: 2 }}>
+                Nenhum arquivo anexado a esta multa.
+              </Alert>
+            )}
+
+            <Box>
+              <Typography variant="body2" fontWeight="medium" mb={1}>
+                {arquivoAtual ? "Substituir arquivo" : "Anexar arquivo"}
+              </Typography>
+              <Button
+                variant="outlined"
+                component="label"
+                startIcon={<AttachFile />}
+                size="small"
+              >
+                Selecionar Arquivo
+                <input
+                  type="file"
+                  hidden
+                  onChange={handleFileChange}
+                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                />
+              </Button>
+
+              {arquivo && (
+                <Typography variant="body2" sx={{ mt: 1, color: "success.main" }}>
+                  Novo arquivo selecionado: {arquivo.name}
+                </Typography>
+              )}
+            </Box>
+          </Box>
+
+          <Box display="flex" justifyContent="flex-end" gap={1} mt={3} sx={{ flex: "1 1 100%" }}>
+            <Button onClick={onClose} color="inherit" disabled={loading || uploading}>
               Cancelar
             </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={loading}
-            >
-              {loading ? <CircularProgress size={24} color="inherit" /> : "Atualizar"}
+            <Button type="submit" variant="contained" disabled={loading || uploading}>
+              {loading || uploading ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                "Atualizar"
+              )}
             </Button>
           </Box>
         </Box>

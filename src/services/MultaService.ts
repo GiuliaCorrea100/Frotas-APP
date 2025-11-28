@@ -47,7 +47,7 @@ export class MultaService {
           "Content-Type": "multipart/form-data",
         },
       });
-      console.log('Resposta do servidor:', response.data);
+      console.log("Resposta do servidor:", response.data);
     } catch (error) {
       console.error("Erro ao cadastrar multa com arquivo:", error);
       throw error;
@@ -59,10 +59,25 @@ export class MultaService {
     dados: MultaBackend
   ): Promise<void> {
     try {
-      console.log(idMulta);
       await axiosConnect.put(`/multa/${idMulta}`, dados);
     } catch (error) {
       console.error(`Erro ao atualizar multa ${idMulta}:`, error);
+      throw error;
+    }
+  }
+
+  static async atualizarArquivoMulta(
+    idMulta: number,
+    formData: FormData
+  ): Promise<void> {
+    try {
+      await axiosConnect.put(`/multa/${idMulta}/arquivo`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+    } catch (error) {
+      console.error(`Erro ao atualizar arquivo da multa ${idMulta}:`, error);
       throw error;
     }
   }
