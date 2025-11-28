@@ -1,6 +1,5 @@
 import axiosConnect from "./axios/axiosConnect";
 
-// DTO vindo do backend
 export interface MultaDto {
   idMulta?: number;
   codigoInfracao: number;
@@ -41,6 +40,20 @@ export class MultaService {
     }
   }
 
+  static async criarMultaComArquivo(formData: FormData): Promise<void> {
+    try {
+      const response = await axiosConnect.post("/multa/com-arquivo", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      console.log('Resposta do servidor:', response.data);
+    } catch (error) {
+      console.error("Erro ao cadastrar multa com arquivo:", error);
+      throw error;
+    }
+  }
+
   static async atualizarMulta(
     idMulta: number,
     dados: MultaBackend
@@ -60,6 +73,28 @@ export class MultaService {
       console.log(`Multa ${idMulta} marcada como deletada`);
     } catch (error) {
       console.error(`Erro ao deletar multa ${idMulta}:`, error);
+      throw error;
+    }
+  }
+
+  static async buscarMultaPorId(id: number): Promise<MultaDto> {
+    try {
+      const response = await axiosConnect.get<MultaDto>(`/multa/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Erro ao buscar multa ${id}:`, error);
+      throw error;
+    }
+  }
+
+  static async downloadArquivo(fileName: string): Promise<Blob> {
+    try {
+      const response = await axiosConnect.get(`/anexo/download/${fileName}`, {
+        responseType: "blob",
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Erro ao baixar arquivo ${fileName}:`, error);
       throw error;
     }
   }
