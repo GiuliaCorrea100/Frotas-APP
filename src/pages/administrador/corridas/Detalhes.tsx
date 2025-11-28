@@ -111,7 +111,7 @@ const DetalhesRequisicao: React.FC = () => {
     }).format(value);
   };
 
-  // Função para formatar datas
+  // Função para formatar datas com horas
   const formatDateTime = (dateString?: string | null) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
@@ -122,6 +122,18 @@ const DetalhesRequisicao: React.FC = () => {
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+    });
+  };
+
+   // Função para formatar datas sem horas
+  const formatDate = (dateString?: string | null) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Data inválida";
+    return date.toLocaleString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
     });
   };
 
@@ -203,7 +215,7 @@ const DetalhesRequisicao: React.FC = () => {
       headerName: "Data Abastecimento",
       flex: 1,
       renderCell: (params) => (
-        <Typography>{formatDateTime(params.value)}</Typography>
+        <Typography>{formatDate(params.value)}</Typography>
       ),
     },
     {
