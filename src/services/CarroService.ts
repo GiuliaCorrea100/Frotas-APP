@@ -44,6 +44,11 @@ export class CarroService {
     return resposta.data;
   }
 
+  static async buscarPorPlaca(placa: string): Promise<CarroDto> {
+    const resposta = await axiosConnect.get<CarroDto>(`/carro/buscar-placa/${placa}`);
+    return resposta.data;
+  }
+
   // Criar um novo carro
   static async criar(carro: CarroDto): Promise<CarroDto> {
     const carroCompleto = {
@@ -66,6 +71,16 @@ export class CarroService {
       return response.data;
     } catch (error) {
       console.error('Erro ao atualizar situação do carro:', error);
+      throw error;
+    }
+  }
+
+  static async atualizarOdometro(idCarro: number, odometro: number){
+    try {
+      const response = await axiosConnect.patch(`/carro/atualizar-odometro/${idCarro}`, { odometro });
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao atualizar odometro do carro:', error);
       throw error;
     }
   }

@@ -14,6 +14,7 @@ import {
   CircularProgress,
   Paper,
   IconButton,
+  Alert,
 } from "@mui/material";
 import {
   LocalGasStation,
@@ -65,43 +66,33 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
   onSuccess,
   onError,
 }) => {
-  const [quantidade, setQuantidade] = useState<number>(0);
-  const [valorTotal, setValorTotal] = useState<number>(0);
-  const [tipoCombustivel, setTipoCombustivel] = useState<number | "">("");
-  const [valorUnitario, setValorUnitario] = useState<number>(0);
-  const [dataAbastecimento, setdataAbastecimento] = useState<string>("");
+  const [formData, setFormData] = useState({
+    quantidade: 0,
+    valorTotal: 0,
+    valorUnitario: 0,
+    dataAbastecimento: "",
+    tipoCombustivelId: "",
+  });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [tiposCombustivel, setTiposCombustivel] = useState<TipoCombustivel[]>([]);
   const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [carregandoTipos, setCarregandoTipos] = useState(true);
 
-  // Função para preencher dados do abastecimento - CORRIGIDA
+  // Função para preencher dados do abastecimento
   const preencherDadosAbastecimento = (abastecimento: Abastecimento, tiposCombustivel: TipoCombustivel[]) => {
-    // Converter valores string para number
-    setQuantidade(abastecimento.quantidade ? Number(abastecimento.quantidade) : 0);
-    setValorTotal(abastecimento.valorTotal ? Number(abastecimento.valorTotal) : 0);
-    setValorUnitario(abastecimento.valorUnitario ? Number(abastecimento.valorUnitario) : 0);
+    const dados = {
+      quantidade: abastecimento.quantidade ? Number(abastecimento.quantidade) : 0,
+      valorTotal: abastecimento.valorTotal ? Number(abastecimento.valorTotal) : 0,
+      valorUnitario: abastecimento.valorUnitario ? Number(abastecimento.valorUnitario) : 0,
+      dataAbastecimento: abastecimento.dataAbastecimento
+        ? formatDate(new Date(abastecimento.dataAbastecimento))
+        : "",
+      tipoCombustivelId: abastecimento.idTipoCombustivel?.toString() || "",
+    };
     
-    setdataAbastecimento(
-      abastecimento.dataAbastecimento
-        ? formatDate(new Date(abastecimento.dataAbastecimento)) 
-        : ""
-    );
-    
-    const tipoId = abastecimento.idTipoCombustivel;
-    
-    if (tipoId && tiposCombustivel.length > 0) {
-      const tipoEncontrado = tiposCombustivel.find(
-        tipo => tipo.idTipoCombustivel === tipoId
-      );
-      
-      if (tipoEncontrado) {
-        setTipoCombustivel(tipoEncontrado.idTipoCombustivel!);
-      } else {
-        setTipoCombustivel("");
-      }
-    } else {
-      setTipoCombustivel("");
-    }
+    setFormData(dados);
   };
 
   // Efeito unificado para carregar dados do modal
@@ -110,9 +101,10 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
 
     const carregarDadosModal = async () => {
       setLoading(true);
+      setCarregandoTipos(true);
 
       try {
-        // Carrega apenas tipos de combustível
+        // Carrega tipos de combustível
         const tiposResponse = await TipoCombustivelService.listar();
         setTiposCombustivel(tiposResponse.data);
 
@@ -124,6 +116,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
         onError("Erro ao carregar tipos de combustível.");
       } finally {
         setLoading(false);
+        setCarregandoTipos(false);
       }
     };
 
@@ -132,29 +125,105 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
 
   // Calcula preço final automaticamente
   useEffect(() => {
-    if (quantidade >= 0 && valorUnitario >= 0) {
-      const total = Number((quantidade * valorUnitario).toFixed(2));
-      setValorTotal(total);
+    if (formData.quantidade >= 0 && formData.valorUnitario >= 0) {
+      const total = Number((formData.quantidade * formData.valorUnitario).toFixed(2));
+      setFormData(prev => ({
+        ...prev,
+        valorTotal: total
+      }));
     }
-  }, [quantidade, valorUnitario]);
+  }, [formData.quantidade, formData.valorUnitario]);
 
-  
+  const validarFormulario = (): boolean => {
+    const novosErros: Record<string, string> = {};
+
+    // Validações obrigatórias
+    if (!formData.quantidade || formData.quantidade <= 0) {
+      novosErros.quantidade = 'Litros são obrigatórios e devem ser maiores que zero';
+    }
+
+    if (!formData.valorUnitario || formData.valorUnitario <= 0) {
+      novosErros.valorUnitario = 'Valor unitário é obrigatório';
+    }
+
+    if (!formData.dataAbastecimento) {
+      novosErros.dataAbastecimento = 'Data é obrigatória';
+    }
+
+    if (!formData.tipoCombustivelId) {
+      novosErros.tipoCombustivelId = 'Tipo de combustível é obrigatório';
+    }
+
+    // Validação de data (não pode ser futura)
+    if (formData.dataAbastecimento) {
+      const dataAbastecimento = new Date(formData.dataAbastecimento);
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+
+      if (dataAbastecimento > hoje) {
+        novosErros.dataAbastecimento = 'Data não pode ser futura';
+      }
+    }
+
+    setErrors(novosErros);
+    return Object.keys(novosErros).length === 0;
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    // Limpa erro do campo quando usuário começar a digitar
+    if (errors[name]) {
+      setErrors(prev => {
+        const novosErros = { ...prev };
+        delete novosErros[name];
+        return novosErros;
+      });
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      [name]: name.includes('quantidade') || name.includes('valor') ? Number(value) : value,
+    }));
+  };
+
+  const handleSelectChange = (e: any) => {
+    const { name, value } = e.target;
+
+    // Limpa erro do campo quando usuário selecionar uma opção
+    if (errors[name]) {
+      setErrors(prev => {
+        const novosErros = { ...prev };
+        delete novosErros[name];
+        return novosErros;
+      });
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const handleSalvar = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!abastecimento) return;
 
+    if (!validarFormulario()) {
+      return; // Impede o salvamento se houver erros
+    }
+
     setLoading(true);
     try {
       // Criar a data considerando o fuso horário
-      const dataAbastecimentoUTC = new Date(dataAbastecimento + 'T04:00:00.000Z');
+      const dataAbastecimentoUTC = new Date(formData.dataAbastecimento + 'T04:00:00.000Z');
 
       const dadosAtualizados = {
-        quantidade,
-        valorTotal,
-        valorUnitario,
+        quantidade: formData.quantidade,
+        valorTotal: formData.valorTotal,
+        valorUnitario: formData.valorUnitario,
         dataAbastecimento: dataAbastecimentoUTC,
-        idTipoCombustivel: tipoCombustivel === "" ? undefined : Number(tipoCombustivel),
+        idTipoCombustivel: Number(formData.tipoCombustivelId),
       };
 
       await abastecimentoService.atualizarAbastecimentoPatch(
@@ -162,18 +231,39 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
         dadosAtualizados
       );
 
-      onSuccess("Abastecimento atualizado com sucesso!");
+      setSuccessMessage("Abastecimento atualizado com sucesso!");
+      
+      setTimeout(() => {
+        setSuccessMessage("");
+        onSuccess("Abastecimento atualizado com sucesso!");
+        onClose();
+      }, 1500);
+      
     } catch (error) {
       console.error("Erro ao salvar abastecimento:", error);
-      onError(error);
+      setErrors({
+        submit: "Erro ao atualizar abastecimento. Tente novamente."
+      });
     } finally {
       setLoading(false);
-      onClose();
     }
   };
 
+  const handleClose = () => {
+    setFormData({
+      quantidade: 0,
+      valorTotal: 0,
+      valorUnitario: 0,
+      dataAbastecimento: "",
+      tipoCombustivelId: "",
+    });
+    setErrors({});
+    setSuccessMessage("");
+    onClose();
+  };
+
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal open={open} onClose={handleClose}>
       <Paper sx={modalStyle}>
         {/* Cabeçalho */}
         <Box
@@ -186,10 +276,22 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
             <LocalGasStation color="primary" sx={{ mr: 1 }} />
             <Typography variant="h6">Edição de Abastecimento</Typography>
           </Box>
-          <IconButton onClick={onClose}>
+          <IconButton onClick={handleClose}>
             <Close />
           </IconButton>
         </Box>
+
+        {successMessage && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            {successMessage}
+          </Alert>
+        )}
+
+        {errors.submit && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {errors.submit}
+          </Alert>
+        )}
 
         {/* Conteúdo */}
         <Box component="form" onSubmit={handleSalvar}>
@@ -200,10 +302,13 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
           <Box display="flex" gap={2} flexWrap="wrap" mb={2}>
             <TextField
               label="Litros"
+              name="quantidade"
               type="number"
-              value={quantidade}
-              onChange={(e) => setQuantidade(Number(e.target.value))}
+              value={formData.quantidade}
+              onChange={handleInputChange}
               required
+              error={!!errors.quantidade}
+              helperText={errors.quantidade}
               sx={{ flex: "1 1 200px" }}
               InputProps={{
                 endAdornment: (
@@ -214,9 +319,13 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
             />
             <TextField
               label="Valor Unitário"
+              name="valorUnitario"
               type="number"
-              value={valorUnitario}
-              onChange={(e) => setValorUnitario(Number(e.target.value))}
+              value={formData.valorUnitario}
+              onChange={handleInputChange}
+              required
+              error={!!errors.valorUnitario}
+              helperText={errors.valorUnitario}
               sx={{ flex: "1 1 200px" }}
               InputProps={{
                 startAdornment: (
@@ -228,7 +337,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
             <TextField
               label="Preço Final"
               type="number"
-              value={valorTotal}
+              value={formData.valorTotal}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">R$</InputAdornment>
@@ -242,11 +351,15 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
 
           <TextField
             label="Data de Abastecimento"
+            name="dataAbastecimento"
             type="date"
             fullWidth
             InputLabelProps={{ shrink: true }}
-            value={dataAbastecimento} 
-            onChange={(e) => setdataAbastecimento(e.target.value)}
+            value={formData.dataAbastecimento}
+            onChange={handleInputChange}
+            required
+            error={!!errors.dataAbastecimento}
+            helperText={errors.dataAbastecimento}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -264,15 +377,21 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
           <Typography variant="subtitle1" gutterBottom>
             Tipo de Combustível
           </Typography>
-          <FormControl fullWidth sx={{ mb: 2 }}>
+          <FormControl 
+            fullWidth 
+            required 
+            error={!!errors.tipoCombustivelId}
+            sx={{ mb: 2 }}
+          >
             <InputLabel>Tipo</InputLabel>
             <Select
-              value={tipoCombustivel}
-              onChange={(e) => setTipoCombustivel(Number(e.target.value))}
+              name="tipoCombustivelId"
+              value={formData.tipoCombustivelId}
+              onChange={handleSelectChange}
               label="Tipo"
               disabled={loading}
             >
-              {loading ? (
+              {carregandoTipos ? (
                 <MenuItem disabled>Carregando tipos de combustível...</MenuItem>
               ) : (
                 tiposCombustivel.map((tipo) => (
@@ -285,11 +404,16 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
                 ))
               )}
             </Select>
+            {errors.tipoCombustivelId && (
+              <Typography variant="caption" color="error" sx={{ ml: 2, mt: 0.5, display: 'block' }}>
+                {errors.tipoCombustivelId}
+              </Typography>
+            )}
           </FormControl>
 
           {/* Botões */}
           <Box display="flex" justifyContent="flex-end" gap={1} mt={3}>
-            <Button onClick={onClose} color="inherit" disabled={loading}>
+            <Button onClick={handleClose} color="inherit" disabled={loading}>
               Cancelar
             </Button>
             <Button
