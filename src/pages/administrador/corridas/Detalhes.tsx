@@ -23,8 +23,8 @@ import { buscarPercursosDaCorrida, PercursoDto, removerPercurso } from "../../..
 
 
 import { Add } from "@mui/icons-material";
-import { Abastecimento } from "../../../services/abastecimentoService";
-import AbastecimentoService from "../../../services/abastecimentoService";
+import { Abastecimento } from "../../../services/AbastecimentoService";
+import AbastecimentoService from "../../../services/AbastecimentoService";
 import Menu from "../../../components/Menu";
 import ModalEditarOcorrencia from "./modais/ModalEdicaoOcorrencia";
 import CadastrarOcorrencia from "./modais/ModalCadastroOcorrencia";

@@ -27,6 +27,9 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import axiosConnect from "../services/axios/axiosConnect";
+import { Tooltip } from '@mui/material';
+import ContrastIcon from '@mui/icons-material/Contrast';
+import { useThemeContext } from '../context/ThemeContext';
 
 interface JwtPayload {
   sub: number; 
@@ -53,6 +56,7 @@ interface MotoristaDashboard {
 
 const Menu: React.FC = () => {
   const { isAuthenticated, cpf, logout, administrador, nome, email } = useAuth();
+  const { themeMode, toggleTheme } = useThemeContext();
   const navigate = useNavigate();
   const location = useLocation(); 
   const [showModalDadosPerfil, setShowModalDadosPerfil] = useState(false);
@@ -238,7 +242,7 @@ const Menu: React.FC = () => {
             component={Link}
             to={isAuthenticated ? "/menu" : "/"}
           >
-            FROTAS UNIR
+            SISTEMA FROTAS
           </Typography>
 
           <Box sx={{ 
@@ -255,25 +259,29 @@ const Menu: React.FC = () => {
                 <>
                   {/* Menu para Corrida Ativa */}
                   {hasActiveRide && (
-                    <IconButton 
-                      color="inherit" 
-                      component={Link} 
-                      to="/menu"
-                      title="Corrida em Andamento"
-                      sx={{ 
-                        position: 'relative',
-                        animation: hasActiveRide ? 'pulse 2s infinite' : 'none',
-                        '@keyframes pulse': {
-                          '0%': { opacity: 1 },
-                          '50%': { opacity: 0.6 },
-                          '100%': { opacity: 1 },
-                        }
-                      }}
-                    >
-                      <Badge color="error" variant="dot">
-                        <DirectionsCarIcon />
-                      </Badge>
-                    </IconButton>
+                    <Tooltip title={"Corrida em Andamento"}>
+                      <span>
+                        <IconButton 
+                          color="inherit" 
+                          component={Link} 
+                          to="/menu"
+                          //title="Corrida em Andamento"
+                          sx={{ 
+                            position: 'relative',
+                            animation: hasActiveRide ? 'pulse 2s infinite' : 'none',
+                            '@keyframes pulse': {
+                              '0%': { opacity: 1 },
+                              '50%': { opacity: 0.6 },
+                              '100%': { opacity: 1 },
+                            }
+                          }}
+                        >
+                          <Badge color="error" variant="dot">
+                            <DirectionsCarIcon />
+                          </Badge>
+                        </IconButton>
+                      </span>
+                    </Tooltip>
                   )}
 
                   {administrador === true && (
@@ -430,28 +438,50 @@ const Menu: React.FC = () => {
                 alignItems: 'center'
               }}>
                 {/* Ícone do usuário */}
-                <IconButton 
-                  color="inherit" 
-                  onClick={handleAbrirModalDadosPerfil}
-                  title={nome || "Perfil"}
-                  sx={{ 
-                    p: 1
-                  }}
-                >
-                  <AccountCircleIcon />
-                </IconButton>
-
+                <Tooltip title={"Perfil"}>
+                  <span>
+                    <IconButton 
+                      color="inherit" 
+                      onClick={handleAbrirModalDadosPerfil}
+                      //title={nome || "Perfil"}
+                      sx={{ 
+                        p: 1
+                      }}
+                    >
+                      <AccountCircleIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+                {/* Alternar tema */}
+                <Tooltip title={`Modo ${themeMode === 'dark' ? 'claro' : 'escuro'}`}>
+                  <span>
+                    <IconButton 
+                      color="inherit" 
+                      onClick={toggleTheme}
+                      //title={`Alternar para modo ${themeMode === 'dark' ? 'claro' : 'escuro'}`}
+                      sx={{ 
+                        p: 1
+                      }}
+                    >
+                      <ContrastIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>   
                 {/* Ícone de sair */}
-                <IconButton 
-                  color="inherit" 
-                  onClick={handleLogout}
-                  title="Sair"
-                  sx={{ 
-                    p: 1
-                  }}
-                >
-                  <ExitToAppIcon />
-                </IconButton>
+                <Tooltip title={"Sair"}>   
+                  <span>             
+                    <IconButton 
+                      color="inherit" 
+                      onClick={handleLogout}
+                      //title="Sair"
+                      sx={{ 
+                        p: 1
+                      }}
+                    >
+                      <ExitToAppIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
               </Box>
 
               <Dialog

@@ -31,13 +31,22 @@ axiosConnect.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Limpa o token e outros dados no localStorage
-      localStorage.removeItem("token");
-      localStorage.removeItem("cpf");
-      localStorage.removeItem("administrador");
+      // Verifica se é uma requisição de login (não deve redirecionar)
+      const isLoginRequest = error.config.url?.includes('/auth/login');
+      
+      if (!isLoginRequest) {
+        // Remove dados de autenticação do localStorage
+        localStorage.removeItem("token");
+        localStorage.removeItem("cpf");
+        localStorage.removeItem("administrador");
+        localStorage.removeItem("nome");
+        localStorage.removeItem("email");
 
-      // Redireciona o usuário para a página de login
-      window.location.href = "/";
+        // Verifica se já estamos na página de login para evitar loop
+        if (window.location.pathname !== '/') {
+          window.location.href = "/";
+        }
+      }
     }
 
     // Propaga o erro para tratamento posterior

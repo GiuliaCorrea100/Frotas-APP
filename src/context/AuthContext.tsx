@@ -1,3 +1,4 @@
+// context/AuthContext.tsx - VERSÃO CORRIGIDA
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { decodeToken } from '../utils/jwtDecodeHelper';
 
@@ -24,44 +25,54 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedCpf = localStorage.getItem('cpf');
-    const storedAdministrador = localStorage.getItem('administrador');
-    const storedNome = localStorage.getItem('nome');
-    const storedEmail = localStorage.getItem('email');
+    const initializeAuth = () => {
+      const storedToken = localStorage.getItem('token');
+      const storedCpf = localStorage.getItem('cpf');
+      const storedAdministrador = localStorage.getItem('administrador');
+      const storedNome = localStorage.getItem('nome');
+      const storedEmail = localStorage.getItem('email');
 
-    if (storedToken && storedCpf) {
-      setToken(storedToken);
-      setCpf(storedCpf);
-      setAdministrador(storedAdministrador === "true"); // ✅ Convertendo para boolean
-      setNome(storedNome);
-      setEmail(storedEmail);
-      setIsAuthenticated(true);
-    }
 
-    setIsLoading(false);
-  }, []);
+      if (storedToken && storedCpf) {
+        try {
+          const decodedToken = decodeToken<{ exp: number }>(storedToken);
+          const currentTime = Math.floor(Date.now() / 1000);
+          
+          if (decodedToken && decodedToken.exp > currentTime) {
+            //Converter o valor do administrador
+            const isAdmin = storedAdministrador === 'true';
+            
 
-  useEffect(() => {
-    const checkToken = () => {
-      if (token) {
-        const decodedToken = decodeToken<{ exp: number }>(token);
-        const currentTime = Math.floor(Date.now() / 1000);
-
-        if (!decodedToken || decodedToken.exp < currentTime) {
+            setToken(storedToken);
+            setCpf(storedCpf);
+            setAdministrador(isAdmin);
+            setNome(storedNome);
+            setEmail(storedEmail);
+            setIsAuthenticated(true);
+            
+          } else {
+            console.log('❌ Token expirado');
+            logout();
+          }
+        } catch (error) {
+          console.error('❌ Erro ao decodificar token:', error);
           logout();
         }
+      } else {
+        console.log('❌ Sem token ou CPF no localStorage');
+        setIsAuthenticated(false);
       }
+
+      setIsLoading(false);
     };
 
-    const interval = setInterval(checkToken, 10000);
-    return () => clearInterval(interval);
-  }, [token]);
+    initializeAuth();
+  }, []);
 
   const login = (token: string, cpf: string, administrador: boolean, nome: string, email: string) => {
     localStorage.setItem('token', token);
     localStorage.setItem('cpf', cpf);
-    localStorage.setItem('administrador', String(administrador)); // ✅ Agora salva como string mas sabemos como converter
+    localStorage.setItem('administrador', administrador.toString()); // ← CONVERTE PARA STRING
     localStorage.setItem('nome', nome);
     localStorage.setItem('email', email);
 
@@ -71,6 +82,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     setNome(nome);
     setEmail(email);
     setIsAuthenticated(true);
+    
   };
 
   const logout = () => {
@@ -83,9 +95,22 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     setIsAuthenticated(false);
   };
 
+  if (isLoading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh' 
+      }}>
+        <div>Carregando autenticação...</div>
+      </div>
+    );
+  }
+
   return (
     <AuthContext.Provider value={{ isAuthenticated, login, logout, cpf, token, administrador, nome, email }}>
-      {!isLoading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
