@@ -59,6 +59,8 @@ export default function ListaCorrida() {
   const [showModalEditar, setShowModalEditar] = useState(false);
   const [showModalCancelar, setShowModalCancelar] = useState(false);
 
+  const [mostrarAlertaSenha, setMostrarAlertaSenha] = useState(false);
+
   const [filtroSituacao, setFiltroSituacao] = useState<string>('AGENDADA');
   const [authMode, setAuthMode] = useState<string>('SIGAA');
 
@@ -524,7 +526,10 @@ export default function ListaCorrida() {
                   
                   await CarroService.atualizarSituacaoCarro(selectedCorrida.idCarro, "DISPONIVEL");
 
-                  await atualizarSituacaoCorrida(selectedCorrida.idCorrida, 'FINALIZADA');
+                  if(selectedCorrida.situacao === 'ANDAMENTO'){
+                    await atualizarSituacaoCorrida(selectedCorrida.idCorrida, 'FINALIZADA');
+                  }
+                  
                   
                   const dadosAtualizados = await getCorridas();
                   setCorridas(dadosAtualizados);
