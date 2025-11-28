@@ -1,3 +1,4 @@
+// src/pages/administrador/Relatorios.tsx
 import React, { useState, useEffect, useMemo } from 'react';
 import {
     Box, Typography, Paper, FormControl, InputLabel, Select,
@@ -19,7 +20,7 @@ import { ptBR } from '@mui/x-data-grid/locales';
 import { ValueType } from 'recharts/types/component/DefaultTooltipContent';
 
 // Importe seus serviços
-import AbastecimentoService from "../../services/abastecimentoService";
+import AbastecimentoService from "../../services/AbastecimentoService";
 import { CarroService } from "../../services/CarroService";
 import { getCorridas } from "../../services/CorridaService";
 import { OcorrenciaService } from "../../services/OcorrenciaService";

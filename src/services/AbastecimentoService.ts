@@ -1,3 +1,4 @@
+// /src/services/AbastecimentoService.ts
 import axiosConnect from "./axios/axiosConnect";
 
 // Tipagem padronizada com camelCase

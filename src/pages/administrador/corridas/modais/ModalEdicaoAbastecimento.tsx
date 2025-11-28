@@ -21,8 +21,8 @@ import {
   CalendarToday,
   Close,
 } from "@mui/icons-material";
-import { Abastecimento } from "../../../../services/abastecimentoService";
-import abastecimentoService from "../../../../services/abastecimentoService";
+import { Abastecimento } from "../../../../services/AbastecimentoService";
+import abastecimentoService from "../../../../services/AbastecimentoService";
 import { TipoCombustivel } from "../../../../services/CarroService";
 import { TipoCombustivelService } from "../../../../services/TipoCombustivelService";
 

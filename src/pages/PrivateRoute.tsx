@@ -3,20 +3,17 @@ import { useAuth } from '../context/AuthContext';
 import { Navigate, Outlet } from 'react-router-dom';
 
 type PrivateRouteProps = {
-  requiredPermission?: boolean; // Ex: false = usuário, true = admin
+  requiredPermission?: boolean;
 };
 
-const PrivateRoute = ({ requiredPermission }: PrivateRouteProps) => {
+const PrivateRoute = ({ requiredPermission = false }: PrivateRouteProps) => {
   const { isAuthenticated, administrador } = useAuth();
 
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
 
-  if (
-    requiredPermission !== undefined &&
-    administrador < requiredPermission
-  ) {
+  if (requiredPermission && !administrador) {
     return <Navigate to="/unauthorized" replace />;
   }
 

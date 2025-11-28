@@ -1,7 +1,7 @@
 import '@govbr-ds/core/dist/core.min.css';
 import React from 'react';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
-
+import { CustomThemeProvider } from './context/ThemeContext';
 import PaginaDeLogin from './pages/Login';
 import Menu from './components/Menu';
 import Unauthorized from './pages/Unauthorized';
@@ -16,38 +16,40 @@ import ListaAdministradores from './pages/administrador/Administradores';
 import ListaVeiculos from './pages/administrador/veiculos/ListaVeiculo';
 
 const App: React.FC = () => {
-  return (
-    <AuthProvider>
-    <Router>
-      <Routes>
-        {/* Rota para pagina de login */}
-        {/*rota publica*/}
-        <Route path="/" element={<PaginaDeLogin />} />
+  return (    
+    <CustomThemeProvider>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            {/* Rota para pagina de login */}
+            {/*rota publica*/}
+            <Route path="/" element={<PaginaDeLogin />} />
 
-        {/*rotas de administrador*/}
-        <Route element={<PrivateRoute requiredPermission={true} />}>
-          {/*Paginas de Cadastro*/}
-          <Route path="/Relatorios" element={<Relatorios />} />
-          <Route path="/Multas" element={<ListaMulta />} />
-          <Route path="/Administradores" element={<ListaAdministradores />} />
-          <Route path="/Veiculos" element={<ListaVeiculos />} />
-          <Route path="/Corridas" element={<ListaCorrida />} />
-          <Route path="/DetalhesCorrida/:id" element={< DetalhesRequisicao/>} />
-        </Route>
+            {/*rotas de administrador*/}
+            <Route element={<PrivateRoute requiredPermission={true} />}>
+              {/*Paginas de Cadastro*/}
+              <Route path="/Relatorios" element={<Relatorios />} />
+              <Route path="/Multas" element={<ListaMulta />} />
+              <Route path="/Administradores" element={<ListaAdministradores />} />
+              <Route path="/Veiculos" element={<ListaVeiculos />} />
+              <Route path="/Corridas" element={<ListaCorrida />} />
+              <Route path="/DetalhesCorrida/:id" element={< DetalhesRequisicao/>} />
+            </Route>
 
-        {/* Rotas usuario comum */}
-        <Route path="/HistoricoIndividual" element={<HistoricoIndividual/>} />
+            {/* Rotas usuario comum */}
+            <Route path="/HistoricoIndividual" element={<HistoricoIndividual/>} />
 
-        {/* Rota para acesso negado */}
-        <Route path="/unauthorized" element={<Unauthorized />} />
+            {/* Rota para acesso negado */}
+            <Route path="/unauthorized" element={<Unauthorized />} />
 
-        {/* Rota para o Menu */}
-        <Route path="/menu" element={<Menu />} />
-        
-        
-      </Routes>
-    </Router>
-    </AuthProvider>
+            {/* Rota para o Menu */}
+            <Route path="/menu" element={<Menu />} />
+            
+            
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </CustomThemeProvider>
   );
 }
 
