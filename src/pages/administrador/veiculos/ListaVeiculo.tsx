@@ -319,42 +319,47 @@ export default function ListaVeiculos() {
 
         {/* Filtros por status (Ativos/Inativos) */}
         <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
-            {[
-              { label: 'ATIVOS', value: 'ATIVOS', count: qtdAtivos, color: theme.palette.success.main },
-              { label: 'INATIVOS', value: 'INATIVOS', count: qtdInativos, color: theme.palette.error.main },
-              { label: 'TODOS', value: 'TODOS', count: carros.length, color: theme.palette.text.secondary }
-            ].map((tab) => (
-              <Button
-                key={tab.value}
-                variant={filtroStatus === tab.value ? "contained" : "outlined"}
-                onClick={() => setFiltroStatus(tab.value)}
-                sx={{
-                  textTransform: 'none',
-                  borderRadius: 2,
-                  px: 2,
-                  fontWeight: filtroStatus === tab.value ? 600 : 500,
-                  color: filtroStatus === tab.value ? 'white' : 'text.primary',
-                  bgcolor: filtroStatus === tab.value ? tab.color : 'background.paper',
-                  '&:hover': {
-                    bgcolor: filtroStatus === tab.value
-                      ? theme.palette.primary.dark
-                      : theme.palette.action.hover,
-                  }
-                }}
-              >
-                {tab.label}
-                <Box sx={{
-                  ml: 1,
-                  fontWeight: 600,
-                  backgroundColor: filtroStatus === tab.value ? 'rgba(255,255,255,0.2)' : theme.palette.grey[200],
-                  px: 1,
-                  borderRadius: 12
-                }}>
-                  {tab.count}
-                </Box>
-              </Button>
-            ))}
-          </Box>
+          {[
+            { label: 'ATIVOS', value: 'ATIVOS', count: qtdAtivos, color: theme.palette.success.main },
+            { label: 'INATIVOS', value: 'INATIVOS', count: qtdInativos, color: theme.palette.error.main },
+            { label: 'TODOS', value: 'TODOS', count: carros.length, color: theme.palette.primary.dark }
+          ].map((tab) => (
+            <Button
+              key={tab.value}
+              variant={filtroStatus === tab.value ? "contained" : "outlined"}
+              onClick={() => setFiltroStatus(tab.value)}
+              sx={{
+                textTransform: 'none',
+                borderRadius: 2,
+                px: 2,
+                fontWeight: filtroStatus === tab.value ? 600 : 500,
+                color: filtroStatus === tab.value ? 'white' : 'text.primary',
+                bgcolor: filtroStatus === tab.value ? tab.color : 'background.paper',
+                '&:hover': {
+                  bgcolor: filtroStatus === tab.value
+                    ? theme.palette.primary.dark
+                    : theme.palette.action.hover,
+                }
+              }}
+            >
+              {tab.label}
+              <Box sx={{
+                ml: 1,
+                fontWeight: 600,
+                backgroundColor: filtroStatus === tab.value 
+                  ? 'rgba(255,255,255,0.2)' 
+                  : (theme.palette.mode === 'dark' ? theme.palette.grey[700] : theme.palette.grey[200]),
+                color: filtroStatus === tab.value 
+                  ? 'white' 
+                  : (theme.palette.mode === 'dark' ? theme.palette.grey[100] : theme.palette.text.primary),
+                px: 1,
+                borderRadius: 12
+              }}>
+                {tab.count}
+              </Box>
+            </Button>
+          ))}
+        </Box>
 
         {/* Busca */}
         <Box sx={{ mb: 3 }}>
