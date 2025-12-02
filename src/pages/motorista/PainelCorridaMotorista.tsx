@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-import { atualizarSituacaoCorrida, buscarCorridaPorId } from "../../services/CorridaService";
+import { atualizarSituacaoCorrida, buscarCorridaPorId, getCorridaById } from "../../services/CorridaService";
 import { 
   iniciarPercurso, 
   finalizarPercurso, 
@@ -24,6 +24,7 @@ import ModalPercursos from "./modais/ModalPercursos";
 import AbastecimentoModal from "../administrador/corridas/modais/ModalCadastroAbastecimento";
 import CadastrarOcorrencia from "../administrador/corridas/modais/ModalCadastroOcorrencia";
 import ModalFinalizarPercurso from "./modais/ModalFinalizarPercurso";
+import { CarroService } from "../../services/CarroService";
 
 interface Corrida {
   idCorrida: number;
@@ -244,6 +245,13 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
         odometro_inicial: parseFloat(odometro),
         localOrigem: ultimoDestino
       });
+
+      //atualizando odometro na tabela de veiculos
+      const idCarro = (await getCorridaById(corridaLocal.idCorrida)).idCarro;
+      CarroService.atualizarOdometro(idCarro, Number(odometro));
+      
+
+
       
       if (corridaLocal.situacao === 'AGENDADA') {
         await atualizarSituacaoCorrida(corridaLocal.idCorrida, 'ANDAMENTO');
@@ -280,6 +288,10 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
       await finalizarPercurso(percursoAtual.idPercurso, {
         chegadaOdometro: parseFloat(odometroFinal)
       });
+
+      //atualizando odometro na tabela de veiculos
+      const idCarro = (await getCorridaById(corridaLocal.idCorrida)).idCarro;
+      CarroService.atualizarOdometro(idCarro, Number(odometroFinal));
       
       if (isUltimoPercurso && percursoAtual.localDestino === corridaLocal.localDeSaida) {
         await atualizarSituacaoCorrida(corridaLocal.idCorrida, 'FINALIZADA');

@@ -206,16 +206,13 @@ export default function ListaCorrida() {
     {
       field: 'acoes',
       headerName: 'Ações',
-      width: 450,
-      minWidth: 450,
-      maxWidth: 600,
       flex: 1,
       sortable: false,
       filterable: false,
       renderCell: (params) => {
         const corrida = params.row;
         return (
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'nowrap', overflow: 'visible' }}>
+          <Box sx={{ display: 'flex', gap: 1 }}>
             <Button
               variant="outlined"
               color="warning"
@@ -346,7 +343,7 @@ export default function ListaCorrida() {
           />
         </Box>
 
-        <Box sx={{ width: '100%', height: 600, overflow: 'auto' }}>
+        <Box sx={{ width: '100%', height: 600 }}>
           <DataGrid
             rows={dadosFiltrados}
             columns={columns}
@@ -376,7 +373,7 @@ export default function ListaCorrida() {
               boxShadow: theme.shadows[1],
               borderRadius: 2,
               border: 'none',
-              backgroundColor: theme.palette.background.paper,
+              backgroundColor: theme.palette.background.paper
             }}
             rowSelection={false}
           />
