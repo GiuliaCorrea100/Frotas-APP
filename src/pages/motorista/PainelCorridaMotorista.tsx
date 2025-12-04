@@ -329,6 +329,11 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
         <Typography variant="h5" fontWeight="bold" gutterBottom>
           Corrida:
         </Typography>
+        {!chaveEmprestada && (
+          <Typography variant="body2" fontWeight="bold" gutterBottom sx={{ color: 'red' }}>
+            Retire a chave para liberar a corrida!
+          </Typography>
+        )}
         <Typography
           variant="body2"
           color={
@@ -339,6 +344,8 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
         >
           Situação: {corridaLocal.situacao} 
         </Typography>
+
+        
         
         <ModalPercursos 
           corridaId={corridaLocal.idCorrida} 
