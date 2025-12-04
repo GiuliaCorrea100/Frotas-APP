@@ -7,8 +7,10 @@ import {
   Button,
   CircularProgress,
   Alert,
+  InputAdornment,
 } from '@mui/material';
 import { OcorrenciaService } from '../../../../services/OcorrenciaService';
+import { CalendarToday } from '@mui/icons-material';
 
 interface CadastrarOcorrenciaProps {
   open: boolean;
@@ -24,19 +26,30 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
   open,
   onClose,
   onSuccess,
-  chaveEmprestada,
   onError,
   corrida
 }) => {
   const [descricao, setDescricao] = useState('');
+  const [dataOcorrencia, setDataOcorrencia] = useState<Date | null>(null);
   const [loading, setLoading] = useState(false);
-  const [mostrarAlertaChave, setMostrarAlertaChave] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
   const resetForm = () => {
     setDescricao('');
+    setDataOcorrencia(null);
     setSuccessMessage('');
   };
+
+  // const formatDateForBackend = (date: Date | null): string | null => {
+  //   if (!date) return null;
+    
+  //   // Formata como YYYY-MM-DD (apenas data)
+  //   const year = date.getFullYear();
+  //   const month = String(date.getMonth() + 1).padStart(2, '0');
+  //   const day = String(date.getDate()).padStart(2, '0');
+    
+  //   return `${year}-${month}-${day}`;
+  // };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -46,27 +59,27 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
       return;
     }
 
+    if (!dataOcorrencia) {
+      onError('A data da ocorrência é obrigatória');
+      return;
+    }
+
     setLoading(true);
 
     try {
       const dadosOcorrencia = {
         descricao: descricao.trim(),
         idCorrida: corrida,
-        dataRegistro: new Date(),
+        dataOcorrencia: dataOcorrencia, 
       };
 
       await OcorrenciaService.criar(dadosOcorrencia);
+      console.log(dadosOcorrencia);
       
-      // Exibe a mensagem de sucesso igual ao AbastecimentoModal
       setSuccessMessage('Ocorrência cadastrada com sucesso!');
       
-      // Limpa o formulário
-      setDescricao('');
-      
-      // Chama o onSuccess para notificar o componente pai
       onSuccess('Ocorrência cadastrada com sucesso!');
       
-      // Fecha o modal automaticamente após 1.5 segundos (igual ao AbastecimentoModal)
       setTimeout(() => {
         onClose();
         resetForm();
@@ -111,7 +124,6 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
           Nova Ocorrência
         </Typography>
 
-        {/* Alert de Sucesso - IGUAL AO ABASTECIMENTOMODAL */}
         {successMessage && (
           <Alert severity="success" sx={{ mb: 2 }}>
             {successMessage}
@@ -133,6 +145,33 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
           disabled={!!successMessage || loading}
         />
 
+        <TextField
+          label="Data da ocorrência"
+          type="date"
+          fullWidth
+          value={dataOcorrencia ? dataOcorrencia.toISOString().slice(0, 10) : ""}
+          onChange={(e) => {
+            const selectedDate = e.target.value;
+            if (selectedDate) {
+              // Cria uma data com hora fixa (meia-noite)
+              const date = new Date(selectedDate + 'T00:00:00');
+              setDataOcorrencia(date);
+            } else {
+              setDataOcorrencia(null);
+            }
+          }}
+          InputLabelProps={{ shrink: true }}
+          required
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <CalendarToday fontSize="small" />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ mb: 2 }}
+        />
+
         <Box mt={3} display="flex" justifyContent="flex-end" gap={2}>
           <Button 
             variant="outlined" 
@@ -144,7 +183,7 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
           <Button
             type="submit"
             variant="contained"
-            disabled={loading || !descricao.trim() || !!successMessage}
+            disabled={loading || !descricao.trim() || !dataOcorrencia || !!successMessage}
           >
             {loading ? <CircularProgress size={24} /> : 'Salvar'}
           </Button>
