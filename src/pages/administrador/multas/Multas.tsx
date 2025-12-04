@@ -2,6 +2,7 @@ import { Add, Cancel, Edit } from '@mui/icons-material';
 import {
   Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -13,12 +14,12 @@ import {
   useTheme,
 } from "@mui/material";
 import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import React from 'react';
 import Menu from '../../../components/Menu';
 import { MultaDto, MultaService } from '../../../services/MultaService';
-import EditarMultaModal from './ModalEdicaoMulta';
 import CadastroMultaModal from './ModalCadastroMulta';
+import EditarMultaModal from './ModalEdicaoMulta';
 
 export default function ListaMulta() {
   const theme = useTheme();
@@ -50,7 +51,6 @@ export default function ListaMulta() {
     }
   };
 
-  // Estatísticas para os filtros
   const estatisticas = useMemo(() => {
     return {
       LEVE: multas.filter(m => m.classificacao === 'LEVE').length,
@@ -61,16 +61,13 @@ export default function ListaMulta() {
     };
   }, [multas]);
 
-  // Filtragem dos dados
   const dadosFiltrados = useMemo(() => {
     return multas.filter(multa => {
-      // Filtro por busca
       const matchesSearch = busca === '' || 
         Object.values(multa).some(valor =>
           String(valor).toLowerCase().includes(busca.toLowerCase())
         );
 
-      // Filtro por classificação
       const matchesClassificacao = 
         filtroClassificacao === 'TODOS' || 
         multa.classificacao === filtroClassificacao;
@@ -133,6 +130,17 @@ export default function ListaMulta() {
       )
     },
     { 
+      field: 'motorista',
+      headerName: 'Motorista',
+      flex: 1.5,
+      valueGetter: (params) => {
+        const row = params.row;
+        return row.nomeMotorista || 
+               row.motorista?.nome || 
+               (row.idMotorista ? `Motorista #${row.idMotorista}` : 'Não identificado');
+      }
+    },
+    { 
       field: 'dataInfracao', 
       headerName: 'Data da Infração', 
       flex: 1,
@@ -141,8 +149,42 @@ export default function ListaMulta() {
         return new Date(params.value).toLocaleDateString('pt-BR');
       }
     },
-    { field: 'valorInfracao', headerName: 'Valor', flex: 1 },
-    { field: 'classificacao', headerName: 'Classificação', flex: 2 },
+    { 
+      field: 'valorInfracao', 
+      headerName: 'Valor', 
+      flex: 1,
+      valueFormatter: (params) => {
+        return params.value ? 
+          `R$ ${Number(params.value).toFixed(2).replace('.', ',')}` : 
+          'R$ 0,00';
+      }
+    },
+    { 
+      field: 'classificacao', 
+      headerName: 'Classificação', 
+      flex: 1.5,
+      renderCell: (params) => {
+        const classificacao = params.value || '';
+        let color = 'default';
+        
+        switch(classificacao) {
+          case 'LEVE': color = 'success'; break;
+          case 'MEDIA': color = 'warning'; break;
+          case 'GRAVE': color = 'error'; break;
+          case 'GRAVISSIMA': color = 'error'; break;
+          default: color = 'default';
+        }
+        
+        return (
+          <Chip 
+            label={classificacao}
+            color={color as any}
+            size="small"
+            variant="outlined"
+          />
+        );
+      }
+    },
     { field: 'autoInfracao', headerName: 'Número do auto', flex: 1 },
     {
       field: 'acoes',
@@ -184,7 +226,6 @@ export default function ListaMulta() {
         flexDirection: 'column',
         flex: 1 
       }}>
-        {/* Cabeçalho */}
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Typography variant="h5" fontWeight="bold" color="textPrimary">
             Listagem de Multas
@@ -204,7 +245,6 @@ export default function ListaMulta() {
           </Button>
         </Box>
 
-        {/* Filtros por Classificação */}
         <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
           {[
             { label: 'LEVES', value: 'LEVE', count: estatisticas.LEVE, color: theme.palette.success.main },
@@ -245,7 +285,6 @@ export default function ListaMulta() {
           ))}
         </Box>
 
-        {/* Campo de Busca */}
         <Box sx={{ mb: 3 }}>
           <TextField
             placeholder="Buscar multas..."
@@ -263,7 +302,6 @@ export default function ListaMulta() {
           />
         </Box>
 
-        {/* Tabela */}
         <Box sx={{ width: '100%', height: 600 }}>
           <DataGrid
             rows={dadosFiltrados}
@@ -321,7 +359,6 @@ export default function ListaMulta() {
           />
         </Box>
 
-        {/* Modal de Exclusão */}
         <Dialog
           open={modalExcluirAberto}
           onClose={handleFecharModalExcluirMulta}
@@ -370,7 +407,6 @@ export default function ListaMulta() {
           </DialogActions>
         </Dialog>
 
-        {/* Modais de Cadastro e Edição */}
         <CadastroMultaModal
           open={modalCadastrarAberto}
           onClose={handleFecharModalCadastrarMulta}

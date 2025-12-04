@@ -9,7 +9,14 @@ export interface MultaDto {
   dataInfracao: Date | null;
   autoInfracao: number;
   ativa?: boolean;
-  urlArquivo?: string; // ADICIONE ESTA LINHA!
+  urlArquivo?: string;
+  idMotorista?: number;
+  nomeMotorista?: string;
+  motorista?: {
+    idUsuario?: number;
+    nome?: string;
+    email?: string;
+  };
 }
 
 export interface MultaBackend {
