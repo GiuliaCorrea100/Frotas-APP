@@ -9,6 +9,7 @@ export interface MultaDto {
   dataInfracao: Date | null;
   autoInfracao: number;
   ativa?: boolean;
+  urlArquivo?: string; // ADICIONE ESTA LINHA!
 }
 
 export interface MultaBackend {
@@ -110,6 +111,27 @@ export class MultaService {
       return response.data;
     } catch (error) {
       console.error(`Erro ao baixar arquivo ${fileName}:`, error);
+      throw error;
+    }
+  }
+
+  static async removerArquivoMulta(idMulta: number): Promise<void> {
+    try {
+      await axiosConnect.delete(`/multa/${idMulta}/arquivo`);
+      console.log(`Arquivo da multa ${idMulta} removido com sucesso`);
+    } catch (error) {
+      console.error(`Erro ao remover arquivo da multa ${idMulta}:`, error);
+      throw error;
+    }
+  }
+
+  static async deletarArquivoPorUrl(urlArquivo: string): Promise<void> {
+    try {
+      await axiosConnect.delete('/anexo/remover-por-url', {
+        data: { urlArquivo }
+      });
+    } catch (error) {
+      console.error(`Erro ao deletar arquivo por URL:`, error);
       throw error;
     }
   }

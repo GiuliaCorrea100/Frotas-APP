@@ -49,6 +49,8 @@ const opcoesClassificacao = [
 ];
 
 const allowedExtensions = ["pdf", "jpg", "jpeg", "png", "doc", "docx"];
+const MAX_FILE_SIZE_MB = 50;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
   open,
@@ -81,6 +83,16 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
     }
   }, [open]);
 
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return "0 Bytes";
+    
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
   const validateFileExtension = (file: File): boolean => {
     const extension = file.name.split(".").pop()?.toLowerCase();
     if (!extension || !allowedExtensions.includes(extension)) {
@@ -92,8 +104,8 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
       return false;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setFileError("Arquivo muito grande. Tamanho máximo: 5MB");
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      setFileError(`Arquivo muito grande. Tamanho máximo: ${MAX_FILE_SIZE_MB}MB`);
       return false;
     }
 
@@ -282,7 +294,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
                 },
               }}
             >
-              Anexar Arquivo da Multa
+              Anexar Boleto
               <input
                 type="file"
                 hidden
@@ -314,7 +326,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
                       {arquivoSelecionado.name}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {(arquivoSelecionado.size / 1024).toFixed(2)} KB
+                      {formatFileSize(arquivoSelecionado.size)}
                     </Typography>
                   </Box>
                   <IconButton
@@ -340,7 +352,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
               color="text.secondary"
               sx={{ display: "block", mt: 1 }}
             >
-              Formatos permitidos: PDF, JPG, JPEG, PNG, DOC, DOCX (Máx: 5MB)
+              Formatos permitidos: PDF, JPG, JPEG, PNG, DOC, DOCX (Máx: {MAX_FILE_SIZE_MB}MB)
             </Typography>
           </Box>
 
