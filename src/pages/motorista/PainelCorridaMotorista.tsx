@@ -79,6 +79,9 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
   const [corridaLocal, setCorridaLocal] = useState<Corrida>(corrida);
   const [percursoAtual, setPercursoAtual] = useState<PercursoBackend | null>(null);
   const [percursosAtivosCount, setPercursosAtivosCount] = useState(0);
+  const [idCarro, setIdCarro] = useState<number | null>(null);
+  const [odometroAtual, setOdometroAtual] = useState("null");
+
   
   const [destino, setDestino] = useState("");
   const [odometro, setOdometro] = useState("");
@@ -87,6 +90,8 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
   const [isUltimoPercurso, setIsUltimoPercurso] = useState(false);
 
   const [chaveEmprestada, setChaveEmprestada] = useState(false);
+
+  
 
   useEffect(() => {
     const fetchStatusChave = async () => {
@@ -149,6 +154,36 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
         fetchUltimoDestino();
       }
   }, [modalIniciarOpen, corrida.idCorrida, corrida.localDeSaida, corrida.situacao]);
+
+  useEffect(() => {
+  let isMounted = true;
+
+  const fetchIdCarro = async () => {
+    try {
+      const corridaDetalhada = await getCorridaById(corridaLocal.idCorrida);
+
+      if (!isMounted) return;
+      setIdCarro(corridaDetalhada.idCarro);
+
+      const carroAtual = await CarroService.buscarPorId(corridaDetalhada.idCarro);
+
+      if (!isMounted) return;
+      setOdometroAtual(carroAtual?.odometro ?? 0);
+
+    } catch (error) {
+      console.error("Erro ao buscar dados do carro:", error);
+    }
+  };
+
+  fetchIdCarro();
+
+  return () => {
+    isMounted = false;
+  };
+}, [corridaLocal.idCorrida]);
+
+
+
 
   // Lógica de desabilitação dos botões
   const isIniciarDisabled = isCorridaIniciada;
@@ -247,11 +282,11 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
       });
 
       //atualizando odometro na tabela de veiculos
-      const idCarro = (await getCorridaById(corridaLocal.idCorrida)).idCarro;
-      CarroService.atualizarOdometro(idCarro, Number(odometro));
-      
-
-
+      //const idCarro = (await getCorridaById(corridaLocal.idCorrida)).idCarro;
+      //CarroService.atualizarOdometro(idCarro, Number(odometro));
+      if (idCarro) {
+        CarroService.atualizarOdometro(idCarro, Number(odometro));
+      }
       
       if (corridaLocal.situacao === 'AGENDADA') {
         await atualizarSituacaoCorrida(corridaLocal.idCorrida, 'ANDAMENTO');
@@ -289,9 +324,11 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
         chegadaOdometro: parseFloat(odometroFinal)
       });
 
-      //atualizando odometro na tabela de veiculos
-      const idCarro = (await getCorridaById(corridaLocal.idCorrida)).idCarro;
-      CarroService.atualizarOdometro(idCarro, Number(odometroFinal));
+      // const idCarro = (await getCorridaById(corridaLocal.idCorrida)).idCarro;
+      // CarroService.atualizarOdometro(idCarro, Number(odometroFinal));
+      if (idCarro) {
+        CarroService.atualizarOdometro(idCarro, Number(odometro));
+      }
       
       if (isUltimoPercurso && percursoAtual.localDestino === corridaLocal.localDeSaida) {
         await atualizarSituacaoCorrida(corridaLocal.idCorrida, 'FINALIZADA');
@@ -470,19 +507,18 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
 
       {modalIniciarOpen && (
       <ModalIniciarPercurso
-        open={modalIniciarOpen}
-        onClose={handleCloseIniciarModal}
-        onConfirm={handleIniciarPercurso}
-        destino={destino}
-        setDestino={setDestino}
-        odometro={odometro}
-        setOdometro={setOdometro}
-        ultimoDestino={ultimoDestino}
-        percursosAtivosCount={percursosAtivosCount}
-        chaveEmprestada={chaveEmprestada}
-        isUltimoPercurso={isUltimoPercurso}
-        localOrigemCorrida={corridaLocal.localDeSaida || ""}
-      />
+          open={modalIniciarOpen}
+          onClose={handleCloseIniciarModal}
+          onConfirm={handleIniciarPercurso}
+          destino={destino}
+          setDestino={setDestino}
+          odometro={odometro}
+          setOdometro={setOdometro}
+          ultimoDestino={ultimoDestino}
+          percursosAtivosCount={percursosAtivosCount}
+          chaveEmprestada={chaveEmprestada}
+          isUltimoPercurso={isUltimoPercurso}
+          localOrigemCorrida={corridaLocal.localDeSaida || ""} odometroAtual={odometroAtual}      />
       )}
 
       {modalFinalizarOpen && (

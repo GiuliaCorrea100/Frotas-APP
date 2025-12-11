@@ -29,7 +29,6 @@ const formatDate = (dateString: string | null) => {
   if (!dateString) return 'Em andamento';
   try {
     const date = new Date(dateString);
-    
     if (isNaN(date.getTime())) {
       return 'Data inválida';
     }
