@@ -45,6 +45,7 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
   onConfirmacaoUltimoPercurso 
 }) => {
   const [mostrarAlertaChave, setMostrarAlertaChave] = useState(false);
+  const [mostrarAlertaOdometro, setostrarAlertaOdometro] = useState(false);
   const [confirmacaoUltimoPercurso, setConfirmacaoUltimoPercurso] = useState(false);
 
   
@@ -62,6 +63,11 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
       setMostrarAlertaChave(true);
       return;
     }
+    
+    if(odometroAtual>=odometro){
+      setostrarAlertaOdometro(true);
+      return;
+    }
 
     
     
@@ -75,6 +81,7 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
   const handleClose = () => {
     setMostrarAlertaChave(false);
     setConfirmacaoUltimoPercurso(false);
+    setostrarAlertaOdometro(false);
     onClose();
   };
 
@@ -106,6 +113,12 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
           {mostrarAlertaChave && (
             <Typography variant="body2" color="error" sx={{ mb: 2, fontWeight: 'bold' }}>
               Você precisa pegar a chave para iniciar este percurso!
+            </Typography>
+          )}
+
+          {mostrarAlertaOdometro && (
+            <Typography variant="body2" color="error" sx={{ mb: 2, fontWeight: 'bold' }}>
+              Odometro inválido! Valor menor que o regsitrado pro veículo
             </Typography>
           )}
 

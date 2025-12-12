@@ -168,6 +168,7 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
       const carroAtual = await CarroService.buscarPorId(corridaDetalhada.idCarro);
 
       if (!isMounted) return;
+      console.log('uai', carroAtual.odometro);
       setOdometroAtual(carroAtual?.odometro ?? 0);
 
     } catch (error) {
@@ -324,10 +325,8 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
         chegadaOdometro: parseFloat(odometroFinal)
       });
 
-      // const idCarro = (await getCorridaById(corridaLocal.idCorrida)).idCarro;
-      // CarroService.atualizarOdometro(idCarro, Number(odometroFinal));
       if (idCarro) {
-        CarroService.atualizarOdometro(idCarro, Number(odometro));
+        await CarroService.atualizarOdometro(idCarro, Number(odometroFinal));
       }
       
       if (isUltimoPercurso && percursoAtual.localDestino === corridaLocal.localDeSaida) {
