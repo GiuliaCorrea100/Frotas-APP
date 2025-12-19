@@ -19,6 +19,7 @@ interface ModalIniciarPercursoProps {
   setDestino: (value: string) => void;
   odometro: string;
   setOdometro: (value: string) => void;
+  odometroAtual: String;
   ultimoDestino: string;
   percursosAtivosCount?: number;
   chaveEmprestada: boolean;
@@ -34,6 +35,7 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
   destino,
   setDestino,
   odometro,
+  odometroAtual,
   setOdometro,
   ultimoDestino,
   percursosAtivosCount = 0,
@@ -43,12 +45,16 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
   onConfirmacaoUltimoPercurso 
 }) => {
   const [mostrarAlertaChave, setMostrarAlertaChave] = useState(false);
+  const [mostrarAlertaOdometro, setostrarAlertaOdometro] = useState(false);
   const [confirmacaoUltimoPercurso, setConfirmacaoUltimoPercurso] = useState(false);
+
+  
 
   useEffect(() => {
     if (isUltimoPercurso && open) {
       setConfirmacaoUltimoPercurso(true);
       setDestino(localOrigemCorrida);
+      
     }
   }, [isUltimoPercurso, open, localOrigemCorrida, setDestino]);
 
@@ -57,6 +63,13 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
       setMostrarAlertaChave(true);
       return;
     }
+    
+    if(odometroAtual>=odometro){
+      setostrarAlertaOdometro(true);
+      return;
+    }
+
+    
     
     if (isUltimoPercurso && !confirmacaoUltimoPercurso && onConfirmacaoUltimoPercurso) {
       onConfirmacaoUltimoPercurso();
@@ -68,6 +81,7 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
   const handleClose = () => {
     setMostrarAlertaChave(false);
     setConfirmacaoUltimoPercurso(false);
+    setostrarAlertaOdometro(false);
     onClose();
   };
 
@@ -102,6 +116,12 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
             </Typography>
           )}
 
+          {mostrarAlertaOdometro && (
+            <Typography variant="body2" color="error" sx={{ mb: 2, fontWeight: 'bold' }}>
+              Odometro inválido! Valor menor que o registrado para o veículo
+            </Typography>
+          )}
+
           <TextField
             label="Local de Saída"
             value={ultimoDestino || "Não informado"}
@@ -133,6 +153,8 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
             fullWidth
             type="number"
             inputProps={{ min: 0 }}
+            helperText={`Odômetro atual: ${odometroAtual || 0}`}
+
           />
         </Box>
       </DialogContent>
