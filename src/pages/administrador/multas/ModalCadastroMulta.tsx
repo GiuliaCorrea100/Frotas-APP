@@ -1,51 +1,51 @@
 import React, { useEffect, useState } from "react";
 import {
-  Modal,
-  Box,
-  Typography,
-  Button,
-  TextField,
-  InputAdornment,
-  CircularProgress,
-  Paper,
-  IconButton,
-  MenuItem,
+  Modal,
+  Box,
+  Typography,
+  Button,
+  TextField,
+  InputAdornment,
+  CircularProgress,
+  Paper,
+  IconButton,
+  MenuItem,
 } from "@mui/material";
 import {
-  LocalGasStation,
-  CalendarToday,
-  Close,
-  AttachFile as AttachFileIcon,
+  LocalGasStation,
+  CalendarToday,
+  Close,
+  AttachFile as AttachFileIcon,
 } from "@mui/icons-material";
 import { MultaService } from '../../../services/MultaService';
 
 interface CadastrarModalProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess: (message: string) => void;
-  onError: (error: any) => void;
+  open: boolean;
+  onClose: () => void;
+  onSuccess: (message: string) => void;
+  onError: (error: any) => void;
 }
 
 const modalStyle = {
-  position: "absolute" as const,
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "90%",
-  maxWidth: 700,
-  maxHeight: "90vh",
-  overflow: "auto",
-  bgcolor: "background.paper",
-  boxShadow: 24,
-  p: 4,
-  borderRadius: 2,
+  position: "absolute" as const,
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "90%",
+  maxWidth: 700,
+  maxHeight: "90vh",
+  overflow: "auto",
+  bgcolor: "background.paper",
+  boxShadow: 24,
+  p: 4,
+  borderRadius: 2,
 };
 
 const opcoesClassificacao = [
-  { value: "LEVE", label: "LEVE" },
-  { value: "MEDIA", label: "MÉDIA" },
-  { value: "GRAVE", label: "GRAVE" },
-  { value: "GRAVISSIMA", label: "GRAVÍSSIMA" },
+  { value: "LEVE", label: "LEVE" },
+  { value: "MEDIA", label: "MÉDIA" },
+  { value: "GRAVE", label: "GRAVE" },
+  { value: "GRAVISSIMA", label: "GRAVÍSSIMA" },
 ];
 
 const allowedExtensions = ["pdf", "jpg", "jpeg", "png", "doc", "docx"];
@@ -53,10 +53,10 @@ const MAX_FILE_SIZE_MB = 50;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
-  open,
-  onClose,
-  onSuccess,
-  onError,
+  open,
+  onClose,
+  onSuccess,
+  onError,
 }) => {
   const [codigoInfracao, setCodigoInfracao] = useState<number>(0);
   const [classificacao, setClassificacao] = useState("");
