@@ -14,6 +14,7 @@ import HistoricoIndividual from './pages/motorista/HistoricoIndividual';
 import ListaMulta from './pages/administrador/multas/Multas';
 import ListaAdministradores from './pages/administrador/Administradores';
 import ListaVeiculos from './pages/administrador/veiculos/ListaVeiculo';
+import Boletos from './components/Boletos';
 
 const App: React.FC = () => {
   return (    
@@ -38,6 +39,7 @@ const App: React.FC = () => {
 
             {/* Rotas usuario comum */}
             <Route path="/HistoricoIndividual" element={<HistoricoIndividual/>} />
+            <Route path="/boletos" element={<Boletos />} />
 
             {/* Rota para acesso negado */}
             <Route path="/unauthorized" element={<Unauthorized />} />

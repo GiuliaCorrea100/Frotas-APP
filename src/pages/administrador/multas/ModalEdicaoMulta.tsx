@@ -12,6 +12,7 @@ import {
   MenuItem,
   Chip,
   Alert,
+  Divider,
 } from "@mui/material";
 import {
   LocalGasStation,
@@ -20,6 +21,7 @@ import {
   AttachFile,
   Download,
   Delete,
+  Person,
 } from "@mui/icons-material";
 import { MultaDto, MultaService } from "../../../services/MultaService";
 
@@ -101,13 +103,29 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-    } catch (error) {
+    } catch {
       onError("Erro ao baixar arquivo");
     }
   };
 
-  const handleRemoverArquivoAtual = () => {
-    setArquivoAtual(null);
+  const handleRemoverArquivoAtual = async () => {
+    if (!multa?.idMulta || !arquivoAtual) return;
+
+    try {
+      setLoading(true);
+      await MultaService.removerArquivoMulta(multa.idMulta);
+      setArquivoAtual(null);
+
+      if (multa) {
+        (multa as any).urlArquivo = null;
+      }
+
+      onSuccess("Arquivo removido com sucesso");
+    } catch {
+      onError("Erro ao remover arquivo");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -152,8 +170,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
         const formData = new FormData();
         formData.append("arquivo", arquivo);
         try {
-          console.log("Arquivo atualizado com sucesso");
-        } catch (e) {
+          await MultaService.atualizarArquivoMulta(multa?.idMulta!, formData);
         } finally {
           setUploading(false);
         }
@@ -168,9 +185,17 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
     }
   };
 
+  const getNomeMotorista = () => {
+    if (!multa) return "Não identificado";
+    
+    return multa.nomeMotorista || 
+           multa.motorista?.nome || 
+           (multa.idMotorista ? `Motorista #${multa.idMotorista}` : "Não identificado");
+  };
+
   return (
     <Modal open={open} onClose={onClose}>
-      <Paper sx={modalStyle}>
+      <Paper sx={modalStyle} onClick={(e) => e.stopPropagation()}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Box display="flex" alignItems="center">
             <LocalGasStation color="primary" sx={{ mr: 1 }} />
@@ -182,6 +207,35 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
             <Close />
           </IconButton>
         </Box>
+
+        <Box sx={{ mb: 3, p: 2, backgroundColor: 'grey.50', borderRadius: 1 }}>
+          <Box display="flex" alignItems="center" mb={1}>
+            <Person color="primary" sx={{ mr: 1, fontSize: 20 }} />
+            <Typography variant="subtitle2" fontWeight="bold">
+              Motorista Responsável
+            </Typography>
+          </Box>
+          
+          <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Typography variant="body1" fontWeight="medium">
+              {getNomeMotorista()}
+            </Typography>
+          </Box>
+          
+          {multa?.motorista?.email && (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              Email: {multa.motorista.email}
+            </Typography>
+          )}
+          
+          {!multa?.idMotorista && (
+            <Alert severity="warning" sx={{ mt: 1 }}>
+              Não foi possível identificar o motorista responsável para esta infração.
+            </Alert>
+          )}
+        </Box>
+
+        <Divider sx={{ mb: 3 }} />
 
         <Box component="form" onSubmit={handleSubmit} display="flex" flexWrap="wrap" gap={2}>
           <TextField
@@ -261,7 +315,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
 
           <Box sx={{ flex: "1 1 100%", mt: 2 }}>
             <Typography variant="subtitle1" fontWeight="bold" mb={1}>
-              Arquivo Anexado
+              Boleto Anexado
             </Typography>
 
             {arquivoAtual ? (
@@ -281,35 +335,34 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
               </Box>
             ) : (
               <Alert severity="info" sx={{ mb: 2 }}>
-                Nenhum arquivo anexado a esta multa.
+                Nenhum boleto anexado a esta multa.
               </Alert>
             )}
 
-            <Box>
-              <Typography variant="body2" fontWeight="medium" mb={1}>
-                {arquivoAtual ? "Substituir arquivo" : "Anexar arquivo"}
-              </Typography>
-              <Button
-                variant="outlined"
-                component="label"
-                startIcon={<AttachFile />}
-                size="small"
-              >
-                Selecionar Arquivo
-                <input
-                  type="file"
-                  hidden
-                  onChange={handleFileChange}
-                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                />
-              </Button>
+            <Typography variant="body2" fontWeight="medium" mb={1}>
+              {arquivoAtual ? "Substituir boleto" : "Anexar boleto"}
+            </Typography>
 
-              {arquivo && (
-                <Typography variant="body2" sx={{ mt: 1, color: "success.main" }}>
-                  Novo arquivo selecionado: {arquivo.name}
-                </Typography>
-              )}
-            </Box>
+            <Button
+              variant="outlined"
+              component="label"
+              startIcon={<AttachFile />}
+              size="small"
+            >
+              Selecionar boleto
+              <input
+                type="file"
+                hidden
+                onChange={handleFileChange}
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+              />
+            </Button>
+
+            {arquivo && (
+              <Typography variant="body2" sx={{ mt: 1, color: "success.main" }}>
+                Novo boleto selecionado: {arquivo.name}
+              </Typography>
+            )}
           </Box>
 
           <Box display="flex" justifyContent="flex-end" gap={1} mt={3} sx={{ flex: "1 1 100%" }}>
