@@ -206,7 +206,6 @@ const Menu: React.FC = () => {
     );
   };
 
-  // Verifica se há corrida em andamento ou agendada para hoje
   const hasActiveRide = dashboardData?.corridaDeHoje && 
     (dashboardData.corridaDeHoje.situacao === 'ANDAMENTO' || 
     dashboardData.corridaDeHoje.situacao === 'AGENDADA');
@@ -257,7 +256,6 @@ const Menu: React.FC = () => {
             <>
               {!isMobile && (
                 <>
-                  {/* Menu para Corrida Ativa */}
                   {hasActiveRide && (
                     <Tooltip title={"Corrida em Andamento"}>
                       <span>
@@ -265,7 +263,6 @@ const Menu: React.FC = () => {
                           color="inherit" 
                           component={Link} 
                           to="/menu"
-                          //title="Corrida em Andamento"
                           sx={{ 
                             position: 'relative',
                             animation: hasActiveRide ? 'pulse 2s infinite' : 'none',
@@ -333,6 +330,15 @@ const Menu: React.FC = () => {
                   <Button 
                     color="inherit" 
                     component={Link} 
+                    to="/Boletos"
+                    sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
+                  >
+                    Boletos
+                  </Button>
+
+                  <Button 
+                    color="inherit" 
+                    component={Link} 
                     to="/HistoricoIndividual"
                     sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
                   >
@@ -356,7 +362,6 @@ const Menu: React.FC = () => {
                 }}
               >
                 <>
-                  {/* Item de Corrida em Andamento no menu mobile */}
                   {hasActiveRide && (
                     <DropdownItem 
                       component={Link} 
@@ -413,6 +418,15 @@ const Menu: React.FC = () => {
 
                   <DropdownItem 
                     component={Link} 
+                    to="/Boletos"
+                    onClick={() => setShowMobileMenu(false)}
+                    sx={{ fontSize: '0.9rem', py: 1 }}
+                  >
+                    Boletos
+                  </DropdownItem>
+
+                  <DropdownItem 
+                    component={Link} 
                     to="/HistoricoIndividual"
                     onClick={() => setShowMobileMenu(false)}
                     sx={{ fontSize: '0.9rem', py: 1 }}
@@ -437,13 +451,11 @@ const Menu: React.FC = () => {
                 flexWrap: 'nowrap',
                 alignItems: 'center'
               }}>
-                {/* Ícone do usuário */}
                 <Tooltip title={"Perfil"}>
                   <span>
                     <IconButton 
                       color="inherit" 
                       onClick={handleAbrirModalDadosPerfil}
-                      //title={nome || "Perfil"}
                       sx={{ 
                         p: 1
                       }}
@@ -452,13 +464,11 @@ const Menu: React.FC = () => {
                     </IconButton>
                   </span>
                 </Tooltip>
-                {/* Alternar tema */}
                 <Tooltip title={`Modo ${themeMode === 'dark' ? 'claro' : 'escuro'}`}>
                   <span>
                     <IconButton 
                       color="inherit" 
                       onClick={toggleTheme}
-                      //title={`Alternar para modo ${themeMode === 'dark' ? 'claro' : 'escuro'}`}
                       sx={{ 
                         p: 1
                       }}
@@ -467,13 +477,11 @@ const Menu: React.FC = () => {
                     </IconButton>
                   </span>
                 </Tooltip>   
-                {/* Ícone de sair */}
                 <Tooltip title={"Sair"}>   
                   <span>             
                     <IconButton 
                       color="inherit" 
                       onClick={handleLogout}
-                      //title="Sair"
                       sx={{ 
                         p: 1
                       }}
