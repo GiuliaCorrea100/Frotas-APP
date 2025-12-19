@@ -4,7 +4,8 @@ export interface OcorrenciaDto {
   idOcorrencia: number;
   descricao: string;
   idCorrida: number;
-  dataRegistro: String;
+  //dataRegistro: String;
+  dataOcorrencia: Date;
   ativa?: boolean;
 }
 
@@ -12,7 +13,8 @@ interface OcorrenciaBackend {
   idOcorrencia?: number;
   descricao: string;
   idCorrida: number;
-  dataRegistro: Date;
+  dataOcorrencia: Date;
+  //dataRegistro: Date;
   ativa?: boolean;
 }
 
