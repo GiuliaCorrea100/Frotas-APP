@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -28,6 +28,13 @@ const ModalFinalizarPercurso: React.FC<ModalFinalizarPercursoProps> = ({
   setOdometroFinal,
   percursoAtual
 }) => {
+   const [mostrarAlertaOdometro, setostrarAlertaOdometro] = useState(false);
+
+   const handleClose = () => {
+    setostrarAlertaOdometro(false);
+    onClose();
+  };
+   
   return (
     <Dialog open={open} onClose={onClose} fullWidth>
       <DialogTitle>
@@ -37,6 +44,11 @@ const ModalFinalizarPercurso: React.FC<ModalFinalizarPercursoProps> = ({
       </DialogTitle>
       <DialogContent>
         <Box sx={{ mt: 2 }}>
+          {mostrarAlertaOdometro && (
+            <Typography variant="body2" color="error" sx={{ mb: 2, fontWeight: 'bold' }}>
+              Odometro inválido! Valor menor que o registrado para o veículo
+            </Typography>
+          )}
           <Typography variant="body1" sx={{ mb: 2 }}>
             <strong>Fim do percurso em:</strong> {percursoAtual?.localDestino || "Destino não encontrado"}
           </Typography>

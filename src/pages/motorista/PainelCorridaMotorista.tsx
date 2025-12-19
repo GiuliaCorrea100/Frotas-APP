@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-import { atualizarSituacaoCorrida, buscarCorridaPorId } from "../../services/CorridaService";
+import { atualizarSituacaoCorrida, buscarCorridaPorId, getCorridaById } from "../../services/CorridaService";
 import { 
   iniciarPercurso, 
   finalizarPercurso, 
@@ -24,6 +24,7 @@ import ModalPercursos from "./modais/ModalPercursos";
 import AbastecimentoModal from "../administrador/corridas/modais/ModalCadastroAbastecimento";
 import CadastrarOcorrencia from "../administrador/corridas/modais/ModalCadastroOcorrencia";
 import ModalFinalizarPercurso from "./modais/ModalFinalizarPercurso";
+import { CarroService } from "../../services/CarroService";
 
 interface Corrida {
   idCorrida: number;
@@ -78,6 +79,9 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
   const [corridaLocal, setCorridaLocal] = useState<Corrida>(corrida);
   const [percursoAtual, setPercursoAtual] = useState<PercursoBackend | null>(null);
   const [percursosAtivosCount, setPercursosAtivosCount] = useState(0);
+  const [idCarro, setIdCarro] = useState<number | null>(null);
+  const [odometroAtual, setOdometroAtual] = useState("null");
+
   
   const [destino, setDestino] = useState("");
   const [odometro, setOdometro] = useState("");
@@ -86,6 +90,8 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
   const [isUltimoPercurso, setIsUltimoPercurso] = useState(false);
 
   const [chaveEmprestada, setChaveEmprestada] = useState(false);
+
+  
 
   useEffect(() => {
     const fetchStatusChave = async () => {
@@ -148,6 +154,37 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
         fetchUltimoDestino();
       }
   }, [modalIniciarOpen, corrida.idCorrida, corrida.localDeSaida, corrida.situacao]);
+
+  useEffect(() => {
+  let isMounted = true;
+
+  const fetchIdCarro = async () => {
+    try {
+      const corridaDetalhada = await getCorridaById(corridaLocal.idCorrida);
+
+      if (!isMounted) return;
+      setIdCarro(corridaDetalhada.idCarro);
+
+      const carroAtual = await CarroService.buscarPorId(corridaDetalhada.idCarro);
+
+      if (!isMounted) return;
+      console.log('uai', carroAtual.odometro);
+      setOdometroAtual(carroAtual?.odometro ?? 0);
+
+    } catch (error) {
+      console.error("Erro ao buscar dados do carro:", error);
+    }
+  };
+
+  fetchIdCarro();
+
+  return () => {
+    isMounted = false;
+  };
+}, [corridaLocal.idCorrida]);
+
+
+
 
   // Lógica de desabilitação dos botões
   const isIniciarDisabled = isCorridaIniciada;
@@ -244,6 +281,13 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
         odometro_inicial: parseFloat(odometro),
         localOrigem: ultimoDestino
       });
+
+      //atualizando odometro na tabela de veiculos
+      //const idCarro = (await getCorridaById(corridaLocal.idCorrida)).idCarro;
+      //CarroService.atualizarOdometro(idCarro, Number(odometro));
+      if (idCarro) {
+        CarroService.atualizarOdometro(idCarro, Number(odometro));
+      }
       
       if (corridaLocal.situacao === 'AGENDADA') {
         await atualizarSituacaoCorrida(corridaLocal.idCorrida, 'ANDAMENTO');
@@ -280,6 +324,10 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
       await finalizarPercurso(percursoAtual.idPercurso, {
         chegadaOdometro: parseFloat(odometroFinal)
       });
+
+      if (idCarro) {
+        await CarroService.atualizarOdometro(idCarro, Number(odometroFinal));
+      }
       
       if (isUltimoPercurso && percursoAtual.localDestino === corridaLocal.localDeSaida) {
         await atualizarSituacaoCorrida(corridaLocal.idCorrida, 'FINALIZADA');
@@ -317,6 +365,11 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
         <Typography variant="h5" fontWeight="bold" gutterBottom>
           Corrida:
         </Typography>
+        {!chaveEmprestada && (
+          <Typography variant="body2" fontWeight="bold" gutterBottom sx={{ color: 'red' }}>
+            Retire a chave para liberar a corrida!
+          </Typography>
+        )}
         <Typography
           variant="body2"
           color={
@@ -327,6 +380,8 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
         >
           Situação: {corridaLocal.situacao} 
         </Typography>
+
+        
         
         <ModalPercursos 
           corridaId={corridaLocal.idCorrida} 
@@ -451,19 +506,18 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
 
       {modalIniciarOpen && (
       <ModalIniciarPercurso
-        open={modalIniciarOpen}
-        onClose={handleCloseIniciarModal}
-        onConfirm={handleIniciarPercurso}
-        destino={destino}
-        setDestino={setDestino}
-        odometro={odometro}
-        setOdometro={setOdometro}
-        ultimoDestino={ultimoDestino}
-        percursosAtivosCount={percursosAtivosCount}
-        chaveEmprestada={chaveEmprestada}
-        isUltimoPercurso={isUltimoPercurso}
-        localOrigemCorrida={corridaLocal.localDeSaida || ""}
-      />
+          open={modalIniciarOpen}
+          onClose={handleCloseIniciarModal}
+          onConfirm={handleIniciarPercurso}
+          destino={destino}
+          setDestino={setDestino}
+          odometro={odometro}
+          setOdometro={setOdometro}
+          ultimoDestino={ultimoDestino}
+          percursosAtivosCount={percursosAtivosCount}
+          chaveEmprestada={chaveEmprestada}
+          isUltimoPercurso={isUltimoPercurso}
+          localOrigemCorrida={corridaLocal.localDeSaida || ""} odometroAtual={odometroAtual}      />
       )}
 
       {modalFinalizarOpen && (

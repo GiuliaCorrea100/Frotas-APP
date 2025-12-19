@@ -145,6 +145,14 @@ const DetalhesRequisicao: React.FC = () => {
       renderCell: (params) => <Typography>{params.value}</Typography>,
     },
     {
+      field: "dataOcorrencia",
+      headerName: "Data",
+      flex: 1,
+      renderCell: (params) => (
+        <Typography>{formatDate(params.value)}</Typography>
+      ),
+    },
+    {
       field: "acoes",
       headerName: "Ações",
       flex: 1,
