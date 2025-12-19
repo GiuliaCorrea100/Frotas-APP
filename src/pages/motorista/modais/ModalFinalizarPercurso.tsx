@@ -46,7 +46,7 @@ const ModalFinalizarPercurso: React.FC<ModalFinalizarPercursoProps> = ({
         <Box sx={{ mt: 2 }}>
           {mostrarAlertaOdometro && (
             <Typography variant="body2" color="error" sx={{ mb: 2, fontWeight: 'bold' }}>
-              Odometro inválido! Valor menor que o regsitrado pro veículo
+              Odometro inválido! Valor menor que o registrado para o veículo
             </Typography>
           )}
           <Typography variant="body1" sx={{ mb: 2 }}>

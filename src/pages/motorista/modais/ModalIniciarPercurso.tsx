@@ -118,7 +118,7 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
 
           {mostrarAlertaOdometro && (
             <Typography variant="body2" color="error" sx={{ mb: 2, fontWeight: 'bold' }}>
-              Odometro inválido! Valor menor que o regsitrado pro veículo
+              Odometro inválido! Valor menor que o registrado para o veículo
             </Typography>
           )}
 
