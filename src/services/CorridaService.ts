@@ -177,7 +177,6 @@ export class CorridaService {
   static async cancelarCorrida(idCorrida: number): Promise<void> {
     try {
       await axiosConnect.patch(`/corrida/cancelar/${idCorrida}`);
-      console.log("corrida cancelada com sucesso - APP");
     } catch (error) {
       console.error("Erro ao cancelar corrida", error);
       throw error;
