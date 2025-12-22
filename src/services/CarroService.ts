@@ -79,7 +79,6 @@ export class CarroService {
   static async atualizarOdometro(idCarro: number, odometro: number){
     try {
       const response = await axiosConnect.patch(`/carro/atualizar-odometro/${idCarro}`, { odometro });
-      console.log("odometro atualizado com sucesso");
       return response.data;
     } catch (error) {
       console.error('Erro ao atualizar odometro do carro:', error);

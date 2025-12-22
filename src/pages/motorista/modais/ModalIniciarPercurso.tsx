@@ -45,7 +45,7 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
   onConfirmacaoUltimoPercurso 
 }) => {
   const [mostrarAlertaChave, setMostrarAlertaChave] = useState(false);
-  const [mostrarAlertaOdometro, setostrarAlertaOdometro] = useState(false);
+  const [mostrarAlertaOdometro, setMostrarAlertaOdometro] = useState(false);
   const [confirmacaoUltimoPercurso, setConfirmacaoUltimoPercurso] = useState(false);
 
   
@@ -64,12 +64,10 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
       return;
     }
     
-    if(odometroAtual>=odometro){
-      setostrarAlertaOdometro(true);
+    if (Number(odometroAtual) > Number(odometro)) {
+      setMostrarAlertaOdometro(true);
       return;
     }
-
-    
     
     if (isUltimoPercurso && !confirmacaoUltimoPercurso && onConfirmacaoUltimoPercurso) {
       onConfirmacaoUltimoPercurso();
@@ -81,7 +79,7 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
   const handleClose = () => {
     setMostrarAlertaChave(false);
     setConfirmacaoUltimoPercurso(false);
-    setostrarAlertaOdometro(false);
+    setMostrarAlertaOdometro(false);
     onClose();
   };
 
@@ -153,7 +151,7 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
             fullWidth
             type="number"
             inputProps={{ min: 0 }}
-            helperText={`Odômetro atual: ${odometroAtual || 0}`}
+            helperText={`Odômetro atual: ${Number(odometroAtual || 0).toLocaleString()}`}
 
           />
         </Box>

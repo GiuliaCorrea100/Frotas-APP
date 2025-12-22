@@ -80,7 +80,7 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
   const [percursoAtual, setPercursoAtual] = useState<PercursoBackend | null>(null);
   const [percursosAtivosCount, setPercursosAtivosCount] = useState(0);
   const [idCarro, setIdCarro] = useState<number | null>(null);
-  const [odometroAtual, setOdometroAtual] = useState("null");
+  const [odometroAtual, setOdometroAtual] = useState<string>("0");
 
   
   const [destino, setDestino] = useState("");
@@ -158,25 +158,28 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
   useEffect(() => {
   let isMounted = true;
 
-  const fetchIdCarro = async () => {
+  const fetchDadosVeiculo  = async () => {
     try {
       const corridaDetalhada = await getCorridaById(corridaLocal.idCorrida);
 
       if (!isMounted) return;
-      setIdCarro(corridaDetalhada.idCarro);
 
-      const carroAtual = await CarroService.buscarPorId(corridaDetalhada.idCarro);
-
-      if (!isMounted) return;
-      console.log('uai', carroAtual.odometro);
-      setOdometroAtual(carroAtual?.odometro ?? 0);
+      if (corridaDetalhada.idCarro) {
+        const carro = await CarroService.buscarPorId(corridaDetalhada.idCarro);
+        
+        if (!isMounted) return;
+        
+        const novoOdometro = carro?.odometro?.toString() || "0";
+        setIdCarro(corridaDetalhada.idCarro);
+        setOdometroAtual(novoOdometro);
+      }
 
     } catch (error) {
       console.error("Erro ao buscar dados do carro:", error);
     }
   };
 
-  fetchIdCarro();
+  fetchDadosVeiculo();
 
   return () => {
     isMounted = false;
@@ -328,6 +331,8 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
       if (idCarro) {
         await CarroService.atualizarOdometro(idCarro, Number(odometroFinal));
       }
+
+      setOdometroAtual(odometroFinal);
       
       if (isUltimoPercurso && percursoAtual.localDestino === corridaLocal.localDeSaida) {
         await atualizarSituacaoCorrida(corridaLocal.idCorrida, 'FINALIZADA');
