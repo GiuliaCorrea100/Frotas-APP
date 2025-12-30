@@ -180,8 +180,8 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       dataAbastecimento: new Date(formData.dataAbastecimento),
       valorUnitario: formData.valorUnitario ? parseFloat(formData.valorUnitario) : 0,
       justificativaAlteracao: formData.justificativaAlteracao || '',
-      tipoCombustivel: tipoCombustivelSelecionado.idTipoCombustivel as number, // Corrigido
-      idCorrida: parseInt(formData.idCorrida), // Corrigido
+      tipoCombustivel: tipoCombustivelSelecionado.idTipoCombustivel as number,
+      idCorrida: parseInt(formData.idCorrida),
     };
 
     try {

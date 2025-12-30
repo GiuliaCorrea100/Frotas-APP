@@ -366,6 +366,9 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
                   <CalendarToday fontSize="small" />
                 </InputAdornment>
               ),
+              inputProps: {
+                  max: new Date().toISOString().slice(0, 10), 
+              },
             }}
             sx={{ mb: 2 }}
             disabled={loading}
