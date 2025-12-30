@@ -52,7 +52,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
     quantidade: '',
     codigoPagamento: '',
     valorTotal: '',
-    dataAbastecimento: new Date(),
+    dataAbastecimento: new Date().toISOString().slice(0, 10),
     valorUnitario: '',
     justificativaAlteracao: '',
     tipoCombustivelId: '',
@@ -145,11 +145,11 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
     // Validação de data (não pode ser futura)
     if (formData.dataAbastecimento) {
-      const dataAbastecimento = new Date(formData.dataAbastecimento);
+       const dataAbastecimento = new Date(formData.dataAbastecimento);
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
 
-      if (dataAbastecimento > hoje) {
+      if (dataAbastecimento.getTime() > hoje.getTime()) {
         newErrors.dataAbastecimento = 'Data não pode ser futura';
       }
     }
@@ -177,14 +177,12 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       quantidade: parseFloat(formData.quantidade),
       codigoPagamento: formData.codigoPagamento,
       valorTotal: parseFloat(formData.valorTotal),
-      dataAbastecimento: formData.dataAbastecimento,
+      dataAbastecimento: new Date(formData.dataAbastecimento),
       valorUnitario: formData.valorUnitario ? parseFloat(formData.valorUnitario) : 0,
       justificativaAlteracao: formData.justificativaAlteracao || '',
       tipoCombustivel: tipoCombustivelSelecionado.idTipoCombustivel as number, // Corrigido
       idCorrida: parseInt(formData.idCorrida), // Corrigido
     };
-
-
 
     try {
       setLoading(true);
@@ -199,7 +197,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
           quantidade: '',
           codigoPagamento: '',
           valorTotal: '',
-          dataAbastecimento: new Date(),
+          dataAbastecimento: new Date().toISOString().slice(0, 10),
           valorUnitario: '',
           justificativaAlteracao: '',
           tipoCombustivelId: '',
@@ -258,7 +256,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       quantidade: '',
       codigoPagamento: '',
       valorTotal: '',
-      dataAbastecimento: new Date(),
+      dataAbastecimento: new Date().toISOString().slice(0, 10),
       valorUnitario: '',
       justificativaAlteracao: '',
       tipoCombustivelId: '',
@@ -381,6 +379,9 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                     <CalendarToday fontSize="small" />
                   </InputAdornment>
                 ),
+                inputProps: {
+                  max: new Date().toISOString().slice(0, 10), 
+                },
               }}
               sx={{ mb: 2, width: '100%', maxWidth: 400 }}
             />
