@@ -416,7 +416,7 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
             let tooltipTitle = "";
 
             if (isIniciar) {
-                isDisabled = isIniciarDisabled;
+                isDisabled = isIniciarDisabled || !chaveEmprestada;
                 tooltipTitle = isDisabled ? "Percurso já iniciado" : "";
             } else if (isFinalizar) {
                 isDisabled = isFinalizarDisabled;
