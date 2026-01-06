@@ -250,7 +250,7 @@ const FormularioVeiculos: React.FC<FormularioVeiculosProps> = ({
           const mensagemErro = error.response?.data?.message || 'Erro ao salvar veículo. Tente novamente.';
           
           if (error.response?.status === 409) {
-              setErrors({ tombo: 'Já existe um veículo cadastrado com este tombo.' });
+              setErrors({ geral: 'Já existe um veículo cadastrado com estes dados.' });
           } else {
               setErrors({ geral: mensagemErro });
           }

@@ -14,7 +14,7 @@ import HistoricoIndividual from './pages/motorista/HistoricoIndividual';
 import ListaMulta from './pages/administrador/multas/Multas';
 import ListaAdministradores from './pages/administrador/Administradores';
 import ListaVeiculos from './pages/administrador/veiculos/ListaVeiculo';
-import Boletos from './components/Boletos';
+import Boletos from './pages/administrador/Boletos';
 
 const App: React.FC = () => {
   return (    
