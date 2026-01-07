@@ -903,6 +903,7 @@ const DetalhesRequisicao: React.FC = () => {
 
       <AbastecimentoModal
         open={modalCadastroAbertoAbastecimento}
+        corrida={corrida}
         onClose={handleFecharModalCadastroAbastecimento}
         corridaId={idcorridaNumber}
         onSuccess={async () => {
@@ -912,7 +913,8 @@ const DetalhesRequisicao: React.FC = () => {
 
       <EdicaoAbastecimentoModal 
         open={modalEditarAbastecimentoAberto} 
-        abastecimento={abastecimentoSelecionado} 
+        abastecimento={abastecimentoSelecionado}
+        corrida={corrida} 
         onClose={handleFecharModalEditarAbastecimento}
         onSuccess={async (msg) => {
           console.log(msg);
