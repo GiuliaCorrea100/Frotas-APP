@@ -10,6 +10,7 @@ export interface CorridaBackend {
   chaveEmprestada: boolean;
   idCarro: number;
   dataHoraRecebimentoChave: string | Date;
+  dataHoraLiberacaoChave: string | Date;
 }
 
 export interface CorridaFrontend {
@@ -24,6 +25,7 @@ export interface CorridaFrontend {
   chaveEmprestada: boolean;
   idCarro: number;
   dataHoraRecebimentoChave?: string | null;
+  dataHoraLiberacaoChave: string | Date;
 }
 
 export interface CorridaDto {
