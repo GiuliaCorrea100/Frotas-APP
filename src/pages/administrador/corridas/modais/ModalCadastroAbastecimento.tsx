@@ -65,11 +65,20 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
   const [tiposCombustivel, setTiposCombustivel] = useState<TipoCombustivel[]>([]);
   const [carregandoTipos, setCarregandoTipos] = useState(true);
   
-  const dataLimite = corrida?.dataHoraRecebimentoChave
-      ? new Date(corrida.dataHoraRecebimentoChave)
-      : new Date();
-    dataLimite.setHours(0, 0, 0, 0); // Caso a corrida esteja finalizada o limite é a data de recebimento da chave, caso contrário o limite é o dia atual
+  const dataMinima = corrida?.dataHoraLiberacaoChave
+    ? new Date(corrida.dataHoraLiberacaoChave)
+    : null;
 
+  if (dataMinima) {
+    dataMinima.setHours(0, 0, 0, 0);
+  }
+
+  const dataLimite = corrida?.dataHoraRecebimentoChave
+    ? new Date(corrida.dataHoraRecebimentoChave)
+    : new Date();
+  dataLimite.setHours(0, 0, 0, 0); // Caso a corrida esteja finalizada o limite é a data de recebimento da chave, caso contrário o limite é o dia atual
+
+  const minDate = dataMinima ? dataMinima.toISOString().slice(0, 10) : undefined;
   const maxDate = dataLimite.toISOString().slice(0, 10);
 
   useEffect(() => {
@@ -142,12 +151,14 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       newErrors.id_corrida = 'Corrida é obrigatória';
     }
 
-    // Validação de data (não pode ser futura)
+    // Validação de data (deve ser entre a data de liberação e recebimento da chave)
     if (formData.dataAbastecimento) {
       const dataAbastecimento = new Date(formData.dataAbastecimento);
       dataAbastecimento.setHours(0, 0, 0, 0);
 
-      if (dataAbastecimento.getTime() > dataLimite.getTime()) {
+      if (dataMinima && dataAbastecimento.getTime() < dataMinima.getTime()) {
+        newErrors.dataAbastecimento = 'Data não pode ser anterior à liberação da chave';
+      } else if (dataAbastecimento.getTime() > dataLimite.getTime()) {
         newErrors.dataAbastecimento = 'Data não pode ser posterior à data de encerramento da corrida';
       }
     }
@@ -384,6 +395,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                   </InputAdornment>
                 ),
                 inputProps: {
+                   min: minDate,
                    max: maxDate,
                 },
               }}

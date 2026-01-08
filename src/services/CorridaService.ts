@@ -25,7 +25,7 @@ export interface CorridaFrontend {
   chaveEmprestada: boolean;
   idCarro: number;
   dataHoraRecebimentoChave?: string | null;
-  dataHoraLiberacaoChave: string | Date;
+  dataHoraLiberacaoChave?: string | null;
 }
 
 export interface CorridaDto {
@@ -120,6 +120,10 @@ function formatCorrida(corrida: CorridaBackend): CorridaFrontend {
       corrida.dataTermino instanceof Date
         ? corrida.dataTermino.toISOString()
         : corrida.dataTermino,
+    dataHoraLiberacaoChave:
+      corrida.dataHoraLiberacaoChave instanceof Date
+        ? corrida.dataHoraLiberacaoChave.toISOString()
+        : corrida.dataHoraLiberacaoChave || null,
     dataHoraRecebimentoChave:
     corrida.dataHoraRecebimentoChave instanceof Date
       ? corrida.dataHoraRecebimentoChave.toISOString()
