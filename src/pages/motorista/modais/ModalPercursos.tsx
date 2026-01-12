@@ -77,13 +77,13 @@ const ModalPercursos: React.FC<ModalPercursosProps> = ({ corridaId, situacaoCorr
         <IconButton size="small">
           {showPercursos ? <ExpandLessIcon /> : <ExpandMoreIcon />}
         </IconButton>
-        <Typography variant="subtitle1" fontWeight="bold">
+        <Typography variant="subtitle1" color="text.primary" fontWeight="bold">
           PERCURSOS ATIVOS
         </Typography>
       </Box>
       
       <Collapse in={showPercursos}>
-        <Box sx={{ mt: 1, p: 2, backgroundColor: 'grey.50', borderRadius: 2 }}>
+        <Box sx={{ mt: 1, p: 2, backgroundColor: 'background.paper', borderRadius: 2 }}>
           {loadingPercursos ? (
             <Typography variant="body2">Carregando percursos...</Typography>
           ) : percursos.length === 0 ? (
@@ -168,7 +168,7 @@ const ModalPercursos: React.FC<ModalPercursosProps> = ({ corridaId, situacaoCorr
                       <Typography variant="caption" display="block" color="text.secondary">
                         Saída
                       </Typography>
-                      <Typography variant="body2" fontWeight="medium">
+                      <Typography variant="body2" color="text.primary" fontWeight="medium">
                         {percurso.saidaHora ? formatTime(percurso.saidaHora.toString()) : '-'}
                       </Typography>
                     </Box>
@@ -184,7 +184,7 @@ const ModalPercursos: React.FC<ModalPercursosProps> = ({ corridaId, situacaoCorr
                       <Typography variant="caption" display="block" color="text.secondary">
                         Chegada
                       </Typography>
-                      <Typography variant="body2" fontWeight="medium">
+                      <Typography variant="body2" color="text.primary" fontWeight="medium">
                         {percurso.chegadaHora ? formatTime(percurso.chegadaHora.toString()) : '-'}
                       </Typography>
                     </Box>

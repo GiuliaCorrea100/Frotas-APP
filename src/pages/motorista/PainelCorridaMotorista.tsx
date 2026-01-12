@@ -367,7 +367,7 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
   return (
     <Box sx={{ p: 4, maxWidth: 800, mx: "auto" }}>
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h5" fontWeight="bold" gutterBottom>
+        <Typography variant="h5" fontWeight="bold" color="text.primary" gutterBottom>
           Corrida:
         </Typography>
         {!chaveEmprestada && (

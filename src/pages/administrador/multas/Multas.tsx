@@ -251,7 +251,7 @@ export default function ListaMulta() {
             { label: 'MÉDIAS', value: 'MEDIA', count: estatisticas.MEDIA, color: theme.palette.warning.main },
             { label: 'GRAVES', value: 'GRAVE', count: estatisticas.GRAVE, color: theme.palette.error.main },
             { label: 'GRAVÍSSIMAS', value: 'GRAVISSIMA', count: estatisticas.GRAVISSIMA, color: theme.palette.error.dark },
-            { label: 'TODAS', value: 'TODOS', count: estatisticas.TODOS, color: theme.palette.text.secondary }
+            { label: 'TODAS', value: 'TODOS', count: estatisticas.TODOS, color: theme.palette.primary.dark }
           ].map((tab) => (
             <Button
               key={tab.value}
@@ -275,7 +275,12 @@ export default function ListaMulta() {
               <Box sx={{
                 ml: 1,
                 fontWeight: 600,
-                backgroundColor: filtroClassificacao === tab.value ? 'rgba(255,255,255,0.2)' : theme.palette.grey[200],
+                backgroundColor: filtroClassificacao === tab.value 
+                  ? 'rgba(255,255,255,0.2)' 
+                  : (theme.palette.mode === 'dark' ? theme.palette.grey[700] : theme.palette.grey[200]),
+                color: filtroClassificacao === tab.value 
+                  ? 'white' 
+                  : (theme.palette.mode === 'dark' ? theme.palette.grey[100] : theme.palette.text.primary),
                 px: 1,
                 borderRadius: 12
               }}>
@@ -302,7 +307,7 @@ export default function ListaMulta() {
           />
         </Box>
 
-        <Box sx={{ width: '100%', height: 600 }}>
+        <Box sx={{ width: '100%' }}>
           <DataGrid
             rows={dadosFiltrados}
             columns={columns}
@@ -353,7 +358,8 @@ export default function ListaMulta() {
               boxShadow: theme.shadows[1],
               borderRadius: 2,
               border: 'none',
-              backgroundColor: theme.palette.background.paper
+              backgroundColor: theme.palette.background.paper,              
+              height: 'calc(100vh - 350px)',
             }}
             rowSelection={false}
           />

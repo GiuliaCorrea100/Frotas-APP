@@ -117,14 +117,14 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Box display="flex" alignItems="center">
             <AddLocationAlt color="primary" sx={{ mr: 1 }} />
-            <Typography variant="h6">Cadastro de Percurso</Typography>
+            <Typography variant="h6" color="text.primary">Cadastro de Percurso</Typography>
           </Box>
         </Box>
 
         {/* Conteúdo */}
         <Box component="form" onSubmit={handleSubmit}>
           {/* Informações de Saída */}
-          <Typography variant="subtitle1" gutterBottom>
+          <Typography variant="subtitle1" color="text.primary" gutterBottom>
             Informações de Saída
           </Typography>
           <Box display="flex" gap={2} flexWrap="wrap" mb={2}>
@@ -169,7 +169,7 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
           <Divider sx={{ my: 2 }} />
 
           {/* Informações de Chegada */}
-          <Typography variant="subtitle1" gutterBottom>
+          <Typography variant="subtitle1" color="text.primary" gutterBottom>
             Informações de Chegada
           </Typography>
           <Box display="flex" gap={2} flexWrap="wrap" mb={2}>
