@@ -214,6 +214,9 @@ export default function ListaCorrida() {
     {
       field: 'acoes',
       headerName: 'Ações',
+      width: 450,
+      minWidth: 450,
+      maxWidth: 600,
       flex: 1,
       sortable: false,
       filterable: false,
@@ -305,7 +308,7 @@ export default function ListaCorrida() {
             { label: 'EM ANDAMENTO', value: 'ANDAMENTO', count: qtdEmAndamento, color: theme.palette.warning.main },
             { label: 'FINALIZADAS', value: 'FINALIZADA', count: qtdFinalizadas, color: theme.palette.success.main },
             {label: 'CANCELADAS', value: 'CANCELADA', count: qtdCanceladas, color: theme.palette.success.main },
-            { label: 'TODAS', value: 'TODOS', count: corridas.length, color: theme.palette.text.secondary }
+            { label: 'TODAS', value: 'TODOS', count: corridas.length, color: theme.palette.primary.dark }
           ].map((tab) => (
             <Button
               key={tab.value}
@@ -329,7 +332,12 @@ export default function ListaCorrida() {
               <Box sx={{
                 ml: 1,
                 fontWeight: 600,
-                backgroundColor: filtroSituacao === tab.value ? 'rgba(255,255,255,0.2)' : theme.palette.grey[200],
+                backgroundColor: filtroSituacao === tab.value 
+                  ? 'rgba(255,255,255,0.2)' 
+                  : (theme.palette.mode === 'dark' ? theme.palette.grey[700] : theme.palette.grey[200]),
+                color: filtroSituacao === tab.value 
+                  ? 'white' 
+                  : (theme.palette.mode === 'dark' ? theme.palette.grey[100] : theme.palette.text.primary),
                 px: 1,
                 borderRadius: 12
               }}>
@@ -351,7 +359,7 @@ export default function ListaCorrida() {
           />
         </Box>
 
-        <Box sx={{ width: '100%', height: 600 }}>
+        <Box sx={{ width: '100%' }}>
           <DataGrid
             rows={dadosFiltrados}
             columns={columns}
@@ -381,7 +389,8 @@ export default function ListaCorrida() {
               boxShadow: theme.shadows[1],
               borderRadius: 2,
               border: 'none',
-              backgroundColor: theme.palette.background.paper
+              backgroundColor: theme.palette.background.paper,
+              height: 'calc(100vh - 350px)',
             }}
             rowSelection={false}
           />
@@ -395,9 +404,9 @@ export default function ListaCorrida() {
         maxWidth="sm"
         PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
       >
-        <DialogTitle sx={{ fontWeight: 600 }}>Liberar chave</DialogTitle>
+        <DialogTitle color="text.primary" sx={{ fontWeight: 600 }}>Liberar chave</DialogTitle>
         <DialogContent>
-          <Typography>
+          <Typography color="text.primary">
             Você está entregando a chave do carro ao motorista:
             <strong> {selectedCorrida?.nomeMotorista}</strong>
           </Typography>
@@ -515,9 +524,9 @@ export default function ListaCorrida() {
         maxWidth="sm"
         PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
       >
-        <DialogTitle sx={{ fontWeight: 600 }}>Receber chave</DialogTitle>
+        <DialogTitle color="text.primary" sx={{ fontWeight: 600 }}>Receber chave</DialogTitle>
         <DialogContent>
-          <Typography>
+          <Typography color="text.primary">
             Você confirma que está recebendo a chave do motorista
             <strong> {selectedCorrida?.nomeMotorista}</strong>?
           </Typography>

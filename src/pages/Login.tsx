@@ -28,6 +28,7 @@ import { useAuth } from '../context/AuthContext';
 import { useThemeContext } from '../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import axiosConnect from '../services/axios/axiosConnect';
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
 interface LoginFormValues {
   cpf: string;
@@ -35,6 +36,7 @@ interface LoginFormValues {
 }
 
 const Login: React.FC = () => {
+  const { executeRecaptcha } = useGoogleReCaptcha();
   const { login } = useAuth();
   const { themeMode, toggleTheme } = useThemeContext();
   const navigate = useNavigate();
@@ -76,10 +78,22 @@ const Login: React.FC = () => {
         return;
       }
 
+      if (!executeRecaptcha) {
+        throw new Error('reCAPTCHA não carregado');
+      }
+
+      // Executa o reCAPTCHA
+      const recaptchaToken = await executeRecaptcha('login');
+
       const response = await axiosConnect.post('/auth/login', {
         username: cpfNumerico,
         password: formValues.senha,
+      }, {
+        headers: {
+          'recaptcha-token': recaptchaToken
+        }
       });
+
 
       const { token, username, administrador, nome, email } = response.data;
       login(token, username, administrador, nome, email);
