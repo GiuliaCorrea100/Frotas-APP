@@ -36,7 +36,7 @@ import CadastrarPercursosModal from "./modais/ModalCadastroPercurso";
 const DetalhesRequisicao: React.FC = () => {
   const theme = useTheme();
   const { id } = useParams<{ id: string }>();
-  const [corrida, setCorrida] = useState<CorridaFrontend | null>(null);
+  const [corrida, setCorrida] = useState<CorridaFrontend>(null);
   const [loading, setLoading] = useState(true);
   const [ocorrencias, setOcorrencias] = useState<OcorrenciaDto[]>([]);
   const [abastecimentos, setAbastecimento] = useState<Abastecimento[]>([]);
@@ -903,8 +903,8 @@ const DetalhesRequisicao: React.FC = () => {
 
       <AbastecimentoModal
         open={modalCadastroAbertoAbastecimento}
+        corrida={corrida}
         onClose={handleFecharModalCadastroAbastecimento}
-        corridaId={idcorridaNumber}
         onSuccess={async () => {
           await carregarDados();
         }}
@@ -912,10 +912,10 @@ const DetalhesRequisicao: React.FC = () => {
 
       <EdicaoAbastecimentoModal 
         open={modalEditarAbastecimentoAberto} 
-        abastecimento={abastecimentoSelecionado} 
+        abastecimento={abastecimentoSelecionado}
+        corrida={corrida} 
         onClose={handleFecharModalEditarAbastecimento}
-        onSuccess={async (msg) => {
-          console.log(msg);
+        onSuccess={async () => {
           await carregarDados();
         }}
         onError={(err) => {
