@@ -120,7 +120,7 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
           p: 4,
         }}
       >
-        <Typography variant="h6" component="h2" mb={2} fontWeight="bold">
+        <Typography variant="h6" component="h2" mb={2} fontWeight="bold" color="text.primary">
           Nova Ocorrência
         </Typography>
 

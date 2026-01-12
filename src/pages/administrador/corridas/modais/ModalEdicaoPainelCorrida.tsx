@@ -264,7 +264,7 @@ export default function EditarInfoCorrida({
         maxHeight: '90vh',
         overflow: 'auto'
       }}>
-        <Typography variant="h6" mb={2}>
+        <Typography variant="h6" color="text.primary" mb={2}>
           Editar Corrida
         </Typography>
         

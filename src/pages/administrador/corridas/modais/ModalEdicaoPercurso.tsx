@@ -128,7 +128,7 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Box display="flex" alignItems="center">
             <LocalGasStation color="primary" sx={{ mr: 1 }} />
-            <Typography variant="h6">Edição de Percurso</Typography>
+            <Typography variant="h6" color="text.primary">Edição de Percurso</Typography>
           </Box>
           <IconButton onClick={onClose}>
             <Close />
@@ -138,7 +138,7 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
         {/* Conteúdo */}
         <Box component="form" onSubmit={handleSalvar}>
           {/* Informações de Saída */}
-          <Typography variant="subtitle1" gutterBottom>
+          <Typography variant="subtitle1" color="text.primary" gutterBottom>
             Informações de Saída
           </Typography>
           <Box display="flex" gap={2} flexWrap="wrap" mb={2}>
@@ -183,7 +183,7 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
           <Divider sx={{ my: 2 }} />
 
           {/* Informações de Chegada */}
-          <Typography variant="subtitle1" gutterBottom>
+          <Typography variant="subtitle1" color="text.primary" gutterBottom>
             Informações de Chegada
           </Typography>
           <Box display="flex" gap={2} flexWrap="wrap" mb={2}>

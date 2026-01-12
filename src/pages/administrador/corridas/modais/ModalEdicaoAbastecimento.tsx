@@ -273,8 +273,8 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
           mb={2}
         >
           <Box display="flex" alignItems="center">
-            <LocalGasStation color="primary" sx={{ mr: 1 }} />
-            <Typography variant="h6">Edição de Abastecimento</Typography>
+            <LocalGasStation color="primary" sx={{ mr: 1, mt: 0 }} />
+            <Typography variant="h6" color="text.primary">Edição de Abastecimento</Typography>
           </Box>
           <IconButton onClick={handleClose}>
             <Close />
@@ -296,7 +296,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
         {/* Conteúdo */}
         <Box component="form" onSubmit={handleSalvar}>
           {/* Informações Básicas */}
-          <Typography variant="subtitle1" gutterBottom>
+          <Typography variant="subtitle1" color="text.primary" gutterBottom>
             Informações Básicas
           </Typography>
           <Box display="flex" gap={2} flexWrap="wrap" mb={2}>
@@ -377,7 +377,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
           <Divider sx={{ my: 2 }} />
 
           {/* Tipo de Combustível */}
-          <Typography variant="subtitle1" gutterBottom>
+          <Typography variant="subtitle1" color="text.primary" gutterBottom>
             Tipo de Combustível
           </Typography>
           <FormControl 

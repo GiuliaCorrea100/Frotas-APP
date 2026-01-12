@@ -276,7 +276,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
             overflow: 'auto',
             boxShadow: 24,
           }}>
-          <Typography variant="h6" mb={2} gutterBottom>
+          <Typography variant="h6" color="text.primary" mb={2} gutterBottom>
             AGENDAR CORRIDA
           </Typography>
 

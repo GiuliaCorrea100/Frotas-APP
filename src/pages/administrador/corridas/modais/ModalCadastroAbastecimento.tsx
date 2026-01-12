@@ -278,7 +278,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <LocalGasStation color="primary" sx={{ fontSize: 32, mr: 1 }} />
-            <Typography variant="h5" component="h2">
+            <Typography variant="h5" component="h2" color="text.primary">
               Cadastro de Abastecimento
             </Typography>
           </Box>
@@ -299,7 +299,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
         <form onSubmit={handleSubmit}>
           {/* Informações Básicas */}
           <Box sx={{ mb: 2 }}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" color="text.primary" gutterBottom>
               Informações Básicas
             </Typography>
 
@@ -391,7 +391,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
           {/* Tipo de Combustível */}
           <Box sx={{ mb: 2 }}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" color="text.primary" gutterBottom>
               Tipo de Combustível
             </Typography>
 
