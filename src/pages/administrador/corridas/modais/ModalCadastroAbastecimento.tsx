@@ -15,7 +15,7 @@ import {
   Divider,
 } from '@mui/material';
 import { LocalGasStation, CalendarToday } from '@mui/icons-material';
-import { CorridaFrontend, getCorridas } from '../../../../services/CorridaService';
+import { CorridaFrontend } from '../../../../services/CorridaService';
 import { TipoCombustivel, TipoCombustivelService } from '../../../../services/TipoCombustivelService';
 import AbastecimentoService from '../../../../services/AbastecimentoService';
 
@@ -38,34 +38,57 @@ const modalStyle = {
 interface AbastecimentoModalProps {
   open: boolean;
   onClose: () => void;
-  corridaId?: number;
+  corrida?: CorridaFrontend;
   onSuccess?: () => void;
 }
 
 const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
   open,
   onClose,
-  corridaId,
+  corrida,
   onSuccess
 }) => {
   const [formData, setFormData] = useState({
     quantidade: '',
     codigoPagamento: '',
     valorTotal: '',
-    dataAbastecimento: new Date().toISOString().slice(0, 10),
+    dataAbastecimento: '',
     valorUnitario: '',
     justificativaAlteracao: '',
     tipoCombustivelId: '',
-    idCorrida: corridaId ? corridaId.toString() : '',
+    idCorrida: corrida ? corrida.idCorrida.toString() : '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [tiposCombustivel, setTiposCombustivel] = useState<TipoCombustivel[]>([]);
-  const [corridas, setCorridas] = useState<CorridaFrontend[]>([]);
-  const [corridaSelecionada, setCorridaSelecionada] = useState<CorridaFrontend | null>(null);
   const [carregandoTipos, setCarregandoTipos] = useState(true);
+  
+  const dataMinima = corrida?.dataHoraLiberacaoChave
+    ? new Date(corrida.dataHoraLiberacaoChave)
+    : null;
+
+  if (dataMinima) {
+    dataMinima.setHours(0, 0, 0, 0);
+  }
+
+  const dataLimite = corrida?.dataHoraRecebimentoChave
+    ? new Date(corrida.dataHoraRecebimentoChave)
+    : new Date();
+  dataLimite.setHours(0, 0, 0, 0); // Caso a corrida esteja finalizada o limite é a data de recebimento da chave, caso contrário o limite é o dia atual
+
+  const minDate = dataMinima ? dataMinima.toISOString().slice(0, 10) : undefined;
+  const maxDate = dataLimite.toISOString().slice(0, 10);
+
+  useEffect(() => {
+    if (open && corrida?.idCorrida) {
+      setFormData(prev => ({
+        ...prev,
+        idCorrida: corrida.idCorrida.toString(),
+      }));
+    }
+  }, [open, corrida]);
 
   useEffect(() => {
     if (open) {
@@ -81,23 +104,8 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
         })
         .catch((err) => console.error('Erro ao buscar tipos de combustível:', err))
         .finally(() => setCarregandoTipos(false));
-
-      // Carregar corridas
-      getCorridas()
-        .then((res) => setCorridas(res))
-        .catch((err) => console.error('Erro ao buscar corridas:', err));
     }
   }, [open]);
-
-  // Atualizar informações da corrida selecionada
-  useEffect(() => {
-    if (formData.idCorrida) {
-      const corrida = corridas.find(c => c.idCorrida === parseInt(formData.idCorrida));
-      setCorridaSelecionada(corrida || null);
-    } else {
-      setCorridaSelecionada(null);
-    }
-  }, [formData.idCorrida, corridas]);
 
   // Calcular preço final automaticamente
   useEffect(() => {
@@ -143,14 +151,15 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       newErrors.id_corrida = 'Corrida é obrigatória';
     }
 
-    // Validação de data (não pode ser futura)
+    // Validação de data (deve ser entre a data de liberação e recebimento da chave)
     if (formData.dataAbastecimento) {
-       const dataAbastecimento = new Date(formData.dataAbastecimento);
-      const hoje = new Date();
-      hoje.setHours(0, 0, 0, 0);
+      const dataAbastecimento = new Date(formData.dataAbastecimento);
+      dataAbastecimento.setHours(0, 0, 0, 0);
 
-      if (dataAbastecimento.getTime() > hoje.getTime()) {
-        newErrors.dataAbastecimento = 'Data não pode ser futura';
+      if (dataMinima && dataAbastecimento.getTime() < dataMinima.getTime()) {
+        newErrors.dataAbastecimento = 'Data não pode ser anterior à liberação da chave';
+      } else if (dataAbastecimento.getTime() > dataLimite.getTime()) {
+        newErrors.dataAbastecimento = 'Data não pode ser posterior à data de encerramento da corrida';
       }
     }
 
@@ -173,11 +182,18 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       return;
     }
 
+    // Utilizar apenas a data e não o horário
+    let dataAbastecimento: Date | null = null;
+    if (formData.dataAbastecimento) {
+      const [ano, mes, dia] = formData.dataAbastecimento.split('-').map(Number);
+      dataAbastecimento = new Date(ano, mes - 1, dia);
+    }
+
     const dadosParaCadastro = {
       quantidade: parseFloat(formData.quantidade),
       codigoPagamento: formData.codigoPagamento,
       valorTotal: parseFloat(formData.valorTotal),
-      dataAbastecimento: new Date(formData.dataAbastecimento),
+      dataAbastecimento: dataAbastecimento as Date,
       valorUnitario: formData.valorUnitario ? parseFloat(formData.valorUnitario) : 0,
       justificativaAlteracao: formData.justificativaAlteracao || '',
       tipoCombustivel: tipoCombustivelSelecionado.idTipoCombustivel as number,
@@ -186,7 +202,6 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
     try {
       setLoading(true);
-      console.log(dadosParaCadastro);
       await AbastecimentoService.cadastrarAbastecimento(dadosParaCadastro);
       setSuccessMessage('Abastecimento cadastrado com sucesso!');
       
@@ -197,11 +212,11 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
           quantidade: '',
           codigoPagamento: '',
           valorTotal: '',
-          dataAbastecimento: new Date().toISOString().slice(0, 10),
+           dataAbastecimento: '',
           valorUnitario: '',
           justificativaAlteracao: '',
           tipoCombustivelId: '',
-          idCorrida: corridaId ? corridaId.toString() : '',
+          idCorrida: corrida?.idCorrida ? corrida?.idCorrida.toString() : '',
         });
 
         if (onSuccess) onSuccess();
@@ -256,11 +271,11 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       quantidade: '',
       codigoPagamento: '',
       valorTotal: '',
-      dataAbastecimento: new Date().toISOString().slice(0, 10),
+      dataAbastecimento: '',
       valorUnitario: '',
       justificativaAlteracao: '',
       tipoCombustivelId: '',
-      idCorrida: corridaId ? corridaId.toString() : '',
+      idCorrida: corrida?.idCorrida ? corrida?.idCorrida.toString() : '',
     });
     setErrors({});
     setSuccessMessage('');
@@ -380,7 +395,8 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                   </InputAdornment>
                 ),
                 inputProps: {
-                  max: new Date().toISOString().slice(0, 10), 
+                   min: minDate,
+                   max: maxDate,
                 },
               }}
               sx={{ mb: 2, width: '100%', maxWidth: 400 }}

@@ -26,10 +26,12 @@ import { Abastecimento } from "../../../../services/AbastecimentoService";
 import abastecimentoService from "../../../../services/AbastecimentoService";
 import { TipoCombustivel } from "../../../../services/CarroService";
 import { TipoCombustivelService } from "../../../../services/TipoCombustivelService";
+import { CorridaFrontend } from "../../../../services/CorridaService";
 
 interface EdicaoAbastecimentoModalProps {
   open: boolean;
   abastecimento: Abastecimento | null;
+  corrida?: CorridaFrontend; 
   onClose: () => void;
   onSuccess: (message: string) => void;
   onError: (error: any) => void;
@@ -62,6 +64,7 @@ const formatDate = (date: Date | null): string => {
 const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
   open,
   abastecimento,
+  corrida,
   onClose,
   onSuccess,
   onError,
@@ -79,6 +82,22 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [carregandoTipos, setCarregandoTipos] = useState(true);
+
+  const dataMinima = corrida?.dataHoraLiberacaoChave
+    ? new Date(corrida.dataHoraLiberacaoChave)
+    : null;
+
+  if (dataMinima) {
+    dataMinima.setHours(0, 0, 0, 0);
+  }
+
+  const dataLimite = corrida?.dataHoraRecebimentoChave
+    ? new Date(corrida.dataHoraRecebimentoChave)
+    : new Date();
+  dataLimite.setHours(0, 0, 0, 0);
+
+  const minDate = dataMinima ? dataMinima.toISOString().slice(0, 10) : undefined;
+  const maxDate = dataLimite.toISOString().slice(0, 10);
 
   // Função para preencher dados do abastecimento
   const preencherDadosAbastecimento = (abastecimento: Abastecimento, tiposCombustivel: TipoCombustivel[]) => {
@@ -155,13 +174,14 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
     }
 
     // Validação de data (não pode ser futura)
-    if (formData.dataAbastecimento) {
+     if (formData.dataAbastecimento) {
       const dataAbastecimento = new Date(formData.dataAbastecimento);
-      const hoje = new Date();
-      hoje.setHours(0, 0, 0, 0);
+      dataAbastecimento.setHours(0, 0, 0, 0);
 
-      if (dataAbastecimento > hoje) {
-        novosErros.dataAbastecimento = 'Data não pode ser futura';
+      if (dataMinima && dataAbastecimento.getTime() < dataMinima.getTime()) {
+        novosErros.dataAbastecimento = 'Data não pode ser anterior à liberação da chave';
+      } else if (dataAbastecimento.getTime() > dataLimite.getTime()) {
+        novosErros.dataAbastecimento = 'Data não pode ser posterior à data de encerramento da corrida';
       }
     }
 
@@ -216,13 +236,18 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
     setLoading(true);
     try {
       // Criar a data considerando o fuso horário
-      const dataAbastecimentoUTC = new Date(formData.dataAbastecimento + 'T04:00:00.000Z');
+      // const dataAbastecimentoUTC = new Date(formData.dataAbastecimento + 'T04:00:00.000Z');
+      let dataAbastecimento: Date | null = null;
+      if (formData.dataAbastecimento) {
+        const [ano, mes, dia] = formData.dataAbastecimento.split('-').map(Number);
+        dataAbastecimento = new Date(ano, mes - 1, dia);
+      }
 
       const dadosAtualizados = {
         quantidade: formData.quantidade,
         valorTotal: formData.valorTotal,
         valorUnitario: formData.valorUnitario,
-        dataAbastecimento: dataAbastecimentoUTC,
+        dataAbastecimento: dataAbastecimento as Date,
         idTipoCombustivel: Number(formData.tipoCombustivelId),
       };
 
@@ -367,7 +392,8 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
                 </InputAdornment>
               ),
               inputProps: {
-                  max: new Date().toISOString().slice(0, 10), 
+                  min: minDate,
+                  max: maxDate,
               },
             }}
             sx={{ mb: 2 }}
