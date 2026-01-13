@@ -45,23 +45,10 @@ export const createCorrida = async (
   corridaData: Omit<CorridaBackend, "idCorrida">
 ) => {
   try {
-    const payload = {
-      ...corridaData,
-      dataInicio:
-        corridaData.dataInicio instanceof Date
-          ? corridaData.dataInicio.toISOString().split("T")[0]
-          : corridaData.dataInicio.split("T")[0],
-      dataTermino: corridaData.dataTermino
-        ? corridaData.dataTermino instanceof Date
-          ? corridaData.dataTermino.toISOString().split("T")[0]
-          : corridaData.dataTermino.split("T")[0]
-        : null,
-    };
-
+    const payload = corridaData;
     const response = await axiosConnect.post(`/corrida`, payload);
     return response.data;
   } catch (error) {
-    //
     throw error;
   }
 };

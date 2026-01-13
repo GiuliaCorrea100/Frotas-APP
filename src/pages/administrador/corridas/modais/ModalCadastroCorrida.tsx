@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { Button, Box, TextField, Typography, Modal, Autocomplete, Dialog, DialogTitle, DialogActions } from "@mui/material";
 import axios, { AxiosError } from 'axios';
-import { createCorrida } from '../../../../services/CorridaService';
+import { CorridaBackend, createCorrida } from '../../../../services/CorridaService';
 import { CarroService } from '../../../../services/CarroService';
 import axiosConnect from '../../../../services/axios/axiosConnect';
 
@@ -216,9 +216,14 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
         idUsuarioMotorista = response.data.idUsuario;
       }
 
-      const corridaParaEnviar = {
-        dataInicio: new Date(corrida.dataInicio),
-        dataTermino: new Date(corrida.dataTermino),
+      const toLocalDate = (yyyyMmDd: string): Date => {
+        const [ano, mes, dia] = yyyyMmDd.split('-').map(Number);
+        return new Date(ano, mes - 1, dia);
+      };
+
+      const corridaParaEnviar: Omit<CorridaBackend, 'idCorrida'> = {
+        dataInicio: toLocalDate(corrida.dataInicio),
+        dataTermino: toLocalDate(corrida.dataTermino),
         localDeSaida: corrida.localDeSaida,
         distanciaKm: "",
         idMotorista: idUsuarioMotorista,
