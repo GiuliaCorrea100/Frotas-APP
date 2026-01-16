@@ -92,7 +92,7 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
       <DialogTitle>
-        <Typography component="div" fontWeight="bold" sx={{ fontSize: "1.25rem" }}>
+        <Typography component="div" fontWeight="bold" color="text.primary" sx={{ fontSize: "1.25rem" }}>
           Iniciar Percurso
         </Typography>
         {percursosAtivosCount > 0 && (
