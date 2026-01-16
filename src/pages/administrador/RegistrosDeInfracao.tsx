@@ -124,6 +124,39 @@ export default function RegistrosDeInfracao() {
       flex: 0.6,
     },
     {
+      field: "comprovante de pagamento",
+      headerName: "Comprovante de Pagamento",
+      width: 200,
+      sortable: false,
+      renderCell: (params) => (
+        <Box display="flex" alignItems="center" gap={1} height="100%">
+          <Button
+            size="small"
+            component="label"
+            variant="outlined"
+            disabled={!params.row.urlArquivo}
+          >
+            Upload
+            <input
+              type="file"
+              hidden
+              disabled={!params.row.urlArquivo}
+              onChange={async (e) => {
+                if (!params.row.urlArquivo) return;
+                if (e.target.files?.[0]) {
+                  await MultaService.uploadComprovante(
+                    params.row.idMulta!,
+                    e.target.files[0]
+                  );
+                  carregarMultas();
+                }
+              }}
+            />
+          </Button>
+        </Box>
+      ),
+    },
+    {
       field: "acoes",
       headerName: "Ações",
       sortable: false,
