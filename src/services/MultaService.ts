@@ -30,9 +30,11 @@ export interface MultaBackend {
 }
 
 export class MultaService {
-  static async listarMultas(): Promise<MultaDto[]> {
+  static async listarMultas(params?: any): Promise<MultaDto[]> {
     try {
-      const response = await axiosConnect.get<MultaDto[]>("/multa");
+      const response = await axiosConnect.get<MultaDto[]>("/multa", {
+        params,
+      });
       return response.data;
     } catch (error) {
       console.error("Erro ao listar multas:", error);

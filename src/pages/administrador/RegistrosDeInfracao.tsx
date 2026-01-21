@@ -6,10 +6,13 @@ import {
   Typography,
   Alert,
   useTheme,
+  TextField,
 } from "@mui/material";
 import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
 import DownloadIcon from "@mui/icons-material/Download";
 import ReceiptIcon from "@mui/icons-material/Receipt";
+import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
 import { jwtDecode } from "jwt-decode";
 import Menu from "../../components/Menu";
 import { MultaDto, MultaService } from "../../services/MultaService";
@@ -45,6 +48,10 @@ export default function RegistrosDeInfracao() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [placaVeiculo, setPlacaVeiculo] = useState("");
+  const [classificacao, setClassificacao] = useState("");
+  const [codigoInfracao, setCodigoInfracao] = useState("");
+
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/");
@@ -53,7 +60,7 @@ export default function RegistrosDeInfracao() {
     carregarMultas();
   }, [isAuthenticated, navigate]);
 
-  const carregarMultas = async () => {
+  const carregarMultas = async (params?: any) => {
     setLoading(true);
     setError(null);
     try {
@@ -61,13 +68,30 @@ export default function RegistrosDeInfracao() {
       if (!token) throw new Error();
 
       jwtDecode<JwtPayload>(token);
-      const dados = await MultaService.listarMultas();
+      const dados = await MultaService.listarMultas(params);
       setMultas(dados);
     } catch {
       setError("Erro ao carregar registros de infração.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const buscar = () => {
+    carregarMultas({
+      placaVeiculo: placaVeiculo || undefined,
+      classificacao: classificacao || undefined,
+      codigoInfracao: codigoInfracao
+        ? Number(codigoInfracao)
+        : undefined,
+    });
+  };
+
+  const limparBusca = () => {
+    setPlacaVeiculo("");
+    setClassificacao("");
+    setCodigoInfracao("");
+    carregarMultas();
   };
 
   const handleDownload = async (multa: MultaDto) => {
@@ -85,11 +109,7 @@ export default function RegistrosDeInfracao() {
   };
 
   const columns: GridColDef<MultaDto>[] = [
-    {
-      field: "placaVeiculo",
-      headerName: "Veículo",
-      flex: 0.6,
-    },
+    { field: "placaVeiculo", headerName: "Veículo", flex: 0.6 },
     {
       field: "dataInfracao",
       headerName: "Data",
@@ -118,50 +138,12 @@ export default function RegistrosDeInfracao() {
         </Typography>
       ),
     },
-    {
-      field: "autoInfracao",
-      headerName: "Auto",
-      flex: 0.6,
-    },
-    {
-      field: "comprovante de pagamento",
-      headerName: "Comprovante de Pagamento",
-      width: 200,
-      sortable: false,
-      renderCell: (params) => (
-        <Box display="flex" alignItems="center" gap={1} height="100%">
-          <Button
-            size="small"
-            component="label"
-            variant="outlined"
-            disabled={!params.row.urlArquivo}
-          >
-            Upload
-            <input
-              type="file"
-              hidden
-              disabled={!params.row.urlArquivo}
-              onChange={async (e) => {
-                if (!params.row.urlArquivo) return;
-                if (e.target.files?.[0]) {
-                  await MultaService.uploadComprovante(
-                    params.row.idMulta!,
-                    e.target.files[0]
-                  );
-                  carregarMultas();
-                }
-              }}
-            />
-          </Button>
-        </Box>
-      ),
-    },
+    { field: "autoInfracao", headerName: "Auto", flex: 0.6 },
     {
       field: "acoes",
       headerName: "Ações",
-      sortable: false,
-      filterable: false,
       width: 150,
+      sortable: false,
       renderCell: (params) => (
         <Button
           variant="contained"
@@ -179,68 +161,68 @@ export default function RegistrosDeInfracao() {
   return (
     <>
       <Menu />
-      <Box
-        sx={{
-          p: 3,
-          backgroundColor: theme.palette.background.default,
-          display: "flex",
-          flexDirection: "column",
-          flex: 1,
-        }}
-      >
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Box display="flex" alignItems="center" gap={1}>
-            <ReceiptIcon color="primary" />
-            <Typography variant="h5" fontWeight="bold">
-              Registros de Infração
-            </Typography>
-          </Box>
+      <Box sx={{ p: 3, display: "flex", flexDirection: "column", flex: 1 }}>
+        <Box mb={2} display="flex" alignItems="center" gap={1}>
+          <ReceiptIcon color="primary" />
+          <Typography variant="h5" fontWeight="bold">
+            Registros de Infração
+          </Typography>
         </Box>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
-
-        <Box sx={{ width: "100%" }}>
-          <DataGrid
-            rows={multas}
-            columns={columns}
-            loading={loading}
-            getRowId={(row) =>
-              row.idMulta ?? `${row.placaVeiculo}-${row.dataInfracao}`
-            }
-            initialState={{
-              pagination: { paginationModel: { pageSize: 8, page: 0 } },
-            }}
-            pageSizeOptions={[8, 16, 24]}
-            localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
-            rowSelection={false}
-            sx={{
-              "& .MuiDataGrid-cell": {
-                borderBottom: `1px solid ${theme.palette.divider}`,
-                py: 1.5,
-              },
-              "& .MuiDataGrid-columnHeaders": {
-                backgroundColor:
-                  theme.palette.mode === "dark"
-                    ? theme.palette.grey[800]
-                    : theme.palette.grey[100],
-                fontWeight: "bold",
-                borderBottom: `2px solid ${theme.palette.divider}`,
-              },
-              "& .MuiDataGrid-row:hover": {
-                backgroundColor: theme.palette.action.hover,
-              },
-              boxShadow: theme.shadows[1],
-              borderRadius: 2,
-              border: "none",
-              backgroundColor: theme.palette.background.paper,
-              height: "calc(100vh - 300px)",
-            }}
+        <Box
+          mb={2}
+          display="flex"
+          gap={2}
+          flexWrap="wrap"
+          alignItems="center"
+        >
+          <TextField
+            label="Placa"
+            size="small"
+            value={placaVeiculo}
+            onChange={(e) => setPlacaVeiculo(e.target.value)}
           />
+          <TextField
+            label="Classificação"
+            size="small"
+            value={classificacao}
+            onChange={(e) => setClassificacao(e.target.value)}
+          />
+
+          <Button
+            variant="contained"
+            startIcon={<SearchIcon />}
+            onClick={buscar}
+          >
+            Buscar
+          </Button>
+
+          <Button
+            variant="outlined"
+            startIcon={<ClearIcon />}
+            onClick={limparBusca}
+          >
+            Limpar
+          </Button>
         </Box>
+
+        {error && <Alert severity="error">{error}</Alert>}
+
+        <DataGrid
+          rows={multas}
+          columns={columns}
+          loading={loading}
+          getRowId={(row) =>
+            row.idMulta ?? `${row.placaVeiculo}-${row.dataInfracao}`
+          }
+          initialState={{
+            pagination: { paginationModel: { pageSize: 8, page: 0 } },
+          }}
+          pageSizeOptions={[8, 16, 24]}
+          localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+          rowSelection={false}
+          sx={{ height: "calc(100vh - 320px)" }}
+        />
       </Box>
     </>
   );
