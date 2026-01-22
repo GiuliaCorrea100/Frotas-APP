@@ -122,9 +122,7 @@ const Relatorios: React.FC = () => {
 	totalCorridas: 0,
 	porSituacao: [],
 	});
-  const [desempenhoMotoristas, setDesempenhoMotoristas] = useState<
-	{ motorista: string; Corridas: number }[]
-	>([]);
+  const [desempenhoMotoristas, setDesempenhoMotoristas] = useState<{ motorista: string; Corridas: number }[]>([]);
   const [corridasTabela, setCorridasTabela] = useState<any[]>([]);
   const [visaoGeral, setVisaoGeral] = useState({
 	totalCorridas: 0,
@@ -133,25 +131,22 @@ const Relatorios: React.FC = () => {
 	totalMultas: 0,
 	totalOcorrencias: 0,
 	});
-
   const [carrosResumo, setCarrosResumo] = useState({
 	totalVeiculos: 0,
 	emOperacao: 0,
 	emManutencao: 0,
 	ociosos: 0,
 	});
-
- const [carrosSituacao, setCarrosSituacao] = useState<
-	{ situacao: string; quantidade: number }[]
-	>([]);
-
-  const [desempenhoCarros, setDesempenhoCarros] = useState<
-	{ veiculo: string; Corridas: number }[]
-	>([]);
-
+  const [carrosSituacao, setCarrosSituacao] = useState<{ situacao: string; quantidade: number }[]>([]);
+  const [desempenhoCarros, setDesempenhoCarros] = useState<{ veiculo: string; Corridas: number }[]>([]);
   const [carrosTabela, setCarrosTabela] = useState<any[]>([]);
-
-  const [abastecimentos, setAbastecimentos] = useState<any[]>([]);
+  const [abastecimentoResumo, setAbastecimentoResumo] = useState({
+	totalLitros: 0,
+	totalValor: 0,
+	});
+	const [abastecimentoCustoPorCombustivel, setAbastecimentoCustoPorCombustivel] = useState<any[]>([]);
+	const [abastecimentoConsumoMensal, setAbastecimentoConsumoMensal] = useState<any[]>([]);
+	const [abastecimentoTabela, setAbastecimentoTabela] = useState<any[]>([]);
   const [ocorrencias, setOcorrencias] = useState<any[]>([]);
   const [multas, setMultas] = useState<any[]>([]);
 
@@ -170,6 +165,7 @@ const Relatorios: React.FC = () => {
         carregarVisaoGeral(),
         carregarRelatorioCorridas(),
 		carregarRelatorioVeiculos(),
+		carregarRelatorioAbastecimentos(),
       ]);
     } catch (err) {
       console.error('Erro ao carregar dados:', err);
@@ -228,31 +224,46 @@ const Relatorios: React.FC = () => {
 	}
   };
 
-const carregarRelatorioVeiculos = async () => {
+  const carregarRelatorioVeiculos = async () => {
+	try {
+	const { data } = await axiosConnect.get('/relatorio/veiculos', {
+	params: { ano: selectedYear },
+	});
+
+	setCarrosResumo(data.resumo);
+
+	setCarrosSituacao(
+	data.situacaoFrota.map((s: any) => ({
+		name: s.situacao,
+		value: s.quantidade,
+	})),
+	);
+
+	setDesempenhoCarros(
+	data.desempenhoVeiculos.map((v: any) => ({
+		veiculo: v.veiculo,
+		Corridas: v.corridas,
+	})),
+	);
+
+	setCarrosTabela(data.tabela);
+	} catch (e) {
+	setError('Erro ao carregar relatório de veículos');
+	}
+  };
+
+const carregarRelatorioAbastecimentos = async () => {
   try {
-    const { data } = await axiosConnect.get('/relatorio/veiculos', {
+    const { data } = await axiosConnect.get('/relatorio/abastecimentos', {
       params: { ano: selectedYear },
     });
 
-    setCarrosResumo(data.resumo);
-
-    setCarrosSituacao(
-      data.situacaoFrota.map((s: any) => ({
-        name: s.situacao,
-        value: s.quantidade,
-      })),
-    );
-
-    setDesempenhoCarros(
-      data.desempenhoVeiculos.map((v: any) => ({
-        veiculo: v.veiculo,
-        Corridas: v.corridas,
-      })),
-    );
-
-    setCarrosTabela(data.tabela);
-  } catch (e) {
-    setError('Erro ao carregar relatório de veículos');
+    setAbastecimentoResumo(data.resumo);
+    setAbastecimentoCustoPorCombustivel(data.custoPorCombustivel);
+    setAbastecimentoConsumoMensal(data.consumoMensal);
+    setAbastecimentoTabela(data.tabela);
+  } catch {
+    setError('Erro ao carregar relatório de abastecimentos');
   }
 };
 
@@ -456,7 +467,7 @@ const carregarRelatorioVeiculos = async () => {
 					>
 					<CartesianGrid strokeDasharray="3 3" />
 					<XAxis type="number" />
-					<YAxis type="category" dataKey="motorista" width={180}  tick={{ fontSize: 12 }} />
+					<YAxis type="category" dataKey="motorista" width={200}  tick={{ fontSize: 12 }} tickMargin={8} />
 					<Tooltip contentStyle={tooltipStyle} />
 					<Legend />
 					<Bar dataKey="Corridas" fill={theme.palette.primary.main} />
@@ -639,6 +650,105 @@ const carregarRelatorioVeiculos = async () => {
 		)}
 
         {/* --- ABASTECIMENTOS --- */}
+		{activeTab === 3 && (
+			<Grid container spacing={3}>
+				<Grid item xs={12}>
+				<Typography variant="h5" color="text.primary" gutterBottom>
+					Análise de Abastecimentos ({selectedYear})
+				</Typography>
+				</Grid>
+
+				{/* Cards */}
+				<Grid item xs={12} sm={6}>
+				<StatCard
+					title="Custo Total"
+					value={`R$ ${abastecimentoResumo.totalValor.toLocaleString(
+					'pt-BR',
+					{ minimumFractionDigits: 2 },
+					)}`}
+					icon={<Money fontSize="large" />}
+				/>
+				</Grid>
+				<Grid item xs={12} sm={6}>
+				<StatCard
+					title="Total Abastecido"
+					value={`${abastecimentoResumo.totalLitros.toFixed(2)} Litros`}
+					icon={<LocalGasStation fontSize="large" />}
+				/>
+				</Grid>
+
+				{/* Pizza: custo por tipo de combustível */}
+				<Grid item xs={12} md={5}>
+				<Paper sx={{ p: 2, height: 400 }} elevation={3}>
+					<Typography variant="h6" color="text.primary" gutterBottom>
+					Custo por Tipo de Combustível
+					</Typography>
+					<ResponsiveContainer width="100%" height="90%">
+					<PieChart>
+						<Pie
+						data={abastecimentoCustoPorCombustivel}
+						dataKey="value"
+						nameKey="name"
+						cx="50%"
+						cy="50%"
+						outerRadius={100}
+						label
+						>
+						{abastecimentoCustoPorCombustivel.map((entry, index) => (
+							<Cell
+							key={`cell-${index}`}
+							fill={PIE_COLORS[index % PIE_COLORS.length]}
+							/>
+						))}
+						</Pie>
+						<Tooltip
+						formatter={(value: number) =>
+							`R$ ${typeof value === 'number'
+							? value.toFixed(2)
+							: value}`
+						}
+						contentStyle={tooltipStyle}
+						/>
+						<Legend />
+					</PieChart>
+					</ResponsiveContainer>
+				</Paper>
+				</Grid>
+
+				{/* Consumo mensal (litros x valor) */}
+				<Grid item xs={12} md={7}>
+				<Paper sx={{ p: 2, height: 400 }} elevation={3}>
+					<Typography variant="h6" color="text.primary" gutterBottom>
+					Consumo Mensal
+					</Typography>
+					<ResponsiveContainer width="100%" height="90%">
+					<AreaChart data={abastecimentoConsumoMensal}>
+						<CartesianGrid strokeDasharray="3 3" />
+						<XAxis dataKey="mes" />
+						<YAxis yAxisId="left" />
+						<YAxis yAxisId="right" orientation="right" />
+						<Tooltip contentStyle={tooltipStyle} />
+						<Legend />
+						<Area
+						yAxisId="left"
+						type="monotone"
+						dataKey="Litros"
+						stroke="#8884d8"
+						fill="#8884d8"
+						/>
+						<Area
+						yAxisId="right"
+						type="monotone"
+						dataKey="Valor"
+						stroke="#82ca9d"
+						fill="#82ca9d"
+						/>
+					</AreaChart>
+					</ResponsiveContainer>
+				</Paper>
+				</Grid>
+			</Grid>
+		)}
 
         {/* --- MULTAS E OCORRÊNCIAS --- */}
       </Box>
