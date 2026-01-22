@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Button, Box, TextField, Typography, Modal, Autocomplete, Dialog, DialogTitle, DialogActions } from "@mui/material";
+import { Button, Box, TextField, Typography, Modal, Autocomplete, Dialog, DialogTitle, DialogActions, useTheme } from "@mui/material";
 import axios, { AxiosError } from 'axios';
 import { CorridaBackend, createCorrida } from '../../../../services/CorridaService';
 import { CarroService } from '../../../../services/CarroService';
@@ -54,7 +54,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [alertOpen, setAlertOpen] = useState(false);
   const [authMode, setAuthMode] = useState<string>('SIGAA');
-
+  
   const navigate = useNavigate();
 
   // Buscar o modo de autenticação na inicialização

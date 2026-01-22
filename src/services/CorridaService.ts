@@ -85,6 +85,24 @@ export const buscarCorridaPorId = async (
   }
 };
 
+export const getRelatorioCorridas = async (
+  ano: number
+) => {
+  const { data } = await axiosConnect.get('/corrida/relatorio/corridas-geral', {
+      params: { ano },
+    });
+    return data;
+}
+
+export const getRelatorioVisaoGeral = async (
+  ano: number
+) => {
+  const { data } = await axiosConnect.get('/corrida/relatorio/visao-geral', {
+      params: { ano },
+    });
+    return data;
+}
+
 export const atualizarSituacaoCorrida = async (
   idCorrida: number,
   situacao: string
