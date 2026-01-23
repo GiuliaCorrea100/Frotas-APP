@@ -8,6 +8,7 @@ export interface MultaDto {
   placaVeiculo: string;
   dataInfracao: Date | null;
   autoInfracao: number;
+  situacao?: string;
   ativa?: boolean;
   urlArquivo?: string;
   urlComprovantePagamento?: string | null;
@@ -27,6 +28,7 @@ export interface MultaBackend {
   placaVeiculo: string;
   dataInfracao: Date | null;
   autoInfracao: number;
+  situacao?: string;
 }
 
 export class MultaService {
