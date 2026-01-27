@@ -49,6 +49,7 @@
     "@types/react-icons": "^2.2.7",
     "@types/react-router-dom": "^5.3.3",
     "@vitejs/plugin-react": "^5.0.2",
+    "baseline-browser-mapping": "^2.9.14",
     "eslint": "^8.57.1",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^16.0.0",
