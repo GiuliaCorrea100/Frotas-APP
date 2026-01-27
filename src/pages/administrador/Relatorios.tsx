@@ -146,7 +146,7 @@ const Relatorios: React.FC = () => {
 	});
   const [abastecimentoCustoPorCombustivel, setAbastecimentoCustoPorCombustivel] = useState<any[]>([]);
   const [abastecimentoConsumoMensal, setAbastecimentoConsumoMensal] = useState<any[]>([]);
-  const [abastecimentoTabela, setAbastecimentoTabela] = useState<any[]>([]);
+  const [abastecimentoConsumoPorCampus, setAbastecimentoConsumoPorCampus] = useState<any[]>([]);
   const [multasResumo, setMultasResumo] = useState({
     totalMultas: 0,
   });
@@ -155,11 +155,8 @@ const Relatorios: React.FC = () => {
   const [multasPorMes, setMultasPorMes] = useState<{ mes: string; total: number }[]>([]);
   const [multasTabela, setMultasTabela] = useState<any[]>([]);
 
-  const [ocorrenciasResumo, setOcorrenciasResumo] = useState({
-    totalOcorrencias: 0,
-  });
+  const [ocorrenciasResumo, setOcorrenciasResumo] = useState({ totalOcorrencias: 0 });
   const [ocorrenciasPorVeiculo, setOcorrenciasPorVeiculo] = useState<{ placa: string; quantidade: number }[]>([]);
-  const [ocorrenciasTabela, setOcorrenciasTabela] = useState<any[]>([]);
 
   useEffect(() => {
       const carregarTodosDados = async () => {
@@ -268,7 +265,13 @@ const Relatorios: React.FC = () => {
 		setAbastecimentoResumo(data.resumo);
 		setAbastecimentoCustoPorCombustivel(data.custoPorCombustivel);
 		setAbastecimentoConsumoMensal(data.consumoMensal);
-		setAbastecimentoTabela(data.tabela);
+		setAbastecimentoConsumoPorCampus(
+            data.consumoPorCampus.map((item: any) => ({
+                name: item.campus,
+                litros: item.litros,
+                valor: item.valor,
+            }))
+        );
 	} catch {
 		setError('Erro ao carregar relatório de abastecimentos');
 	}
@@ -302,15 +305,7 @@ const Relatorios: React.FC = () => {
         params: { ano: selectedYear },
       });
       setOcorrenciasResumo(data.resumo);
-	  setOcorrenciasPorVeiculo(data.ocorrenciasPorVeiculo);
-      setOcorrenciasTabela(
-        data.tabela.map((o: any) => ({
-          id: o.id,
-          motorista: o.motorista,
-          placa: o.placa,
-          dataOcorrencia: new Date(o.dataOcorrencia).toLocaleDateString('pt-BR'),
-        }))
-      );
+	    setOcorrenciasPorVeiculo(data.ocorrenciasPorVeiculo);
     } catch {
       setError('Erro ao carregar relatório de ocorrências');
     }
@@ -329,6 +324,7 @@ const Relatorios: React.FC = () => {
     backgroundColor: theme.palette.background.paper,
     border: `1px solid ${theme.palette.divider}`,
     borderRadius: theme.shape.borderRadius,
+    color: theme.palette.text.primary
   };
 
   if (loading) {
@@ -799,6 +795,38 @@ const Relatorios: React.FC = () => {
 					</ResponsiveContainer>
 				</Paper>
 				</Grid>
+
+				{/* Consumo por Campus */}
+        <Grid item xs={12}>
+					<Paper sx={{ p: 2, height: 400 }} elevation={3}>
+						<Typography variant="h6" color="text.primary" gutterBottom>
+						Consumo por Campus
+						</Typography>
+						<ResponsiveContainer width="100%" height={340}>
+						<BarChart
+							layout="vertical"
+							data={abastecimentoConsumoPorCampus}
+							margin={{ top: 20, right: 30, left: 120, bottom: 5 }}
+						>
+							<CartesianGrid strokeDasharray="3 3" />
+							<XAxis type="number" />
+							<YAxis
+							type="category"
+							dataKey="name"
+							width={110}
+							tick={{ fontSize: 12 }}
+							/>
+							<Tooltip 
+								contentStyle={tooltipStyle}
+								formatter={(value: number) => `${value.toFixed(2)}`}
+							/>
+							<Legend />
+							<Bar dataKey="litros" fill={theme.palette.info.main} name="Litros" />
+							<Bar dataKey="valor" fill={theme.palette.success.main} name="Valor (R$)" />
+						</BarChart>
+						</ResponsiveContainer>
+					</Paper>
+        </Grid>
 			</Grid>
 		)}
 
@@ -973,35 +1001,13 @@ const Relatorios: React.FC = () => {
                     />
                     <Tooltip contentStyle={tooltipStyle} />
                     <Legend />
-                    <Bar dataKey="quantidade" fill={theme.palette.warning.main} />
+                    <Bar
+                      dataKey="quantidade"
+                      name="Quantidade"
+                      fill={theme.palette.warning.main}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
-              </Paper>
-            </Grid>
-
-            {/* Tabela de Ocorrências */}
-            <Grid item xs={12} md={12}>
-              <Paper sx={{ p: 2 }} elevation={3}>
-                <Typography variant="h6" color="text.primary" gutterBottom>
-                  Relatório Detalhado de Ocorrências
-                </Typography>
-                <DataGrid
-                  autoHeight
-                  rows={ocorrenciasTabela}
-                  columns={[
-                    { field: 'id', headerName: 'ID', flex: 0.5 },
-                    { field: 'motorista', headerName: 'Motorista', flex: 1 },
-                    { field: 'placa', headerName: 'Placa', flex: 1 },
-                    { field: 'dataOcorrencia', headerName: 'Data da Ocorrência', flex: 1 },
-                  ]}
-                  pageSizeOptions={[5, 10, 20]}
-                  initialState={{
-                    pagination: { paginationModel: { pageSize: 10, page: 0 } },
-                  }}
-                  localeText={
-                    ptBR.components.MuiDataGrid.defaultProps.localeText
-                  }
-                />
               </Paper>
             </Grid>
           </Grid>
