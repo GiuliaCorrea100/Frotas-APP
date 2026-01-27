@@ -202,7 +202,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
         >
           <Box display="flex" alignItems="center">
             <LocalGasStation color="primary" sx={{ mr: 1 }} />
-            <Typography variant="h6" fontWeight="bold">
+            <Typography variant="h6" fontWeight="bold" color="text.primary">
               Cadastro de Multa
             </Typography>
           </Box>

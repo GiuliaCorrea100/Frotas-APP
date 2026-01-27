@@ -25,16 +25,16 @@ const ModalConfirmacaoUltimoPercurso: React.FC<ModalConfirmacaoUltimoPercursoPro
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>
-        <Typography component="div" fontWeight="bold" sx={{ fontSize: "1.25rem" }}>
+        <Typography component="div" fontWeight="bold" color="text.primary" sx={{ fontSize: "1.25rem" }}>
           Confirmar Percurso
         </Typography>
       </DialogTitle>
       <DialogContent>
         <Box sx={{ mt: 2, textAlign: 'center' }}>
-          <Typography variant="h6" gutterBottom>
+          <Typography variant="h6" color="text.primary" gutterBottom>
             Este é seu último percurso de volta para
           </Typography>
-          <Typography variant="h5" color="primary" fontWeight="bold" gutterBottom>
+          <Typography variant="h5" color="text.primary" fontWeight="bold" gutterBottom>
             "{localOrigem}"?
           </Typography>
           <Typography variant="body2" color="text.secondary">

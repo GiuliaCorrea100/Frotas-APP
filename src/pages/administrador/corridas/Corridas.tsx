@@ -556,9 +556,13 @@ export default function ListaCorrida() {
         maxWidth="sm"
         PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
       >
-        <DialogTitle sx={{ fontWeight: 600 }}>Cancelar corrida</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 600 }}>
+          <Typography color="text.primary">
+            Cancelar corrida
+            </Typography>
+          </DialogTitle>
         <DialogContent>
-          <Typography>
+          <Typography color="text.primary">
             Você tem certeza que deseja cancelar essa corrida?
           </Typography>
         </DialogContent>

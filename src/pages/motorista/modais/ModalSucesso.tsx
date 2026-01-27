@@ -3,7 +3,8 @@ import {
   Dialog,
   DialogTitle,
   DialogActions,
-  Button
+  Button,
+  Typography
 } from '@mui/material';
 
 interface ModalSucessoProps {
@@ -19,7 +20,11 @@ const ModalSucesso: React.FC<ModalSucessoProps> = ({
 }) => {
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>{title}</DialogTitle>
+     <DialogTitle>
+        <Typography color="text.primary" fontWeight={600}>
+          {title}
+        </Typography>
+      </DialogTitle>
       <DialogActions>
         <Button onClick={onClose}>OK</Button>
       </DialogActions>

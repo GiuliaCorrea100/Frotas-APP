@@ -81,7 +81,6 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
   const [percursosAtivosCount, setPercursosAtivosCount] = useState(0);
   const [idCarro, setIdCarro] = useState<number | null>(null);
   const [odometroAtual, setOdometroAtual] = useState<string>("0");
-
   
   const [destino, setDestino] = useState("");
   const [odometro, setOdometro] = useState("");
@@ -90,8 +89,6 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
   const [isUltimoPercurso, setIsUltimoPercurso] = useState(false);
 
   const [chaveEmprestada, setChaveEmprestada] = useState(false);
-
-  
 
   useEffect(() => {
     const fetchStatusChave = async () => {
@@ -185,9 +182,6 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
     isMounted = false;
   };
 }, [corridaLocal.idCorrida]);
-
-
-
 
   // Lógica de desabilitação dos botões
   const isIniciarDisabled = isCorridaIniciada;
@@ -385,8 +379,6 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
         >
           Situação: {corridaLocal.situacao} 
         </Typography>
-
-        
         
         <ModalPercursos 
           corridaId={corridaLocal.idCorrida} 
