@@ -8,8 +8,10 @@ export interface MultaDto {
   placaVeiculo: string;
   dataInfracao: Date | null;
   autoInfracao: number;
+  situacao?: string;
   ativa?: boolean;
   urlArquivo?: string;
+  urlComprovantePagamento?: string | null;
   idMotorista?: number;
   nomeMotorista?: string;
   motorista?: {
@@ -26,12 +28,15 @@ export interface MultaBackend {
   placaVeiculo: string;
   dataInfracao: Date | null;
   autoInfracao: number;
+  situacao?: string;
 }
 
 export class MultaService {
-  static async listarMultas(): Promise<MultaDto[]> {
+  static async listarMultas(params?: any): Promise<MultaDto[]> {
     try {
-      const response = await axiosConnect.get<MultaDto[]>("/multa");
+      const response = await axiosConnect.get<MultaDto[]>("/multa", {
+        params,
+      });
       return response.data;
     } catch (error) {
       console.error("Erro ao listar multas:", error);
@@ -50,12 +55,11 @@ export class MultaService {
 
   static async criarMultaComArquivo(formData: FormData): Promise<void> {
     try {
-      const response = await axiosConnect.post("/multa/com-arquivo", formData, {
+      await axiosConnect.post("/multa/com-arquivo", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      console.log("Resposta do servidor:", response.data);
     } catch (error) {
       console.error("Erro ao cadastrar multa com arquivo:", error);
       throw error;
@@ -90,10 +94,35 @@ export class MultaService {
     }
   }
 
+  static async uploadComprovante(
+    idMulta: number,
+    arquivo: File
+  ): Promise<void> {
+    try {
+      const formData = new FormData();
+      formData.append("arquivo", arquivo);
+
+      await axiosConnect.put(
+        `/multa/${idMulta}/comprovante`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+    } catch (error) {
+      console.error(
+        `Erro ao enviar comprovante da multa ${idMulta}:`,
+        error
+      );
+      throw error;
+    }
+  }
+
   static async removerMulta(idMulta: number): Promise<void> {
     try {
       await axiosConnect.patch(`/multa/deletar-multa/${idMulta}`);
-      console.log(`Multa ${idMulta} marcada como deletada`);
     } catch (error) {
       console.error(`Erro ao deletar multa ${idMulta}:`, error);
       throw error;
@@ -112,9 +141,10 @@ export class MultaService {
 
   static async downloadArquivo(fileName: string): Promise<Blob> {
     try {
-      const response = await axiosConnect.get(`/anexo/download/${fileName}`, {
-        responseType: "blob",
-      });
+      const response = await axiosConnect.get(
+        `/anexo/download/${fileName}`,
+        { responseType: "blob" }
+      );
       return response.data;
     } catch (error) {
       console.error(`Erro ao baixar arquivo ${fileName}:`, error);
@@ -125,7 +155,6 @@ export class MultaService {
   static async removerArquivoMulta(idMulta: number): Promise<void> {
     try {
       await axiosConnect.delete(`/multa/${idMulta}/arquivo`);
-      console.log(`Arquivo da multa ${idMulta} removido com sucesso`);
     } catch (error) {
       console.error(`Erro ao remover arquivo da multa ${idMulta}:`, error);
       throw error;
@@ -134,11 +163,11 @@ export class MultaService {
 
   static async deletarArquivoPorUrl(urlArquivo: string): Promise<void> {
     try {
-      await axiosConnect.delete('/anexo/remover-por-url', {
-        data: { urlArquivo }
+      await axiosConnect.delete("/anexo/remover-por-url", {
+        data: { urlArquivo },
       });
     } catch (error) {
-      console.error(`Erro ao deletar arquivo por URL:`, error);
+      console.error("Erro ao deletar arquivo por URL:", error);
       throw error;
     }
   }

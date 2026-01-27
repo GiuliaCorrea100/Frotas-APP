@@ -440,10 +440,10 @@ const Menu: React.FC = () => {
                   <Button 
                     color="inherit" 
                     component={Link} 
-                    to="/Boletos"
+                    to="/RegistrosDeInfracao"
                     sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
                   >
-                    Boletos
+                    Registros de Infração
                   </Button>
 
                   <Button 

@@ -187,6 +187,37 @@ export default function ListaMulta() {
     },
     { field: 'autoInfracao', headerName: 'Número do auto', flex: 1 },
     {
+      field: 'comprovantePagamento',
+      headerName: 'Comprovante Pagamento',
+      flex: 1.5,
+      sortable: false,
+      renderCell: (params) => {
+        const url = params.row.urlComprovantePagamento;
+
+        return (
+          <Button
+            size="small"
+            variant="outlined"
+            disabled={!url}
+            onClick={async () => {
+              if (!url) return;
+              const fileName = url.split('/').pop()!;
+              const blob = await MultaService.downloadArquivo(fileName);
+
+              const downloadUrl = window.URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = downloadUrl;
+              link.download = `comprovante_${params.row.autoInfracao}.pdf`;
+              link.click();
+              window.URL.revokeObjectURL(downloadUrl);
+            }}
+          >
+            Comprovante
+          </Button>
+        );
+      }
+    },
+    {
       field: 'acoes',
       headerName: 'Ações',
       flex: 1,
