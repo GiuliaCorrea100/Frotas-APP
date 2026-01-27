@@ -222,7 +222,7 @@ export default function ListaAdministradores() {
         flex: 1 
       }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h5" fontWeight="bold" color="textPrimary">
+          <Typography variant="h5" fontWeight="bold" color="text.primary">
             Administradores
           </Typography>
           
@@ -310,7 +310,11 @@ export default function ListaAdministradores() {
           }
         }}
       >
-        <DialogTitle sx={{ fontWeight: 600 }}>Novo Administrador</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 600 }}>
+          <Typography variant="h6" color="text.primary" fontWeight={600}>
+            Novo Administrador
+          </Typography>
+        </DialogTitle>
         <DialogContent>
           <Autocomplete
             options={usuariosDisponiveis}

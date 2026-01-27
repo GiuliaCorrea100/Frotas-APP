@@ -38,7 +38,7 @@ const ModalFinalizarPercurso: React.FC<ModalFinalizarPercursoProps> = ({
   return (
     <Dialog open={open} onClose={onClose} fullWidth>
       <DialogTitle>
-        <Typography component="div" fontWeight="bold" sx={{ fontSize: "1.25rem" }}>
+        <Typography component="div" fontWeight="bold" color="text.primary" sx={{ fontSize: "1.25rem" }}>
           Finalizar Percurso
         </Typography>
       </DialogTitle>
@@ -49,7 +49,7 @@ const ModalFinalizarPercurso: React.FC<ModalFinalizarPercursoProps> = ({
               Odometro inválido! Valor menor que o registrado para o veículo
             </Typography>
           )}
-          <Typography variant="body1" sx={{ mb: 2 }}>
+          <Typography variant="body1" color="text.primary" sx={{ mb: 2 }}>
             <strong>Fim do percurso em:</strong> {percursoAtual?.localDestino || "Destino não encontrado"}
           </Typography>
           <TextField
