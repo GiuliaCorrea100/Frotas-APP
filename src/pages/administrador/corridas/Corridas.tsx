@@ -24,7 +24,6 @@ import { CarroService } from '../../../services/CarroService';
 import Menu from '../../../components/Menu';
 import axiosConnect from '../../../services/axios/axiosConnect';
 
-
 const formatDate = (dateString: string | null) => {
   if (!dateString) return 'Em andamento';
   try {
@@ -67,7 +66,8 @@ export default function ListaCorrida() {
   const [showModalEditar, setShowModalEditar] = useState(false);
   const [showModalCancelar, setShowModalCancelar] = useState(false);
 
-  const [mostrarAlertaSenha, setMostrarAlertaSenha] = useState(false);
+  const [senhaError, setSenhaError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const [filtroSituacao, setFiltroSituacao] = useState<string>('AGENDADA');
   const [authMode, setAuthMode] = useState<string>('SIGAA');
@@ -89,7 +89,7 @@ export default function ListaCorrida() {
   }, []);
 
   useEffect(() => {
-      carregarCorridas(); 
+    carregarCorridas(); 
   }, []);
 
   const carregarCorridas = async () => {
@@ -106,7 +106,7 @@ export default function ListaCorrida() {
   const qtdAgendadas = corridas.filter(c => c.situacao === 'AGENDADA').length;
   const qtdEmAndamento = corridas.filter(c => c.situacao === 'ANDAMENTO').length;
   const qtdFinalizadas = corridas.filter(c => c.situacao === 'FINALIZADA').length;
-  const qtdCanceladas= corridas.filter(c => c.situacao === 'CANCELADA').length;
+  const qtdCanceladas = corridas.filter(c => c.situacao === 'CANCELADA').length;
 
   const dadosFiltrados = corridas.filter(corrida => {
     const matchesSearch = Object.values(corrida).some(valor =>
@@ -122,6 +122,9 @@ export default function ListaCorrida() {
 
   const handleAbrirModalLiberarChave = (corrida: CorridaFrontend) => {
     setSelectedCorrida(corrida);
+    setSenhaError(null);
+    setSenhaLiberarChave('');
+    setIsProcessing(false);
     setShowModalLiberarChave(true);
   };
 
@@ -138,6 +141,79 @@ export default function ListaCorrida() {
   const handleAbrirModalCancelarCorrida = (corrida: CorridaFrontend) => {
     setSelectedCorrida(corrida);
     setShowModalCancelar(true);
+  };
+
+  const handleLiberarChave = async () => {
+    if (!selectedCorrida) return;
+
+    setSenhaError(null);
+    
+    // Validar senha
+    if (!senhaLiberarChave.trim()) {
+      setSenhaError('Digite sua senha');
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      // No modo MOCK, validar com senha fixa
+      if (authMode === 'MOCK') {
+        if (senhaLiberarChave !== 'secret') {
+          setSenhaError('Senha incorreta. No modo TESTE use a senha: secret');
+          setIsProcessing(false);
+          return;
+        }
+        
+        // Simular a liberação da chave no modo MOCK
+        await CorridaService.confirmarLiberarChaveMock(
+          selectedCorrida.idCorrida, 
+          selectedCorrida.idMotorista
+        );
+      } else {
+        // Modo SIGAA normal
+        await CorridaService.confirmarLiberarChave(
+          selectedCorrida.idCorrida, 
+          selectedCorrida.idMotorista, 
+          senhaLiberarChave
+        );
+      }
+      
+      await CarroService.atualizarSituacaoCarro(selectedCorrida.idCarro, "VIAGEM");
+      
+      const dadosAtualizados = await getCorridas();
+      setCorridas(dadosAtualizados);
+      setShowModalLiberarChave(false);
+      setSenhaLiberarChave('');
+      setSenhaError(null);
+      
+    } catch (error: any) {
+      console.error("Erro ao processar liberação da chave:", error);
+      
+      // Verificar se é erro de senha
+      const errorMessage = error.response?.data?.message || error.message || '';
+      const errorMessageLower = errorMessage.toLowerCase();
+      
+      if (error.response?.status === 401 || 
+          errorMessageLower.includes('senha') ||
+          errorMessageLower.includes('password') ||
+          errorMessageLower.includes('credenciais') ||
+          errorMessageLower.includes('autenticação') ||
+          errorMessageLower.includes('incorreto') ||
+          errorMessageLower.includes('inválido')) {
+        setSenhaError('Senha inválida. Verifique e tente novamente.');
+      } else if (error.response?.status === 400) {
+        setSenhaError('Requisição inválida. Verifique os dados.');
+      } else if (error.response?.status === 403) {
+        setSenhaError('Acesso não autorizado.');
+      } else if (error.response?.status === 500) {
+        setSenhaError('Erro interno do servidor. Tente novamente mais tarde.');
+      } else {
+        setSenhaError('Erro ao liberar chave. Tente novamente.');
+      }
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const columns: GridColDef<CorridaFrontend>[] = [
@@ -397,79 +473,78 @@ export default function ListaCorrida() {
         </Box>
       </Box>
 
+      {/* Modal de Liberar Chave */}
       <Dialog
         open={showModalLiberarChave}
-        onClose={() => setShowModalLiberarChave(false)}
+        onClose={() => {
+          if (!isProcessing) {
+            setShowModalLiberarChave(false);
+            setSenhaError(null);
+          }
+        }}
         fullWidth
         maxWidth="sm"
         PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
       >
         <DialogTitle color="text.primary" sx={{ fontWeight: 600 }}>Liberar chave</DialogTitle>
         <DialogContent>
-          <Typography color="text.primary">
+          <Typography color="text.primary" mb={2}>
             Você está entregando a chave do carro ao motorista:
             <strong> {selectedCorrida?.nomeMotorista}</strong>
           </Typography>
           
           <TextField
-            label=" "
+            label="Digite sua senha"
             type="password"
             value={senhaLiberarChave}
-            onChange={(e) => setSenhaLiberarChave(e.target.value)}
+            onChange={(e) => {
+              setSenhaLiberarChave(e.target.value);
+              setSenhaError(null);
+            }}
             fullWidth
             variant="outlined"
+            error={!!senhaError}
+            helperText={senhaError}
+            autoFocus
+            disabled={isProcessing}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter' && !isProcessing) {
+                e.preventDefault();
+                handleLiberarChave();
+              }
+            }}
           />
+
+          {authMode === 'MOCK' && (
+            <Typography 
+              variant="caption" 
+              color="text.secondary" 
+              sx={{ display: 'block', mt: 1, fontStyle: 'italic' }}
+            >
+              Modo de teste ativo. Use a senha: <strong>secret</strong>
+            </Typography>
+          )}
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0 }}>
-          <Button onClick={() => setShowModalLiberarChave(false)} variant="outlined" sx={{ borderRadius: 2 }}>
+          <Button 
+            onClick={() => {
+              setShowModalLiberarChave(false);
+              setSenhaError(null);
+            }} 
+            variant="outlined" 
+            sx={{ borderRadius: 2 }}
+            disabled={isProcessing}
+          >
             Cancelar
           </Button>
           <Button
-            onClick={async () => {
-              if (selectedCorrida) {
-                try {
-                  // No modo MOCK, validar com senha fixa
-                  if (authMode === 'MOCK') {
-                    if (senhaLiberarChave !== 'secret') {
-                      alert('Senha incorreta. No modo TESTE use a senha: secret');
-                      return;
-                    }
-                    
-                    // Simular a liberação da chave no modo MOCK
-                    await CorridaService.confirmarLiberarChaveMock(
-                      selectedCorrida.idCorrida, 
-                      selectedCorrida.idMotorista
-                    );
-                  } else {
-                    // Modo SIGAA normal
-                    await CorridaService.confirmarLiberarChave(
-                      selectedCorrida.idCorrida, 
-                      selectedCorrida.idMotorista, 
-                      senhaLiberarChave
-                    );
-                  }
-                  
-                  await CarroService.atualizarSituacaoCarro(selectedCorrida.idCarro, "VIAGEM");
-                  
-                  const dadosAtualizados = await getCorridas();
-                  setCorridas(dadosAtualizados);
-                  setShowModalLiberarChave(false);
-                  setSenhaLiberarChave('');
-                  
-                } catch (error) {
-                  console.error("Erro ao processar liberação da chave:", error);
-                  if (authMode !== 'MOCK') {
-                    // Mostrar mensagem de erro apenas no modo SIGAA
-                    alert('Erro ao liberar chave. Verifique a senha.');
-                  }
-                }
-              }
-            }}
+            onClick={handleLiberarChave}
             variant="contained"
             color="primary"
             sx={{ borderRadius: 2 }}
+            disabled={isProcessing}
           >
-            Confirmar
+            {isProcessing ? 'Processando...' : 'Confirmar'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -550,7 +625,6 @@ export default function ListaCorrida() {
                   if(selectedCorrida.situacao === 'ANDAMENTO'){
                     await atualizarSituacaoCorrida(selectedCorrida.idCorrida, 'FINALIZADA');
                   }
-                  
                   
                   const dadosAtualizados = await getCorridas();
                   setCorridas(dadosAtualizados);

@@ -521,7 +521,7 @@ const DetalhesRequisicao: React.FC = () => {
 
                 <Box>
                   <Typography variant="body2" color="text.secondary">
-                    Data do início:
+                    Data de liberação da chave:
                   </Typography>
                   <Typography variant="body1" color="text.primary">
                     {new Date(corrida.dataInicio).toLocaleString()}
@@ -530,7 +530,7 @@ const DetalhesRequisicao: React.FC = () => {
 
                 <Box>
                   <Typography variant="body2" color="text.secondary">
-                    Data do término:
+                    Data de entrega da chave:
                   </Typography>
                   <Typography variant="body1" color="text.primary">
                     {corrida.dataTermino

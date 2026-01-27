@@ -82,6 +82,9 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [carregandoTipos, setCarregandoTipos] = useState(true);
+  
+  
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const dataMinima = corrida?.dataHoraLiberacaoChave
     ? new Date(corrida.dataHoraLiberacaoChave)
@@ -236,7 +239,10 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
       return; // Impede o salvamento se houver erros
     }
 
+    
+    setIsSubmitting(true);
     setLoading(true);
+
     try {
       // Criar a data considerando o fuso horário
       // const dataAbastecimentoUTC = new Date(formData.dataAbastecimento + 'T04:00:00.000Z');
@@ -274,6 +280,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
       });
     } finally {
       setLoading(false);
+      setIsSubmitting(false); 
     }
   };
 
@@ -287,6 +294,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
     });
     setErrors({});
     setSuccessMessage("");
+    setIsSubmitting(false); 
     onClose();
   };
 
@@ -304,7 +312,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
             <LocalGasStation color="primary" sx={{ mr: 1, mt: 0 }} />
             <Typography variant="h6" color="text.primary">Edição de Abastecimento</Typography>
           </Box>
-          <IconButton onClick={handleClose}>
+          <IconButton onClick={handleClose} disabled={isSubmitting || !!successMessage}>
             <Close />
           </IconButton>
         </Box>
@@ -343,7 +351,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
                   <InputAdornment position="end">L</InputAdornment>
                 ),
               }}
-              disabled={loading}
+              disabled={loading || isSubmitting} 
             />
             <TextField
               label="Valor Unitário"
@@ -360,7 +368,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
                   <InputAdornment position="start">R$</InputAdornment>
                 ),
               }}
-              disabled={loading}
+              disabled={loading || isSubmitting} 
             />
             <TextField
               label="Preço Final"
@@ -373,7 +381,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
                 readOnly: true,
               }}
               sx={{ flex: "1 1 200px" }}
-              disabled={loading}
+              disabled={loading || isSubmitting} 
             />
           </Box>
 
@@ -400,7 +408,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
               },
             }}
             sx={{ mb: 2 }}
-            disabled={loading}
+            disabled={loading || isSubmitting} 
           />
 
           <Divider sx={{ my: 2 }} />
@@ -421,7 +429,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
               value={formData.tipoCombustivelId}
               onChange={handleSelectChange}
               label="Tipo"
-              disabled={loading}
+              disabled={loading || isSubmitting} 
             >
               {carregandoTipos ? (
                 <MenuItem disabled>Carregando tipos de combustível...</MenuItem>
@@ -445,17 +453,33 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
 
           {/* Botões */}
           <Box display="flex" justifyContent="flex-end" gap={1} mt={3}>
-            <Button onClick={handleClose} color="inherit" disabled={loading}>
+            <Button 
+              onClick={handleClose} 
+              color="inherit" 
+              disabled={isSubmitting || !!successMessage} 
+            >
               Cancelar
             </Button>
             <Button
               type="submit"
               variant="contained"
               color="primary"
-              startIcon={!loading && <AttachMoney />}
-              disabled={loading}
+              disabled={loading || isSubmitting || !!successMessage} 
+              sx={{ minWidth: 120 }}
             >
-              {loading ? <CircularProgress size={24} /> : "Atualizar"}
+              {isSubmitting ? (
+                
+                <>
+                  <CircularProgress size={20} sx={{ mr: 1, color: 'inherit' }} />
+                  Atualizando...
+                </>
+              ) : (
+                
+                <>
+                  <AttachMoney sx={{ mr: 1, fontSize: 20 }} />
+                  Atualizar
+                </>
+              )}
             </Button>
           </Box>
         </Box>

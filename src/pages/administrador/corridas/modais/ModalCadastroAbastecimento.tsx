@@ -13,6 +13,7 @@ import {
   InputAdornment,
   Paper,
   Divider,
+  CircularProgress, 
 } from '@mui/material';
 import { LocalGasStation, CalendarToday } from '@mui/icons-material';
 import { CorridaFrontend } from '../../../../services/CorridaService';
@@ -65,6 +66,9 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
   const [tiposCombustivel, setTiposCombustivel] = useState<TipoCombustivel[]>([]);
   const [carregandoTipos, setCarregandoTipos] = useState(true);
   
+  
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
   const dataMinima = corrida?.dataHoraLiberacaoChave
     ? new Date(corrida.dataHoraLiberacaoChave)
     : null;
@@ -175,6 +179,9 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
     if (!validateForm()) return;
 
+    
+    setIsSubmitting(true);
+
     // Encontrar o tipo de combustível selecionado
     const tipoCombustivelSelecionado = tiposCombustivel.find(
       tipo => tipo.idTipoCombustivel === parseInt(formData.tipoCombustivelId)
@@ -182,6 +189,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
     if (!tipoCombustivelSelecionado) {
       setErrors({ submit: 'Tipo de combustível inválido' });
+      setIsSubmitting(false); 
       return;
     }
 
@@ -232,6 +240,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       });
     } finally {
       setLoading(false);
+      setIsSubmitting(false); 
     }
   };
 
@@ -282,6 +291,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
     });
     setErrors({});
     setSuccessMessage('');
+    setIsSubmitting(false); 
     onClose();
   };
 
@@ -336,6 +346,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                 InputProps={{
                   endAdornment: <InputAdornment position="end">L</InputAdornment>,
                 }}
+                disabled={isSubmitting} 
               />
 
               <TextField
@@ -347,6 +358,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                 error={!!errors.codigoPagamento}
                 helperText={errors.codigoPagamento}
                 sx={{ flex: '1 1 200px' }}
+                disabled={isSubmitting} 
               />
             </Box>
 
@@ -362,6 +374,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                 InputProps={{
                   startAdornment: <InputAdornment position="start">R$</InputAdornment>,
                 }}
+                disabled={isSubmitting} 
               />
 
               <TextField
@@ -378,6 +391,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                   startAdornment: <InputAdornment position="start">R$</InputAdornment>,
                   readOnly: true,
                 }}
+                disabled={isSubmitting} 
               />
             </Box>
 
@@ -403,6 +417,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                 },
               }}
               sx={{ mb: 2, width: '100%', maxWidth: 400 }}
+              disabled={isSubmitting} 
             />
           </Box>
 
@@ -421,6 +436,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                 value={formData.tipoCombustivelId}
                 onChange={handleSelectChange}
                 label="Tipo de Combustível"
+                disabled={isSubmitting} 
               >
                 {carregandoTipos ? (
                   <MenuItem value="">Carregando tipos de combustível...</MenuItem>
@@ -447,16 +463,26 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
             <Button
               variant="outlined"
               onClick={handleClose}
-              disabled={loading}
+              disabled={isSubmitting || !!successMessage} 
             >
               Cancelar
             </Button>
             <Button
               type="submit"
               variant="contained"
-              disabled={loading}
+              disabled={loading || isSubmitting || !!successMessage} 
+              sx={{ minWidth: 120 }} 
             >
-              {loading ? 'Cadastrando...' : 'Cadastrar'}
+              {isSubmitting ? (
+                
+                <>
+                  <CircularProgress size={20} sx={{ mr: 1, color: 'inherit' }} />
+                  Cadastrando...
+                </>
+              ) : (
+                
+                'Cadastrar'
+              )}
             </Button>
           </Box>
         </form>
