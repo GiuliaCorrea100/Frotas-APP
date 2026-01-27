@@ -83,7 +83,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
   const [successMessage, setSuccessMessage] = useState("");
   const [carregandoTipos, setCarregandoTipos] = useState(true);
   
-  // ADICIONADO: Estado para controlar o loading do botão de submit
+  
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const dataMinima = corrida?.dataHoraLiberacaoChave
@@ -236,7 +236,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
       return; // Impede o salvamento se houver erros
     }
 
-    // ADICIONADO: Iniciar o loading do botão
+    
     setIsSubmitting(true);
     setLoading(true);
 
@@ -277,7 +277,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
       });
     } finally {
       setLoading(false);
-      setIsSubmitting(false); // ADICIONADO: Parar o loading do botão
+      setIsSubmitting(false); 
     }
   };
 
@@ -291,7 +291,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
     });
     setErrors({});
     setSuccessMessage("");
-    setIsSubmitting(false); // ADICIONADO: Resetar estado de submit
+    setIsSubmitting(false); 
     onClose();
   };
 
@@ -348,7 +348,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
                   <InputAdornment position="end">L</InputAdornment>
                 ),
               }}
-              disabled={loading || isSubmitting} // ALTERADO: Adicionado isSubmitting
+              disabled={loading || isSubmitting} 
             />
             <TextField
               label="Valor Unitário"
@@ -365,7 +365,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
                   <InputAdornment position="start">R$</InputAdornment>
                 ),
               }}
-              disabled={loading || isSubmitting} // ALTERADO: Adicionado isSubmitting
+              disabled={loading || isSubmitting} 
             />
             <TextField
               label="Preço Final"
@@ -378,7 +378,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
                 readOnly: true,
               }}
               sx={{ flex: "1 1 200px" }}
-              disabled={loading || isSubmitting} // ALTERADO: Adicionado isSubmitting
+              disabled={loading || isSubmitting} 
             />
           </Box>
 
@@ -405,7 +405,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
               },
             }}
             sx={{ mb: 2 }}
-            disabled={loading || isSubmitting} // ALTERADO: Adicionado isSubmitting
+            disabled={loading || isSubmitting} 
           />
 
           <Divider sx={{ my: 2 }} />
@@ -426,7 +426,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
               value={formData.tipoCombustivelId}
               onChange={handleSelectChange}
               label="Tipo"
-              disabled={loading || isSubmitting} // ALTERADO: Adicionado isSubmitting
+              disabled={loading || isSubmitting} 
             >
               {carregandoTipos ? (
                 <MenuItem disabled>Carregando tipos de combustível...</MenuItem>
@@ -453,7 +453,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
             <Button 
               onClick={handleClose} 
               color="inherit" 
-              disabled={isSubmitting || !!successMessage} // ALTERADO: Adicionado isSubmitting
+              disabled={isSubmitting || !!successMessage} 
             >
               Cancelar
             </Button>
@@ -461,17 +461,17 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
               type="submit"
               variant="contained"
               color="primary"
-              disabled={loading || isSubmitting || !!successMessage} // ALTERADO: Adicionado isSubmitting
-              sx={{ minWidth: 120 }} // ADICIONADO: Largura mínima para evitar mudança de tamanho
+              disabled={loading || isSubmitting || !!successMessage} 
+              sx={{ minWidth: 120 }}
             >
               {isSubmitting ? (
-                // ADICIONADO: Spinner com texto
+                
                 <>
                   <CircularProgress size={20} sx={{ mr: 1, color: 'inherit' }} />
                   Atualizando...
                 </>
               ) : (
-                // ADICIONADO: Texto normal com ícone quando não está carregando
+                
                 <>
                   <AttachMoney sx={{ mr: 1, fontSize: 20 }} />
                   Atualizar
