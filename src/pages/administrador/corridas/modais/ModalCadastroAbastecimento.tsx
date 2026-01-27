@@ -152,20 +152,23 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
     }
 
     // Validação de data (deve ser entre a data de liberação e recebimento da chave)
-    if (formData.dataAbastecimento) {
-      const dataAbastecimento = new Date(formData.dataAbastecimento);
-      dataAbastecimento.setHours(0, 0, 0, 0);
+    const apenasData = (d: Date) =>
+      new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 
-      if (dataMinima && dataAbastecimento.getTime() < dataMinima.getTime()) {
+    if (formData.dataAbastecimento) {
+      const [ano, mes, dia] = formData.dataAbastecimento.split('-').map(Number);
+      const dataAbastecimento = new Date(ano, mes - 1, dia);
+
+      if (dataMinima && apenasData(dataAbastecimento) < apenasData(dataMinima)) {
         newErrors.dataAbastecimento = 'Data não pode ser anterior à liberação da chave';
-      } else if (dataAbastecimento.getTime() > dataLimite.getTime()) {
+      } else if (apenasData(dataAbastecimento) > apenasData(dataLimite)) {
         newErrors.dataAbastecimento = 'Data não pode ser posterior à data de encerramento da corrida';
       }
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+      return Object.keys(newErrors).length === 0;
+    };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
