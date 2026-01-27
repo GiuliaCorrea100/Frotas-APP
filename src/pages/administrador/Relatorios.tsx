@@ -554,281 +554,281 @@ const Relatorios: React.FC = () => {
         )}
 
         {/* --- VEÍCULOS --- */}
-		{activeTab === 2 && (
-            <Grid container spacing={3}>
-				<Grid item xs={12}>
-					<Typography variant="h5" color="text.primary" gutterBottom>Análise da Frota ({selectedYear})</Typography>
-				</Grid>
-                        
-				{/* Cards Estatísticos */}
-				<Grid item xs={12} sm={6} md={3}>
-					<StatCard 
-						title="Total de Veículos" 
-						value={carrosResumo.totalVeiculos} 
-						icon={<DirectionsCar fontSize="large" />} 
-					/>
-				</Grid>
-				<Grid item xs={12} sm={6} md={3}>
-					<StatCard 
-						title="Veículos em Operação" 
-						value={carrosResumo.emOperacao} 
-						icon={<Speed fontSize="large" />} 
-					/>
-				</Grid>
-				<Grid item xs={12} sm={6} md={3}>
-					<StatCard 
-						title="Veículos em Manutenção" 
-						value={carrosResumo.emManutencao}
-						icon={<WarningAmber fontSize="large" />} 
-					/>
-				</Grid>
-				<Grid item xs={12} sm={6} md={3}>
-					<StatCard 
-						title="Veículos Ociosos" 
-						 value={carrosResumo.ociosos}
-						icon={<Assignment fontSize="large" />} 
-					/>
-				</Grid>
+        {activeTab === 2 && (
+                <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Typography variant="h5" color="text.primary" gutterBottom>Análise da Frota ({selectedYear})</Typography>
+            </Grid>
+                            
+            {/* Cards Estatísticos */}
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard 
+                title="Total de Veículos" 
+                value={carrosResumo.totalVeiculos} 
+                icon={<DirectionsCar fontSize="large" />} 
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard 
+                title="Veículos em Operação" 
+                value={carrosResumo.emOperacao} 
+                icon={<Speed fontSize="large" />} 
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard 
+                title="Veículos em Manutenção" 
+                value={carrosResumo.emManutencao}
+                icon={<WarningAmber fontSize="large" />} 
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard 
+                title="Veículos Ociosos" 
+                value={carrosResumo.ociosos}
+                icon={<Assignment fontSize="large" />} 
+              />
+            </Grid>
 
-				{/* Gráfico: Situação da Frota */}
-				<Grid item xs={12} md={5}>
-					<Paper sx={{ p: 2, height: 400 }} elevation={3}>
-						<Typography variant="h6" color="text.primary" gutterBottom>Situação da Frota</Typography>
-						<ResponsiveContainer width="100%" height={340}>
-							<PieChart>
-								<Pie 
-									data={carrosSituacao} 
-									dataKey="value" 
-									nameKey="name" 
-									cx="50%" 
-									cy="50%" 
-									innerRadius={70} 
-									outerRadius={100} 
-									paddingAngle={3} 
-									label
-								>
-									{carrosSituacao.map((entry, index) => (
-										<Cell
-											key={`cell-${index}`}
-											fill={SITUACAO_VEICULO_COLORS[entry.name] || PIE_COLORS[index]}
-											/>
-									))}
-								</Pie>
-								<Tooltip contentStyle={tooltipStyle} />
-								<Legend />
-							</PieChart>
-						</ResponsiveContainer>
-					</Paper>
-				</Grid>
-				
-				{/* Gráfico: Veículos Mais Utilizados */}
-				<Grid item xs={12} md={7}>
-					<Paper sx={{ p: 2, height: 400 }} elevation={3}>
-						<Typography variant="h6" color="text.primary" gutterBottom>Veículos Mais Utilizados</Typography>
-						<ResponsiveContainer width="100%" height={340}>
-							<BarChart 
-								layout="vertical" 
-								data={desempenhoCarros}
-								margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-							>
-								<CartesianGrid strokeDasharray="3 3" />
-								<XAxis type="number" />
-								<YAxis
-									type="category"
-									dataKey="veiculo"
-									width={100}
-									tick={{ fontSize: 12 }}
-								/>
-								<Tooltip contentStyle={tooltipStyle} />
-								<Legend />
-								<Bar dataKey="Corridas" fill={theme.palette.secondary.main} />
-							</BarChart>
-						</ResponsiveContainer>
-					</Paper>
-				</Grid>
+            {/* Gráfico: Situação da Frota */}
+            <Grid item xs={12} md={5}>
+              <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+                <Typography variant="h6" color="text.primary" gutterBottom>Situação da Frota</Typography>
+                <ResponsiveContainer width="100%" height={340}>
+                  <PieChart>
+                    <Pie 
+                      data={carrosSituacao} 
+                      dataKey="value" 
+                      nameKey="name" 
+                      cx="50%" 
+                      cy="50%" 
+                      innerRadius={70} 
+                      outerRadius={100} 
+                      paddingAngle={3} 
+                      label
+                    >
+                      {carrosSituacao.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={SITUACAO_VEICULO_COLORS[entry.name] || PIE_COLORS[index]}
+                          />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={tooltipStyle} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </Paper>
+            </Grid>
+            
+            {/* Gráfico: Veículos Mais Utilizados */}
+            <Grid item xs={12} md={7}>
+              <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+                <Typography variant="h6" color="text.primary" gutterBottom>Veículos Mais Utilizados</Typography>
+                <ResponsiveContainer width="100%" height={340}>
+                  <BarChart 
+                    layout="vertical" 
+                    data={desempenhoCarros}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" />
+                    <YAxis
+                      type="category"
+                      dataKey="veiculo"
+                      width={100}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <Tooltip contentStyle={tooltipStyle} />
+                    <Legend />
+                    <Bar dataKey="Corridas" fill={theme.palette.secondary.main} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Paper>
+            </Grid>
 
-				{/* Tabela Detalhada de Veículos */}
-				<Grid item xs={12}>
-					<Paper sx={{ p: 2 }} elevation={3}>
-						<Typography variant="h6" color="text.primary" gutterBottom>Relatório Detalhado de Veículos</Typography>
-						<DataGrid
-							autoHeight
-							rows={carrosTabela}
-							columns={[
-								{ field: 'placa', headerName: 'Placa', flex: 1 },
-								{ field: 'modelo', headerName: 'Modelo', flex: 1 },
-								{ field: 'situacao', headerName: 'Situação', flex: 1 },
-								{ field: 'localidadeFisica', headerName: 'Campus', flex: 1 },
-								{ field: 'totalCorridas', headerName: 'Total de Corridas', flex: 1, type: 'number' },
-								 {
-									field: 'statusUtilizacao',
-									headerName: 'Status Utilização',
-									flex: 1,
-									renderCell: (params) => (
-										<Typography
-										variant="body2"
-										sx={{
-											color:
-											params.value === 'Ocioso'
-												? 'warning.main'
-												: params.value === 'Superutilizado'
-												? 'error.main'
-												: 'success.main',
-											fontWeight: 'bold',
-										}}
-										>
-										{params.value}
-										</Typography>
-									),
-								},
-							]}
-							pageSizeOptions={[5, 10, 20]}
-							initialState={{
-								pagination: { paginationModel: { pageSize: 10, page: 0 } },
-								sorting: {
-								sortModel: [{ field: 'totalCorridas', sort: 'desc' }],
-								},
-							}}
-						/>
-					</Paper>
-				</Grid>
-			</Grid>
-		)}
+            {/* Tabela Detalhada de Veículos */}
+            <Grid item xs={12}>
+              <Paper sx={{ p: 2 }} elevation={3}>
+                <Typography variant="h6" color="text.primary" gutterBottom>Relatório Detalhado de Veículos</Typography>
+                <DataGrid
+                  autoHeight
+                  rows={carrosTabela}
+                  columns={[
+                    { field: 'placa', headerName: 'Placa', flex: 1 },
+                    { field: 'modelo', headerName: 'Modelo', flex: 1 },
+                    { field: 'situacao', headerName: 'Situação', flex: 1 },
+                    { field: 'localidadeFisica', headerName: 'Campus', flex: 1 },
+                    { field: 'totalCorridas', headerName: 'Total de Corridas', flex: 1, type: 'number' },
+                    {
+                      field: 'statusUtilizacao',
+                      headerName: 'Status Utilização',
+                      flex: 1,
+                      renderCell: (params) => (
+                        <Typography
+                        variant="body2"
+                        sx={{
+                          color:
+                          params.value === 'Ocioso'
+                            ? 'warning.main'
+                            : params.value === 'Superutilizado'
+                            ? 'error.main'
+                            : 'success.main',
+                          fontWeight: 'bold',
+                        }}
+                        >
+                        {params.value}
+                        </Typography>
+                      ),
+                    },
+                  ]}
+                  pageSizeOptions={[5, 10, 20]}
+                  initialState={{
+                    pagination: { paginationModel: { pageSize: 10, page: 0 } },
+                    sorting: {
+                    sortModel: [{ field: 'totalCorridas', sort: 'desc' }],
+                    },
+                  }}
+                />
+              </Paper>
+            </Grid>
+          </Grid>
+        )}
 
         {/* --- ABASTECIMENTOS --- */}
-		{activeTab === 3 && (
-			<Grid container spacing={3}>
-				<Grid item xs={12}>
-				<Typography variant="h5" color="text.primary" gutterBottom>
-					Análise de Abastecimentos ({selectedYear})
-				</Typography>
-				</Grid>
+        {activeTab === 3 && (
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+            <Typography variant="h5" color="text.primary" gutterBottom>
+              Análise de Abastecimentos ({selectedYear})
+            </Typography>
+            </Grid>
 
-				{/* Cards */}
-				<Grid item xs={12} sm={6}>
-				<StatCard
-					title="Custo Total"
-					value={`R$ ${abastecimentoResumo.totalValor.toLocaleString(
-					'pt-BR',
-					{ minimumFractionDigits: 2 },
-					)}`}
-					icon={<Money fontSize="large" />}
-				/>
-				</Grid>
-				<Grid item xs={12} sm={6}>
-				<StatCard
-					title="Total Abastecido"
-					value={`${abastecimentoResumo.totalLitros.toFixed(2)} Litros`}
-					icon={<LocalGasStation fontSize="large" />}
-				/>
-				</Grid>
+            {/* Cards */}
+            <Grid item xs={12} sm={6}>
+            <StatCard
+              title="Custo Total"
+              value={`R$ ${abastecimentoResumo.totalValor.toLocaleString(
+              'pt-BR',
+              { minimumFractionDigits: 2 },
+              )}`}
+              icon={<Money fontSize="large" />}
+            />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+            <StatCard
+              title="Total Abastecido"
+              value={`${abastecimentoResumo.totalLitros.toFixed(2)} Litros`}
+              icon={<LocalGasStation fontSize="large" />}
+            />
+            </Grid>
 
-				{/* Pizza: custo por tipo de combustível */}
-				<Grid item xs={12} md={5}>
-				<Paper sx={{ p: 2, height: 400 }} elevation={3}>
-					<Typography variant="h6" color="text.primary" gutterBottom>
-					Custo por Tipo de Combustível
-					</Typography>
-					<ResponsiveContainer width="100%" height={340}>
-					<PieChart>
-						<Pie
-						data={abastecimentoCustoPorCombustivel}
-						dataKey="value"
-						nameKey="name"
-						cx="50%"
-						cy="50%"
-						outerRadius={100}
-						 label={(entry) =>
-							`R$ ${entry.value.toFixed(2)}`
-						}
-						>
-						{abastecimentoCustoPorCombustivel.map((entry, index) => (
-							<Cell
-							key={`cell-${index}`}
-							fill={PIE_COLORS[index % PIE_COLORS.length]}
-							/>
-						))}
-						</Pie>
-						<Tooltip
-						formatter={(value: number) =>
-							`R$ ${typeof value === 'number'
-							? value.toFixed(2)
-							: value}`
-						}
-						contentStyle={tooltipStyle}
-						/>
-						<Legend />
-					</PieChart>
-					</ResponsiveContainer>
-				</Paper>
-				</Grid>
+            {/* Pizza: custo por tipo de combustível */}
+            <Grid item xs={12} md={5}>
+            <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+              <Typography variant="h6" color="text.primary" gutterBottom>
+              Custo por Tipo de Combustível
+              </Typography>
+              <ResponsiveContainer width="100%" height={340}>
+              <PieChart>
+                <Pie
+                data={abastecimentoCustoPorCombustivel}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={100}
+                label={(entry) =>
+                  `R$ ${entry.value.toFixed(2)}`
+                }
+                >
+                {abastecimentoCustoPorCombustivel.map((entry, index) => (
+                  <Cell
+                  key={`cell-${index}`}
+                  fill={PIE_COLORS[index % PIE_COLORS.length]}
+                  />
+                ))}
+                </Pie>
+                <Tooltip
+                formatter={(value: number) =>
+                  `R$ ${typeof value === 'number'
+                  ? value.toFixed(2)
+                  : value}`
+                }
+                contentStyle={tooltipStyle}
+                />
+                <Legend />
+              </PieChart>
+              </ResponsiveContainer>
+            </Paper>
+            </Grid>
 
-				{/* Consumo mensal (litros x valor) */}
-				<Grid item xs={12} md={7}>
-				<Paper sx={{ p: 2, height: 400 }} elevation={3}>
-					<Typography variant="h6" color="text.primary" gutterBottom>
-					Consumo Mensal
-					</Typography>
-					<ResponsiveContainer width="100%" height={340}>
-					<AreaChart data={abastecimentoConsumoMensal}>
-						<CartesianGrid strokeDasharray="3 3" />
-						<XAxis dataKey="mes" />
-						<YAxis yAxisId="left" />
-						<YAxis yAxisId="right" orientation="right" />
-						<Tooltip contentStyle={tooltipStyle} />
-						<Legend />
-						<Area
-						yAxisId="left"
-						type="monotone"
-						dataKey="Litros"
-						stroke="#8884d8"
-						fill="#8884d8"
-						/>
-						<Area
-						yAxisId="right"
-						type="monotone"
-						dataKey="Valor"
-						stroke="#82ca9d"
-						fill="#82ca9d"
-						/>
-					</AreaChart>
-					</ResponsiveContainer>
-				</Paper>
-				</Grid>
+            {/* Consumo mensal (litros x valor) */}
+            <Grid item xs={12} md={7}>
+            <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+              <Typography variant="h6" color="text.primary" gutterBottom>
+              Consumo Mensal
+              </Typography>
+              <ResponsiveContainer width="100%" height={340}>
+              <AreaChart data={abastecimentoConsumoMensal}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="mes" />
+                <YAxis yAxisId="left" />
+                <YAxis yAxisId="right" orientation="right" />
+                <Tooltip contentStyle={tooltipStyle} />
+                <Legend />
+                <Area
+                yAxisId="left"
+                type="monotone"
+                dataKey="Litros"
+                stroke="#8884d8"
+                fill="#8884d8"
+                />
+                <Area
+                yAxisId="right"
+                type="monotone"
+                dataKey="Valor"
+                stroke="#82ca9d"
+                fill="#82ca9d"
+                />
+              </AreaChart>
+              </ResponsiveContainer>
+            </Paper>
+            </Grid>
 
-				{/* Consumo por Campus */}
-        <Grid item xs={12}>
-					<Paper sx={{ p: 2, height: 400 }} elevation={3}>
-						<Typography variant="h6" color="text.primary" gutterBottom>
-						Consumo por Campus
-						</Typography>
-						<ResponsiveContainer width="100%" height={340}>
-						<BarChart
-							layout="vertical"
-							data={abastecimentoConsumoPorCampus}
-							margin={{ top: 20, right: 30, left: 120, bottom: 5 }}
-						>
-							<CartesianGrid strokeDasharray="3 3" />
-							<XAxis type="number" />
-							<YAxis
-							type="category"
-							dataKey="name"
-							width={110}
-							tick={{ fontSize: 12 }}
-							/>
-							<Tooltip 
-								contentStyle={tooltipStyle}
-								formatter={(value: number) => `${value.toFixed(2)}`}
-							/>
-							<Legend />
-							<Bar dataKey="litros" fill={theme.palette.info.main} name="Litros" />
-							<Bar dataKey="valor" fill={theme.palette.success.main} name="Valor (R$)" />
-						</BarChart>
-						</ResponsiveContainer>
-					</Paper>
-        </Grid>
-			</Grid>
-		)}
+            {/* Consumo por Campus */}
+            <Grid item xs={12}>
+              <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+                <Typography variant="h6" color="text.primary" gutterBottom>
+                Consumo por Campus
+                </Typography>
+                <ResponsiveContainer width="100%" height={340}>
+                <BarChart
+                  layout="vertical"
+                  data={abastecimentoConsumoPorCampus}
+                  margin={{ top: 20, right: 30, left: 120, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" />
+                  <YAxis
+                  type="category"
+                  dataKey="name"
+                  width={110}
+                  tick={{ fontSize: 12 }}
+                  />
+                  <Tooltip 
+                    contentStyle={tooltipStyle}
+                    formatter={(value: number) => `${value.toFixed(2)}`}
+                  />
+                  <Legend />
+                  <Bar dataKey="litros" fill={theme.palette.info.main} name="Litros" />
+                  <Bar dataKey="valor" fill={theme.palette.success.main} name="Valor (R$)" />
+                </BarChart>
+                </ResponsiveContainer>
+              </Paper>
+            </Grid>
+          </Grid>
+        )}
 
         {/* --- MULTAS --- */}
          {/* {activeTab === 4 && (
