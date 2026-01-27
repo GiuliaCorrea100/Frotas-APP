@@ -282,7 +282,7 @@ const FormularioVeiculos: React.FC<FormularioVeiculosProps> = ({
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <DirectionsCar color="primary" sx={{ fontSize: 32, mr: 1 }} />
-            <Typography variant="h5" component="h2">
+            <Typography variant="h5" component="h2" color="text.primary>
               {modoEdicao ? 'Edição de Veículo' : 'Cadastro de Veículo'}
             </Typography>
           </Box>
