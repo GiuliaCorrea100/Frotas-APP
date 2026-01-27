@@ -42,6 +42,14 @@ const modalStyle = {
   borderRadius: 2,
 };
 
+
+const toLocalDateTimeInputValue = (date: Date) => {
+  const offset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - offset)
+    .toISOString()
+    .slice(0, 16);
+};
+
 const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
   open,
   percurso,
@@ -57,32 +65,38 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
   const [localOrigem, setLocalOrigem] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Função para permitir apenas números
-  const handleNumericInput = (value: string, setter: React.Dispatch<React.SetStateAction<string>>) => {
-    // Remove qualquer caractere que não seja número
-    const numericValue = value.replace(/[^\d]/g, '');
-    setter(numericValue);
+  const handleNumericInput = (
+    value: string,
+    setter: React.Dispatch<React.SetStateAction<string>>
+  ) => {
+    setter(value.replace(/[^\d]/g, ""));
   };
 
-  // Função para converter string para número (para envio)
   const getNumericValue = (value: string): number => {
     return value ? parseInt(value, 10) : 0;
   };
 
-  // Função para converter UTC para Local
   const utcToLocal = (utcDate: Date | null): Date | null => {
     if (!utcDate) return null;
     return new Date(utcDate.getTime() - utcDate.getTimezoneOffset() * 60000);
   };
 
   useEffect(() => {
-    if(percurso){
-      setChegadaHora(percurso.chegadaHora ? utcToLocal(new Date(percurso.chegadaHora)) : null);
-      setSaidaHora(percurso.saidaHora ? utcToLocal(new Date(percurso.saidaHora)) : null);
+    if (percurso) {
+      setSaidaHora(
+        percurso.saidaHora
+          ? utcToLocal(new Date(percurso.saidaHora))
+          : null
+      );
 
-      setChegadaOdometro(percurso.chegadaOdometro?.toString() ?? "");
+      setChegadaHora(
+        percurso.chegadaHora
+          ? utcToLocal(new Date(percurso.chegadaHora))
+          : null
+      );
+
       setSaidaOdometro(percurso.saidaOdometro?.toString() ?? "");
-
+      setChegadaOdometro(percurso.chegadaOdometro?.toString() ?? "");
       setLocalDestino(percurso.localDestino ?? "");
       setLocalOrigem(percurso.localOrigem ?? "");
     }
@@ -90,16 +104,15 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
 
   const handleSalvar = async (event: React.FormEvent) => {
     event.preventDefault();
-    if(!percurso) return;
+    if (!percurso) return;
 
-    // Validação dos campos obrigatórios
     if (!saidaOdometro || !chegadaOdometro || !saidaHora || !chegadaHora) {
       onError("Todos os campos marcados com * são obrigatórios");
       return;
     }
 
     setLoading(true);
-    try{
+    try {
       const dadosAtualizados = {
         saidaHora,
         saidaOdometro: getNumericValue(saidaOdometro),
@@ -107,10 +120,9 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
         chegadaHora,
         chegadaOdometro: getNumericValue(chegadaOdometro),
         localOrigem,
-      }
+      };
 
       await atualizarPercurso(percurso.idPercurso!, dadosAtualizados);
-
       onSuccess("Percurso atualizado com sucesso!");
     } catch (error) {
       console.error("Erro ao salvar percurso:", error);
@@ -128,19 +140,18 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Box display="flex" alignItems="center">
             <LocalGasStation color="primary" sx={{ mr: 1 }} />
-            <Typography variant="h6" color="text.primary">Edição de Percurso</Typography>
+            <Typography variant="h6">Edição de Percurso</Typography>
           </Box>
           <IconButton onClick={onClose}>
             <Close />
           </IconButton>
         </Box>
 
-        {/* Conteúdo */}
         <Box component="form" onSubmit={handleSalvar}>
-          {/* Informações de Saída */}
-          <Typography variant="subtitle1" color="text.primary" gutterBottom>
+          <Typography variant="subtitle1" gutterBottom>
             Informações de Saída
           </Typography>
+
           <Box display="flex" gap={2} flexWrap="wrap" mb={2}>
             <TextField
               label="Local de Origem"
@@ -149,6 +160,7 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
               required
               sx={{ flex: "1 1 200px" }}
             />
+
             <TextField
               label="Odômetro de Saída"
               value={saidaOdometro}
@@ -158,15 +170,14 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
               InputProps={{
                 endAdornment: <InputAdornment position="end">km</InputAdornment>,
               }}
-              placeholder="Apenas números"
-              helperText="Digite apenas números"
             />
           </Box>
+
           <TextField
             label="Hora de Saída"
             type="datetime-local"
             fullWidth
-            value={saidaHora ? saidaHora.toISOString().slice(0, 16) : ""}
+            value={saidaHora ? toLocalDateTimeInputValue(saidaHora) : ""}
             onChange={(e) => setSaidaHora(new Date(e.target.value))}
             InputLabelProps={{ shrink: true }}
             required
@@ -179,13 +190,13 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
             }}
             sx={{ mb: 2 }}
           />
-          
+
           <Divider sx={{ my: 2 }} />
 
-          {/* Informações de Chegada */}
-          <Typography variant="subtitle1" color="text.primary" gutterBottom>
+          <Typography variant="subtitle1" gutterBottom>
             Informações de Chegada
           </Typography>
+
           <Box display="flex" gap={2} flexWrap="wrap" mb={2}>
             <TextField
               label="Local de Destino"
@@ -194,24 +205,26 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
               required
               sx={{ flex: "1 1 200px" }}
             />
+
             <TextField
               label="Odômetro de Chegada"
               value={chegadaOdometro}
-              onChange={(e) => handleNumericInput(e.target.value, setChegadaOdometro)}
+              onChange={(e) =>
+                handleNumericInput(e.target.value, setChegadaOdometro)
+              }
               required
               sx={{ flex: "1 1 200px" }}
               InputProps={{
                 endAdornment: <InputAdornment position="end">km</InputAdornment>,
               }}
-              placeholder="Apenas números"
-              helperText="Digite apenas números"
             />
           </Box>
+
           <TextField
             label="Hora de Chegada"
             type="datetime-local"
             fullWidth
-            value={chegadaHora ? chegadaHora.toISOString().slice(0, 16) : ""}
+            value={chegadaHora ? toLocalDateTimeInputValue(chegadaHora) : ""}
             onChange={(e) => setChegadaHora(new Date(e.target.value))}
             InputLabelProps={{ shrink: true }}
             required
@@ -225,16 +238,14 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
             sx={{ mb: 2 }}
           />
 
-          {/* Botões */}
           <Box display="flex" justifyContent="flex-end" gap={1} mt={3}>
             <Button onClick={onClose} color="inherit" disabled={loading}>
               Cancelar
             </Button>
+
             <Button
               type="submit"
               variant="contained"
-              color="primary"
-              startIcon={!loading && <AttachMoney />}
               disabled={loading}
             >
               {loading ? <CircularProgress size={24} /> : "Atualizar"}

@@ -1,51 +1,51 @@
 import React, { useEffect, useState } from "react";
 import {
-  Modal,
-  Box,
-  Typography,
-  Button,
-  TextField,
-  InputAdornment,
-  CircularProgress,
-  Paper,
-  IconButton,
-  MenuItem,
+  Modal,
+  Box,
+  Typography,
+  Button,
+  TextField,
+  InputAdornment,
+  CircularProgress,
+  Paper,
+  IconButton,
+  MenuItem,
 } from "@mui/material";
 import {
-  LocalGasStation,
-  CalendarToday,
-  Close,
-  AttachFile as AttachFileIcon,
+  LocalGasStation,
+  CalendarToday,
+  Close,
+  AttachFile as AttachFileIcon,
 } from "@mui/icons-material";
 import { MultaService } from '../../../services/MultaService';
 
 interface CadastrarModalProps {
-  open: boolean;
-  onClose: () => void;
-  onSuccess: (message: string) => void;
-  onError: (error: any) => void;
+  open: boolean;
+  onClose: () => void;
+  onSuccess: (message: string) => void;
+  onError: (error: any) => void;
 }
 
 const modalStyle = {
-  position: "absolute" as const,
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "90%",
-  maxWidth: 700,
-  maxHeight: "90vh",
-  overflow: "auto",
-  bgcolor: "background.paper",
-  boxShadow: 24,
-  p: 4,
-  borderRadius: 2,
+  position: "absolute" as const,
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "90%",
+  maxWidth: 700,
+  maxHeight: "90vh",
+  overflow: "auto",
+  bgcolor: "background.paper",
+  boxShadow: 24,
+  p: 4,
+  borderRadius: 2,
 };
 
 const opcoesClassificacao = [
-  { value: "LEVE", label: "LEVE" },
-  { value: "MEDIA", label: "MÉDIA" },
-  { value: "GRAVE", label: "GRAVE" },
-  { value: "GRAVISSIMA", label: "GRAVÍSSIMA" },
+  { value: "LEVE", label: "LEVE" },
+  { value: "MEDIA", label: "MÉDIA" },
+  { value: "GRAVE", label: "GRAVE" },
+  { value: "GRAVISSIMA", label: "GRAVÍSSIMA" },
 ];
 
 const allowedExtensions = ["pdf", "jpg", "jpeg", "png", "doc", "docx"];
@@ -53,17 +53,17 @@ const MAX_FILE_SIZE_MB = 50;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
-  open,
-  onClose,
-  onSuccess,
-  onError,
+  open,
+  onClose,
+  onSuccess,
+  onError,
 }) => {
-  const [codigoInfracao, setCodigoInfracao] = useState<number>(0);
+  const [codigoInfracao, setCodigoInfracao] = useState<string>("");
   const [classificacao, setClassificacao] = useState("");
-  const [valorInfracao, setValorInfracao] = useState<number>(0);
+  const [valorInfracao, setValorInfracao] = useState<string>("");
   const [placaVeiculo, setPlacaVeiculo] = useState("");
   const [dataInfracao, setDataInfracao] = useState<string>("");
-  const [autoInfracao, setAutoInfracao] = useState<number>(0);
+  const [autoInfracao, setAutoInfracao] = useState<string>("");
   const [arquivoSelecionado, setArquivoSelecionado] = useState<File | null>(
     null
   );
@@ -72,12 +72,12 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
 
   useEffect(() => {
     if (open) {
-      setAutoInfracao(0);
+      setAutoInfracao("");
       setClassificacao("");
-      setCodigoInfracao(0);
+      setCodigoInfracao("");
       setDataInfracao("");
       setPlacaVeiculo("");
-      setValorInfracao(0);
+      setValorInfracao("");
       setArquivoSelecionado(null);
       setFileError(null);
     }
@@ -136,6 +136,11 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
     setLoading(true);
 
     try {
+
+      const codigoInfracaoNum = codigoInfracao ? Number(codigoInfracao) : 0;
+      const valorInfracaoNum = valorInfracao ? Number(valorInfracao) : 0;
+      const autoInfracaoNum = autoInfracao ? Number(autoInfracao) : 0;
+
       const dataInfracaoUTC = dataInfracao
         ? new Date(dataInfracao)
         : new Date();
@@ -143,24 +148,24 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
       if (arquivoSelecionado) {
         const formData = new FormData();
 
-        formData.append("codigoInfracao", codigoInfracao.toString());
+        formData.append("codigoInfracao", codigoInfracaoNum.toString());
         formData.append("classificacao", classificacao);
-        formData.append("valorInfracao", valorInfracao.toString());
+        formData.append("valorInfracao", valorInfracaoNum.toString());
         formData.append("placaVeiculo", placaVeiculo);
         formData.append("dataInfracao", dataInfracaoUTC.toISOString());
-        formData.append("autoInfracao", autoInfracao.toString());
+        formData.append("autoInfracao", autoInfracaoNum.toString());
 
         formData.append("arquivo", arquivoSelecionado);
 
         await MultaService.criarMultaComArquivo(formData);
       } else {
         const dadosMultas = {
-          codigoInfracao,
+          codigoInfracao: codigoInfracaoNum,
           classificacao,
-          valorInfracao,
+          valorInfracao: valorInfracaoNum,
           placaVeiculo,
           dataInfracao: dataInfracaoUTC,
-          autoInfracao,
+          autoInfracao: autoInfracaoNum,
         };
         await MultaService.criarMulta(dadosMultas);
       }
@@ -171,6 +176,18 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
     } finally {
       setLoading(false);
       onClose();
+    }
+  };
+
+  // Função para permitir apenas números e ponto decimal
+  const handleNumberInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    setter: React.Dispatch<React.SetStateAction<string>>
+  ) => {
+    const value = e.target.value;
+    // Permite números, ponto decimal e vazio
+    if (value === "" || /^\d*\.?\d*$/.test(value)) {
+      setter(value);
     }
   };
 
@@ -203,12 +220,14 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
         >
           <TextField
             label="Código da Infração"
-            type="number"
+            type="text" // Alterado para text
+            inputMode="numeric" // Para mostrar teclado numérico em dispositivos móveis
             value={codigoInfracao}
-            onChange={(e) => setCodigoInfracao(Number(e.target.value))}
+            onChange={(e) => handleNumberInputChange(e, setCodigoInfracao)}
             required
             fullWidth
             sx={{ flex: "1 1 calc(50% - 8px)" }}
+            placeholder=""
           />
 
           <TextField
@@ -229,9 +248,10 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
 
           <TextField
             label="Valor da multa (R$)"
-            type="number"
+            type="text" // Alterado para text
+            inputMode="decimal" // Para mostrar teclado decimal em dispositivos móveis
             value={valorInfracao}
-            onChange={(e) => setValorInfracao(Number(e.target.value))}
+            onChange={(e) => handleNumberInputChange(e, setValorInfracao)}
             required
             fullWidth
             sx={{ flex: "1 1 calc(50% - 8px)" }}
@@ -240,25 +260,32 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
                 <InputAdornment position="start">R$</InputAdornment>
               ),
             }}
+            placeholder=""
           />
 
           <TextField
             label="Placa do Veículo"
             value={placaVeiculo}
-            onChange={(e) => setPlacaVeiculo(e.target.value)}
+            onChange={(e) => setPlacaVeiculo(e.target.value.toUpperCase())} // Converte para maiúsculas
             required
             fullWidth
             sx={{ flex: "1 1 calc(50% - 8px)" }}
+            placeholder="AAA-0000 ou AAA0A00"
+            inputProps={{
+              maxLength: 8,
+            }}
           />
 
           <TextField
             label="Auto da Infração"
-            type="number"
+            type="text" // Alterado para text
+            inputMode="numeric" // Para mostrar teclado numérico em dispositivos móveis
             value={autoInfracao}
-            onChange={(e) => setAutoInfracao(Number(e.target.value))}
+            onChange={(e) => handleNumberInputChange(e, setAutoInfracao)}
             required
             fullWidth
             sx={{ flex: "1 1 calc(50% - 8px)" }}
+            placeholder=""
           />
 
           <TextField
@@ -267,6 +294,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
             fullWidth
             value={dataInfracao}
             onChange={(e) => setDataInfracao(e.target.value)}
+            required
             InputLabelProps={{ shrink: true }}
             InputProps={{
               startAdornment: (
