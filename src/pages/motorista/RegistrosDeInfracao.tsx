@@ -81,13 +81,11 @@ export default function RegistrosDeInfracao() {
       return;
     }
 
-    const isNumero = !isNaN(Number(valor));
-    const isPlaca = /^[A-Z]{3}\d[A-Z0-9]\d{2}$/i.test(valor);
+    const contemNumero = /\d/.test(valor);
 
     carregarMultas({
-      placaVeiculo: isPlaca ? valor.toUpperCase() : undefined,
-      codigoInfracao: isNumero ? Number(valor) : undefined,
-      classificacao: !isPlaca && !isNumero ? valor : undefined,
+      placaVeiculo: contemNumero ? valor.toUpperCase() : undefined,
+      classificacao: !contemNumero ? valor : undefined,
     });
   };
 
@@ -153,6 +151,50 @@ export default function RegistrosDeInfracao() {
         </Button>
       ),
     },
+    {
+      field: "comprovantePagamento",
+      headerName: "Comprovante de Pagamento",
+      width: 220,
+      sortable: false,
+      renderCell: (params) => {
+        const possuiBoleto = !!params.row.urlArquivo;
+
+        return (
+          <Box display="flex" alignItems="center" gap={1} height="100%">
+            <Button
+              size="small"
+              component="label"
+              variant="outlined"
+              disabled={!possuiBoleto}
+            >
+              Upload
+              <input
+                type="file"
+                hidden
+                accept="application/pdf,image/*"
+                disabled={!possuiBoleto}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file || !params.row.idMulta) return;
+
+                  try {
+                    await MultaService.uploadComprovante(
+                      params.row.idMulta,
+                      file
+                    );
+                    await carregarMultas();
+                  } catch {
+                    alert("Erro ao enviar comprovante.");
+                  } finally {
+                    e.target.value = "";
+                  }
+                }}
+              />
+            </Button>
+          </Box>
+        );
+      },
+    },
   ];
 
   return (
@@ -168,7 +210,7 @@ export default function RegistrosDeInfracao() {
 
         <Box mb={2} display="flex" gap={2} alignItems="center">
           <TextField
-            label="Buscar por placa, classificação ou código da infração"
+            label="Buscar por placa ou classificação"
             size="small"
             fullWidth
             value={busca}
