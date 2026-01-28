@@ -11,8 +11,6 @@ import {
 import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
 import DownloadIcon from "@mui/icons-material/Download";
 import ReceiptIcon from "@mui/icons-material/Receipt";
-import SearchIcon from "@mui/icons-material/Search";
-import ClearIcon from "@mui/icons-material/Clear";
 import { jwtDecode } from "jwt-decode";
 import Menu from "../../components/Menu";
 import { MultaDto, MultaService } from "../../services/MultaService";
@@ -48,9 +46,7 @@ export default function RegistrosDeInfracao() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [placaVeiculo, setPlacaVeiculo] = useState("");
-  const [classificacao, setClassificacao] = useState("");
-  const [codigoInfracao, setCodigoInfracao] = useState("");
+  const [busca, setBusca] = useState("");
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -78,20 +74,21 @@ export default function RegistrosDeInfracao() {
   };
 
   const buscar = () => {
-    carregarMultas({
-      placaVeiculo: placaVeiculo || undefined,
-      classificacao: classificacao || undefined,
-      codigoInfracao: codigoInfracao
-        ? Number(codigoInfracao)
-        : undefined,
-    });
-  };
+    const valor = busca.trim();
 
-  const limparBusca = () => {
-    setPlacaVeiculo("");
-    setClassificacao("");
-    setCodigoInfracao("");
-    carregarMultas();
+    if (!valor) {
+      carregarMultas();
+      return;
+    }
+
+    const isNumero = !isNaN(Number(valor));
+    const isPlaca = /^[A-Z]{3}\d[A-Z0-9]\d{2}$/i.test(valor);
+
+    carregarMultas({
+      placaVeiculo: isPlaca ? valor.toUpperCase() : undefined,
+      codigoInfracao: isNumero ? Number(valor) : undefined,
+      classificacao: !isPlaca && !isNumero ? valor : undefined,
+    });
   };
 
   const handleDownload = async (multa: MultaDto) => {
@@ -169,41 +166,15 @@ export default function RegistrosDeInfracao() {
           </Typography>
         </Box>
 
-        <Box
-          mb={2}
-          display="flex"
-          gap={2}
-          flexWrap="wrap"
-          alignItems="center"
-        >
+        <Box mb={2} display="flex" gap={2} alignItems="center">
           <TextField
-            label="Placa"
+            label="Buscar por placa, classificação ou código da infração"
             size="small"
-            value={placaVeiculo}
-            onChange={(e) => setPlacaVeiculo(e.target.value)}
+            fullWidth
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && buscar()}
           />
-          <TextField
-            label="Classificação"
-            size="small"
-            value={classificacao}
-            onChange={(e) => setClassificacao(e.target.value)}
-          />
-
-          <Button
-            variant="contained"
-            startIcon={<SearchIcon />}
-            onClick={buscar}
-          >
-            Buscar
-          </Button>
-
-          <Button
-            variant="outlined"
-            startIcon={<ClearIcon />}
-            onClick={limparBusca}
-          >
-            Limpar
-          </Button>
         </Box>
 
         {error && <Alert severity="error">{error}</Alert>}
