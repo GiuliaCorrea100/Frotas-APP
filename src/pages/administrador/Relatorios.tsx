@@ -148,34 +148,31 @@ const Relatorios: React.FC = () => {
   const [multasResumo, setMultasResumo] = useState({
     totalMultas: 0,
   });
-  const [multasPorTipo, setMultasPorTipo] = useState<{ tipoInfracao: string; quantidade: number }[]>([]);
+  const [multasPorClassificacao, setMultasPorClassificacao] = useState<{ porClassificacao: string; quantidade: number }[]>([]);
   const [multasPorVeiculo, setMultasPorVeiculo] = useState<{ placa: string; quantidade: number }[]>([]);
-  const [multasPorMes, setMultasPorMes] = useState<{ mes: string; total: number }[]>([]);
-  const [multasTabela, setMultasTabela] = useState<any[]>([]);
-
   const [ocorrenciasResumo, setOcorrenciasResumo] = useState({ totalOcorrencias: 0 });
   const [ocorrenciasPorVeiculo, setOcorrenciasPorVeiculo] = useState<{ placa: string; quantidade: number }[]>([]);
 
   useEffect(() => {
       const carregarTodosDados = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      await Promise.all([
-        carregarVisaoGeral(),
-        carregarRelatorioCorridas(),
-		carregarRelatorioVeiculos(),
-		carregarRelatorioAbastecimentos(),
-		// carregarRelatorioMultas(),
-		carregarRelatorioOcorrencias(),
-      ]);
-    } catch (err) {
-      console.error('Erro ao carregar dados:', err);
-      setError('Não foi possível carregar os dados.');
-    } finally {
-      setLoading(false);
-    }
-  };
+        setLoading(true);
+        setError(null);
+        try {
+          await Promise.all([
+            carregarVisaoGeral(),
+            carregarRelatorioCorridas(),
+            carregarRelatorioVeiculos(),
+            carregarRelatorioAbastecimentos(),
+            carregarRelatorioMultas(),
+            carregarRelatorioOcorrencias(),
+          ]);
+        } catch (err) {
+          console.error('Erro ao carregar dados:', err);
+          setError('Não foi possível carregar os dados.');
+        } finally {
+          setLoading(false);
+        }
+      };
   carregarTodosDados();
 }, [selectedYear]);
   
@@ -275,27 +272,25 @@ const Relatorios: React.FC = () => {
 	}
   };
 
-//   const carregarRelatorioMultas = async () => {
-//     try {
-//       const { data } = await axiosConnect.get('/relatorio/multas', {
-//         params: { ano: selectedYear },
-//       });
-//       setMultasResumo(data.resumo);
-//       setMultasPorTipo(data.porTipoInfracao);
-//       setMultasPorVeiculo(data.multasPorVeiculo);
-//       setMultasPorMes(data.multasPorMes);
-//       setMultasTabela(
-//         data.tabela.map((m: any) => ({
-//           id: m.id,
-//           motorista: m.motorista,
-//           placa: m.placa,
-//           dataInfracao: new Date(m.dataInfracao).toLocaleDateString('pt-BR'),
-//         }))
-//       );
-//     } catch {
-//       setError('Erro ao carregar relatório de multas');
-//     }
-//   };
+  const carregarRelatorioMultas = async () => {
+  try {
+    const { data } = await axiosConnect.get('/relatorio/multas', {
+      params: { ano: selectedYear },
+    });
+    setMultasResumo(data.resumo);
+    setMultasPorClassificacao(data.multasPorClassificacao || []);
+    setMultasPorVeiculo(
+      (data.multasPorVeiculo || []).map((v: any) => ({
+        placa: v.placaVeiculo,
+        quantidade: v.quantidade,
+      }))
+    );
+  } catch {
+    setError('Erro ao carregar relatório de multas');
+  }
+};
+
+
 
   const carregarRelatorioOcorrencias = async () => {
     try {
@@ -314,7 +309,7 @@ const Relatorios: React.FC = () => {
     { label: "CORRIDAS", icon: <Speed />, value: 1 },
     { label: "VEÍCULOS", icon: <DirectionsCar />, value: 2 },
     { label: "ABASTECIMENTOS", icon: <LocalGasStation />, value: 3 },
-    // { label: "MULTAS", icon: <Gavel />, value: 4 },
+    { label: "MULTAS", icon: <Gavel />, value: 4 },
 	{ label: "OCORRÊNCIAS", icon: <WarningAmber />, value: 5 },
   ];
 
@@ -794,105 +789,105 @@ const Relatorios: React.FC = () => {
           <Grid container spacing={3}>
             {/* Cards */}
             <Grid item xs={12} sm={6}>
-            <StatCard
-              title="Custo Total"
-              value={`R$ ${abastecimentoResumo.totalValor.toLocaleString(
-              'pt-BR',
-              { minimumFractionDigits: 2 },
-              )}`}
-              icon={<Money fontSize="large" />}
-            />
+              <StatCard
+                title="Custo Total"
+                value={`R$ ${abastecimentoResumo.totalValor.toLocaleString(
+                'pt-BR',
+                { minimumFractionDigits: 2 },
+                )}`}
+                icon={<Money fontSize="large" />}
+              />
             </Grid>
             <Grid item xs={12} sm={6}>
-            <StatCard
-              title="Total Abastecido"
-              value={`${abastecimentoResumo.totalLitros.toFixed(2)} Litros`}
-              icon={<LocalGasStation fontSize="large" />}
-            />
+              <StatCard
+                title="Total Abastecido"
+                value={`${abastecimentoResumo.totalLitros.toFixed(2)} Litros`}
+                icon={<LocalGasStation fontSize="large" />}
+              />
             </Grid>
 
             {/* Pizza: custo por tipo de combustível */}
             <Grid item xs={12} md={5}>
-            <Paper sx={{ p: 2, height: 400 }} elevation={3}>
-              <Typography variant="h6" color="text.primary" gutterBottom>
-              Custo por Tipo de Combustível
-              </Typography>
-              <ResponsiveContainer width="100%" height={340}>
-              <PieChart>
-                <Pie
-                data={abastecimentoCustoPorCombustivel}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label={(entry) =>
-                  `R$ ${entry.value.toFixed(2)}`
-                }
-                >
-                {abastecimentoCustoPorCombustivel.map((entry, index) => (
-                  <Cell
-                  key={`cell-${index}`}
-                  fill={PIE_COLORS[index % PIE_COLORS.length]}
+              <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+                <Typography variant="h6" color="text.primary" gutterBottom>
+                Custo por Tipo de Combustível
+                </Typography>
+                <ResponsiveContainer width="100%" height={340}>
+                <PieChart>
+                  <Pie
+                  data={abastecimentoCustoPorCombustivel}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  label={(entry) =>
+                    `R$ ${entry.value.toFixed(2)}`
+                  }
+                  >
+                  {abastecimentoCustoPorCombustivel.map((entry, index) => (
+                    <Cell
+                    key={`cell-${index}`}
+                    fill={PIE_COLORS[index % PIE_COLORS.length]}
+                    />
+                  ))}
+                  </Pie>
+                  <Tooltip
+                  formatter={(value: number) =>
+                    `R$ ${typeof value === 'number'
+                    ? value.toFixed(2)
+                    : value}`
+                  }
+                  contentStyle={rechartsTooltipStyle}
+                  itemStyle={{ color: theme.palette.text.primary }}
+                  labelStyle={rechartsTooltipLabelStyle}
                   />
-                ))}
-                </Pie>
-                <Tooltip
-                formatter={(value: number) =>
-                  `R$ ${typeof value === 'number'
-                  ? value.toFixed(2)
-                  : value}`
-                }
-                contentStyle={rechartsTooltipStyle}
-                itemStyle={{ color: theme.palette.text.primary }}
-                labelStyle={rechartsTooltipLabelStyle}
-                />
-                <Legend />
-              </PieChart>
-              </ResponsiveContainer>
-            </Paper>
+                  <Legend />
+                </PieChart>
+                </ResponsiveContainer>
+              </Paper>
             </Grid>
 
             {/* Consumo mensal (litros x valor) */}
             <Grid item xs={12} md={7}>
-            <Paper sx={{ p: 2, height: 400 }} elevation={3}>
-              <Typography variant="h6" color="text.primary" gutterBottom>
-              Consumo Mensal
-              </Typography>
-              <ResponsiveContainer width="100%" height={340}>
-              <AreaChart data={abastecimentoConsumoMensal}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="mes" />
-                <YAxis yAxisId="left" />
-                <YAxis yAxisId="right" orientation="right" />
-                <Tooltip
-                  contentStyle={rechartsTooltipStyle}
-                  labelStyle={rechartsTooltipLabelStyle}
-                  formatter={(value, name, props) => {
-                    const label = `${name}: ${value}`;
-                    return [
-                      <span style={{ color: props.color }}>{label}</span>,
-                    ];
-                  }}
-                />
-                <Legend />
-                <Area
-                yAxisId="left"
-                type="monotone"
-                dataKey="Litros"
-                stroke="#8884d8"
-                fill="#8884d8"
-                />
-                <Area
-                yAxisId="right"
-                type="monotone"
-                dataKey="Valor"
-                stroke="#82ca9d"
-                fill="#82ca9d"
-                />
-              </AreaChart>
-              </ResponsiveContainer>
-            </Paper>
+              <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+                <Typography variant="h6" color="text.primary" gutterBottom>
+                Consumo Mensal
+                </Typography>
+                <ResponsiveContainer width="100%" height={340}>
+                <AreaChart data={abastecimentoConsumoMensal}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="mes" />
+                  <YAxis yAxisId="left" />
+                  <YAxis yAxisId="right" orientation="right" />
+                  <Tooltip
+                    contentStyle={rechartsTooltipStyle}
+                    labelStyle={rechartsTooltipLabelStyle}
+                    formatter={(value, name, props) => {
+                      const label = `${name}: ${value}`;
+                      return [
+                        <span style={{ color: props.color }}>{label}</span>,
+                      ];
+                    }}
+                  />
+                  <Legend />
+                  <Area
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="Litros"
+                  stroke="#8884d8"
+                  fill="#8884d8"
+                  />
+                  <Area
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="Valor"
+                  stroke="#82ca9d"
+                  fill="#82ca9d"
+                  />
+                </AreaChart>
+                </ResponsiveContainer>
+              </Paper>
             </Grid>
 
             {/* Consumo por Campus */}
@@ -932,10 +927,10 @@ const Relatorios: React.FC = () => {
         )}
 
         {/* --- MULTAS --- */}
-         {/* {activeTab === 4 && (
+        {activeTab === 4 && (
           <Grid container spacing={3}>
             {/* Card: Total de Multas */}
-            {/* <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} md={3}>
               <StatCard
                 title="Total de Multas"
                 value={multasResumo.totalMultas}
@@ -944,59 +939,48 @@ const Relatorios: React.FC = () => {
               />
             </Grid>
 
-            {/* Gráfico: Multas por Tipo de Infração */}
-            {/* <Grid item xs={12} md={6}>
+            {/* Gráfico: Multas por Classificacao de Infração */}
+            <Grid item xs={12} md={9}>
               <Paper sx={{ p: 2, height: 400 }} elevation={3}>
-                <Typography variant="h6" color="text.primary" gutterBottom>
-                  Multas por Tipo de Infração
-                </Typography>
-                <ResponsiveContainer width="100%" height={340}>
-                  <PieChart>
-                    <Pie
-                      data={multasPorTipo}
-                      dataKey="quantidade"
-                      nameKey="tipoInfracao"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={100}
-                      label
-                    >
-                      {multasPorTipo.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={PIE_COLORS[index % PIE_COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={rechartsTooltipStyle}
-                      itemStyle={{ color: theme.palette.primary.main }}
-                      labelStyle={rechartsTooltipLabelStyle}
-                    />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </Paper>
+              <Typography variant="h6" color="text.primary" gutterBottom>
+                Multas por Classificação
+              </Typography>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={multasPorClassificacao}
+                    dataKey="quantidade"
+                    nameKey="classificacao"
+                  >
+                    {multasPorClassificacao.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={rechartsTooltipStyle} labelStyle={rechartsTooltipLabelStyle} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </Paper>
             </Grid>
 
             {/* Gráfico: Multas por Veículo */}
-            {/* <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+            <Grid item xs={12}>
+              <Paper sx={{ p: 3, height: 420 }}>
                 <Typography variant="h6" color="text.primary" gutterBottom>
                   Veículos com Mais Multas
                 </Typography>
-                <ResponsiveContainer width="100%" height={340}>
-                  <BarChart
-                    layout="vertical"
-                    data={multasPorVeiculo}
-                    margin={{ top: 20, right: 30, left: 80, bottom: 5 }}
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart 
+                    layout="vertical" 
+                    data={multasPorVeiculo.slice(0, 10)} // top 10
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis type="number" />
                     <YAxis
                       type="category"
                       dataKey="placa"
-                      width={75}
+                      width={100}
                       tick={{ fontSize: 12 }}
                     />
                     <Tooltip
@@ -1005,67 +989,17 @@ const Relatorios: React.FC = () => {
                       labelStyle={rechartsTooltipLabelStyle}
                     />
                     <Legend />
-                    <Bar dataKey="quantidade" fill={theme.palette.error.main} />
+                    <Bar
+                      dataKey="quantidade"
+                      name="Quantidade"
+                      fill={theme.palette.secondary.main}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </Paper>
             </Grid>
-
-            {/* Gráfico: Multas por Mês */}
-            {/* <Grid item xs={12}>
-              <Paper sx={{ p: 2, height: 400 }} elevation={3}>
-                <Typography variant="h6" color="text.primary" gutterBottom>
-                  Evolução de Multas por Mês
-                </Typography>
-                <ResponsiveContainer width="100%" height={340}>
-                  <AreaChart data={multasPorMes}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="mes" />
-                    <YAxis />
-                    <Tooltip
-                      contentStyle={rechartsTooltipStyle}
-                      itemStyle={{ color: theme.palette.primary.main }}
-                      labelStyle={rechartsTooltipLabelStyle}
-                    />
-                    <Legend />
-                    <Area
-                      type="monotone"
-                      dataKey="total"
-                      stroke={theme.palette.error.main}
-                      fill={theme.palette.error.light}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </Paper>
-            </Grid>
-
-            {/* Tabela de Multas */}
-            {/* <Grid item xs={12}>
-              <Paper sx={{ p: 2 }} elevation={3}>
-                <Typography variant="h6" color="text.primary" gutterBottom>
-                  Relatório Detalhado de Multas
-                </Typography>
-                <DataGrid
-                  autoHeight
-                  rows={multasTabela}
-                  columns={[
-                    { field: 'id', headerName: 'ID', flex: 0.5 },
-                    { field: 'motorista', headerName: 'Motorista', flex: 1 },
-                    { field: 'placa', headerName: 'Placa', flex: 1 },
-                    { field: 'dataInfracao', headerName: 'Data da Infração', flex: 1 },
-                  ]}
-                  pageSizeOptions={[5, 10, 20]}
-                  initialState={{
-                    pagination: { paginationModel: { pageSize: 10, page: 0 } },
-                  }}
-                  localeText={
-                    ptBR.components.MuiDataGrid.defaultProps.localeText
-                  }
-                />
-              </Paper>
-            </Grid>
           </Grid>
-        )} */}
+        )}
         
         {/* --- OCORRÊNCIAS --- */}
         {activeTab === 5 && (
