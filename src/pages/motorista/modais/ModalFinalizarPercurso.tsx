@@ -31,23 +31,23 @@ const ModalFinalizarPercurso: React.FC<ModalFinalizarPercursoProps> = ({
   const [mostrarAlertaOdometro, setMostrarAlertaOdometro] = useState(false);
 
   const handleConfirm = () => {
-    // Converte para número decimal para comparação
+    
     const odometroFinalNum = parseFloat(odometroFinal);
     const saidaOdometroNum = parseFloat(percursoAtual?.saidaOdometro?.toString() || '0');
     
-    // Verifica se o odômetro final é menor que o de saída
+    
     if (odometroFinalNum < saidaOdometroNum) {
       setMostrarAlertaOdometro(true);
-      return; // Impede a confirmação
+      return; 
     }
     
-    // Se passar na validação, remove o alerta e executa a confirmação
+   
     setMostrarAlertaOdometro(false);
     onConfirm();
   };
 
   const handleClose = () => {
-    setMostrarAlertaOdometro(false); // Limpa o alerta ao fechar
+    setMostrarAlertaOdometro(false); 
     onClose();
   };
 
@@ -55,27 +55,26 @@ const ModalFinalizarPercurso: React.FC<ModalFinalizarPercursoProps> = ({
     const value = e.target.value;
     setOdometroFinal(value);
     
-    // Remove o alerta quando o usuário começa a digitar novamente
-    // (opcional - mantém o alerta apenas após tentativa de confirmação)
+  
     setMostrarAlertaOdometro(false);
   };
 
-  // Função para formatar o número com separadores de milhar e manter decimais
+  
   const formatarOdometro = (valor: string | number | undefined) => {
     if (!valor && valor !== 0) return '0';
     
     const num = parseFloat(valor.toString());
     if (isNaN(num)) return '0';
     
-    // Verifica se tem casas decimais
+    
     const temDecimais = num % 1 !== 0;
     
     if (temDecimais) {
-      // Para números decimais, mostra com separador de milhar e mantém as casas decimais
+      
       const partes = num.toFixed(2).split('.');
       return `${parseInt(partes[0]).toLocaleString()},${partes[1]}`;
     } else {
-      // Para números inteiros, apenas o separador de milhar
+      
       return num.toLocaleString();
     }
   };
@@ -105,7 +104,7 @@ const ModalFinalizarPercurso: React.FC<ModalFinalizarPercursoProps> = ({
             type="number"
             inputProps={{ 
               min: percursoAtual?.saidaOdometro || 0,
-              step: "any" // Permite números decimais
+              step: "any" 
             }}
             helperText={`Odômetro de saída: ${formatarOdometro(percursoAtual?.saidaOdometro)}`}
             error={mostrarAlertaOdometro}
