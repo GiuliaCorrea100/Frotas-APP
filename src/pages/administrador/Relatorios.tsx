@@ -379,6 +379,9 @@ const Relatorios: React.FC = () => {
                 abastecimentoCustoPorCombustivel={abastecimentoCustoPorCombustivel}
                 abastecimentoConsumoMensal={abastecimentoConsumoMensal}
                 abastecimentoConsumoPorCampus={abastecimentoConsumoPorCampus}
+                multasResumo={multasResumo}
+                multasPorClassificacao={multasPorClassificacao}
+                multasPorVeiculo={multasPorVeiculo}
                 ocorrenciasResumo={ocorrenciasResumo}
                 ocorrenciasPorVeiculo={ocorrenciasPorVeiculo}
                 selectedYear={selectedYear}

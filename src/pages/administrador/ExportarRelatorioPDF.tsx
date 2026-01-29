@@ -384,6 +384,70 @@ const RelatorioPDF = ({
           </View>
         )}
 
+        {/* Análise de Multas */}
+        {data.multasResumo && (
+          <>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Resumo de Multas</Text>
+              <StatCardPDF title="Total de Multas" value={data.multasResumo.totalMultas || 0} />
+            </View>
+          </>
+        )}
+
+        {/* Multas por Classificação */}
+        {data.multasPorClassificacao && data.multasPorClassificacao.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Multas por Classificação</Text>
+            <View style={styles.table}>
+              <View style={[styles.tableRow, styles.tableHeader]}>
+                <View style={styles.tableCell}>
+                  <Text>Classificação</Text>
+                </View>
+                <View style={styles.lastTableCell}>
+                  <Text>Quantidade</Text>
+                </View>
+              </View>
+              {data.multasPorClassificacao.map((item: any, index: number) => (
+                <View style={styles.tableRow} key={index}>
+                  <View style={styles.tableCell}>
+                    <Text>{item.classificacao || 'N/A'}</Text>
+                  </View>
+                  <View style={styles.lastTableCell}>
+                    <Text>{item.quantidade || 0}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Veículos com Mais Multas */}
+        {data.multasPorVeiculo && data.multasPorVeiculo.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Veículos com Mais Multas</Text>
+            <View style={styles.table}>
+              <View style={[styles.tableRow, styles.tableHeader]}>
+                <View style={styles.tableCell}>
+                  <Text>Placa</Text>
+                </View>
+                <View style={styles.lastTableCell}>
+                  <Text>Quantidade</Text>
+                </View>
+              </View>
+              {data.multasPorVeiculo.slice(0, 15).map((item: any, index: number) => (
+                <View style={styles.tableRow} key={index}>
+                  <View style={styles.tableCell}>
+                    <Text>{item.placa || 'N/A'}</Text>
+                  </View>
+                  <View style={styles.lastTableCell}>
+                    <Text>{item.quantidade || 0}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
         {/* Análise de Ocorrências */}
         {data.ocorrenciasResumo && (
           <View style={[styles.section, { pageBreakBefore: 'auto' }]}>
@@ -437,6 +501,9 @@ const ExportarRelatorioPDF = ({
   abastecimentoCustoPorCombustivel,
   abastecimentoConsumoMensal,
   abastecimentoConsumoPorCampus,
+  multasResumo,
+  multasPorClassificacao,
+  multasPorVeiculo,
   ocorrenciasResumo,
   ocorrenciasPorVeiculo,
   selectedYear,
@@ -453,6 +520,9 @@ const ExportarRelatorioPDF = ({
   abastecimentoCustoPorCombustivel: any;
   abastecimentoConsumoMensal: any;
   abastecimentoConsumoPorCampus: any;
+  multasResumo: any;
+  multasPorClassificacao: any;
+  multasPorVeiculo: any;
   ocorrenciasResumo: any;
   ocorrenciasPorVeiculo: any;
   selectedYear: number;
@@ -474,6 +544,9 @@ const ExportarRelatorioPDF = ({
     abastecimentoCustoPorCombustivel: abastecimentoCustoPorCombustivel || [],
     abastecimentoConsumoMensal: abastecimentoConsumoMensal || [],
     abastecimentoConsumoPorCampus: abastecimentoConsumoPorCampus || [],
+    multasResumo: multasResumo || { totalMultas: 0 },
+    multasPorClassificacao: multasPorClassificacao || [],
+    multasPorVeiculo: multasPorVeiculo || [],
     ocorrenciasResumo: ocorrenciasResumo || { totalOcorrencias: 0 },
     ocorrenciasPorVeiculo: ocorrenciasPorVeiculo || [],
   };
