@@ -526,17 +526,17 @@ const Relatorios: React.FC = () => {
             </Grid>
             <Grid item xs={12} sm={6} md={3} lg={2}>
               <StatCard
-                title="Ocorrências"
-                value={visaoGeral.totalOcorrencias}
-                icon={<WarningAmber fontSize="large" />}
+                title="Multas"
+                value={visaoGeral.totalMultas}
+                icon={<Gavel fontSize="large" />}
                 trend="down"
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3} lg={2}>
               <StatCard
-                title="Multas"
-                value={visaoGeral.totalMultas}
-                icon={<Gavel fontSize="large" />}
+                title="Ocorrências"
+                value={visaoGeral.totalOcorrencias}
+                icon={<WarningAmber fontSize="large" />}
                 trend="down"
               />
             </Grid>
@@ -954,6 +954,9 @@ const Relatorios: React.FC = () => {
                     data={multasPorClassificacao}
                     dataKey="quantidade"
                     nameKey="classificacao"
+                    label={(entry) =>
+                    `${entry.value}`
+                  }
                   >
                     {multasPorClassificacao.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />

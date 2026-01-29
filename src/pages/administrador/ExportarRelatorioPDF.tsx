@@ -196,25 +196,43 @@ const RelatorioPDF = ({
 
         {/* Relatório Detalhado de Corridas */}
         {data.corridasTabela && data.corridasTabela.length > 0 && (
-          <View style={[styles.section, { pageBreakBefore: 'auto' }]}>
+          <View style={styles.section}>
             <Text style={styles.sectionTitle}>Detalhes das Corridas</Text>
             <View style={styles.table}>
               <View style={[styles.tableRow, styles.tableHeader]}>
-                <Text style={{ ...styles.tableCell, flex: 1.2 }}>Motorista</Text>
-                <Text style={{ ...styles.tableCell, flex: 1 }}>Veículo</Text>
-                <Text style={{ ...styles.tableCell, flex: 1 }}>Situação</Text>
-                <Text style={{ ...styles.tableCell, flex: 1.5 }}>Data Início</Text>
-                <Text style={{ ...styles.tableCell, flex: 1.5 }}>Data Término</Text>
-                <Text style={{ ...styles.lastTableCell, flex: 1.5 }}>Local Saída</Text>
+                <View style={styles.tableCell}>
+                  <Text>Motorista</Text>
+                </View>
+                <View style={styles.tableCell}>
+                  <Text>Veículo</Text>
+                </View>
+                <View style={styles.tableCell}>
+                  <Text>Situação</Text>
+                </View>
+                <View style={styles.tableCell}>
+                  <Text>Data Início</Text>
+                </View>
+                <View style={styles.lastTableCell}>
+                  <Text>Data Término</Text>
+                </View>
               </View>
-              {data.corridasTabela.slice(0, 20).map((item: any, index: number) => (
-                <View key={index} style={styles.tableRow}>
-                  <Text style={{ ...styles.tableCell, flex: 1.2 }}>{item.motorista || 'N/A'}</Text>
-                  <Text style={{ ...styles.tableCell, flex: 1 }}>{item.veiculo || 'N/A'}</Text>
-                  <Text style={{ ...styles.tableCell, flex: 1 }}>{item.situacao || 'N/A'}</Text>
-                  <Text style={{ ...styles.tableCell, flex: 1.5 }}>{item.dataInicio || 'N/A'}</Text>
-                  <Text style={{ ...styles.tableCell, flex: 1.5 }}>{item.dataTermino || '—'}</Text>
-                  <Text style={{ ...styles.lastTableCell, flex: 1.5 }}>{item.localSaida || '—'}</Text>
+              {data.corridasTabela.map((item: any, index: number) => (
+                <View style={styles.tableRow} key={index}>
+                  <View style={styles.tableCell}>
+                    <Text>{item.motorista || 'N/A'}</Text>
+                  </View>
+                  <View style={styles.tableCell}>
+                    <Text>{item.veiculo || 'N/A'}</Text>
+                  </View>
+                  <View style={styles.tableCell}>
+                    <Text>{item.situacao || 'N/A'}</Text>
+                  </View>
+                  <View style={styles.tableCell}>
+                    <Text>{item.dataInicio || 'N/A'}</Text>
+                  </View>
+                  <View style={styles.lastTableCell}>
+                    <Text>{item.dataTermino || '—'}</Text>
+                  </View>
                 </View>
               ))}
             </View>
@@ -294,25 +312,37 @@ const RelatorioPDF = ({
 
         {/* Relatório Detalhado de Veículos */}
         {data.carrosTabela && data.carrosTabela.length > 0 && (
-          <View style={[styles.section, { pageBreakBefore: 'auto' }]}>
+          <View style={styles.section}>
             <Text style={styles.sectionTitle}>Detalhes dos Veículos</Text>
             <View style={styles.table}>
               <View style={[styles.tableRow, styles.tableHeader]}>
-                <Text style={styles.tableCell}>Placa</Text>
-                <Text style={styles.tableCell}>Modelo</Text>
-                <Text style={styles.tableCell}>Situação</Text>
-                <Text style={styles.tableCell}>Campus</Text>
-                <Text style={styles.tableCell}>Corridas</Text>
-                <Text style={styles.lastTableCell}>Status</Text>
+                <View style={styles.tableCell}>
+                  <Text>Placa</Text>
+                </View>
+                <View style={styles.tableCell}>
+                  <Text>Modelo</Text>
+                </View>
+                <View style={styles.tableCell}>
+                  <Text>Campus</Text>
+                </View>
+                <View style={styles.tableCell}>
+                  <Text>Situação</Text>
+                </View>
               </View>
-              {data.carrosTabela.slice(0, 20).map((item: any, index: number) => (
-                <View key={index} style={styles.tableRow}>
-                  <Text style={styles.tableCell}>{item.placa || 'N/A'}</Text>
-                  <Text style={styles.tableCell}>{item.modelo || 'N/A'}</Text>
-                  <Text style={styles.tableCell}>{item.situacao || 'N/A'}</Text>
-                  <Text style={styles.tableCell}>{item.localidadeFisica || 'N/A'}</Text>
-                  <Text style={styles.tableCell}>{item.totalCorridas || 0}</Text>
-                  <Text style={styles.lastTableCell}>{item.statusUtilizacao || 'N/A'}</Text>
+              {data.carrosTabela.map((item: any, index: number) => (
+                <View style={styles.tableRow} key={index}>
+                  <View style={styles.tableCell}>
+                    <Text>{item.placa || 'N/A'}</Text>
+                  </View>
+                  <View style={styles.tableCell}>
+                    <Text>{item.modelo || 'N/A'}</Text>
+                  </View>
+                  <View style={styles.tableCell}>
+                    <Text>{item.localidadeFisica || 'N/A'}</Text>
+                  </View>
+                  <View style={styles.tableCell}>
+                    <Text>{item.situacao || 'N/A'}</Text>
+                  </View>
                 </View>
               ))}
             </View>
