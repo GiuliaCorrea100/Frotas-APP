@@ -274,22 +274,22 @@ const Relatorios: React.FC = () => {
   };
 
   const carregarRelatorioMultas = async () => {
-  try {
-    const { data } = await axiosConnect.get('/relatorio/multas', {
-      params: { ano: selectedYear },
-    });
-    setMultasResumo(data.resumo);
-    setMultasPorClassificacao(data.multasPorClassificacao || []);
-    setMultasPorVeiculo(
-      (data.multasPorVeiculo || []).map((v: any) => ({
-        placa: v.placaVeiculo,
-        quantidade: v.quantidade,
-      }))
-    );
-  } catch {
-    setError('Erro ao carregar relatório de multas');
-  }
-};
+    try {
+      const { data } = await axiosConnect.get('/relatorio/multas', {
+        params: { ano: selectedYear },
+      });
+      setMultasResumo(data.resumo);
+      setMultasPorClassificacao(data.multasPorClassificacao || []);
+      setMultasPorVeiculo(
+        (data.multasPorVeiculo || []).map((v: any) => ({
+          placa: v.placaVeiculo,
+          quantidade: v.quantidade,
+        }))
+      );
+    } catch {
+      setError('Erro ao carregar relatório de multas');
+    }
+  };
 
   const carregarRelatorioOcorrencias = async () => {
     try {
@@ -551,7 +551,7 @@ const Relatorios: React.FC = () => {
                 <Typography variant="h6" color="text.primary" gutterBottom>
                   Situação das Corridas
                 </Typography>
-                <ResponsiveContainer width="100%" height={340}>
+                <ResponsiveContainer width="100%" height={320}>
                   <PieChart>
                     <Pie
                       data={corridasResumo.porSituacao}
@@ -677,7 +677,7 @@ const Relatorios: React.FC = () => {
             <Grid item xs={12} md={5}>
               <Paper sx={{ p: 2, height: 400 }} elevation={3}>
                 <Typography variant="h6" color="text.primary" gutterBottom>Situação da Frota</Typography>
-                <ResponsiveContainer width="100%" height={340}>
+                <ResponsiveContainer width="100%" height={320}>
                   <PieChart>
                     <Pie 
                       data={carrosSituacao} 
@@ -814,7 +814,7 @@ const Relatorios: React.FC = () => {
                 <Typography variant="h6" color="text.primary" gutterBottom>
                 Custo por Tipo de Combustível
                 </Typography>
-                <ResponsiveContainer width="100%" height={340}>
+                <ResponsiveContainer width="100%" height={320}>
                 <PieChart>
                   <Pie
                   data={abastecimentoCustoPorCombustivel}
@@ -957,7 +957,7 @@ const Relatorios: React.FC = () => {
               <Typography variant="h6" color="text.primary" gutterBottom>
                 Multas por Classificação
               </Typography>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={320}>
                 <PieChart>
                   <Pie
                     data={multasPorClassificacao}
