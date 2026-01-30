@@ -131,6 +131,26 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
     setFileError(null);
   };
 
+  const ajustarDataParaUTC = (dataString: string): Date => {
+    if (!dataString) return new Date();
+    
+    const localDate = new Date(dataString);
+    
+    const utcDate = new Date(
+      Date.UTC(
+        localDate.getFullYear(),
+        localDate.getMonth(),
+        localDate.getDate(),
+        12,
+        0,
+        0,
+        0
+      )
+    );
+    
+    return utcDate;
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
@@ -141,9 +161,8 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
       const valorInfracaoNum = valorInfracao ? Number(valorInfracao) : 0;
       const autoInfracaoNum = autoInfracao ? Number(autoInfracao) : 0;
 
-      const dataInfracaoUTC = dataInfracao
-        ? new Date(dataInfracao)
-        : new Date();
+      // SOLUÇÃO OPÇÃO 1: Ajustar a data para UTC mantendo o dia correto
+      const dataInfracaoUTC = ajustarDataParaUTC(dataInfracao);
 
       if (arquivoSelecionado) {
         const formData = new FormData();
@@ -220,8 +239,8 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
         >
           <TextField
             label="Código da Infração"
-            type="text" // Alterado para text
-            inputMode="numeric" // Para mostrar teclado numérico em dispositivos móveis
+            type="text"
+            inputMode="numeric"
             value={codigoInfracao}
             onChange={(e) => handleNumberInputChange(e, setCodigoInfracao)}
             required
@@ -248,8 +267,8 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
 
           <TextField
             label="Valor da multa (R$)"
-            type="text" // Alterado para text
-            inputMode="decimal" // Para mostrar teclado decimal em dispositivos móveis
+            type="text"
+            inputMode="decimal"
             value={valorInfracao}
             onChange={(e) => handleNumberInputChange(e, setValorInfracao)}
             required
@@ -266,7 +285,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
           <TextField
             label="Placa do Veículo"
             value={placaVeiculo}
-            onChange={(e) => setPlacaVeiculo(e.target.value.toUpperCase())} // Converte para maiúsculas
+            onChange={(e) => setPlacaVeiculo(e.target.value.toUpperCase())}
             required
             fullWidth
             sx={{ flex: "1 1 calc(50% - 8px)" }}
@@ -278,8 +297,8 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
 
           <TextField
             label="Auto da Infração"
-            type="text" // Alterado para text
-            inputMode="numeric" // Para mostrar teclado numérico em dispositivos móveis
+            type="text"
+            inputMode="numeric"
             value={autoInfracao}
             onChange={(e) => handleNumberInputChange(e, setAutoInfracao)}
             required
