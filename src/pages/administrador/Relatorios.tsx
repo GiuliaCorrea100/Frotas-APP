@@ -147,6 +147,7 @@ const Relatorios: React.FC = () => {
   const [abastecimentoConsumoPorCampus, setAbastecimentoConsumoPorCampus] = useState<any[]>([]);
   const [multasResumo, setMultasResumo] = useState({
     totalMultas: 0,
+    totalCustoMultas: 0,
   });
   const [multasPorClassificacao, setMultasPorClassificacao] = useState<{ porClassificacao: string; quantidade: number }[]>([]);
   const [multasPorVeiculo, setMultasPorVeiculo] = useState<{ placa: string; quantidade: number }[]>([]);
@@ -289,8 +290,6 @@ const Relatorios: React.FC = () => {
     setError('Erro ao carregar relatório de multas');
   }
 };
-
-
 
   const carregarRelatorioOcorrencias = async () => {
     try {
@@ -547,7 +546,7 @@ const Relatorios: React.FC = () => {
         {activeTab === 1 && (
           <Grid container spacing={3}>
             {/* Gráfico: Situação das Corridas */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={5}>
               <Paper sx={{ p: 2, height: 400 }} elevation={3}>
                 <Typography variant="h6" color="text.primary" gutterBottom>
                   Situação das Corridas
@@ -584,7 +583,7 @@ const Relatorios: React.FC = () => {
             </Grid>
 
             {/* Gráfico: Corridas por Motorista */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={7}>
               <Paper sx={{ p: 2, height: 400 }} elevation={3}>
                 <Typography variant="h6" color="text.primary" gutterBottom>
                   Motoristas com maior número de corridas
@@ -933,7 +932,7 @@ const Relatorios: React.FC = () => {
         {activeTab === 4 && (
           <Grid container spacing={3}>
             {/* Card: Total de Multas */}
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={6}>
               <StatCard
                 title="Total de Multas"
                 value={multasResumo.totalMultas}
@@ -941,9 +940,19 @@ const Relatorios: React.FC = () => {
                 trend="down"
               />
             </Grid>
+            <Grid item xs={12} md={6}>
+              <StatCard
+                title="Custo Total"
+                value={`R$ ${multasResumo.totalCustoMultas.toLocaleString(
+                'pt-BR',
+                { minimumFractionDigits: 2 },
+                )}`}
+                icon={<Money fontSize="large" />}
+              />
+            </Grid>
 
             {/* Gráfico: Multas por Classificacao de Infração */}
-            <Grid item xs={12} md={9}>
+            <Grid item xs={12} md={5}>
               <Paper sx={{ p: 2, height: 400 }} elevation={3}>
               <Typography variant="h6" color="text.primary" gutterBottom>
                 Multas por Classificação
@@ -970,8 +979,8 @@ const Relatorios: React.FC = () => {
             </Grid>
 
             {/* Gráfico: Multas por Veículo */}
-            <Grid item xs={12}>
-              <Paper sx={{ p: 3, height: 420 }}>
+            <Grid item xs={12} md={7}>
+              <Paper sx={{ p: 3, height: 400 }}>
                 <Typography variant="h6" color="text.primary" gutterBottom>
                   Veículos com Mais Multas
                 </Typography>

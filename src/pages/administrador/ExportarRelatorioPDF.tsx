@@ -416,12 +416,20 @@ const RelatorioPDF = ({
 
         {/* Análise de Multas */}
         {data.multasResumo && (
-          <>
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Resumo de Multas</Text>
-              <StatCardPDF title="Total de Multas" value={data.multasResumo.totalMultas || 0} />
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Resumo de Multas</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+              <View style={{ width: '48%' }}>
+                <StatCardPDF title="Total de Multas" value={data.multasResumo.totalMultas || 0} />
+              </View>
+              <View style={{ width: '48%' }}>
+                <StatCardPDF
+                  title="Custo Total"
+                  value={`R$ ${(data.multasResumo.totalCustoMultas || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                />
+              </View>
             </View>
-          </>
+          </View>
         )}
 
         {/* Multas por Classificação */}
@@ -574,7 +582,7 @@ const ExportarRelatorioPDF = ({
     abastecimentoCustoPorCombustivel: abastecimentoCustoPorCombustivel || [],
     abastecimentoConsumoMensal: abastecimentoConsumoMensal || [],
     abastecimentoConsumoPorCampus: abastecimentoConsumoPorCampus || [],
-    multasResumo: multasResumo || { totalMultas: 0 },
+    multasResumo: multasResumo || { totalMultas: 0, totalCustoMultas: 0 },
     multasPorClassificacao: multasPorClassificacao || [],
     multasPorVeiculo: multasPorVeiculo || [],
     ocorrenciasResumo: ocorrenciasResumo || { totalOcorrencias: 0 },
