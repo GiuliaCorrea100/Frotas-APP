@@ -20,9 +20,6 @@ import {
   DirectionsCar,
   LocalGasStation,
   Gavel,
-  Report,
-  TrendingUp,
-  TrendingDown,
   Money,
   Speed,
   WarningAmber,
@@ -47,6 +44,7 @@ import { ptBR } from "@mui/x-data-grid/locales";
 
 import Menu from "../../components/Menu";
 import axiosConnect from "../../services/axios/axiosConnect";
+import ExportarRelatorioPDF from "./ExportarRelatorioPDF";
 
 // --- Paletas de Cores Consistentes ---
 const PIE_COLORS = [
@@ -149,35 +147,33 @@ const Relatorios: React.FC = () => {
   const [abastecimentoConsumoPorCampus, setAbastecimentoConsumoPorCampus] = useState<any[]>([]);
   const [multasResumo, setMultasResumo] = useState({
     totalMultas: 0,
+    totalCustoMultas: 0,
   });
-  const [multasPorTipo, setMultasPorTipo] = useState<{ tipoInfracao: string; quantidade: number }[]>([]);
+  const [multasPorClassificacao, setMultasPorClassificacao] = useState<{ porClassificacao: string; quantidade: number }[]>([]);
   const [multasPorVeiculo, setMultasPorVeiculo] = useState<{ placa: string; quantidade: number }[]>([]);
-  const [multasPorMes, setMultasPorMes] = useState<{ mes: string; total: number }[]>([]);
-  const [multasTabela, setMultasTabela] = useState<any[]>([]);
-
   const [ocorrenciasResumo, setOcorrenciasResumo] = useState({ totalOcorrencias: 0 });
   const [ocorrenciasPorVeiculo, setOcorrenciasPorVeiculo] = useState<{ placa: string; quantidade: number }[]>([]);
 
   useEffect(() => {
       const carregarTodosDados = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      await Promise.all([
-        carregarVisaoGeral(),
-        carregarRelatorioCorridas(),
-		carregarRelatorioVeiculos(),
-		carregarRelatorioAbastecimentos(),
-		// carregarRelatorioMultas(),
-		carregarRelatorioOcorrencias(),
-      ]);
-    } catch (err) {
-      console.error('Erro ao carregar dados:', err);
-      setError('Não foi possível carregar os dados.');
-    } finally {
-      setLoading(false);
-    }
-  };
+        setLoading(true);
+        setError(null);
+        try {
+          await Promise.all([
+            carregarVisaoGeral(),
+            carregarRelatorioCorridas(),
+            carregarRelatorioVeiculos(),
+            carregarRelatorioAbastecimentos(),
+            carregarRelatorioMultas(),
+            carregarRelatorioOcorrencias(),
+          ]);
+        } catch (err) {
+          console.error('Erro ao carregar dados:', err);
+          setError('Não foi possível carregar os dados.');
+        } finally {
+          setLoading(false);
+        }
+      };
   carregarTodosDados();
 }, [selectedYear]);
   
@@ -277,27 +273,23 @@ const Relatorios: React.FC = () => {
 	}
   };
 
-//   const carregarRelatorioMultas = async () => {
-//     try {
-//       const { data } = await axiosConnect.get('/relatorio/multas', {
-//         params: { ano: selectedYear },
-//       });
-//       setMultasResumo(data.resumo);
-//       setMultasPorTipo(data.porTipoInfracao);
-//       setMultasPorVeiculo(data.multasPorVeiculo);
-//       setMultasPorMes(data.multasPorMes);
-//       setMultasTabela(
-//         data.tabela.map((m: any) => ({
-//           id: m.id,
-//           motorista: m.motorista,
-//           placa: m.placa,
-//           dataInfracao: new Date(m.dataInfracao).toLocaleDateString('pt-BR'),
-//         }))
-//       );
-//     } catch {
-//       setError('Erro ao carregar relatório de multas');
-//     }
-//   };
+  const carregarRelatorioMultas = async () => {
+    try {
+      const { data } = await axiosConnect.get('/relatorio/multas', {
+        params: { ano: selectedYear },
+      });
+      setMultasResumo(data.resumo);
+      setMultasPorClassificacao(data.multasPorClassificacao || []);
+      setMultasPorVeiculo(
+        (data.multasPorVeiculo || []).map((v: any) => ({
+          placa: v.placaVeiculo,
+          quantidade: v.quantidade,
+        }))
+      );
+    } catch {
+      setError('Erro ao carregar relatório de multas');
+    }
+  };
 
   const carregarRelatorioOcorrencias = async () => {
     try {
@@ -312,19 +304,30 @@ const Relatorios: React.FC = () => {
   };
 
   const tabs = [
-    { label: "Visão Geral", icon: <Assignment />, value: 0 },
-    { label: "Corridas", icon: <Speed />, value: 1 },
-    { label: "Veículos", icon: <DirectionsCar />, value: 2 },
-    { label: "Abastecimentos", icon: <LocalGasStation />, value: 3 },
-    // { label: "Multas", icon: <Gavel />, value: 4 },
-	{ label: "Ocorrências", icon: <WarningAmber />, value: 5 },
+    { label: "VISÃO GERAL", icon: <Assignment />, value: 0 },
+    { label: "CORRIDAS", icon: <Speed />, value: 1 },
+    { label: "VEÍCULOS", icon: <DirectionsCar />, value: 2 },
+    { label: "ABASTECIMENTOS", icon: <LocalGasStation />, value: 3 },
+    { label: "MULTAS", icon: <Gavel />, value: 4 },
+	{ label: "OCORRÊNCIAS", icon: <WarningAmber />, value: 5 },
   ];
 
-  const tooltipStyle = {
-    backgroundColor: theme.palette.background.paper,
-    border: `1px solid ${theme.palette.divider}`,
+  const rechartsTooltipStyle = {
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? theme.palette.grey[800]
+        : theme.palette.background.paper,
+    color: theme.palette.mode === "dark" ? "white": theme.palette.text.primary,
+    border: `1px solid ${theme.palette.mode === "dark" ? theme.palette.grey[700] : theme.palette.divider}`,
     borderRadius: theme.shape.borderRadius,
-    color: theme.palette.text.primary
+    padding: theme.spacing(1),
+    boxShadow: theme.palette.mode === "dark"
+      ? "0 4px 12px rgba(0,0,0,0.5)"
+      : "0 4px 12px rgba(0,0,0,0.08)",
+  };
+
+  const rechartsTooltipLabelStyle = {
+    color: theme.palette.mode === "dark" ? "#fff" : theme.palette.text.primary,
   };
 
   if (loading) {
@@ -351,76 +354,150 @@ const Relatorios: React.FC = () => {
   return (
     <>
       <Menu />
-      <Box sx={{ p: 3 }}>
-        <Paper
-          sx={{ width: "100%", mb: 3, position: "relative" }}
-          elevation={2}
+      <Box sx={{
+        p: 3,
+        backgroundColor: theme.palette.background.default,
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1 
+      }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+          <Typography variant="h5" fontWeight="bold" color="textPrimary">
+            Relatórios
+          </Typography>
+          <ExportarRelatorioPDF
+                visaoGeral={visaoGeral}
+                corridasResumo={corridasResumo}
+                desempenhoMotoristas={desempenhoMotoristas}
+                corridasTabela={corridasTabela}
+                carrosResumo={carrosResumo}
+                carrosSituacao={carrosSituacao}
+                desempenhoCarros={desempenhoCarros}
+                carrosTabela={carrosTabela}
+                abastecimentoResumo={abastecimentoResumo}
+                abastecimentoCustoPorCombustivel={abastecimentoCustoPorCombustivel}
+                abastecimentoConsumoMensal={abastecimentoConsumoMensal}
+                abastecimentoConsumoPorCampus={abastecimentoConsumoPorCampus}
+                multasResumo={multasResumo}
+                multasPorClassificacao={multasPorClassificacao}
+                multasPorVeiculo={multasPorVeiculo}
+                ocorrenciasResumo={ocorrenciasResumo}
+                ocorrenciasPorVeiculo={ocorrenciasPorVeiculo}
+                selectedYear={selectedYear}
+              />
+        </Box>
+
+        {/* Cabeçalho: Abas + Filtros */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between',
+            alignItems: { xs: 'stretch', sm: 'center' },
+            mb: 2,
+            gap: 2,
+          }}
         >
-          <Box
-            sx={{
-              borderBottom: 1,
-              borderColor: "divider",
-              display: "flex",
-              justifyContent: "space-between",
-            }}
-          >
-            <Box>
+            {/* Abas de navegação */}
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                gap: 1, 
+                alignItems: 'center', 
+                overflowX: 'auto',
+                scrollbarWidth: 'none',
+                '&::-webkit-scrollbar': { display: 'none' },
+                flexWrap: 'wrap',
+                minHeight: '40px'
+              }}
+            >
               {tabs.map((tab) => (
                 <Button
                   key={tab.value}
-                  disableRipple
+                  variant={activeTab === tab.value ? "contained" : "outlined"}
                   onClick={() => setActiveTab(tab.value)}
                   startIcon={tab.icon}
                   sx={{
-                    p: 2,
-                    borderRadius: 0,
-                    borderBottom: activeTab === tab.value ? 3 : 0,
-                    borderColor: "primary.main",
-                    color:
-                      activeTab === tab.value ? "primary.main" : "text.primary",
-                    fontWeight: activeTab === tab.value ? "bold" : 400,
-                    textTransform: "none",
-                    "&:hover": { bgcolor: "action.hover" },
+                    textTransform: 'none',
+                    borderRadius: 2,
+                    px: 2,
+                    height: '40px',
+                    fontWeight: activeTab === tab.value ? 600 : 500,
+                    color: activeTab === tab.value ? 'white' : 'text.primary',
+                    bgcolor: activeTab === tab.value ? theme.palette.info.main : 'background.paper',
+                    '&:hover': {
+                      bgcolor: activeTab === tab.value
+                        ? theme.palette.primary.dark
+                        : theme.palette.action.hover,
+                    },
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   {tab.label}
                 </Button>
               ))}
             </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2, p: 1 }}>
-              <FormControl size="small" sx={{ minWidth: 120 }}>
-                <InputLabel>Ano</InputLabel>
+
+            {/* Filtro de Ano */}
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', minHeight: '40px' }}>
+              <FormControl size="small" sx={{ minWidth: 120, height: '40px' }}>
+                <InputLabel 
+                  id="ano-label"
+                  sx={{
+                    color: theme.palette.text.secondary,
+                    '&.Mui-focused': {
+                      color: theme.palette.text.secondary,
+                    },
+                  }}
+                >
+                  Ano
+                </InputLabel>
                 <Select
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(Number(e.target.value))}
                   label="Ano"
+                  sx={{
+                    borderRadius: 2,
+                    height: '40px',
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: theme.palette.divider,
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: theme.palette.text.secondary,
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: theme.palette.text.secondary,
+                    },
+                  }}
                 >
-                  <MenuItem value={new Date().getFullYear() - 1}>
-                    {new Date().getFullYear() - 1}
-                  </MenuItem>
-                  <MenuItem value={new Date().getFullYear()}>
-                    {new Date().getFullYear()}
-                  </MenuItem>
-                  <MenuItem value={new Date().getFullYear() + 1}>
-                    {new Date().getFullYear() + 1}
-                  </MenuItem>
+                  {Array.from({ length: 5 }, (_, i) => {
+                    const year = new Date().getFullYear() - i;
+                    return (
+                      <MenuItem key={year} value={year}>
+                        {year}
+                      </MenuItem>
+                    );
+                  })}
                 </Select>
               </FormControl>
             </Box>
-          </Box>
-        </Paper>
+        </Box>
 
-        {error && <Typography color="error">{error}</Typography>}
+        {error && (
+          <Typography color="error" sx={{ mb: 2 }}>
+            {error}
+          </Typography>
+        )}
 
         {/* --- VISÃO GERAL --- */}
         {activeTab === 0 && (
           <Grid container spacing={3}>
             <Grid item xs={12}>
-              <Typography variant="h5" color="text.primary" gutterBottom>
+              <Typography variant="h6" color="text.primary" mt={3} gutterBottom>
                 Indicadores Principais ({selectedYear})
               </Typography>
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={3} lg={2}>
               <StatCard
                 title="Total de Corridas"
                 value={corridasResumo.totalCorridas}
@@ -428,14 +505,14 @@ const Relatorios: React.FC = () => {
                 trend="up"
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={3} lg={2}>
               <StatCard
                 title="Frota Ativa"
                 value={visaoGeral.totalVeiculos}
                 icon={<DirectionsCar fontSize="large" />}
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={3} lg={2}>
               <StatCard
                 title="Gasto c/ Combustível"
                 value={`R$ ${visaoGeral.totalGastoCombustivel.toLocaleString(
@@ -446,10 +523,18 @@ const Relatorios: React.FC = () => {
                 trend="down"
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={3} lg={2}>
               <StatCard
-                title="Ocorrências e Multas"
-                value={`${visaoGeral.totalOcorrencias} / ${visaoGeral.totalMultas}`}
+                title="Multas"
+                value={visaoGeral.totalMultas}
+                icon={<Gavel fontSize="large" />}
+                trend="down"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3} lg={2}>
+              <StatCard
+                title="Ocorrências"
+                value={visaoGeral.totalOcorrencias}
                 icon={<WarningAmber fontSize="large" />}
                 trend="down"
               />
@@ -460,19 +545,13 @@ const Relatorios: React.FC = () => {
         {/* --- CORRIDAS --- */}
         {activeTab === 1 && (
           <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Typography variant="h5" color="text.primary" gutterBottom>
-                Análise de Corridas ({selectedYear})
-              </Typography>
-            </Grid>
-
             {/* Gráfico: Situação das Corridas */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={5}>
               <Paper sx={{ p: 2, height: 400 }} elevation={3}>
                 <Typography variant="h6" color="text.primary" gutterBottom>
                   Situação das Corridas
                 </Typography>
-                <ResponsiveContainer width="100%" height={340}>
+                <ResponsiveContainer width="100%" height={320}>
                   <PieChart>
                     <Pie
                       data={corridasResumo.porSituacao}
@@ -492,7 +571,11 @@ const Relatorios: React.FC = () => {
                         )
                       )}
                     </Pie>
-                    <Tooltip contentStyle={tooltipStyle} />
+                    <Tooltip
+                      contentStyle={rechartsTooltipStyle}
+                      itemStyle={{ color: theme.palette.text.primary }}
+                      labelStyle={rechartsTooltipLabelStyle}
+                    />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
@@ -500,24 +583,28 @@ const Relatorios: React.FC = () => {
             </Grid>
 
             {/* Gráfico: Corridas por Motorista */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={7}>
               <Paper sx={{ p: 2, height: 400 }} elevation={3}>
                 <Typography variant="h6" color="text.primary" gutterBottom>
                   Motoristas com maior número de corridas
                 </Typography>
                 <ResponsiveContainer width="100%" height={340}>
                   <BarChart
-					layout="vertical"
-					data={desempenhoMotoristas}
-					margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-					>
-					<CartesianGrid strokeDasharray="3 3" />
-					<XAxis type="number" />
-					<YAxis type="category" dataKey="motorista" width={200}  tick={{ fontSize: 12 }} tickMargin={8} />
-					<Tooltip contentStyle={tooltipStyle} />
-					<Legend />
-					<Bar dataKey="Corridas" fill={theme.palette.primary.main} />
-				</BarChart>
+                    layout="vertical"
+                    data={desempenhoMotoristas}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" />
+                    <YAxis type="category" dataKey="motorista" width={200}  tick={{ fontSize: 12 }} tickMargin={8} />
+                    <Tooltip
+                      contentStyle={rechartsTooltipStyle}
+                      itemStyle={{ color: theme.palette.primary.main }}
+                      labelStyle={rechartsTooltipLabelStyle}
+                    />
+                    <Legend />
+                    <Bar dataKey="Corridas" fill={theme.palette.primary.main} />
+                  </BarChart>
 
                 </ResponsiveContainer>
               </Paper>
@@ -555,11 +642,7 @@ const Relatorios: React.FC = () => {
 
         {/* --- VEÍCULOS --- */}
         {activeTab === 2 && (
-                <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Typography variant="h5" color="text.primary" gutterBottom>Análise da Frota ({selectedYear})</Typography>
-            </Grid>
-                            
+          <Grid container spacing={3}>    
             {/* Cards Estatísticos */}
             <Grid item xs={12} sm={6} md={3}>
               <StatCard 
@@ -594,7 +677,7 @@ const Relatorios: React.FC = () => {
             <Grid item xs={12} md={5}>
               <Paper sx={{ p: 2, height: 400 }} elevation={3}>
                 <Typography variant="h6" color="text.primary" gutterBottom>Situação da Frota</Typography>
-                <ResponsiveContainer width="100%" height={340}>
+                <ResponsiveContainer width="100%" height={320}>
                   <PieChart>
                     <Pie 
                       data={carrosSituacao} 
@@ -614,7 +697,11 @@ const Relatorios: React.FC = () => {
                           />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={tooltipStyle} />
+                    <Tooltip
+                      contentStyle={rechartsTooltipStyle}
+                      itemStyle={{ color: theme.palette.text.primary }}
+                      labelStyle={rechartsTooltipLabelStyle}
+                    />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
@@ -639,7 +726,11 @@ const Relatorios: React.FC = () => {
                       width={100}
                       tick={{ fontSize: 12 }}
                     />
-                    <Tooltip contentStyle={tooltipStyle} />
+                    <Tooltip
+                      contentStyle={rechartsTooltipStyle}
+                      itemStyle={{ color: theme.palette.primary.main }}
+                      labelStyle={rechartsTooltipLabelStyle}
+                    />
                     <Legend />
                     <Bar dataKey="Corridas" fill={theme.palette.secondary.main} />
                   </BarChart>
@@ -698,102 +789,107 @@ const Relatorios: React.FC = () => {
         {/* --- ABASTECIMENTOS --- */}
         {activeTab === 3 && (
           <Grid container spacing={3}>
-            <Grid item xs={12}>
-            <Typography variant="h5" color="text.primary" gutterBottom>
-              Análise de Abastecimentos ({selectedYear})
-            </Typography>
-            </Grid>
-
             {/* Cards */}
             <Grid item xs={12} sm={6}>
-            <StatCard
-              title="Custo Total"
-              value={`R$ ${abastecimentoResumo.totalValor.toLocaleString(
-              'pt-BR',
-              { minimumFractionDigits: 2 },
-              )}`}
-              icon={<Money fontSize="large" />}
-            />
+              <StatCard
+                title="Custo Total"
+                value={`R$ ${abastecimentoResumo.totalValor.toLocaleString(
+                'pt-BR',
+                { minimumFractionDigits: 2 },
+                )}`}
+                icon={<Money fontSize="large" />}
+              />
             </Grid>
             <Grid item xs={12} sm={6}>
-            <StatCard
-              title="Total Abastecido"
-              value={`${abastecimentoResumo.totalLitros.toFixed(2)} Litros`}
-              icon={<LocalGasStation fontSize="large" />}
-            />
+              <StatCard
+                title="Total Abastecido"
+                value={`${abastecimentoResumo.totalLitros.toFixed(2)} Litros`}
+                icon={<LocalGasStation fontSize="large" />}
+              />
             </Grid>
 
             {/* Pizza: custo por tipo de combustível */}
             <Grid item xs={12} md={5}>
-            <Paper sx={{ p: 2, height: 400 }} elevation={3}>
-              <Typography variant="h6" color="text.primary" gutterBottom>
-              Custo por Tipo de Combustível
-              </Typography>
-              <ResponsiveContainer width="100%" height={340}>
-              <PieChart>
-                <Pie
-                data={abastecimentoCustoPorCombustivel}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label={(entry) =>
-                  `R$ ${entry.value.toFixed(2)}`
-                }
-                >
-                {abastecimentoCustoPorCombustivel.map((entry, index) => (
-                  <Cell
-                  key={`cell-${index}`}
-                  fill={PIE_COLORS[index % PIE_COLORS.length]}
+              <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+                <Typography variant="h6" color="text.primary" gutterBottom>
+                Custo por Tipo de Combustível
+                </Typography>
+                <ResponsiveContainer width="100%" height={320}>
+                <PieChart>
+                  <Pie
+                  data={abastecimentoCustoPorCombustivel}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  label={(entry) =>
+                    `R$ ${entry.value.toFixed(2)}`
+                  }
+                  >
+                  {abastecimentoCustoPorCombustivel.map((entry, index) => (
+                    <Cell
+                    key={`cell-${index}`}
+                    fill={PIE_COLORS[index % PIE_COLORS.length]}
+                    />
+                  ))}
+                  </Pie>
+                  <Tooltip
+                  formatter={(value: number) =>
+                    `R$ ${typeof value === 'number'
+                    ? value.toFixed(2)
+                    : value}`
+                  }
+                  contentStyle={rechartsTooltipStyle}
+                  itemStyle={{ color: theme.palette.text.primary }}
+                  labelStyle={rechartsTooltipLabelStyle}
                   />
-                ))}
-                </Pie>
-                <Tooltip
-                formatter={(value: number) =>
-                  `R$ ${typeof value === 'number'
-                  ? value.toFixed(2)
-                  : value}`
-                }
-                contentStyle={tooltipStyle}
-                />
-                <Legend />
-              </PieChart>
-              </ResponsiveContainer>
-            </Paper>
+                  <Legend />
+                </PieChart>
+                </ResponsiveContainer>
+              </Paper>
             </Grid>
 
             {/* Consumo mensal (litros x valor) */}
             <Grid item xs={12} md={7}>
-            <Paper sx={{ p: 2, height: 400 }} elevation={3}>
-              <Typography variant="h6" color="text.primary" gutterBottom>
-              Consumo Mensal
-              </Typography>
-              <ResponsiveContainer width="100%" height={340}>
-              <AreaChart data={abastecimentoConsumoMensal}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="mes" />
-                <YAxis yAxisId="left" />
-                <YAxis yAxisId="right" orientation="right" />
-                <Tooltip contentStyle={tooltipStyle} />
-                <Legend />
-                <Area
-                yAxisId="left"
-                type="monotone"
-                dataKey="Litros"
-                stroke="#8884d8"
-                fill="#8884d8"
-                />
-                <Area
-                yAxisId="right"
-                type="monotone"
-                dataKey="Valor"
-                stroke="#82ca9d"
-                fill="#82ca9d"
-                />
-              </AreaChart>
-              </ResponsiveContainer>
-            </Paper>
+              <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+                <Typography variant="h6" color="text.primary" gutterBottom>
+                Consumo Mensal
+                </Typography>
+                <ResponsiveContainer width="100%" height={340}>
+                <AreaChart data={abastecimentoConsumoMensal}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="mes" />
+                  <YAxis yAxisId="left" />
+                  <YAxis yAxisId="right" orientation="right" />
+                  <Tooltip
+                    contentStyle={rechartsTooltipStyle}
+                    labelStyle={rechartsTooltipLabelStyle}
+                    formatter={(value, name, props) => {
+                      const label = `${name}: ${value}`;
+                      return [
+                        <span style={{ color: props.color }}>{label}</span>,
+                      ];
+                    }}
+                  />
+                  <Legend />
+                  <Area
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="Litros"
+                  stroke="#8884d8"
+                  fill="#8884d8"
+                  />
+                  <Area
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="Valor"
+                  stroke="#82ca9d"
+                  fill="#82ca9d"
+                  />
+                </AreaChart>
+                </ResponsiveContainer>
+              </Paper>
             </Grid>
 
             {/* Consumo por Campus */}
@@ -817,7 +913,9 @@ const Relatorios: React.FC = () => {
                   tick={{ fontSize: 12 }}
                   />
                   <Tooltip 
-                    contentStyle={tooltipStyle}
+                    contentStyle={rechartsTooltipStyle}
+                    itemStyle={{ color: theme.palette.primary.main }}
+                    labelStyle={rechartsTooltipLabelStyle}
                     formatter={(value: number) => `${value.toFixed(2)}`}
                   />
                   <Legend />
@@ -831,16 +929,10 @@ const Relatorios: React.FC = () => {
         )}
 
         {/* --- MULTAS --- */}
-         {/* {activeTab === 4 && (
+        {activeTab === 4 && (
           <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Typography variant="h5" color="text.primary" gutterBottom>
-                Análise de Multas ({selectedYear})
-              </Typography>
-            </Grid>
-
             {/* Card: Total de Multas */}
-            {/* <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} md={6}>
               <StatCard
                 title="Total de Multas"
                 value={multasResumo.totalMultas}
@@ -848,127 +940,85 @@ const Relatorios: React.FC = () => {
                 trend="down"
               />
             </Grid>
+            <Grid item xs={12} md={6}>
+              <StatCard
+                title="Custo Total"
+                value={`R$ ${multasResumo.totalCustoMultas.toLocaleString(
+                'pt-BR',
+                { minimumFractionDigits: 2 },
+                )}`}
+                icon={<Money fontSize="large" />}
+              />
+            </Grid>
 
-            {/* Gráfico: Multas por Tipo de Infração */}
-            {/* <Grid item xs={12} md={6}>
+            {/* Gráfico: Multas por Classificacao de Infração */}
+            <Grid item xs={12} md={5}>
               <Paper sx={{ p: 2, height: 400 }} elevation={3}>
-                <Typography variant="h6" color="text.primary" gutterBottom>
-                  Multas por Tipo de Infração
-                </Typography>
-                <ResponsiveContainer width="100%" height={340}>
-                  <PieChart>
-                    <Pie
-                      data={multasPorTipo}
-                      dataKey="quantidade"
-                      nameKey="tipoInfracao"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={100}
-                      label
-                    >
-                      {multasPorTipo.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={PIE_COLORS[index % PIE_COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={tooltipStyle} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </Paper>
+              <Typography variant="h6" color="text.primary" gutterBottom>
+                Multas por Classificação
+              </Typography>
+              <ResponsiveContainer width="100%" height={320}>
+                <PieChart>
+                  <Pie
+                    data={multasPorClassificacao}
+                    dataKey="quantidade"
+                    nameKey="classificacao"
+                    label={(entry) =>
+                    `${entry.value}`
+                  }
+                  >
+                    {multasPorClassificacao.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={rechartsTooltipStyle} labelStyle={rechartsTooltipLabelStyle} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </Paper>
             </Grid>
 
             {/* Gráfico: Multas por Veículo */}
-            {/* <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2, height: 400 }} elevation={3}>
+            <Grid item xs={12} md={7}>
+              <Paper sx={{ p: 3, height: 400 }}>
                 <Typography variant="h6" color="text.primary" gutterBottom>
                   Veículos com Mais Multas
                 </Typography>
-                <ResponsiveContainer width="100%" height={340}>
-                  <BarChart
-                    layout="vertical"
-                    data={multasPorVeiculo}
-                    margin={{ top: 20, right: 30, left: 80, bottom: 5 }}
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart 
+                    layout="vertical" 
+                    data={multasPorVeiculo.slice(0, 10)} // top 10
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis type="number" />
                     <YAxis
                       type="category"
                       dataKey="placa"
-                      width={75}
+                      width={100}
                       tick={{ fontSize: 12 }}
                     />
-                    <Tooltip contentStyle={tooltipStyle} />
+                    <Tooltip
+                      contentStyle={rechartsTooltipStyle}
+                      itemStyle={{ color: theme.palette.primary.main }}
+                      labelStyle={rechartsTooltipLabelStyle}
+                    />
                     <Legend />
-                    <Bar dataKey="quantidade" fill={theme.palette.error.main} />
+                    <Bar
+                      dataKey="quantidade"
+                      name="Quantidade"
+                      fill={theme.palette.secondary.main}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </Paper>
             </Grid>
-
-            {/* Gráfico: Multas por Mês */}
-            {/* <Grid item xs={12}>
-              <Paper sx={{ p: 2, height: 400 }} elevation={3}>
-                <Typography variant="h6" color="text.primary" gutterBottom>
-                  Evolução de Multas por Mês
-                </Typography>
-                <ResponsiveContainer width="100%" height={340}>
-                  <AreaChart data={multasPorMes}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="mes" />
-                    <YAxis />
-                    <Tooltip contentStyle={tooltipStyle} />
-                    <Legend />
-                    <Area
-                      type="monotone"
-                      dataKey="total"
-                      stroke={theme.palette.error.main}
-                      fill={theme.palette.error.light}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </Paper>
-            </Grid>
-
-            {/* Tabela de Multas */}
-            {/* <Grid item xs={12}>
-              <Paper sx={{ p: 2 }} elevation={3}>
-                <Typography variant="h6" color="text.primary" gutterBottom>
-                  Relatório Detalhado de Multas
-                </Typography>
-                <DataGrid
-                  autoHeight
-                  rows={multasTabela}
-                  columns={[
-                    { field: 'id', headerName: 'ID', flex: 0.5 },
-                    { field: 'motorista', headerName: 'Motorista', flex: 1 },
-                    { field: 'placa', headerName: 'Placa', flex: 1 },
-                    { field: 'dataInfracao', headerName: 'Data da Infração', flex: 1 },
-                  ]}
-                  pageSizeOptions={[5, 10, 20]}
-                  initialState={{
-                    pagination: { paginationModel: { pageSize: 10, page: 0 } },
-                  }}
-                  localeText={
-                    ptBR.components.MuiDataGrid.defaultProps.localeText
-                  }
-                />
-              </Paper>
-            </Grid>
           </Grid>
-        )} */}
+        )}
         
         {/* --- OCORRÊNCIAS --- */}
         {activeTab === 5 && (
           <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <Typography variant="h5" color="text.primary" gutterBottom>
-                Análise de Ocorrências ({selectedYear})
-              </Typography>
-            </Grid>
-
             {/* Card: Total de Ocorrências */}
             <Grid item xs={12} sm={6} md={3}>
               <StatCard
@@ -999,7 +1049,11 @@ const Relatorios: React.FC = () => {
                       width={75}
                       tick={{ fontSize: 12 }}
                     />
-                    <Tooltip contentStyle={tooltipStyle} />
+                    <Tooltip
+                      contentStyle={rechartsTooltipStyle}
+                      itemStyle={{ color: theme.palette.primary.main }}
+                      labelStyle={rechartsTooltipLabelStyle}
+                    />
                     <Legend />
                     <Bar
                       dataKey="quantidade"
