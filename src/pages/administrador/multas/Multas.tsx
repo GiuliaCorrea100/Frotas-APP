@@ -116,6 +116,23 @@ export default function ListaMulta() {
     }
   };
 
+  const formatarDataCorretamente = (dataString: Date | string | null): string => {
+    if (!dataString) return '-';
+    
+    try {
+      const date = new Date(dataString);
+      
+      const offset = date.getTimezoneOffset() * 60000;
+      
+      const adjustedDate = new Date(date.getTime() + offset);
+      
+      return adjustedDate.toLocaleDateString('pt-BR');
+    } catch (error) {
+      console.error('Erro ao formatar data:', error);
+      return '-';
+    }
+  };
+
   const columns: GridColDef[] = [
     { field: 'idMulta', headerName: 'N°', flex: 1 },
     { field: 'codigoInfracao', headerName: 'Código Infração', flex: 1 },
@@ -145,8 +162,7 @@ export default function ListaMulta() {
       headerName: 'Data da Infração', 
       flex: 1,
       valueFormatter: (params) => {
-        if (!params.value) return '-';
-        return new Date(params.value).toLocaleDateString('pt-BR');
+        return formatarDataCorretamente(params.value);
       }
     },
     { 

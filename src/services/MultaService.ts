@@ -98,26 +98,18 @@ export class MultaService {
     idMulta: number,
     arquivo: File
   ): Promise<void> {
-    try {
-      const formData = new FormData();
-      formData.append("arquivo", arquivo);
+    const formData = new FormData();
+    formData.append("arquivo", arquivo);
 
-      await axiosConnect.put(
-        `/multa/${idMulta}/comprovante`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-    } catch (error) {
-      console.error(
-        `Erro ao enviar comprovante da multa ${idMulta}:`,
-        error
-      );
-      throw error;
-    }
+    await axiosConnect.put(
+      `/multa/${idMulta}/comprovante`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
   }
 
   static async removerMulta(idMulta: number): Promise<void> {
@@ -140,16 +132,11 @@ export class MultaService {
   }
 
   static async downloadArquivo(fileName: string): Promise<Blob> {
-    try {
-      const response = await axiosConnect.get(
-        `/anexo/download/${fileName}`,
-        { responseType: "blob" }
-      );
-      return response.data;
-    } catch (error) {
-      console.error(`Erro ao baixar arquivo ${fileName}:`, error);
-      throw error;
-    }
+    const response = await axiosConnect.get(
+      `/anexo/download/${fileName}`,
+      { responseType: "blob" }
+    );
+    return response.data;
   }
 
   static async removerArquivoMulta(idMulta: number): Promise<void> {
