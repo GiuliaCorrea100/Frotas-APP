@@ -26,7 +26,7 @@ export interface MultaBackend {
   classificacao: string;
   valorInfracao: number;
   placaVeiculo: string;
-  dataInfracao: Date | null;
+  dataInfracao: string;
   autoInfracao: number;
   situacao?: string;
 }

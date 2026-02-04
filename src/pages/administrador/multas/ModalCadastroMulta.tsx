@@ -85,11 +85,9 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
 
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return "0 Bytes";
-    
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
@@ -136,14 +134,9 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
     setLoading(true);
 
     try {
-
       const codigoInfracaoNum = codigoInfracao ? Number(codigoInfracao) : 0;
       const valorInfracaoNum = valorInfracao ? Number(valorInfracao) : 0;
       const autoInfracaoNum = autoInfracao ? Number(autoInfracao) : 0;
-
-      const dataInfracaoUTC = dataInfracao
-        ? new Date(dataInfracao)
-        : new Date();
 
       if (arquivoSelecionado) {
         const formData = new FormData();
@@ -152,9 +145,8 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
         formData.append("classificacao", classificacao);
         formData.append("valorInfracao", valorInfracaoNum.toString());
         formData.append("placaVeiculo", placaVeiculo);
-        formData.append("dataInfracao", dataInfracaoUTC.toISOString());
+        formData.append("dataInfracao", dataInfracao);
         formData.append("autoInfracao", autoInfracaoNum.toString());
-
         formData.append("arquivo", arquivoSelecionado);
 
         await MultaService.criarMultaComArquivo(formData);
@@ -164,7 +156,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
           classificacao,
           valorInfracao: valorInfracaoNum,
           placaVeiculo,
-          dataInfracao: dataInfracaoUTC,
+          dataInfracao,
           autoInfracao: autoInfracaoNum,
         };
         await MultaService.criarMulta(dadosMultas);
@@ -179,13 +171,11 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
     }
   };
 
-  // Função para permitir apenas números e ponto decimal
   const handleNumberInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     setter: React.Dispatch<React.SetStateAction<string>>
   ) => {
     const value = e.target.value;
-    // Permite números, ponto decimal e vazio
     if (value === "" || /^\d*\.?\d*$/.test(value)) {
       setter(value);
     }
@@ -220,8 +210,8 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
         >
           <TextField
             label="Código da Infração"
-            type="text" // Alterado para text
-            inputMode="numeric" // Para mostrar teclado numérico em dispositivos móveis
+            type="text"
+            inputMode="numeric"
             value={codigoInfracao}
             onChange={(e) => handleNumberInputChange(e, setCodigoInfracao)}
             required
@@ -248,8 +238,8 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
 
           <TextField
             label="Valor da multa (R$)"
-            type="text" // Alterado para text
-            inputMode="decimal" // Para mostrar teclado decimal em dispositivos móveis
+            type="text"
+            inputMode="decimal"
             value={valorInfracao}
             onChange={(e) => handleNumberInputChange(e, setValorInfracao)}
             required
@@ -266,7 +256,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
           <TextField
             label="Placa do Veículo"
             value={placaVeiculo}
-            onChange={(e) => setPlacaVeiculo(e.target.value.toUpperCase())} // Converte para maiúsculas
+            onChange={(e) => setPlacaVeiculo(e.target.value.toUpperCase())}
             required
             fullWidth
             sx={{ flex: "1 1 calc(50% - 8px)" }}
@@ -278,8 +268,8 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
 
           <TextField
             label="Auto da Infração"
-            type="text" // Alterado para text
-            inputMode="numeric" // Para mostrar teclado numérico em dispositivos móveis
+            type="text"
+            inputMode="numeric"
             value={autoInfracao}
             onChange={(e) => handleNumberInputChange(e, setAutoInfracao)}
             required
