@@ -63,6 +63,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
   const [valorInfracao, setValorInfracao] = useState<string>("");
   const [placaVeiculo, setPlacaVeiculo] = useState("");
   const [dataInfracao, setDataInfracao] = useState<string>("");
+  const [horaInfracao, setHoraInfracao] = useState<string>("");
   const [autoInfracao, setAutoInfracao] = useState<string>("");
   const [arquivoSelecionado, setArquivoSelecionado] = useState<File | null>(
     null
@@ -76,6 +77,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
       setClassificacao("");
       setCodigoInfracao("");
       setDataInfracao("");
+      setHoraInfracao("");
       setPlacaVeiculo("");
       setValorInfracao("");
       setArquivoSelecionado(null);
@@ -134,6 +136,9 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
     setLoading(true);
 
     try {
+      const dataHoraObj = new Date(`${dataInfracao}T${horaInfracao}`);
+      const dataHoraInfracaoISO = dataHoraObj.toISOString();
+
       const codigoInfracaoNum = codigoInfracao ? Number(codigoInfracao) : 0;
       const valorInfracaoNum = valorInfracao ? Number(valorInfracao) : 0;
       const autoInfracaoNum = autoInfracao ? Number(autoInfracao) : 0;
@@ -145,7 +150,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
         formData.append("classificacao", classificacao);
         formData.append("valorInfracao", valorInfracaoNum.toString());
         formData.append("placaVeiculo", placaVeiculo);
-        formData.append("dataInfracao", dataInfracao);
+        formData.append("dataInfracao", dataHoraInfracaoISO);
         formData.append("autoInfracao", autoInfracaoNum.toString());
         formData.append("arquivo", arquivoSelecionado);
 
@@ -156,7 +161,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
           classificacao,
           valorInfracao: valorInfracaoNum,
           placaVeiculo,
-          dataInfracao,
+          dataInfracao: dataHoraInfracaoISO,
           autoInfracao: autoInfracaoNum,
         };
         await MultaService.criarMulta(dadosMultas);
@@ -293,7 +298,18 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
                 </InputAdornment>
               ),
             }}
-            sx={{ flex: "1 1 100%", mt: 1 }}
+            sx={{ flex: "1 1 calc(50% - 8px)", mt: 1 }}
+          />
+
+          <TextField
+            label="Hora da Infração"
+            type="time"
+            fullWidth
+            value={horaInfracao}
+            onChange={(e) => setHoraInfracao(e.target.value)}
+            required
+            InputLabelProps={{ shrink: true }}
+            sx={{ flex: "1 1 calc(50% - 8px)", mt: 1 }}
           />
 
           <Box sx={{ flex: "1 1 100%", mt: 2 }}>
