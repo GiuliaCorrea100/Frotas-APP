@@ -28,17 +28,61 @@ const ModalFinalizarPercurso: React.FC<ModalFinalizarPercursoProps> = ({
   setOdometroFinal,
   percursoAtual
 }) => {
-   const [mostrarAlertaOdometro, setostrarAlertaOdometro] = useState(false);
+  const [mostrarAlertaOdometro, setMostrarAlertaOdometro] = useState(false);
 
-   const handleClose = () => {
-    setostrarAlertaOdometro(false);
+  const handleConfirm = () => {
+    
+    const odometroFinalNum = parseFloat(odometroFinal);
+    const saidaOdometroNum = parseFloat(percursoAtual?.saidaOdometro?.toString() || '0');
+    
+    
+    if (odometroFinalNum < saidaOdometroNum) {
+      setMostrarAlertaOdometro(true);
+      return; 
+    }
+    
+   
+    setMostrarAlertaOdometro(false);
+    onConfirm();
+  };
+
+  const handleClose = () => {
+    setMostrarAlertaOdometro(false); 
     onClose();
   };
-   
+
+  const handleOdometroChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setOdometroFinal(value);
+    
+  
+    setMostrarAlertaOdometro(false);
+  };
+
+  
+  const formatarOdometro = (valor: string | number | undefined) => {
+    if (!valor && valor !== 0) return '0';
+    
+    const num = parseFloat(valor.toString());
+    if (isNaN(num)) return '0';
+    
+    
+    const temDecimais = num % 1 !== 0;
+    
+    if (temDecimais) {
+      
+      const partes = num.toFixed(2).split('.');
+      return `${parseInt(partes[0]).toLocaleString()},${partes[1]}`;
+    } else {
+      
+      return num.toLocaleString();
+    }
+  };
+
   return (
-    <Dialog open={open} onClose={onClose} fullWidth>
+    <Dialog open={open} onClose={handleClose} fullWidth>
       <DialogTitle>
-        <Typography component="div" fontWeight="bold" sx={{ fontSize: "1.25rem" }}>
+        <Typography component="div" fontWeight="bold" color="text.primary" sx={{ fontSize: "1.25rem" }}>
           Finalizar Percurso
         </Typography>
       </DialogTitle>
@@ -46,20 +90,24 @@ const ModalFinalizarPercurso: React.FC<ModalFinalizarPercursoProps> = ({
         <Box sx={{ mt: 2 }}>
           {mostrarAlertaOdometro && (
             <Typography variant="body2" color="error" sx={{ mb: 2, fontWeight: 'bold' }}>
-              Odometro inválido! Valor menor que o registrado para o veículo
+              Odômetro inválido! Valor menor que o registrado para o veículo
             </Typography>
           )}
-          <Typography variant="body1" sx={{ mb: 2 }}>
+          <Typography variant="body1" color="text.primary" sx={{ mb: 2 }}>
             <strong>Fim do percurso em:</strong> {percursoAtual?.localDestino || "Destino não encontrado"}
           </Typography>
           <TextField
             label="Odômetro Final"
             value={odometroFinal}
-            onChange={(e) => setOdometroFinal(e.target.value)}
+            onChange={handleOdometroChange}
             fullWidth
             type="number"
-            inputProps={{ min: percursoAtual?.saidaOdometro || 0 }}
-            helperText={`Odômetro de saída: ${percursoAtual?.saidaOdometro || 0}`}
+            inputProps={{ 
+              min: percursoAtual?.saidaOdometro || 0,
+              step: "any" 
+            }}
+            helperText={`Odômetro de saída: ${formatarOdometro(percursoAtual?.saidaOdometro)}`}
+            error={mostrarAlertaOdometro}
           />
         </Box>
       </DialogContent>
@@ -71,8 +119,12 @@ const ModalFinalizarPercurso: React.FC<ModalFinalizarPercursoProps> = ({
           color="primary"
           size="large"
           fullWidth
-          sx={{ py: 1.5, fontWeight: "bold", fontSize: "1.1rem" }}
-          onClick={onConfirm}
+          sx={{ 
+            py: 1.5, 
+            fontWeight: "bold", 
+            fontSize: "1.1rem"
+          }}
+          onClick={handleConfirm}
           disabled={!odometroFinal}
         >
           FINALIZAR PERCURSO
@@ -80,7 +132,7 @@ const ModalFinalizarPercurso: React.FC<ModalFinalizarPercursoProps> = ({
         <Button
           color="inherit"
           size="small"
-          onClick={onClose}
+          onClick={handleClose}
           sx={{ textTransform: "none" }}
         >
           Cancelar

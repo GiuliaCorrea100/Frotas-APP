@@ -199,7 +199,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Box display="flex" alignItems="center">
             <LocalGasStation color="primary" sx={{ mr: 1 }} />
-            <Typography variant="h6" fontWeight="bold">
+            <Typography variant="h6" fontWeight="bold" color="text.primary">
               Editar Multa
             </Typography>
           </Box>
@@ -211,13 +211,13 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
         <Box sx={{ mb: 3, p: 2, backgroundColor: 'grey.50', borderRadius: 1 }}>
           <Box display="flex" alignItems="center" mb={1}>
             <Person color="primary" sx={{ mr: 1, fontSize: 20 }} />
-            <Typography variant="subtitle2" fontWeight="bold">
+            <Typography variant="subtitle2" fontWeight="bold" color="text.primary">
               Motorista Responsável
             </Typography>
           </Box>
           
           <Box display="flex" alignItems="center" justifyContent="space-between">
-            <Typography variant="body1" fontWeight="medium">
+            <Typography variant="body1" fontWeight="medium" color="text.primary">
               {getNomeMotorista()}
             </Typography>
           </Box>
@@ -314,7 +314,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
           />
 
           <Box sx={{ flex: "1 1 100%", mt: 2 }}>
-            <Typography variant="subtitle1" fontWeight="bold" mb={1}>
+            <Typography variant="subtitle1" fontWeight="bold" mb={1} color="text.primary">
               Boleto Anexado
             </Typography>
 
@@ -339,7 +339,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
               </Alert>
             )}
 
-            <Typography variant="body2" fontWeight="medium" mb={1}>
+            <Typography variant="body2" fontWeight="medium" mb={1} color="text.primary">
               {arquivoAtual ? "Substituir boleto" : "Anexar boleto"}
             </Typography>
 

@@ -36,7 +36,7 @@ import CadastrarPercursosModal from "./modais/ModalCadastroPercurso";
 const DetalhesRequisicao: React.FC = () => {
   const theme = useTheme();
   const { id } = useParams<{ id: string }>();
-  const [corrida, setCorrida] = useState<CorridaFrontend | null>(null);
+  const [corrida, setCorrida] = useState<CorridaFrontend>(null);
   const [loading, setLoading] = useState(true);
   const [ocorrencias, setOcorrencias] = useState<OcorrenciaDto[]>([]);
   const [abastecimentos, setAbastecimento] = useState<Abastecimento[]>([]);
@@ -142,14 +142,14 @@ const DetalhesRequisicao: React.FC = () => {
       field: "descricao",
       headerName: "Descrição",
       flex: 1,
-      renderCell: (params) => <Typography>{params.value}</Typography>,
+      renderCell: (params) => <Typography color="text.primary">{params.value}</Typography>,
     },
     {
       field: "dataOcorrencia",
       headerName: "Data",
       flex: 1,
       renderCell: (params) => (
-        <Typography>{formatDate(params.value)}</Typography>
+        <Typography color="text.primary">{formatDate(params.value)}</Typography>
       ),
     },
     {
@@ -190,7 +190,7 @@ const DetalhesRequisicao: React.FC = () => {
       headerName: "Combustível",
       flex: 1,
       renderCell: (params) => (
-        <Typography>{params.value}</Typography>
+        <Typography color="text.primary">{params.value}</Typography>
       ),
     },
     {
@@ -207,7 +207,7 @@ const DetalhesRequisicao: React.FC = () => {
       headerName: "Valor do Litro",
       flex: 1,
       renderCell: (params) => (
-        <Typography>{formatCurrency(params.value)}</Typography>
+        <Typography color="text.primary">{formatCurrency(params.value)}</Typography>
       ),
     },
     {
@@ -215,7 +215,7 @@ const DetalhesRequisicao: React.FC = () => {
       headerName: "Preço Final",
       flex: 1,
       renderCell: (params) => (
-        <Typography>{formatCurrency(params.value)}</Typography>
+        <Typography color="text.primary">{formatCurrency(params.value)}</Typography>
       ),
     },
     {
@@ -223,7 +223,7 @@ const DetalhesRequisicao: React.FC = () => {
       headerName: "Data Abastecimento",
       flex: 1,
       renderCell: (params) => (
-        <Typography>{formatDate(params.value)}</Typography>
+        <Typography color="text.primary">{formatDate(params.value)}</Typography>
       ),
     },
     {
@@ -265,7 +265,7 @@ const DetalhesRequisicao: React.FC = () => {
       flex: 1,
       sortable: false,
       renderCell: (params) => (
-        <Typography>{params.value}</Typography>
+        <Typography color="text.primary">{params.value}</Typography>
       ),
     },
     {
@@ -274,7 +274,7 @@ const DetalhesRequisicao: React.FC = () => {
       flex: 1,
       sortable: false,
       renderCell: (params) => (
-        <Typography>{formatDateTime(params.value)}</Typography>
+        <Typography color="text.primary">{formatDateTime(params.value)}</Typography>
       ),
     },
     {
@@ -283,7 +283,7 @@ const DetalhesRequisicao: React.FC = () => {
       flex: 1,
       sortable: false,
       renderCell: (params) => (
-        <Typography>{params.value}</Typography>
+        <Typography color="text.primary">{params.value}</Typography>
       ),
     },
     {
@@ -292,7 +292,7 @@ const DetalhesRequisicao: React.FC = () => {
       flex: 1,
       sortable: false,
       renderCell: (params) => (
-        <Typography>{params.value}</Typography>
+        <Typography color="text.primary">{params.value}</Typography>
       ),
     },
     {
@@ -301,7 +301,7 @@ const DetalhesRequisicao: React.FC = () => {
       flex: 1,
       sortable: false,
       renderCell: (params) => (
-        <Typography>{formatDateTime(params.value)}</Typography>
+        <Typography color="text.primary">{formatDateTime(params.value)}</Typography>
       ),
     },
     {
@@ -310,7 +310,7 @@ const DetalhesRequisicao: React.FC = () => {
       flex: 1,
       sortable: false,
       renderCell: (params) => (
-        <Typography>{params.value}</Typography>
+        <Typography color="text.primary">{params.value}</Typography>
       ),
     },
     {
@@ -480,7 +480,7 @@ const DetalhesRequisicao: React.FC = () => {
             boxShadow: theme.shadows[1],
             border: "1px solid",
             borderColor: "divider",
-            background: theme.palette.mode === "dark" ? "#2D333A" : "#fff",
+            background: theme.palette.mode === "dark" ? "#1E1E1E" : "#fff",
           }}
         >
           <CardHeader
@@ -490,6 +490,7 @@ const DetalhesRequisicao: React.FC = () => {
               "& .MuiCardHeader-title": {
                 fontSize: "1.25rem",
                 fontWeight: 600,
+                color: theme.palette.mode === "dark" ? theme.palette.common.white : theme.palette.text.primary,
               },
             }}
           />
@@ -504,30 +505,34 @@ const DetalhesRequisicao: React.FC = () => {
                   <Typography variant="body2" color="text.secondary">
                     Motorista:
                   </Typography>
-                  <Typography variant="body1">{corrida.nomeMotorista}</Typography>
+                  <Typography variant="body1" color="text.primary">
+                    {corrida.nomeMotorista}
+                  </Typography>
                 </Box>
 
                 <Box>
                   <Typography variant="body2" color="text.secondary">
                     Carro:
                   </Typography>
-                  <Typography variant="body1">{corrida.placaVeiculo}</Typography>
+                  <Typography variant="body1" color="text.primary">
+                    {corrida.placaVeiculo}
+                  </Typography>
                 </Box>
 
                 <Box>
                   <Typography variant="body2" color="text.secondary">
-                    Data do início:
+                    Data de liberação da chave:
                   </Typography>
-                  <Typography variant="body1">
+                  <Typography variant="body1" color="text.primary">
                     {new Date(corrida.dataInicio).toLocaleString()}
                   </Typography>
                 </Box>
 
                 <Box>
                   <Typography variant="body2" color="text.secondary">
-                    Data do término:
+                    Data de entrega da chave:
                   </Typography>
-                  <Typography variant="body1">
+                  <Typography variant="body1" color="text.primary">
                     {corrida.dataTermino
                       ? new Date(corrida.dataTermino).toLocaleString()
                       : "Em andamento"}
@@ -538,14 +543,16 @@ const DetalhesRequisicao: React.FC = () => {
                   <Typography variant="body2" color="text.secondary">
                     Status:
                   </Typography>
-                  <Typography variant="body1">{corrida.situacao}</Typography>
+                  <Typography variant="body1" color="text.primary">
+                    {corrida.situacao}
+                  </Typography>
                 </Box>
 
                 <Box>
                   <Typography variant="body2" color="text.secondary">
                     Status da chave:
                   </Typography>
-                  <Typography variant="body1">
+                  <Typography variant="body1" color="text.primary">
                     {corrida.chaveEmprestada ? "Emprestada" : "Não Emprestada"}
                   </Typography>
                 </Box>
@@ -565,7 +572,7 @@ const DetalhesRequisicao: React.FC = () => {
             boxShadow: theme.shadows[1],
             border: "1px solid",
             borderColor: "divider",
-            background: theme.palette.mode === "dark" ? "#2D333A" : "#fff",
+            background: theme.palette.mode === "dark" ? "#1E1E1E" : "#fff",
           }}
         >
           <CardHeader
@@ -575,6 +582,7 @@ const DetalhesRequisicao: React.FC = () => {
               "& .MuiCardHeader-title": {
                 fontSize: "1.25rem",
                 fontWeight: 600,
+                color: theme.palette.mode === "dark" ? theme.palette.common.white : theme.palette.text.primary,
               },
             }}
           />
@@ -590,7 +598,7 @@ const DetalhesRequisicao: React.FC = () => {
                 mb: 2,
               }}
             >
-              Nova Ocorrencia
+              Nova Ocorrência
             </Button>
             {loading ? (
               <Typography variant="body2" color="text.secondary">
@@ -638,7 +646,7 @@ const DetalhesRequisicao: React.FC = () => {
             boxShadow: theme.shadows[1],
             border: "1px solid",
             borderColor: "divider",
-            background: theme.palette.mode === "dark" ? "#2D333A" : "#fff",
+            background: theme.palette.mode === "dark" ? "#1E1E1E" : "#fff",
           }}
         >
           <CardHeader
@@ -648,6 +656,7 @@ const DetalhesRequisicao: React.FC = () => {
               "& .MuiCardHeader-title": {
                 fontSize: "1.25rem",
                 fontWeight: 600,
+                color: theme.palette.mode === "dark" ? theme.palette.common.white : theme.palette.text.primary,
               },
             }}
           />
@@ -711,7 +720,7 @@ const DetalhesRequisicao: React.FC = () => {
             boxShadow: theme.shadows[1],
             border: "1px solid",
             borderColor: "divider",
-            background: theme.palette.mode === "dark" ? "#2D333A" : "#fff",
+            background: theme.palette.mode === "dark" ? "#1E1E1E" : "#fff",
           }}
         >
           <CardHeader
@@ -721,6 +730,7 @@ const DetalhesRequisicao: React.FC = () => {
               "& .MuiCardHeader-title": {
                 fontSize: "1.25rem",
                 fontWeight: 600,
+                color: theme.palette.mode === "dark" ? theme.palette.common.white : theme.palette.text.primary,
               },
             }}
           />
@@ -779,16 +789,28 @@ const DetalhesRequisicao: React.FC = () => {
       </Box>
 
       
+      {/* Modal de Exclusão de Percurso */}
       <Dialog
           open={modalExcluirPercursoAberto}
           onClose={handleFecharModalExcluirPercurso}
           fullWidth
           maxWidth="sm"
-          PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
+          PaperProps={{ 
+            sx: { 
+              borderRadius: 2, 
+              p: 1,
+              backgroundColor: theme.palette.background.paper,
+            } 
+          }}
         >
-          <DialogTitle sx={{ fontWeight: 600 }}>Excluir Percurso</DialogTitle>
+          <DialogTitle sx={{ 
+            fontWeight: 600,
+            color: theme.palette.mode === "dark" ? theme.palette.common.white : theme.palette.text.primary,
+          }}>
+            Excluir Percurso
+          </DialogTitle>
           <DialogContent>
-            <Typography>
+            <Typography color={theme.palette.mode === "dark" ? theme.palette.common.white : theme.palette.text.primary}>
               Você tem certeza que deseja excluir este percurso?
             </Typography>
           </DialogContent>
@@ -817,11 +839,22 @@ const DetalhesRequisicao: React.FC = () => {
           onClose={handleFecharModalExcluirOcorrencia}
           fullWidth
           maxWidth="sm"
-          PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
+          PaperProps={{ 
+            sx: { 
+              borderRadius: 2, 
+              p: 1,
+              backgroundColor: theme.palette.background.paper,
+            } 
+          }}
         >
-          <DialogTitle sx={{ fontWeight: 600 }}>Excluir Ocorrência</DialogTitle>
+          <DialogTitle sx={{ 
+            fontWeight: 600,
+            color: theme.palette.mode === "dark" ? theme.palette.common.white : theme.palette.text.primary,
+          }}>
+            Excluir Ocorrência
+          </DialogTitle>
           <DialogContent>
-            <Typography>
+            <Typography color={theme.palette.mode === "dark" ? theme.palette.common.white : theme.palette.text.primary}>
               Você tem certeza que deseja excluir esta ocorrência?
             </Typography>
           </DialogContent>
@@ -850,11 +883,22 @@ const DetalhesRequisicao: React.FC = () => {
           onClose={handleFecharModalExcluirAbastecimento}
           fullWidth
           maxWidth="sm"
-          PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
+          PaperProps={{ 
+            sx: { 
+              borderRadius: 2, 
+              p: 1,
+              backgroundColor: theme.palette.background.paper,
+            } 
+          }}
         >
-          <DialogTitle sx={{ fontWeight: 600 }}>Excluir Abastecimento</DialogTitle>
+          <DialogTitle sx={{ 
+            fontWeight: 600,
+            color: theme.palette.mode === "dark" ? theme.palette.common.white : theme.palette.text.primary,
+          }}>
+            Excluir Abastecimento
+          </DialogTitle>
           <DialogContent>
-            <Typography>
+            <Typography color={theme.palette.mode === "dark" ? theme.palette.common.white : theme.palette.text.primary}>
               Você tem certeza que deseja excluir este abastecimento?
             </Typography>
           </DialogContent>
@@ -903,8 +947,8 @@ const DetalhesRequisicao: React.FC = () => {
 
       <AbastecimentoModal
         open={modalCadastroAbertoAbastecimento}
+        corrida={corrida}
         onClose={handleFecharModalCadastroAbastecimento}
-        corridaId={idcorridaNumber}
         onSuccess={async () => {
           await carregarDados();
         }}
@@ -912,10 +956,10 @@ const DetalhesRequisicao: React.FC = () => {
 
       <EdicaoAbastecimentoModal 
         open={modalEditarAbastecimentoAberto} 
-        abastecimento={abastecimentoSelecionado} 
+        abastecimento={abastecimentoSelecionado}
+        corrida={corrida} 
         onClose={handleFecharModalEditarAbastecimento}
-        onSuccess={async (msg) => {
-          console.log(msg);
+        onSuccess={async () => {
           await carregarDados();
         }}
         onError={(err) => {

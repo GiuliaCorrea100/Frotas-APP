@@ -14,10 +14,11 @@ import {
   Typography,
   IconButton,
   Badge,
+  Chip,
 } from "@mui/material";
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import { jwtDecode } from 'jwt-decode';
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import PainelCorridaMotorista from "../pages/motorista/PainelCorridaMotorista";
@@ -26,6 +27,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import axiosConnect from "../services/axios/axiosConnect";
 import { Tooltip } from '@mui/material';
 import ContrastIcon from '@mui/icons-material/Contrast';
@@ -37,6 +39,9 @@ interface JwtPayload {
   administrador: boolean;
   iat: number;
   exp: number;
+  nome: string;
+  email: string;
+  idUsuario: number;
 }
 
 interface Corrida {
@@ -65,11 +70,116 @@ const Menu: React.FC = () => {
   const isMobile = useMediaQuery('(max-width:768px)');
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  
+  // Estados para o timer de inatividade
+  const [tempoRestante, setTempoRestante] = useState<string>('30:00');
+  const [corTimer, setCorTimer] = useState<string>('#4caf50');
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Função para iniciar/atualizar o timer
+  const iniciarTimer = useCallback((expiresAt: number) => {
+    // Limpa timer anterior
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+
+    // Configura novo timer
+    timerRef.current = setInterval(() => {
+      const agora = Date.now();
+      const segundosRestantes = Math.max(0, Math.floor((expiresAt - agora) / 1000));
+      
+      // Atualiza display
+      const minutos = Math.floor(segundosRestantes / 60);
+      const segundos = segundosRestantes % 60;
+      setTempoRestante(`${minutos}:${segundos < 10 ? '0' : ''}${segundos}`);
+      
+      // Atualiza cor
+      if (minutos > 5) {
+        setCorTimer(themeMode === 'dark' ? '#4caf50' : '#2e7d32');
+      } else if (minutos > 1) {
+        setCorTimer(themeMode === 'dark' ? '#ff9800' : '#f57c00');
+      } else {
+        setCorTimer(themeMode === 'dark' ? '#f44336' : '#d32f2f');
+      }
+      
+      // Se expirou, para o timer e faz logout
+      if (segundosRestantes <= 0 && timerRef.current) {
+        clearInterval(timerRef.current);
+        handleAutoLogout();
+      }
+    }, 1000);
+  }, [themeMode]);
+
+  // Função para logout automático
+  const handleAutoLogout = useCallback(async () => {
+    console.log("⏰ Sessão expirada por inatividade");
+    
+    // Limpa timer
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    
+    // Limpa localStorage
+    localStorage.removeItem("token");
+    localStorage.removeItem("tokenExpiresAt");
+    
+    // Faz logout via AuthContext
+    await logout();
+    navigate("/", { replace: true });
+  }, [logout, navigate]);
+
+  // Função para logout manual
   const handleLogout = async () => {
+    // Limpa timer
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    
     await logout();
     navigate("/", { replace: true });
   };
+
+  // Efeito para escutar renovação de token
+  useEffect(() => {
+    const handleTokenRenewed = (event: CustomEvent) => {
+      if (event.detail && event.detail.expiresAt) {
+        console.log("🔄 Token renovado, reiniciando timer...");
+        iniciarTimer(event.detail.expiresAt);
+      }
+    };
+
+    window.addEventListener('tokenRenewed', handleTokenRenewed as EventListener);
+
+    // Inicializa com tempo atual do localStorage
+    const storedExpiresAt = localStorage.getItem("tokenExpiresAt");
+    if (storedExpiresAt) {
+      const expiresAt = parseInt(storedExpiresAt, 10);
+      if (!isNaN(expiresAt) && expiresAt > Date.now()) {
+        iniciarTimer(expiresAt);
+      } else if (expiresAt <= Date.now() && isAuthenticated) {
+        // Se já expirou e usuário está autenticado, faz logout
+        handleAutoLogout();
+      }
+    }
+
+    return () => {
+      window.removeEventListener('tokenRenewed', handleTokenRenewed as EventListener);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [iniciarTimer, handleAutoLogout, isAuthenticated]);
+
+  // Efeito para monitorar mudanças de rota (reinicia timer na navegação)
+  useEffect(() => {
+    if (isAuthenticated && timerRef.current) {
+      // Quando o usuário navega, o timer continua contando
+      // A renovação acontece via interceptor do axiosConnect
+      // e o timer é reiniciado via evento tokenRenewed
+    }
+  }, [location.pathname, isAuthenticated]);
 
   const handleAbrirModalDadosPerfil = () => setShowModalDadosPerfil(true);
   const handleFecharModalDadosPerfil = () => setShowModalDadosPerfil(false);
@@ -330,10 +440,10 @@ const Menu: React.FC = () => {
                   <Button 
                     color="inherit" 
                     component={Link} 
-                    to="/Boletos"
+                    to="/RegistrosDeInfracao"
                     sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
                   >
-                    Boletos
+                    Registros de Infração
                   </Button>
 
                   <Button 
@@ -476,6 +586,25 @@ const Menu: React.FC = () => {
                       <ContrastIcon />
                     </IconButton>
                   </span>
+                </Tooltip>
+                {/* Timer de Inatividade */}
+                <Tooltip title="Sessão expira em">
+                  <Chip
+                    icon={<AccessTimeIcon />}
+                    label={tempoRestante}
+                    sx={{
+                      backgroundColor: themeMode === 'dark' 
+                        ? 'rgba(255, 255, 255, 0.08)' 
+                        : 'rgba(255, 255, 255, 1)',
+                      border: `1px solid ${corTimer}30`,
+                      color: corTimer,
+                      fontWeight: 600,
+                      '& .MuiChip-icon': {
+                        color: corTimer,
+                      },
+                      display: { xs: 'none', sm: 'flex' } // Oculta em mobile
+                    }}
+                  />
                 </Tooltip>   
                 <Tooltip title={"Sair"}>   
                   <span>             
@@ -504,20 +633,66 @@ const Menu: React.FC = () => {
                   }
                 }}
               >
-                <DialogTitle sx={{ fontSize: '1.25rem', p: 2 }}>Seus Dados</DialogTitle>
+                <DialogTitle sx={{ 
+                  fontSize: '1.25rem', 
+                  p: 2,
+                  color: 'text.primary',
+                  fontWeight: 600 
+                }}>
+                  Seus Dados
+                </DialogTitle>
                 <DialogContent sx={{ p: 2 }}>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Box sx={{ display: 'flex' }}>
-                      <Typography sx={{ minWidth: 80 }}>Nome:</Typography>
-                      <Typography fontWeight="medium">{nome}</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Typography 
+                        sx={{ 
+                          minWidth: 80,
+                          color: 'text.secondary',
+                          fontWeight: 500
+                        }}
+                      >
+                        Nome:
+                      </Typography>
+                      <Typography 
+                        fontWeight="medium" 
+                        sx={{ color: 'text.primary', ml: 1 }}
+                      >
+                        {nome}
+                      </Typography>
                     </Box>
-                    <Box sx={{ display: 'flex' }}>
-                      <Typography sx={{ minWidth: 80 }}>Email:</Typography>
-                      <Typography fontWeight="medium">{email}</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Typography 
+                        sx={{ 
+                          minWidth: 80,
+                          color: 'text.secondary',
+                          fontWeight: 500
+                        }}
+                      >
+                        Email:
+                      </Typography>
+                      <Typography 
+                        fontWeight="medium" 
+                        sx={{ color: 'text.primary', ml: 1 }}
+                      >
+                        {email}
+                      </Typography>
                     </Box>
-                    <Box sx={{ display: 'flex' }}>
-                      <Typography sx={{ minWidth: 80 }}>CPF:</Typography>
-                      <Typography fontWeight="medium">{cpf}</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Typography 
+                        sx={{ 
+                          minWidth: 80,
+                          color: 'text.secondary',
+                          fontWeight: 500
+                        }}
+                      >
+                        CPF:
+                      </Typography>
+                      <Typography 
+                        fontWeight="medium" 
+                        sx={{ color: 'text.primary', ml: 1 }}
+                      >
+                        {cpf}
+                      </Typography>
                     </Box>
                   </Box>
                 </DialogContent>
@@ -528,7 +703,11 @@ const Menu: React.FC = () => {
                     sx={{
                       borderRadius: 1,
                       textTransform: 'none',
-                      px: 3
+                      px: 3,
+                      bgcolor: 'primary.main',
+                      '&:hover': {
+                        bgcolor: 'primary.dark'
+                      }
                     }}
                   >
                     Fechar

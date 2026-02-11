@@ -81,7 +81,6 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
   const [percursosAtivosCount, setPercursosAtivosCount] = useState(0);
   const [idCarro, setIdCarro] = useState<number | null>(null);
   const [odometroAtual, setOdometroAtual] = useState<string>("0");
-
   
   const [destino, setDestino] = useState("");
   const [odometro, setOdometro] = useState("");
@@ -90,8 +89,6 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
   const [isUltimoPercurso, setIsUltimoPercurso] = useState(false);
 
   const [chaveEmprestada, setChaveEmprestada] = useState(false);
-
-  
 
   useEffect(() => {
     const fetchStatusChave = async () => {
@@ -185,9 +182,6 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
     isMounted = false;
   };
 }, [corridaLocal.idCorrida]);
-
-
-
 
   // Lógica de desabilitação dos botões
   const isIniciarDisabled = isCorridaIniciada;
@@ -367,7 +361,7 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
   return (
     <Box sx={{ p: 4, maxWidth: 800, mx: "auto" }}>
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h5" fontWeight="bold" gutterBottom>
+        <Typography variant="h5" fontWeight="bold" color="text.primary" gutterBottom>
           Corrida:
         </Typography>
         {!chaveEmprestada && (
@@ -385,8 +379,6 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
         >
           Situação: {corridaLocal.situacao} 
         </Typography>
-
-        
         
         <ModalPercursos 
           corridaId={corridaLocal.idCorrida} 
@@ -416,7 +408,7 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
             let tooltipTitle = "";
 
             if (isIniciar) {
-                isDisabled = isIniciarDisabled;
+                isDisabled = isIniciarDisabled || !chaveEmprestada;
                 tooltipTitle = isDisabled ? "Percurso já iniciado" : "";
             } else if (isFinalizar) {
                 isDisabled = isFinalizarDisabled;
@@ -479,7 +471,6 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
         onClose={fecharModalOcorrencia} 
         corrida={corridaLocal.idCorrida}
         onSuccess={() => {
-          console.log("Ocorrência salva com sucesso!");
           fecharModalOcorrencia();
         }}
         onError={(erro) => {
@@ -492,9 +483,8 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
       <AbastecimentoModal
         open={modalAbastecimentoAberto}
         onClose={fecharModalAbastecimento}
-        corridaId={corridaLocal.idCorrida}
+        corrida={corridaLocal}
         onSuccess={() => {
-          console.log("Abastecimento cadastrado com sucesso!");
           fecharModalAbastecimento();
         }}
       />

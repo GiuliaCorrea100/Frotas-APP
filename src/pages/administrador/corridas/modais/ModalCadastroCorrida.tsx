@@ -1,9 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Button, Box, TextField, Typography, Modal, Autocomplete, Dialog, DialogTitle, DialogActions } from "@mui/material";
+import { 
+  Button, 
+  Box, 
+  TextField, 
+  Typography, 
+  Modal, 
+  Autocomplete, 
+  Dialog, 
+  DialogTitle, 
+  DialogActions,
+  CircularProgress // Importar CircularProgress para o loading
+} from "@mui/material";
 import axios, { AxiosError } from 'axios';
-import { createCorrida } from '../../../../services/CorridaService';
+import { CorridaBackend, createCorrida } from '../../../../services/CorridaService';
 import { CarroService } from '../../../../services/CarroService';
 import axiosConnect from '../../../../services/axios/axiosConnect';
 
@@ -54,6 +65,9 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [alertOpen, setAlertOpen] = useState(false);
   const [authMode, setAuthMode] = useState<string>('SIGAA');
+  
+  // Adicionar estado para controlar o loading do botão
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const navigate = useNavigate();
 
@@ -72,7 +86,6 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
   }, []);
 
   const buscarCarro = async (modeloPlaca: string) => {
-
     if (modeloPlaca.length < 3) {
       setCarrosDisponiveis([]);
       return;
@@ -158,6 +171,8 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
   };
 
   const handleSubmit = async () => {
+    // Iniciar o loading
+    setIsSubmitting(true);
 
     let hasError = false;
     const newErrors = {
@@ -195,9 +210,15 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
 
     setErrors(newErrors);
 
+    if (hasError) {
+      setIsSubmitting(false); // Parar loading se houver erro
+      return;
+    }
+
     if (new Date(corrida.dataTermino) < new Date(corrida.dataInicio)) {
       showAlert('A data de término não pode ser anterior à data de início');
       setErrors(prev => ({ ...prev, dataTermino: true }));
+      setIsSubmitting(false); // Parar loading
       return;
     }
 
@@ -216,9 +237,14 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
         idUsuarioMotorista = response.data.idUsuario;
       }
 
-      const corridaParaEnviar = {
-        dataInicio: new Date(corrida.dataInicio),
-        dataTermino: new Date(corrida.dataTermino),
+      const toLocalDate = (yyyyMmDd: string): Date => {
+        const [ano, mes, dia] = yyyyMmDd.split('-').map(Number);
+        return new Date(ano, mes - 1, dia);
+      };
+
+      const corridaParaEnviar: Omit<CorridaBackend, 'idCorrida'> = {
+        dataInicio: toLocalDate(corrida.dataInicio),
+        dataTermino: toLocalDate(corrida.dataTermino),
         localDeSaida: corrida.localDeSaida,
         distanciaKm: "",
         idMotorista: idUsuarioMotorista,
@@ -253,6 +279,9 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
         console.error('Erro ao cadastrar a corrida:', error);
         onError(error);
       }
+    } finally {
+      // Sempre parar o loading, independente de sucesso ou erro
+      setIsSubmitting(false);
     }
   };
 
@@ -276,7 +305,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
             overflow: 'auto',
             boxShadow: 24,
           }}>
-          <Typography variant="h6" mb={2} gutterBottom>
+          <Typography variant="h6" color="text.primary" mb={2} gutterBottom>
             AGENDAR CORRIDA
           </Typography>
 
@@ -401,8 +430,15 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
                 fullWidth
                 size="large"
                 sx={{ mt: 2 }}
+                disabled={isSubmitting} // Desabilitar botão durante o loading
               >
-                Cadastrar Corrida
+                {isSubmitting ? (
+                  // Mostrar CircularProgress quando estiver carregando
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  // Mostrar texto normal quando não estiver carregando
+                  "Cadastrar Corrida"
+                )}
               </Button>
 
             <Dialog open={alertOpen} onClose={() => setAlertOpen(false)}>
