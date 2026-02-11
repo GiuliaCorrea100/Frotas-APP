@@ -9,6 +9,8 @@ export interface CorridaBackend {
   situacao: string;
   chaveEmprestada: boolean;
   idCarro: number;
+  dataHoraRecebimentoChave: string | Date;
+  dataHoraLiberacaoChave: string | Date;
 }
 
 export interface CorridaFrontend {
@@ -22,6 +24,8 @@ export interface CorridaFrontend {
   situacao?: string;
   chaveEmprestada: boolean;
   idCarro: number;
+  dataHoraRecebimentoChave?: string | null;
+  dataHoraLiberacaoChave?: string | null;
 }
 
 export interface CorridaDto {
@@ -41,23 +45,10 @@ export const createCorrida = async (
   corridaData: Omit<CorridaBackend, "idCorrida">
 ) => {
   try {
-    const payload = {
-      ...corridaData,
-      dataInicio:
-        corridaData.dataInicio instanceof Date
-          ? corridaData.dataInicio.toISOString().split("T")[0]
-          : corridaData.dataInicio.split("T")[0],
-      dataTermino: corridaData.dataTermino
-        ? corridaData.dataTermino instanceof Date
-          ? corridaData.dataTermino.toISOString().split("T")[0]
-          : corridaData.dataTermino.split("T")[0]
-        : null,
-    };
-
+    const payload = corridaData;
     const response = await axiosConnect.post(`/corrida`, payload);
     return response.data;
   } catch (error) {
-    //
     throw error;
   }
 };
@@ -94,6 +85,24 @@ export const buscarCorridaPorId = async (
   }
 };
 
+export const getRelatorioCorridas = async (
+  ano: number
+) => {
+  const { data } = await axiosConnect.get('/corrida/relatorio/corridas-geral', {
+      params: { ano },
+    });
+    return data;
+}
+
+export const getRelatorioVisaoGeral = async (
+  ano: number
+) => {
+  const { data } = await axiosConnect.get('/corrida/relatorio/visao-geral', {
+      params: { ano },
+    });
+    return data;
+}
+
 export const atualizarSituacaoCorrida = async (
   idCorrida: number,
   situacao: string
@@ -116,6 +125,14 @@ function formatCorrida(corrida: CorridaBackend): CorridaFrontend {
       corrida.dataTermino instanceof Date
         ? corrida.dataTermino.toISOString()
         : corrida.dataTermino,
+    dataHoraLiberacaoChave:
+      corrida.dataHoraLiberacaoChave instanceof Date
+        ? corrida.dataHoraLiberacaoChave.toISOString()
+        : corrida.dataHoraLiberacaoChave || null,
+    dataHoraRecebimentoChave:
+    corrida.dataHoraRecebimentoChave instanceof Date
+      ? corrida.dataHoraRecebimentoChave.toISOString()
+      : corrida.dataHoraRecebimentoChave || null,
     distanciaKm: corrida.distanciaKm || "0",
     idMotorista: corrida.idMotorista,
     nomeMotorista: (corrida as any).nomeMotorista || "Desconhecido",

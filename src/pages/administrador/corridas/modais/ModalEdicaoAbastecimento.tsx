@@ -26,10 +26,12 @@ import { Abastecimento } from "../../../../services/AbastecimentoService";
 import abastecimentoService from "../../../../services/AbastecimentoService";
 import { TipoCombustivel } from "../../../../services/CarroService";
 import { TipoCombustivelService } from "../../../../services/TipoCombustivelService";
+import { CorridaFrontend } from "../../../../services/CorridaService";
 
 interface EdicaoAbastecimentoModalProps {
   open: boolean;
   abastecimento: Abastecimento | null;
+  corrida?: CorridaFrontend; 
   onClose: () => void;
   onSuccess: (message: string) => void;
   onError: (error: any) => void;
@@ -62,6 +64,7 @@ const formatDate = (date: Date | null): string => {
 const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
   open,
   abastecimento,
+  corrida,
   onClose,
   onSuccess,
   onError,
@@ -79,6 +82,25 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [carregandoTipos, setCarregandoTipos] = useState(true);
+  
+  
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  const dataMinima = corrida?.dataHoraLiberacaoChave
+    ? new Date(corrida.dataHoraLiberacaoChave)
+    : null;
+
+  if (dataMinima) {
+    dataMinima.setHours(0, 0, 0, 0);
+  }
+
+  const dataLimite = corrida?.dataHoraRecebimentoChave
+    ? new Date(corrida.dataHoraRecebimentoChave)
+    : new Date();
+  dataLimite.setHours(0, 0, 0, 0);
+
+  const minDate = dataMinima ? dataMinima.toISOString().slice(0, 10) : undefined;
+  const maxDate = dataLimite.toISOString().slice(0, 10);
 
   // Função para preencher dados do abastecimento
   const preencherDadosAbastecimento = (abastecimento: Abastecimento, tiposCombustivel: TipoCombustivel[]) => {
@@ -155,13 +177,17 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
     }
 
     // Validação de data (não pode ser futura)
-    if (formData.dataAbastecimento) {
-      const dataAbastecimento = new Date(formData.dataAbastecimento);
-      const hoje = new Date();
-      hoje.setHours(0, 0, 0, 0);
+    const apenasData = (d: Date) =>
+      new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 
-      if (dataAbastecimento > hoje) {
-        novosErros.dataAbastecimento = 'Data não pode ser futura';
+    if (formData.dataAbastecimento) {
+      const [ano, mes, dia] = formData.dataAbastecimento.split('-').map(Number);
+      const dataAbastecimento = new Date(ano, mes - 1, dia);
+
+      if (dataMinima && apenasData(dataAbastecimento) < apenasData(dataMinima)) {
+        novosErros.dataAbastecimento = 'Data não pode ser anterior à liberação da chave';
+      } else if (apenasData(dataAbastecimento) > apenasData(dataLimite)) {
+        novosErros.dataAbastecimento = 'Data não pode ser posterior à data de encerramento da corrida';
       }
     }
 
@@ -213,16 +239,24 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
       return; // Impede o salvamento se houver erros
     }
 
+    
+    setIsSubmitting(true);
     setLoading(true);
+
     try {
       // Criar a data considerando o fuso horário
-      const dataAbastecimentoUTC = new Date(formData.dataAbastecimento + 'T04:00:00.000Z');
+      // const dataAbastecimentoUTC = new Date(formData.dataAbastecimento + 'T04:00:00.000Z');
+      let dataAbastecimento: Date | null = null;
+      if (formData.dataAbastecimento) {
+        const [ano, mes, dia] = formData.dataAbastecimento.split('-').map(Number);
+        dataAbastecimento = new Date(ano, mes - 1, dia);
+      }
 
       const dadosAtualizados = {
         quantidade: formData.quantidade,
         valorTotal: formData.valorTotal,
         valorUnitario: formData.valorUnitario,
-        dataAbastecimento: dataAbastecimentoUTC,
+        dataAbastecimento: dataAbastecimento as Date,
         idTipoCombustivel: Number(formData.tipoCombustivelId),
       };
 
@@ -246,6 +280,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
       });
     } finally {
       setLoading(false);
+      setIsSubmitting(false); 
     }
   };
 
@@ -259,6 +294,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
     });
     setErrors({});
     setSuccessMessage("");
+    setIsSubmitting(false); 
     onClose();
   };
 
@@ -273,10 +309,10 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
           mb={2}
         >
           <Box display="flex" alignItems="center">
-            <LocalGasStation color="primary" sx={{ mr: 1 }} />
-            <Typography variant="h6">Edição de Abastecimento</Typography>
+            <LocalGasStation color="primary" sx={{ mr: 1, mt: 0 }} />
+            <Typography variant="h6" color="text.primary">Edição de Abastecimento</Typography>
           </Box>
-          <IconButton onClick={handleClose}>
+          <IconButton onClick={handleClose} disabled={isSubmitting || !!successMessage}>
             <Close />
           </IconButton>
         </Box>
@@ -296,7 +332,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
         {/* Conteúdo */}
         <Box component="form" onSubmit={handleSalvar}>
           {/* Informações Básicas */}
-          <Typography variant="subtitle1" gutterBottom>
+          <Typography variant="subtitle1" color="text.primary" gutterBottom>
             Informações Básicas
           </Typography>
           <Box display="flex" gap={2} flexWrap="wrap" mb={2}>
@@ -315,7 +351,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
                   <InputAdornment position="end">L</InputAdornment>
                 ),
               }}
-              disabled={loading}
+              disabled={loading || isSubmitting} 
             />
             <TextField
               label="Valor Unitário"
@@ -332,7 +368,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
                   <InputAdornment position="start">R$</InputAdornment>
                 ),
               }}
-              disabled={loading}
+              disabled={loading || isSubmitting} 
             />
             <TextField
               label="Preço Final"
@@ -345,7 +381,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
                 readOnly: true,
               }}
               sx={{ flex: "1 1 200px" }}
-              disabled={loading}
+              disabled={loading || isSubmitting} 
             />
           </Box>
 
@@ -366,15 +402,19 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
                   <CalendarToday fontSize="small" />
                 </InputAdornment>
               ),
+              inputProps: {
+                  min: minDate,
+                  max: maxDate,
+              },
             }}
             sx={{ mb: 2 }}
-            disabled={loading}
+            disabled={loading || isSubmitting} 
           />
 
           <Divider sx={{ my: 2 }} />
 
           {/* Tipo de Combustível */}
-          <Typography variant="subtitle1" gutterBottom>
+          <Typography variant="subtitle1" color="text.primary" gutterBottom>
             Tipo de Combustível
           </Typography>
           <FormControl 
@@ -389,7 +429,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
               value={formData.tipoCombustivelId}
               onChange={handleSelectChange}
               label="Tipo"
-              disabled={loading}
+              disabled={loading || isSubmitting} 
             >
               {carregandoTipos ? (
                 <MenuItem disabled>Carregando tipos de combustível...</MenuItem>
@@ -413,17 +453,33 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
 
           {/* Botões */}
           <Box display="flex" justifyContent="flex-end" gap={1} mt={3}>
-            <Button onClick={handleClose} color="inherit" disabled={loading}>
+            <Button 
+              onClick={handleClose} 
+              color="inherit" 
+              disabled={isSubmitting || !!successMessage} 
+            >
               Cancelar
             </Button>
             <Button
               type="submit"
               variant="contained"
               color="primary"
-              startIcon={!loading && <AttachMoney />}
-              disabled={loading}
+              disabled={loading || isSubmitting || !!successMessage} 
+              sx={{ minWidth: 120 }}
             >
-              {loading ? <CircularProgress size={24} /> : "Atualizar"}
+              {isSubmitting ? (
+                
+                <>
+                  <CircularProgress size={20} sx={{ mr: 1, color: 'inherit' }} />
+                  Atualizando...
+                </>
+              ) : (
+                
+                <>
+                  <AttachMoney sx={{ mr: 1, fontSize: 20 }} />
+                  Atualizar
+                </>
+              )}
             </Button>
           </Box>
         </Box>

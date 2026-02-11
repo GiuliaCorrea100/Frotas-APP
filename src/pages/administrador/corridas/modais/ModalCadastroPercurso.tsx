@@ -39,6 +39,14 @@ const modalStyle = {
   borderRadius: 2,
 };
 
+
+const toLocalDateTimeInputValue = (date: Date) => {
+  const offset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - offset)
+    .toISOString()
+    .slice(0, 16);
+};
+
 const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
   open,
   onClose,
@@ -55,14 +63,13 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
 
   const [loading, setLoading] = useState(false);
 
-  // Função para permitir apenas números
-  const handleNumericInput = (value: string, setter: React.Dispatch<React.SetStateAction<string>>) => {
-    // Remove qualquer caractere que não seja número
-    const numericValue = value.replace(/[^\d]/g, '');
-    setter(numericValue);
+  const handleNumericInput = (
+    value: string,
+    setter: React.Dispatch<React.SetStateAction<string>>
+  ) => {
+    setter(value.replace(/[^\d]/g, ""));
   };
 
-  // Função para converter string para número (para envio)
   const getNumericValue = (value: string): number => {
     return value ? parseInt(value, 10) : 0;
   };
@@ -80,8 +87,7 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    
-    // Validação dos campos obrigatórios
+
     if (!saidaOdometro || !chegadaOdometro || !saidaHora || !chegadaHora) {
       onError("Todos os campos marcados com * são obrigatórios");
       return;
@@ -114,19 +120,16 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
     <Modal open={open} onClose={onClose}>
       <Paper sx={modalStyle}>
         {/* Cabeçalho */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Box display="flex" alignItems="center">
-            <AddLocationAlt color="primary" sx={{ mr: 1 }} />
-            <Typography variant="h6">Cadastro de Percurso</Typography>
-          </Box>
+        <Box display="flex" alignItems="center" mb={2}>
+          <AddLocationAlt color="primary" sx={{ mr: 1 }} />
+          <Typography variant="h6">Cadastro de Percurso</Typography>
         </Box>
 
-        {/* Conteúdo */}
         <Box component="form" onSubmit={handleSubmit}>
-          {/* Informações de Saída */}
           <Typography variant="subtitle1" gutterBottom>
             Informações de Saída
           </Typography>
+
           <Box display="flex" gap={2} flexWrap="wrap" mb={2}>
             <TextField
               label="Local de Origem"
@@ -135,6 +138,7 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
               required
               sx={{ flex: "1 1 200px" }}
             />
+
             <TextField
               label="Odômetro de Saída"
               value={saidaOdometro}
@@ -144,15 +148,14 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
               InputProps={{
                 endAdornment: <InputAdornment position="end">km</InputAdornment>,
               }}
-              placeholder="Apenas números"
-              helperText="Digite apenas números"
             />
           </Box>
+
           <TextField
             label="Hora de Saída"
             type="datetime-local"
             fullWidth
-            value={saidaHora ? saidaHora.toISOString().slice(0, 16) : ""}
+            value={saidaHora ? toLocalDateTimeInputValue(saidaHora) : ""}
             onChange={(e) => setSaidaHora(new Date(e.target.value))}
             InputLabelProps={{ shrink: true }}
             required
@@ -168,10 +171,10 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
 
           <Divider sx={{ my: 2 }} />
 
-          {/* Informações de Chegada */}
           <Typography variant="subtitle1" gutterBottom>
             Informações de Chegada
           </Typography>
+
           <Box display="flex" gap={2} flexWrap="wrap" mb={2}>
             <TextField
               label="Local de Destino"
@@ -180,24 +183,26 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
               required
               sx={{ flex: "1 1 200px" }}
             />
+
             <TextField
               label="Odômetro de Chegada"
               value={chegadaOdometro}
-              onChange={(e) => handleNumericInput(e.target.value, setChegadaOdometro)}
+              onChange={(e) =>
+                handleNumericInput(e.target.value, setChegadaOdometro)
+              }
               required
               sx={{ flex: "1 1 200px" }}
               InputProps={{
                 endAdornment: <InputAdornment position="end">km</InputAdornment>,
               }}
-              placeholder="Apenas números"
-              helperText="Digite apenas números"
             />
           </Box>
+
           <TextField
             label="Hora de Chegada"
             type="datetime-local"
             fullWidth
-            value={chegadaHora ? chegadaHora.toISOString().slice(0, 16) : ""}
+            value={chegadaHora ? toLocalDateTimeInputValue(chegadaHora) : ""}
             onChange={(e) => setChegadaHora(new Date(e.target.value))}
             InputLabelProps={{ shrink: true }}
             required
@@ -211,17 +216,12 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
             sx={{ mb: 2 }}
           />
 
-          {/* Botões */}
           <Box display="flex" justifyContent="flex-end" gap={1} mt={3}>
             <Button onClick={onClose} color="inherit" disabled={loading}>
               Cancelar
             </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              disabled={loading}
-            >
+
+            <Button type="submit" variant="contained" disabled={loading}>
               {loading ? <CircularProgress size={24} /> : "Cadastrar"}
             </Button>
           </Box>

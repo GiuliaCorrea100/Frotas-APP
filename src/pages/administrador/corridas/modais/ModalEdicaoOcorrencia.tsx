@@ -145,7 +145,7 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
           p: 4,
         }}
       >
-        <Typography variant="h6" component="h2" mb={2} fontWeight="bold">
+        <Typography variant="h6" component="h2" mb={2} fontWeight="bold" color="text.primary">
           Editar Ocorrência
         </Typography>
 
