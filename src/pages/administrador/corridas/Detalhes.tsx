@@ -17,10 +17,19 @@ import {
 
 import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
 
-import { CorridaFrontend, getCorridaById } from "../../../services/CorridaService";
-import { OcorrenciaDto, OcorrenciaService } from "../../../services/OcorrenciaService";
-import { buscarPercursosDaCorrida, PercursoDto, removerPercurso } from "../../../services/PercursoService";
-
+import {
+  CorridaFrontend,
+  getCorridaById,
+} from "../../../services/CorridaService";
+import {
+  OcorrenciaDto,
+  OcorrenciaService,
+} from "../../../services/OcorrenciaService";
+import {
+  buscarPercursosDaCorrida,
+  PercursoDto,
+  removerPercurso,
+} from "../../../services/PercursoService";
 
 import { Add } from "@mui/icons-material";
 import { Abastecimento } from "../../../services/AbastecimentoService";
@@ -32,6 +41,7 @@ import AbastecimentoModal from "./modais/ModalCadastroAbastecimento";
 import EdicaoAbastecimentoModal from "./modais/ModalEdicaoAbastecimento";
 import EdicaoPercursosModal from "./modais/ModalEdicaoPercurso";
 import CadastrarPercursosModal from "./modais/ModalCadastroPercurso";
+import AppLayout from "../../../components/Layout";
 
 const DetalhesRequisicao: React.FC = () => {
   const theme = useTheme();
@@ -42,19 +52,33 @@ const DetalhesRequisicao: React.FC = () => {
   const [abastecimentos, setAbastecimento] = useState<Abastecimento[]>([]);
   const [percursos, setPercursos] = useState<PercursoDto[]>([]);
 
-  const [modalEditarOcorrenciaAberto, setModalEditarOcorrenciaAberto] = useState(false);
-  const [modalCadastroOcorrenciaAberto, setModalCadastroOcorrenciaAberto] = useState(false);
-  const [modalCadastroAbertoAbastecimento, setModalCadastroAbertoAbastecimento] = useState(false);
-  const [modalEditarAbastecimentoAberto, setModalEditarAbastecimento] = useState(false);
-  const [modalCadastrarPercursoAberto, setModalCadastrarPercusoAberto] = useState(false);
-  const [modalEditarPercursoAberto, setModalEditarPercursoAberto] = useState(false);
-  const [modalExcluirPercursoAberto, setModalExcluirPercursoAberto] = useState(false);
-  const [modalExcluirOcorrenciaAberto, setModalExcluirOcorrenciaAberto] = useState(false);
-  const [modalExcluirAbastecimentoAberto, setModalExcluirAbastecimentoAberto] = useState(false);
+  const [modalEditarOcorrenciaAberto, setModalEditarOcorrenciaAberto] =
+    useState(false);
+  const [modalCadastroOcorrenciaAberto, setModalCadastroOcorrenciaAberto] =
+    useState(false);
+  const [
+    modalCadastroAbertoAbastecimento,
+    setModalCadastroAbertoAbastecimento,
+  ] = useState(false);
+  const [modalEditarAbastecimentoAberto, setModalEditarAbastecimento] =
+    useState(false);
+  const [modalCadastrarPercursoAberto, setModalCadastrarPercusoAberto] =
+    useState(false);
+  const [modalEditarPercursoAberto, setModalEditarPercursoAberto] =
+    useState(false);
+  const [modalExcluirPercursoAberto, setModalExcluirPercursoAberto] =
+    useState(false);
+  const [modalExcluirOcorrenciaAberto, setModalExcluirOcorrenciaAberto] =
+    useState(false);
+  const [modalExcluirAbastecimentoAberto, setModalExcluirAbastecimentoAberto] =
+    useState(false);
 
-  const [abastecimentoSelecionado, setAbastecimentoSelecionado] = useState<Abastecimento | null>(null);
-  const [ocorrenciaSelecionada, setOcorrenciaSelecionada] = useState<OcorrenciaDto | null>(null);
-  const [percursoSelecionado, setPercursoSelecionado] = useState<PercursoDto | null>(null);
+  const [abastecimentoSelecionado, setAbastecimentoSelecionado] =
+    useState<Abastecimento | null>(null);
+  const [ocorrenciaSelecionada, setOcorrenciaSelecionada] =
+    useState<OcorrenciaDto | null>(null);
+  const [percursoSelecionado, setPercursoSelecionado] =
+    useState<PercursoDto | null>(null);
 
   useEffect(() => {
     carregarDados();
@@ -64,7 +88,12 @@ const DetalhesRequisicao: React.FC = () => {
     try {
       setLoading(true);
       if (id) {
-        const [corridaData, ocorrenciasData, abastecimentosData, percursosData] = await Promise.all([
+        const [
+          corridaData,
+          ocorrenciasData,
+          abastecimentosData,
+          percursosData,
+        ] = await Promise.all([
           getCorridaById(Number(id)),
           OcorrenciaService.buscarPorCorrida(Number(id)),
           AbastecimentoService.buscarPorCorrida(Number(id)),
@@ -90,8 +119,6 @@ const DetalhesRequisicao: React.FC = () => {
         } else if (percursosData) {
           setPercursos([percursosData]);
         }
-
-
       }
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -125,7 +152,7 @@ const DetalhesRequisicao: React.FC = () => {
     });
   };
 
-   // Função para formatar datas sem horas
+  // Função para formatar datas sem horas
   const formatDate = (dateString?: string | null) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
@@ -142,7 +169,9 @@ const DetalhesRequisicao: React.FC = () => {
       field: "descricao",
       headerName: "Descrição",
       flex: 1,
-      renderCell: (params) => <Typography color="text.primary">{params.value}</Typography>,
+      renderCell: (params) => (
+        <Typography color="text.primary">{params.value}</Typography>
+      ),
     },
     {
       field: "dataOcorrencia",
@@ -200,14 +229,16 @@ const DetalhesRequisicao: React.FC = () => {
       renderCell: (params) => {
         const value = Number(params.value);
         return isNaN(value) ? "-" : value.toFixed(2);
-      }
+      },
     },
     {
       field: "valorUnitario",
       headerName: "Valor do Litro",
       flex: 1,
       renderCell: (params) => (
-        <Typography color="text.primary">{formatCurrency(params.value)}</Typography>
+        <Typography color="text.primary">
+          {formatCurrency(params.value)}
+        </Typography>
       ),
     },
     {
@@ -215,7 +246,9 @@ const DetalhesRequisicao: React.FC = () => {
       headerName: "Preço Final",
       flex: 1,
       renderCell: (params) => (
-        <Typography color="text.primary">{formatCurrency(params.value)}</Typography>
+        <Typography color="text.primary">
+          {formatCurrency(params.value)}
+        </Typography>
       ),
     },
     {
@@ -248,7 +281,9 @@ const DetalhesRequisicao: React.FC = () => {
               variant="outlined"
               color="error"
               size="small"
-              onClick={() => handleAbrirModalExcluirAbastecimento(abastecimento)}
+              onClick={() =>
+                handleAbrirModalExcluirAbastecimento(abastecimento)
+              }
             >
               Excluir
             </Button>
@@ -274,7 +309,9 @@ const DetalhesRequisicao: React.FC = () => {
       flex: 1,
       sortable: false,
       renderCell: (params) => (
-        <Typography color="text.primary">{formatDateTime(params.value)}</Typography>
+        <Typography color="text.primary">
+          {formatDateTime(params.value)}
+        </Typography>
       ),
     },
     {
@@ -301,7 +338,9 @@ const DetalhesRequisicao: React.FC = () => {
       flex: 1,
       sortable: false,
       renderCell: (params) => (
-        <Typography color="text.primary">{formatDateTime(params.value)}</Typography>
+        <Typography color="text.primary">
+          {formatDateTime(params.value)}
+        </Typography>
       ),
     },
     {
@@ -368,28 +407,30 @@ const DetalhesRequisicao: React.FC = () => {
     setModalCadastroAbertoAbastecimento(false);
   };
 
-  const handleAbrirModalEditarAbastecimento = (abastecimento: Abastecimento) => {
+  const handleAbrirModalEditarAbastecimento = (
+    abastecimento: Abastecimento,
+  ) => {
     setAbastecimentoSelecionado(abastecimento);
     setModalEditarAbastecimento(true);
-  }
+  };
   const handleFecharModalEditarAbastecimento = () => {
     setModalEditarAbastecimento(false);
-  }
+  };
 
   const handleAbrirModalCadastroPercurso = () => {
     setModalCadastrarPercusoAberto(true);
-  }
+  };
   const handleFecharModalCadastroPercurso = () => {
     setModalCadastrarPercusoAberto(false);
-  }
+  };
 
   const handleAbrirModalEditarPercuso = (percurso: PercursoDto) => {
     setPercursoSelecionado(percurso);
     setModalEditarPercursoAberto(true);
-  }
+  };
   const handleFecharModalEditarPercurso = () => {
     setModalEditarPercursoAberto(false);
-  }
+  };
 
   const handleFecharModalExcluirPercurso = () => {
     setModalExcluirPercursoAberto(false);
@@ -397,21 +438,21 @@ const DetalhesRequisicao: React.FC = () => {
   };
 
   const handleConfirmarExclusaoPercurso = async () => {
-      if (!percursoSelecionado) return;
-      
-      try {
-        await removerPercurso(percursoSelecionado.idPercurso!); 
-        await carregarDados(); 
-        handleFecharModalExcluirPercurso();
-      } catch (error) {
-        console.error("Erro ao excluir percurso:", error);
-      }
-    };
+    if (!percursoSelecionado) return;
 
-    const handleAbrirModalExcluirPercurso = (percurso: PercursoDto) => {
-      setPercursoSelecionado(percurso);
-      setModalExcluirPercursoAberto(true);
-    };
+    try {
+      await removerPercurso(percursoSelecionado.idPercurso!);
+      await carregarDados();
+      handleFecharModalExcluirPercurso();
+    } catch (error) {
+      console.error("Erro ao excluir percurso:", error);
+    }
+  };
+
+  const handleAbrirModalExcluirPercurso = (percurso: PercursoDto) => {
+    setPercursoSelecionado(percurso);
+    setModalExcluirPercursoAberto(true);
+  };
 
   const handleAbrirModalExcluirOcorrencia = (ocorrencia: OcorrenciaDto) => {
     setOcorrenciaSelecionada(ocorrencia);
@@ -425,9 +466,11 @@ const DetalhesRequisicao: React.FC = () => {
 
   const handleConfirmarExclusaoOcorrencia = async () => {
     if (!ocorrenciaSelecionada) return;
-    
+
     try {
-      await OcorrenciaService.excluirOcorrencia(ocorrenciaSelecionada.idOcorrencia!);
+      await OcorrenciaService.excluirOcorrencia(
+        ocorrenciaSelecionada.idOcorrencia!,
+      );
       await carregarDados();
       handleFecharModalExcluirOcorrencia();
     } catch (error) {
@@ -436,7 +479,9 @@ const DetalhesRequisicao: React.FC = () => {
   };
 
   // Funções para exclusão de abastecimento
-  const handleAbrirModalExcluirAbastecimento = (abastecimento: Abastecimento) => {
+  const handleAbrirModalExcluirAbastecimento = (
+    abastecimento: Abastecimento,
+  ) => {
     setAbastecimentoSelecionado(abastecimento);
     setModalExcluirAbastecimentoAberto(true);
   };
@@ -448,9 +493,11 @@ const DetalhesRequisicao: React.FC = () => {
 
   const handleConfirmarExclusaoAbastecimento = async () => {
     if (!abastecimentoSelecionado) return;
-    
+
     try {
-      await AbastecimentoService.excluirAbastecimento(abastecimentoSelecionado.idAbastecimento!);
+      await AbastecimentoService.excluirAbastecimento(
+        abastecimentoSelecionado.idAbastecimento!,
+      );
       await carregarDados();
       handleFecharModalExcluirAbastecimento();
     } catch (error) {
@@ -459,20 +506,8 @@ const DetalhesRequisicao: React.FC = () => {
   };
 
   return (
-    <Box sx={{ 
-      display: 'flex', 
-      flexDirection: 'column',
-      height: '100%',
-      width: '100%',
-      backgroundColor: theme.palette.background.default,
-    }}>
-      <Menu />
-
-      <Box sx={{
-        flex: 1,
-        p: 2,
-        overflow: 'auto', 
-      }}>
+    <AppLayout>
+      <Box>
         {/* Card de Informações Básicas */}
         <Card
           sx={{
@@ -490,7 +525,10 @@ const DetalhesRequisicao: React.FC = () => {
               "& .MuiCardHeader-title": {
                 fontSize: "1.25rem",
                 fontWeight: 600,
-                color: theme.palette.mode === "dark" ? theme.palette.common.white : theme.palette.text.primary,
+                color:
+                  theme.palette.mode === "dark"
+                    ? theme.palette.common.white
+                    : theme.palette.text.primary,
               },
             }}
           />
@@ -582,7 +620,10 @@ const DetalhesRequisicao: React.FC = () => {
               "& .MuiCardHeader-title": {
                 fontSize: "1.25rem",
                 fontWeight: 600,
-                color: theme.palette.mode === "dark" ? theme.palette.common.white : theme.palette.text.primary,
+                color:
+                  theme.palette.mode === "dark"
+                    ? theme.palette.common.white
+                    : theme.palette.text.primary,
               },
             }}
           />
@@ -615,18 +656,23 @@ const DetalhesRequisicao: React.FC = () => {
                     },
                   }}
                   sx={{
-                    '& .MuiDataGrid-footerContainer': { borderTop: `1px solid ${theme.palette.divider}` },
-                    '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-                      marginBottom: 0,
-                      alignSelf: 'center',
+                    "& .MuiDataGrid-footerContainer": {
+                      borderTop: `1px solid ${theme.palette.divider}`,
                     },
-                    '& .MuiTablePagination-toolbar': {
-                      minHeight: '52px',
-                      alignItems: 'center',
+                    "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
+                      {
+                        marginBottom: 0,
+                        alignSelf: "center",
+                      },
+                    "& .MuiTablePagination-toolbar": {
+                      minHeight: "52px",
+                      alignItems: "center",
                     },
                   }}
                   pageSizeOptions={[5, 10, 25]}
-                  localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+                  localeText={
+                    ptBR.components.MuiDataGrid.defaultProps.localeText
+                  }
                   disableRowSelectionOnClick
                   getRowId={(row) => row.idOcorrencia}
                 />
@@ -656,7 +702,10 @@ const DetalhesRequisicao: React.FC = () => {
               "& .MuiCardHeader-title": {
                 fontSize: "1.25rem",
                 fontWeight: 600,
-                color: theme.palette.mode === "dark" ? theme.palette.common.white : theme.palette.text.primary,
+                color:
+                  theme.palette.mode === "dark"
+                    ? theme.palette.common.white
+                    : theme.palette.text.primary,
               },
             }}
           />
@@ -689,18 +738,23 @@ const DetalhesRequisicao: React.FC = () => {
                     },
                   }}
                   sx={{
-                    '& .MuiDataGrid-footerContainer': { borderTop: `1px solid ${theme.palette.divider}` },
-                    '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-                      marginBottom: 0,
-                      alignSelf: 'center',
+                    "& .MuiDataGrid-footerContainer": {
+                      borderTop: `1px solid ${theme.palette.divider}`,
                     },
-                    '& .MuiTablePagination-toolbar': {
-                      minHeight: '52px',
-                      alignItems: 'center',
+                    "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
+                      {
+                        marginBottom: 0,
+                        alignSelf: "center",
+                      },
+                    "& .MuiTablePagination-toolbar": {
+                      minHeight: "52px",
+                      alignItems: "center",
                     },
                   }}
                   pageSizeOptions={[5, 10, 25]}
-                  localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+                  localeText={
+                    ptBR.components.MuiDataGrid.defaultProps.localeText
+                  }
                   disableRowSelectionOnClick
                   getRowId={(row) => row.idAbastecimento!}
                 />
@@ -730,7 +784,10 @@ const DetalhesRequisicao: React.FC = () => {
               "& .MuiCardHeader-title": {
                 fontSize: "1.25rem",
                 fontWeight: 600,
-                color: theme.palette.mode === "dark" ? theme.palette.common.white : theme.palette.text.primary,
+                color:
+                  theme.palette.mode === "dark"
+                    ? theme.palette.common.white
+                    : theme.palette.text.primary,
               },
             }}
           />
@@ -763,18 +820,23 @@ const DetalhesRequisicao: React.FC = () => {
                     },
                   }}
                   sx={{
-                    '& .MuiDataGrid-footerContainer': { borderTop: `1px solid ${theme.palette.divider}` },
-                    '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-                      marginBottom: 0,
-                      alignSelf: 'center',
+                    "& .MuiDataGrid-footerContainer": {
+                      borderTop: `1px solid ${theme.palette.divider}`,
                     },
-                    '& .MuiTablePagination-toolbar': {
-                      minHeight: '52px',
-                      alignItems: 'center',
+                    "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
+                      {
+                        marginBottom: 0,
+                        alignSelf: "center",
+                      },
+                    "& .MuiTablePagination-toolbar": {
+                      minHeight: "52px",
+                      alignItems: "center",
                     },
                   }}
                   pageSizeOptions={[5, 10, 25]}
-                  localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+                  localeText={
+                    ptBR.components.MuiDataGrid.defaultProps.localeText
+                  }
                   disableRowSelectionOnClick
                   getRowId={(row) => row.idPercurso!}
                 />
@@ -788,138 +850,170 @@ const DetalhesRequisicao: React.FC = () => {
         </Card>
       </Box>
 
-      
       {/* Modal de Exclusão de Percurso */}
       <Dialog
-          open={modalExcluirPercursoAberto}
-          onClose={handleFecharModalExcluirPercurso}
-          fullWidth
-          maxWidth="sm"
-          PaperProps={{ 
-            sx: { 
-              borderRadius: 2, 
-              p: 1,
-              backgroundColor: theme.palette.background.paper,
-            } 
+        open={modalExcluirPercursoAberto}
+        onClose={handleFecharModalExcluirPercurso}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            p: 1,
+            backgroundColor: theme.palette.background.paper,
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: 600,
+            color:
+              theme.palette.mode === "dark"
+                ? theme.palette.common.white
+                : theme.palette.text.primary,
           }}
         >
-          <DialogTitle sx={{ 
-            fontWeight: 600,
-            color: theme.palette.mode === "dark" ? theme.palette.common.white : theme.palette.text.primary,
-          }}>
-            Excluir Percurso
-          </DialogTitle>
-          <DialogContent>
-            <Typography color={theme.palette.mode === "dark" ? theme.palette.common.white : theme.palette.text.primary}>
-              Você tem certeza que deseja excluir este percurso?
-            </Typography>
-          </DialogContent>
-          <DialogActions sx={{ p: 3, pt: 0 }}>
-            <Button 
-              onClick={handleFecharModalExcluirPercurso} 
-              variant="outlined" 
-              sx={{ borderRadius: 2 }}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleConfirmarExclusaoPercurso}
-              variant="contained"
-              color="error"
-              sx={{ borderRadius: 2 }}
-            >
-              Confirmar Exclusão
-            </Button>
-          </DialogActions>
-        </Dialog>
+          Excluir Percurso
+        </DialogTitle>
+        <DialogContent>
+          <Typography
+            color={
+              theme.palette.mode === "dark"
+                ? theme.palette.common.white
+                : theme.palette.text.primary
+            }
+          >
+            Você tem certeza que deseja excluir este percurso?
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button
+            onClick={handleFecharModalExcluirPercurso}
+            variant="outlined"
+            sx={{ borderRadius: 2 }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleConfirmarExclusaoPercurso}
+            variant="contained"
+            color="error"
+            sx={{ borderRadius: 2 }}
+          >
+            Confirmar Exclusão
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Modal de Exclusão de Ocorrência */}
       <Dialog
-          open={modalExcluirOcorrenciaAberto}
-          onClose={handleFecharModalExcluirOcorrencia}
-          fullWidth
-          maxWidth="sm"
-          PaperProps={{ 
-            sx: { 
-              borderRadius: 2, 
-              p: 1,
-              backgroundColor: theme.palette.background.paper,
-            } 
+        open={modalExcluirOcorrenciaAberto}
+        onClose={handleFecharModalExcluirOcorrencia}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            p: 1,
+            backgroundColor: theme.palette.background.paper,
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: 600,
+            color:
+              theme.palette.mode === "dark"
+                ? theme.palette.common.white
+                : theme.palette.text.primary,
           }}
         >
-          <DialogTitle sx={{ 
-            fontWeight: 600,
-            color: theme.palette.mode === "dark" ? theme.palette.common.white : theme.palette.text.primary,
-          }}>
-            Excluir Ocorrência
-          </DialogTitle>
-          <DialogContent>
-            <Typography color={theme.palette.mode === "dark" ? theme.palette.common.white : theme.palette.text.primary}>
-              Você tem certeza que deseja excluir esta ocorrência?
-            </Typography>
-          </DialogContent>
-          <DialogActions sx={{ p: 3, pt: 0 }}>
-            <Button 
-              onClick={handleFecharModalExcluirOcorrencia} 
-              variant="outlined" 
-              sx={{ borderRadius: 2 }}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleConfirmarExclusaoOcorrencia}
-              variant="contained"
-              color="error"
-              sx={{ borderRadius: 2 }}
-            >
-              Confirmar Exclusão
-            </Button>
-          </DialogActions>
-        </Dialog>
+          Excluir Ocorrência
+        </DialogTitle>
+        <DialogContent>
+          <Typography
+            color={
+              theme.palette.mode === "dark"
+                ? theme.palette.common.white
+                : theme.palette.text.primary
+            }
+          >
+            Você tem certeza que deseja excluir esta ocorrência?
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button
+            onClick={handleFecharModalExcluirOcorrencia}
+            variant="outlined"
+            sx={{ borderRadius: 2 }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleConfirmarExclusaoOcorrencia}
+            variant="contained"
+            color="error"
+            sx={{ borderRadius: 2 }}
+          >
+            Confirmar Exclusão
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Modal de Exclusão de Abastecimento */}
       <Dialog
-          open={modalExcluirAbastecimentoAberto}
-          onClose={handleFecharModalExcluirAbastecimento}
-          fullWidth
-          maxWidth="sm"
-          PaperProps={{ 
-            sx: { 
-              borderRadius: 2, 
-              p: 1,
-              backgroundColor: theme.palette.background.paper,
-            } 
+        open={modalExcluirAbastecimentoAberto}
+        onClose={handleFecharModalExcluirAbastecimento}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            p: 1,
+            backgroundColor: theme.palette.background.paper,
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: 600,
+            color:
+              theme.palette.mode === "dark"
+                ? theme.palette.common.white
+                : theme.palette.text.primary,
           }}
         >
-          <DialogTitle sx={{ 
-            fontWeight: 600,
-            color: theme.palette.mode === "dark" ? theme.palette.common.white : theme.palette.text.primary,
-          }}>
-            Excluir Abastecimento
-          </DialogTitle>
-          <DialogContent>
-            <Typography color={theme.palette.mode === "dark" ? theme.palette.common.white : theme.palette.text.primary}>
-              Você tem certeza que deseja excluir este abastecimento?
-            </Typography>
-          </DialogContent>
-          <DialogActions sx={{ p: 3, pt: 0 }}>
-            <Button 
-              onClick={handleFecharModalExcluirAbastecimento} 
-              variant="outlined" 
-              sx={{ borderRadius: 2 }}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleConfirmarExclusaoAbastecimento}
-              variant="contained"
-              color="error"
-              sx={{ borderRadius: 2 }}
-            >
-              Confirmar Exclusão
-            </Button>
-          </DialogActions>
-        </Dialog>
+          Excluir Abastecimento
+        </DialogTitle>
+        <DialogContent>
+          <Typography
+            color={
+              theme.palette.mode === "dark"
+                ? theme.palette.common.white
+                : theme.palette.text.primary
+            }
+          >
+            Você tem certeza que deseja excluir este abastecimento?
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button
+            onClick={handleFecharModalExcluirAbastecimento}
+            variant="outlined"
+            sx={{ borderRadius: 2 }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleConfirmarExclusaoAbastecimento}
+            variant="contained"
+            color="error"
+            sx={{ borderRadius: 2 }}
+          >
+            Confirmar Exclusão
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <ModalEditarOcorrencia
         open={modalEditarOcorrenciaAberto}
@@ -940,10 +1034,12 @@ const DetalhesRequisicao: React.FC = () => {
         onSuccess={async () => {
           console.log("Ocorrência salva com sucesso!");
           await carregarDados();
-        } }
+        }}
         onError={(erro) => {
           console.error("Erro ao salvar ocorrência:", erro);
-        } } chaveEmprestada={false}      />
+        }}
+        chaveEmprestada={false}
+      />
 
       <AbastecimentoModal
         open={modalCadastroAbertoAbastecimento}
@@ -954,10 +1050,10 @@ const DetalhesRequisicao: React.FC = () => {
         }}
       />
 
-      <EdicaoAbastecimentoModal 
-        open={modalEditarAbastecimentoAberto} 
+      <EdicaoAbastecimentoModal
+        open={modalEditarAbastecimentoAberto}
         abastecimento={abastecimentoSelecionado}
-        corrida={corrida} 
+        corrida={corrida}
         onClose={handleFecharModalEditarAbastecimento}
         onSuccess={async () => {
           await carregarDados();
@@ -992,7 +1088,7 @@ const DetalhesRequisicao: React.FC = () => {
         }}
         corrida={idcorridaNumber}
       />
-    </Box>
+    </AppLayout>
   );
 };
 
