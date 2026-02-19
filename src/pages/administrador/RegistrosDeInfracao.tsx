@@ -47,10 +47,7 @@ export default function RegistrosDeInfracao() {
   const [multas, setMultas] = useState<MultaDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const [placaVeiculo, setPlacaVeiculo] = useState("");
-  const [classificacao, setClassificacao] = useState("");
-  const [codigoInfracao, setCodigoInfracao] = useState("");
+  const [busca, setBusca] = useState("");
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -66,7 +63,6 @@ export default function RegistrosDeInfracao() {
     try {
       const token = localStorage.getItem("token");
       if (!token) throw new Error();
-
       jwtDecode<JwtPayload>(token);
       const dados = await MultaService.listarMultas(params);
       setMultas(dados);
@@ -77,20 +73,25 @@ export default function RegistrosDeInfracao() {
     }
   };
 
-  const buscar = () => {
-    carregarMultas({
-      placaVeiculo: placaVeiculo || undefined,
-      classificacao: classificacao || undefined,
-      codigoInfracao: codigoInfracao
-        ? Number(codigoInfracao)
-        : undefined,
-    });
+  const buscar = (valor: string) => {
+    const texto = valor.trim().toUpperCase();
+
+    if (!texto) {
+      carregarMultas();
+      return;
+    }
+
+    const placaRegex = /^[A-Z]{3}\d[A-Z0-9]\d{2}$/;
+
+    if (placaRegex.test(texto)) {
+      carregarMultas({ placaVeiculo: texto });
+    } else {
+      carregarMultas({ classificacao: texto });
+    }
   };
 
   const limparBusca = () => {
-    setPlacaVeiculo("");
-    setClassificacao("");
-    setCodigoInfracao("");
+    setBusca("");
     carregarMultas();
   };
 
@@ -169,34 +170,23 @@ export default function RegistrosDeInfracao() {
           </Typography>
         </Box>
 
-        <Box
-          mb={2}
-          display="flex"
-          gap={2}
-          flexWrap="wrap"
-          alignItems="center"
-        >
+        <Box mb={2} width="100%" display="flex" gap={2}>
           <TextField
-            label="Placa"
+            fullWidth
             size="small"
-            value={placaVeiculo}
-            onChange={(e) => setPlacaVeiculo(e.target.value)}
+            label="Buscar por placa ou classificação"
+            value={busca}
+            onChange={(e) => {
+              const valor = e.target.value;
+              setBusca(valor);
+              buscar(valor);
+            }}
+            InputProps={{
+              startAdornment: (
+                <SearchIcon color="action" style={{ marginRight: 8 }} />
+              ),
+            }}
           />
-          <TextField
-            label="Classificação"
-            size="small"
-            value={classificacao}
-            onChange={(e) => setClassificacao(e.target.value)}
-          />
-
-          <Button
-            variant="contained"
-            startIcon={<SearchIcon />}
-            onClick={buscar}
-          >
-            Buscar
-          </Button>
-
           <Button
             variant="outlined"
             startIcon={<ClearIcon />}
