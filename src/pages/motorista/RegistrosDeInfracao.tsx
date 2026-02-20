@@ -26,6 +26,8 @@ interface JwtPayload {
   exp: number;
 }
 
+const CLASSIFICACOES = ["LEVE", "MEDIA", "GRAVE", "GRAVISSIMA"];
+
 const formatDate = (data: string | Date | null) => {
   if (!data) return "Não informada";
   const d = new Date(data);
@@ -81,13 +83,13 @@ export default function RegistrosDeInfracao() {
       return;
     }
 
-    const placaRegex = /^[A-Z]{3}\d[A-Z0-9]\d{2}$/;
+    const classificacaoValida = CLASSIFICACOES.includes(texto);
+    const parecePlaca = !classificacaoValida && texto.length <= 10;
 
-    if (placaRegex.test(texto)) {
-      carregarMultas({ placaVeiculo: texto });
-    } else {
-      carregarMultas({ classificacao: texto });
-    }
+    carregarMultas({
+      placaVeiculo: parecePlaca ? texto : undefined,
+      classificacao: classificacaoValida ? texto : undefined,
+    });
   };
 
   const limparBusca = () => {
@@ -182,18 +184,12 @@ export default function RegistrosDeInfracao() {
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (!file || !params.row.idMulta) return;
-
-                  try {
-                    await MultaService.uploadComprovante(
-                      params.row.idMulta,
-                      file
-                    );
-                    await carregarMultas();
-                  } catch {
-                    alert("Erro ao enviar comprovante.");
-                  } finally {
-                    e.target.value = "";
-                  }
+                  await MultaService.uploadComprovante(
+                    params.row.idMulta,
+                    file
+                  );
+                  await carregarMultas();
+                  e.target.value = "";
                 }}
               />
             </Button>
@@ -221,9 +217,9 @@ export default function RegistrosDeInfracao() {
             label="Buscar por placa ou classificação"
             value={busca}
             onChange={(e) => {
-              const valor = e.target.value;
-              setBusca(valor);
-              buscar(valor);
+              const v = e.target.value;
+              setBusca(v);
+              buscar(v);
             }}
             InputProps={{
               startAdornment: (
