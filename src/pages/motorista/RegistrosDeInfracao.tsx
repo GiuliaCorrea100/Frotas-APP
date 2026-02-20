@@ -157,6 +157,50 @@ export default function RegistrosDeInfracao() {
         </Button>
       ),
     },
+    {
+      field: "comprovantePagamento",
+      headerName: "Comprovante de Pagamento",
+      width: 220,
+      sortable: false,
+      renderCell: (params) => {
+        const possuiBoleto = !!params.row.urlArquivo;
+
+        return (
+          <Box display="flex" alignItems="center" gap={1} height="100%">
+            <Button
+              size="small"
+              component="label"
+              variant="outlined"
+              disabled={!possuiBoleto}
+            >
+              Upload
+              <input
+                type="file"
+                hidden
+                accept="application/pdf,image/*"
+                disabled={!possuiBoleto}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file || !params.row.idMulta) return;
+
+                  try {
+                    await MultaService.uploadComprovante(
+                      params.row.idMulta,
+                      file
+                    );
+                    await carregarMultas();
+                  } catch {
+                    alert("Erro ao enviar comprovante.");
+                  } finally {
+                    e.target.value = "";
+                  }
+                }}
+              />
+            </Button>
+          </Box>
+        );
+      },
+    },
   ];
 
   return (
