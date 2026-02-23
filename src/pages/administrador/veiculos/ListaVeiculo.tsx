@@ -1,4 +1,4 @@
-import { Add, Cancel, CheckCircle, Edit } from "@mui/icons-material";
+import { Add, Cancel, CheckCircle } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -9,6 +9,8 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
+import CreateIcon from "@mui/icons-material/Create";
+import CancelIcon from "@mui/icons-material/Cancel";
 import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -160,7 +162,7 @@ export default function ListaVeiculos() {
     }
   };
 
-  // Lógica de salvamento da Situação (mantida para compatibilidade)
+  // Lógica de salvamento da Situação
   const handleSaveSituacao = async () => {
     if (!selectedCarroForEdit || !selectedCarroForEdit.idCarro) return;
     try {
@@ -183,29 +185,29 @@ export default function ListaVeiculos() {
       console.error("Erro ao atualizar situação:", error);
       alert(
         "Erro ao atualizar situação do veículo: " +
-          (error?.response?.data?.message || error.message),
+        (error?.response?.data?.message || error.message),
       );
     }
   };
 
-  // Definição das colunas da DataGrid (atualizada para usar handleOpenEditar)
+  // Definição das colunas da DataGrid
   const colunas: GridColDef[] = [
     {
       field: "placa",
       headerName: "Placa",
-      flex: 1,
+      width: 120,
       renderCell: (params) => (
         <Typography fontWeight="bold">{params.value}</Typography>
       ),
     },
-    { field: "modelo", headerName: "Modelo", flex: 2 },
-    { field: "ano", headerName: "Ano", flex: 1 },
-    { field: "localidadeFisica", headerName: "Localidade", flex: 1 },
-    { field: "tombo", headerName: "Tombo", flex: 1 },
+    { field: "modelo", headerName: "Modelo", width: 250 },
+    { field: "ano", headerName: "Ano", width: 100 },
+    { field: "localidadeFisica", headerName: "Localidade", width: 150 },
+    { field: "tombo", headerName: "Tombo", width: 100 },
     {
       field: "nomeTipoCombustivel",
       headerName: "Combustível",
-      flex: 1,
+      width: 150,
       renderCell: (params) => {
         return (
           <Typography variant="body2">
@@ -217,7 +219,8 @@ export default function ListaVeiculos() {
     {
       field: "situacao",
       headerName: "Situação",
-      flex: 1,
+      // flex: 1,
+      width: 120,
       renderCell: (params) => {
         if (!params.row.ativo) {
           return (
@@ -259,34 +262,67 @@ export default function ListaVeiculos() {
     {
       field: "acoes",
       headerName: "Ações",
-      flex: 1,
+      width: 120,
       renderCell: (params) => (
         <Box display="flex" gap={1}>
-          {/* Botão Editar - agora abre o FormularioVeiculos */}
+          {/* EDITAR */}
           <Tooltip title="Editar veículo">
-            <IconButton
-              color="primary"
+            <Button
+              variant="contained"
+              color="warning"
               size="small"
               onClick={() => handleOpenEditar(params.row)}
+              startIcon={<CreateIcon />}
+              sx={{
+                width: 42,
+                height: 42,
+                minWidth: 42,
+                padding: 0,
+                borderRadius: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                "& .MuiButton-startIcon": {
+                  margin: 0,
+                },
+              }}
             >
-              <Edit fontSize="small" />
-            </IconButton>
+            </Button>
           </Tooltip>
 
+          {/* INATIVAR/ATIVAR */}
           <Tooltip
             title={params.row.ativo ? "Inativar veículo" : "Ativar veículo"}
           >
-            <IconButton
+            <Button
+              variant="contained"
               color={params.row.ativo ? "error" : "success"}
               size="small"
               onClick={() => handleAbrirModalAtivacao(params.row)}
+              sx={{
+                width: 42,
+                height: 42,
+                minWidth: 42,
+                padding: 0,
+                borderRadius: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                "& .MuiButton-startIcon": {
+                  margin: 0,
+                },
+                color:
+                  theme.palette.mode === "dark"
+                    ? "rgba(0, 0, 0, 0.87)"
+                    : undefined,
+              }}
             >
               {params.row.ativo ? (
                 <Cancel fontSize="small" />
               ) : (
                 <CheckCircle fontSize="small" />
               )}
-            </IconButton>
+            </Button>
           </Tooltip>
         </Box>
       ),
@@ -442,10 +478,10 @@ export default function ListaVeiculos() {
             borderTop: `1px solid ${theme.palette.divider}`,
           },
           "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-            {
-              marginBottom: 0,
-              alignSelf: "center",
-            },
+          {
+            marginBottom: 0,
+            alignSelf: "center",
+          },
           "& .MuiTablePagination-toolbar": {
             minHeight: "52px",
             alignItems: "center",
