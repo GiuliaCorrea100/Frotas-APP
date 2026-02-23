@@ -13,8 +13,10 @@ import {
   DialogContent,
   DialogTitle,
   Dialog,
+  Tooltip,
 } from "@mui/material";
-
+import CreateIcon from "@mui/icons-material/Create";
+import CancelIcon from "@mui/icons-material/Cancel";
 import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
 
 import {
@@ -34,7 +36,6 @@ import {
 import { Add } from "@mui/icons-material";
 import { Abastecimento } from "../../../services/AbastecimentoService";
 import AbastecimentoService from "../../../services/AbastecimentoService";
-import Menu from "../../../components/Menu";
 import ModalEditarOcorrencia from "./modais/ModalEdicaoOcorrencia";
 import CadastrarOcorrencia from "./modais/ModalCadastroOcorrencia";
 import AbastecimentoModal from "./modais/ModalCadastroAbastecimento";
@@ -184,29 +185,63 @@ const DetalhesRequisicao: React.FC = () => {
     {
       field: "acoes",
       headerName: "Ações",
-      flex: 1,
+      width: 160,
       sortable: false,
       filterable: false,
       renderCell: (params) => {
         const ocorrencia = params.row;
         return (
           <Box sx={{ display: "flex", gap: 1 }}>
-            <Button
-              variant="outlined"
-              color="warning"
-              size="small"
-              onClick={() => handleAbrirModalEditarOcorrencia(ocorrencia)}
-            >
-              Editar
-            </Button>
-            <Button
-              variant="outlined"
-              color="error"
-              size="small"
-              onClick={() => handleAbrirModalExcluirOcorrencia(ocorrencia)}
-            >
-              Excluir
-            </Button>
+            <Tooltip title="Editar ocorrência">
+              <Button
+                variant="contained"
+                color="warning"
+                size="small"
+                onClick={() => handleAbrirModalEditarOcorrencia(ocorrencia)}
+                startIcon={<CreateIcon />}
+                sx={{
+                  width: 42,
+                  height: 42,
+                  minWidth: 42,
+                  padding: 0,
+                  borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  "& .MuiButton-startIcon": {
+                    margin: 0,
+                  },
+                }}
+              >
+              </Button>
+            </Tooltip>
+            <Tooltip title="Excluir ocorrência">
+              <Button
+                variant="contained"
+                color="error"
+                size="small"
+                onClick={() => handleAbrirModalExcluirOcorrencia(ocorrencia)}
+                startIcon={<CancelIcon />}
+                sx={{
+                  width: 42,
+                  height: 42,
+                  minWidth: 42,
+                  padding: 0,
+                  borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  "& .MuiButton-startIcon": {
+                    margin: 0,
+                  },
+                  color:
+                    theme.palette.mode === "dark"
+                      ? "rgba(0, 0, 0, 0.87)"
+                      : undefined,
+                }}
+              >
+              </Button>
+            </Tooltip>
           </Box>
         );
       },
@@ -262,31 +297,65 @@ const DetalhesRequisicao: React.FC = () => {
     {
       field: "acoes",
       headerName: "Ações",
-      flex: 1,
+      width: 160,
       sortable: false,
       filterable: false,
       renderCell: (params) => {
         const abastecimento = params.row;
         return (
           <Box sx={{ display: "flex", gap: 1 }}>
-            <Button
-              variant="outlined"
-              color="warning"
-              size="small"
-              onClick={() => handleAbrirModalEditarAbastecimento(abastecimento)}
-            >
-              Editar
-            </Button>
-            <Button
-              variant="outlined"
-              color="error"
-              size="small"
-              onClick={() =>
-                handleAbrirModalExcluirAbastecimento(abastecimento)
-              }
-            >
-              Excluir
-            </Button>
+            <Tooltip title="Editar abastecimento">
+              <Button
+                variant="contained"
+                color="warning"
+                size="small"
+                onClick={() => handleAbrirModalEditarAbastecimento(abastecimento)}
+                startIcon={<CreateIcon />}
+                sx={{
+                  width: 42,
+                  height: 42,
+                  minWidth: 42,
+                  padding: 0,
+                  borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  "& .MuiButton-startIcon": {
+                    margin: 0,
+                  },
+                }}
+              >
+              </Button>
+            </Tooltip>
+            <Tooltip title="Excluir abastecimento">
+              <Button
+                variant="contained"
+                color="error"
+                size="small"
+                onClick={() =>
+                  handleAbrirModalExcluirAbastecimento(abastecimento)
+                }
+                startIcon={<CancelIcon />}
+                sx={{
+                  width: 42,
+                  height: 42,
+                  minWidth: 42,
+                  padding: 0,
+                  borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  "& .MuiButton-startIcon": {
+                    margin: 0,
+                  },
+                  color:
+                    theme.palette.mode === "dark"
+                      ? "rgba(0, 0, 0, 0.87)"
+                      : undefined,
+                }}
+              >
+              </Button>
+            </Tooltip>
           </Box>
         );
       },
@@ -355,29 +424,63 @@ const DetalhesRequisicao: React.FC = () => {
     {
       field: "acoes",
       headerName: "Ações",
-      flex: 1,
+      width: 160,
       sortable: false,
       filterable: false,
       renderCell: (params) => {
         const percurso = params.row;
         return (
           <Box sx={{ display: "flex", gap: 1 }}>
-            <Button
-              variant="outlined"
-              color="warning"
-              size="small"
-              onClick={() => handleAbrirModalEditarPercuso(percurso)}
-            >
-              Editar
-            </Button>
-            <Button
-              variant="outlined"
-              color="error"
-              size="small"
-              onClick={() => handleAbrirModalExcluirPercurso(percurso)}
-            >
-              Excluir
-            </Button>
+            <Tooltip title="Editar percurso">
+              <Button
+                variant="contained"
+                color="warning"
+                size="small"
+                onClick={() => handleAbrirModalEditarPercuso(percurso)}
+                startIcon={<CreateIcon />}
+                sx={{
+                  width: 42,
+                  height: 42,
+                  minWidth: 42,
+                  padding: 0,
+                  borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  "& .MuiButton-startIcon": {
+                    margin: 0,
+                  },
+                }}
+              >
+              </Button>
+            </Tooltip>
+            <Tooltip title="Excluir percurso">
+              <Button
+                variant="contained"
+                color="error"
+                size="small"
+                onClick={() => handleAbrirModalExcluirPercurso(percurso)}
+                startIcon={<CancelIcon />}
+                sx={{
+                  width: 42,
+                  height: 42,
+                  minWidth: 42,
+                  padding: 0,
+                  borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  "& .MuiButton-startIcon": {
+                    margin: 0,
+                  },
+                  color:
+                    theme.palette.mode === "dark"
+                      ? "rgba(0, 0, 0, 0.87)"
+                      : undefined,
+                }}
+              >
+              </Button>
+            </Tooltip>
           </Box>
         );
       },
@@ -646,7 +749,7 @@ const DetalhesRequisicao: React.FC = () => {
                 Carregando ocorrências...
               </Typography>
             ) : ocorrencias.length > 0 ? (
-              <Box sx={{ minHeight: 200, width: "100%" }}>
+              <Box sx={{ minHeight: 200, width: '100%' }}>
                 <DataGrid
                   rows={ocorrencias}
                   columns={columnsOcorrencias}
@@ -656,14 +759,15 @@ const DetalhesRequisicao: React.FC = () => {
                     },
                   }}
                   sx={{
+                    width: '100%',
                     "& .MuiDataGrid-footerContainer": {
                       borderTop: `1px solid ${theme.palette.divider}`,
                     },
                     "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-                      {
-                        marginBottom: 0,
-                        alignSelf: "center",
-                      },
+                    {
+                      marginBottom: 0,
+                      alignSelf: "center",
+                    },
                     "& .MuiTablePagination-toolbar": {
                       minHeight: "52px",
                       alignItems: "center",
@@ -728,7 +832,7 @@ const DetalhesRequisicao: React.FC = () => {
                 Carregando Abastecimentos...
               </Typography>
             ) : abastecimentos.length > 0 ? (
-              <Box sx={{ minHeight: 200, width: "100%" }}>
+              <Box sx={{ minHeight: 200, width: '100%' }}>
                 <DataGrid
                   rows={abastecimentos}
                   columns={columnsAbastecimentos}
@@ -738,14 +842,15 @@ const DetalhesRequisicao: React.FC = () => {
                     },
                   }}
                   sx={{
+                    width: '100%',
                     "& .MuiDataGrid-footerContainer": {
                       borderTop: `1px solid ${theme.palette.divider}`,
                     },
                     "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-                      {
-                        marginBottom: 0,
-                        alignSelf: "center",
-                      },
+                    {
+                      marginBottom: 0,
+                      alignSelf: "center",
+                    },
                     "& .MuiTablePagination-toolbar": {
                       minHeight: "52px",
                       alignItems: "center",
@@ -810,7 +915,7 @@ const DetalhesRequisicao: React.FC = () => {
                 Carregando Percursos...
               </Typography>
             ) : percursos.length > 0 ? (
-              <Box sx={{ minHeight: 200, width: "100%" }}>
+              <Box sx={{ minHeight: 200, width: '100%' }}>
                 <DataGrid
                   rows={percursos}
                   columns={colunsPercursos}
@@ -820,14 +925,15 @@ const DetalhesRequisicao: React.FC = () => {
                     },
                   }}
                   sx={{
+                    width: '100%',
                     "& .MuiDataGrid-footerContainer": {
                       borderTop: `1px solid ${theme.palette.divider}`,
                     },
                     "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-                      {
-                        marginBottom: 0,
-                        alignSelf: "center",
-                      },
+                    {
+                      marginBottom: 0,
+                      alignSelf: "center",
+                    },
                     "& .MuiTablePagination-toolbar": {
                       minHeight: "52px",
                       alignItems: "center",

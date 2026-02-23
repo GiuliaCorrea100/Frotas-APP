@@ -10,6 +10,7 @@ import {
   DialogContent,
   DialogActions,
   useTheme,
+  Tooltip,
 } from "@mui/material";
 import CreateIcon from "@mui/icons-material/Create";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -312,48 +313,106 @@ export default function ListaCorrida() {
         const corrida = params.row;
         return (
           <Box sx={{ display: "flex", gap: 1 }}>
-            <Button
-              variant="outlined"
-              color="warning"
-              size="small"
-              onClick={() => handleAbrirModalEditar(corrida)}
-              disabled={
-                (corrida.chaveEmprestada === true &&
-                  (corrida.situacao === "FINALIZADA" ||
-                    corrida.situacao === "ANDAMENTO" ||
-                    corrida.situacao === "AGENDADA" ||
-                    corrida.situacao === "CANCELADA")) ||
-                ((corrida.situacao === "FINALIZADA" ||
-                  corrida.situacao === "CANCELADA") &&
-                  corrida.chaveEmprestada === false)
-              }
-              startIcon={<CreateIcon />}
-            ></Button>
-            <Button
-              variant="contained"
-              color="success"
-              size="small"
-              onClick={() => navigate(`/DetalhesCorrida/${corrida.idCorrida}`)}
-              disabled={corrida.situacao === "CANCELADA"}
-              startIcon={<VisibilityIcon />}
-            ></Button>
-            <Button
-              variant="outlined"
-              color="warning"
-              size="small"
-              onClick={() => handleAbrirModalCancelarCorrida(corrida)}
-              disabled={
-                (corrida.chaveEmprestada === true &&
-                  (corrida.situacao === "FINALIZADA" ||
-                    corrida.situacao === "ANDAMENTO" ||
-                    corrida.situacao === "AGENDADA" ||
-                    corrida.situacao === "CANCELADA")) ||
-                ((corrida.situacao === "FINALIZADA" ||
-                  corrida.situacao === "CANCELADA") &&
-                  corrida.chaveEmprestada === false)
-              }
-              startIcon={<CancelIcon />}
-            ></Button>
+            {/* EDITAR */}
+            <Tooltip title="Editar corrida">
+              <Button
+                variant="contained"
+                color="warning"
+                size="small"
+                onClick={() => handleAbrirModalEditar(corrida)}
+                disabled={
+                  (corrida.chaveEmprestada === true &&
+                    (corrida.situacao === "FINALIZADA" ||
+                      corrida.situacao === "ANDAMENTO" ||
+                      corrida.situacao === "AGENDADA" ||
+                      corrida.situacao === "CANCELADA")) ||
+                  ((corrida.situacao === "FINALIZADA" ||
+                    corrida.situacao === "CANCELADA") &&
+                    corrida.chaveEmprestada === false)
+                }
+                startIcon={<CreateIcon />}
+                sx={{
+                  width: 42,
+                  height: 42,
+                  minWidth: 42,
+                  padding: 0,
+                  borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  "& .MuiButton-startIcon": {
+                    margin: 0,
+                  },
+                }}
+              ></Button>
+            </Tooltip>
+
+            {/* DETALHES */}
+            <Tooltip title="Ver detalhes">
+              <Button
+                variant="contained"
+                color="success"
+                size="small"
+                onClick={() =>
+                  navigate(`/DetalhesCorrida/${corrida.idCorrida}`)
+                }
+                disabled={corrida.situacao === "CANCELADA"}
+                startIcon={<VisibilityIcon />}
+                sx={{
+                  width: 42,
+                  height: 42,
+                  minWidth: 42,
+                  padding: 0,
+                  borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  "& .MuiButton-startIcon": {
+                    margin: 0,
+                  },
+                }}
+              ></Button>
+            </Tooltip>
+
+            {/* CANCELAR */}
+            <Tooltip title="Cancelar corrida">
+              <Button
+                variant="contained"
+                color="error"
+                size="small"
+                onClick={() => handleAbrirModalCancelarCorrida(corrida)}
+                disabled={
+                  (corrida.chaveEmprestada === true &&
+                    (corrida.situacao === "FINALIZADA" ||
+                      corrida.situacao === "ANDAMENTO" ||
+                      corrida.situacao === "AGENDADA" ||
+                      corrida.situacao === "CANCELADA")) ||
+                  ((corrida.situacao === "FINALIZADA" ||
+                    corrida.situacao === "CANCELADA") &&
+                    corrida.chaveEmprestada === false)
+                }
+                startIcon={<CancelIcon />}
+                sx={{
+                  width: 42,
+                  height: 42,
+                  minWidth: 42,
+                  padding: 0,
+                  borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  "& .MuiButton-startIcon": {
+                    margin: 0,
+                  },
+                  color:
+                    theme.palette.mode === "dark"
+                      ? "rgba(0, 0, 0, 0.87)"
+                      : undefined,
+                }}
+              ></Button>
+            </Tooltip>
+
+            {/* LIBERAR CHAVE */}
             <Button
               variant="contained"
               color="primary"
@@ -372,8 +431,10 @@ export default function ListaCorrida() {
             >
               Liberar Chave
             </Button>
+
+            {/* RECEBER CHAVE */}
             <Button
-              variant="outlined"
+              variant="contained"
               color="secondary"
               size="small"
               onClick={() => handleAbrirModalReceberChave(corrida)}
@@ -550,10 +611,10 @@ export default function ListaCorrida() {
             borderTop: `1px solid ${theme.palette.divider}`,
           },
           "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-            {
-              marginBottom: 0,
-              alignSelf: "center",
-            },
+          {
+            marginBottom: 0,
+            alignSelf: "center",
+          },
           "& .MuiTablePagination-toolbar": {
             minHeight: "52px",
             alignItems: "center",
@@ -770,10 +831,10 @@ export default function ListaCorrida() {
         corrida={
           corridaParaEditar
             ? {
-                ...mapToDto(corridaParaEditar),
-                dataTermino:
-                  mapToDto(corridaParaEditar).dataTermino || new Date(),
-              }
+              ...mapToDto(corridaParaEditar),
+              dataTermino:
+                mapToDto(corridaParaEditar).dataTermino || new Date(),
+            }
             : null
         }
         onSuccess={async (msg) => {
