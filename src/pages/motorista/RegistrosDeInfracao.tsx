@@ -7,6 +7,10 @@ import {
   Alert,
   useTheme,
   TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -50,6 +54,7 @@ export default function RegistrosDeInfracao() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busca, setBusca] = useState("");
+  const [openSuccessModal, setOpenSuccessModal] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -184,12 +189,17 @@ export default function RegistrosDeInfracao() {
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (!file || !params.row.idMulta) return;
-                  await MultaService.uploadComprovante(
-                    params.row.idMulta,
-                    file
-                  );
-                  await carregarMultas();
-                  e.target.value = "";
+
+                  try {
+                    await MultaService.uploadComprovante(
+                      params.row.idMulta,
+                      file
+                    );
+                    await carregarMultas();
+                    setOpenSuccessModal(true);
+                  } finally {
+                    e.target.value = "";
+                  }
                 }}
               />
             </Button>
@@ -254,6 +264,26 @@ export default function RegistrosDeInfracao() {
           sx={{ height: "calc(100vh - 320px)" }}
         />
       </Box>
+
+      <Dialog
+        open={openSuccessModal}
+        onClose={() => setOpenSuccessModal(false)}
+      >
+        <DialogTitle>Sucesso</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Upload do comprovante de pagamento feito com sucesso.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="contained"
+            onClick={() => setOpenSuccessModal(false)}
+          >
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
