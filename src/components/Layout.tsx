@@ -1,7 +1,7 @@
 // src/components/AppLayout.tsx
-import { Box } from '@mui/material';
-import React from 'react';
-import Menu from './Menu';
+import { Box } from "@mui/material";
+import React from "react";
+import Menu from "./Menu";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -9,29 +9,35 @@ interface AppLayoutProps {
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   return (
-    <Box sx={{ 
-      display: 'flex', 
-      flexDirection: 'column',
-      height: '100%',
-      width: '100%',
-    }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        width: "100%",
+      }}
+    >
       <Menu />
 
       {/* Conteúdo principal */}
-      <Box sx={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'auto',
-        mt: 2,
-      }}>
-        <Box sx={{ 
-          p: 3, 
-          width: '100%', 
-          maxWidth: '1200px', 
-          margin: '0 auto',
+      <Box
+        sx={{
           flex: 1,
-        }}>
+          display: "flex",
+          flexDirection: "column",
+          overflow: "auto",
+          // mt: 2,
+        }}
+      >
+        <Box
+          sx={{
+            p: 3,
+            width: "100%",
+            // maxWidth: "1920px",
+            margin: "0 auto",
+            flex: 1,
+          }}
+        >
           {children}
         </Box>
       </Box>

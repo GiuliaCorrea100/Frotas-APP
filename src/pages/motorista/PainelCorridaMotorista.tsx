@@ -1,21 +1,19 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  Paper,
-  ButtonBase,
-  Tooltip,
-} from "@mui/material";
+import { Box, Typography, Paper, ButtonBase, Tooltip } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-import { atualizarSituacaoCorrida, buscarCorridaPorId, getCorridaById } from "../../services/CorridaService";
-import { 
-  iniciarPercurso, 
-  finalizarPercurso, 
-  buscarUltimoPercursoFinalizado, 
-  buscarPercursoAtivo, 
+import {
+  atualizarSituacaoCorrida,
+  buscarCorridaPorId,
+  getCorridaById,
+} from "../../services/CorridaService";
+import {
+  iniciarPercurso,
+  finalizarPercurso,
+  buscarUltimoPercursoFinalizado,
+  buscarPercursoAtivo,
   PercursoBackend,
-  buscarPercursosDaCorrida 
+  buscarPercursosDaCorrida,
 } from "../../services/PercursoService";
 import ModalIniciarPercurso from "./modais/ModalIniciarPercurso";
 import ModalSucesso from "./modais/ModalSucesso";
@@ -25,6 +23,7 @@ import AbastecimentoModal from "../administrador/corridas/modais/ModalCadastroAb
 import CadastrarOcorrencia from "../administrador/corridas/modais/ModalCadastroOcorrencia";
 import ModalFinalizarPercurso from "./modais/ModalFinalizarPercurso";
 import { CarroService } from "../../services/CarroService";
+import AppLayout from "../../components/Layout";
 
 interface Corrida {
   idCorrida: number;
@@ -36,7 +35,7 @@ interface Corrida {
   localDeSaida?: string;
   situacao?: string;
   percursoAtivo?: any;
-  ocorrencias?: any[]; 
+  ocorrencias?: any[];
   multas?: any[];
   chaveEmprestada?: boolean;
 }
@@ -57,31 +56,40 @@ const formatDate = (dateString: string | null) => {
   if (!dateString) return "data não disponível";
   try {
     const date = new Date(dateString);
-    return isNaN(date.getTime()) ? 'Data inválida' : date.toLocaleString('pt-BR', { timeZone: 'UTC' });
+    return isNaN(date.getTime())
+      ? "Data inválida"
+      : date.toLocaleString("pt-BR", { timeZone: "UTC" });
   } catch {
     return "Data inválida";
   }
 };
 
-const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida, onCorridaUpdate }) => {
+const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({
+  corrida,
+  onCorridaUpdate,
+}) => {
   const navigate = useNavigate();
 
   const [modalIniciarOpen, setModalIniciarOpen] = useState(false);
   const [modalConfirmacaoOpen, setModalConfirmacaoOpen] = useState(false);
   const [modalFinalizarOpen, setModalFinalizarOpen] = useState(false);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
-  const [finalizeSuccessModalOpen, setFinalizeSuccessModalOpen] = useState(false);
+  const [finalizeSuccessModalOpen, setFinalizeSuccessModalOpen] =
+    useState(false);
 
   const [modalOcorrenciaAberto, setModalOcorrenciaAberto] = useState(false);
-  const [modalAbastecimentoAberto, setModalAbastecimentoAberto] = useState(false);
+  const [modalAbastecimentoAberto, setModalAbastecimentoAberto] =
+    useState(false);
 
   const [isCorridaIniciada, setIsCorridaIniciada] = useState(false);
   const [corridaLocal, setCorridaLocal] = useState<Corrida>(corrida);
-  const [percursoAtual, setPercursoAtual] = useState<PercursoBackend | null>(null);
+  const [percursoAtual, setPercursoAtual] = useState<PercursoBackend | null>(
+    null
+  );
   const [percursosAtivosCount, setPercursosAtivosCount] = useState(0);
   const [idCarro, setIdCarro] = useState<number | null>(null);
   const [odometroAtual, setOdometroAtual] = useState<string>("0");
-  
+
   const [destino, setDestino] = useState("");
   const [odometro, setOdometro] = useState("");
   const [odometroFinal, setOdometroFinal] = useState("");
@@ -100,8 +108,8 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
         setChaveEmprestada(false);
       }
     };
-  
-    if (corrida.situacao !== 'FINALIZADA') {
+
+    if (corrida.situacao !== "FINALIZADA") {
       fetchStatusChave();
     }
   }, [corrida.idCorrida, corrida.situacao]);
@@ -117,9 +125,9 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
           setIsCorridaIniciada(false);
           setPercursoAtual(null);
         }
-        
+
         const percursos = await buscarPercursosDaCorrida(corrida.idCorrida);
-        const ativosCount = percursos.filter(p => !p.chegadaHora).length;
+        const ativosCount = percursos.filter((p) => !p.chegadaHora).length;
         setPercursosAtivosCount(ativosCount);
       } catch (error) {
         console.error("Erro ao buscar percurso ativo:", error);
@@ -129,59 +137,71 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
       }
     };
 
-    if (corrida.situacao !== 'FINALIZADA') {
+    if (corrida.situacao !== "FINALIZADA") {
       fetchPercursoStatus();
     }
   }, [corrida.idCorrida, corrida.situacao]);
-  
-  useEffect(() => {
-      const fetchUltimoDestino = async () => {
-          if (modalIniciarOpen) {
-              try {
-                  const ultimoPercurso = await buscarUltimoPercursoFinalizado(corrida.idCorrida);
-                  setUltimoDestino(ultimoPercurso ? ultimoPercurso.localDestino : corrida.localDeSaida || "");
-              } catch (error) {
-                  console.error("Erro ao buscar último percurso finalizado:", error);
-                  setUltimoDestino(corrida.localDeSaida || "");
-              }
-          }
-      };
-      
-      if (corrida.situacao !== 'FINALIZADA') {
-        fetchUltimoDestino();
-      }
-  }, [modalIniciarOpen, corrida.idCorrida, corrida.localDeSaida, corrida.situacao]);
 
   useEffect(() => {
-  let isMounted = true;
-
-  const fetchDadosVeiculo  = async () => {
-    try {
-      const corridaDetalhada = await getCorridaById(corridaLocal.idCorrida);
-
-      if (!isMounted) return;
-
-      if (corridaDetalhada.idCarro) {
-        const carro = await CarroService.buscarPorId(corridaDetalhada.idCarro);
-        
-        if (!isMounted) return;
-        
-        const novoOdometro = carro?.odometro?.toString() || "0";
-        setIdCarro(corridaDetalhada.idCarro);
-        setOdometroAtual(novoOdometro);
+    const fetchUltimoDestino = async () => {
+      if (modalIniciarOpen) {
+        try {
+          const ultimoPercurso = await buscarUltimoPercursoFinalizado(
+            corrida.idCorrida
+          );
+          setUltimoDestino(
+            ultimoPercurso
+              ? ultimoPercurso.localDestino
+              : corrida.localDeSaida || ""
+          );
+        } catch (error) {
+          console.error("Erro ao buscar último percurso finalizado:", error);
+          setUltimoDestino(corrida.localDeSaida || "");
+        }
       }
+    };
 
-    } catch (error) {
-      console.error("Erro ao buscar dados do carro:", error);
+    if (corrida.situacao !== "FINALIZADA") {
+      fetchUltimoDestino();
     }
-  };
+  }, [
+    modalIniciarOpen,
+    corrida.idCorrida,
+    corrida.localDeSaida,
+    corrida.situacao,
+  ]);
 
-  fetchDadosVeiculo();
+  useEffect(() => {
+    let isMounted = true;
 
-  return () => {
-    isMounted = false;
-  };
-}, [corridaLocal.idCorrida]);
+    const fetchDadosVeiculo = async () => {
+      try {
+        const corridaDetalhada = await getCorridaById(corridaLocal.idCorrida);
+
+        if (!isMounted) return;
+
+        if (corridaDetalhada.idCarro) {
+          const carro = await CarroService.buscarPorId(
+            corridaDetalhada.idCarro
+          );
+
+          if (!isMounted) return;
+
+          const novoOdometro = carro?.odometro?.toString() || "0";
+          setIdCarro(corridaDetalhada.idCarro);
+          setOdometroAtual(novoOdometro);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar dados do carro:", error);
+      }
+    };
+
+    fetchDadosVeiculo();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [corridaLocal.idCorrida]);
 
   // Lógica de desabilitação dos botões
   const isIniciarDisabled = isCorridaIniciada;
@@ -189,14 +209,15 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
   const isAbastecimentoDisabled = !chaveEmprestada;
   const isOcorrenciaDisabled = !chaveEmprestada;
 
-  if (corrida.situacao === 'FINALIZADA') {
+  if (corrida.situacao === "FINALIZADA") {
     return (
       <Box sx={{ p: 4, maxWidth: 800, mx: "auto", textAlign: "center" }}>
         <Typography variant="h5" fontWeight="bold" gutterBottom>
           Corrida Finalizada
         </Typography>
         <Typography variant="body1" color="success.main" sx={{ mb: 2 }}>
-          Esta corrida foi finalizada em {formatDate(corrida.dataTermino ?? null)}
+          Esta corrida foi finalizada em{" "}
+          {formatDate(corrida.dataTermino ?? null)}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Nenhuma ação disponível para corridas finalizadas.
@@ -222,9 +243,9 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
   const verificarSeMostrarModalConfirmacao = async () => {
     try {
       const percursos = await buscarPercursosDaCorrida(corridaLocal.idCorrida);
-      
-      const percursosFinalizados = percursos.filter(p => p.chegadaHora);
-      
+
+      const percursosFinalizados = percursos.filter((p) => p.chegadaHora);
+
       if (percursosFinalizados.length > 0) {
         setModalConfirmacaoOpen(true);
       } else {
@@ -239,17 +260,17 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
   const handleCloseConfirmacaoModal = () => {
     setModalConfirmacaoOpen(false);
   };
-  
+
   const handleConfirmacaoUltimoPercurso = (isUltimo: boolean) => {
     setModalConfirmacaoOpen(false);
-    
+
     if (isUltimo) {
       setDestino(corridaLocal.localDeSaida || "");
       setIsUltimoPercurso(true);
     } else {
       setIsUltimoPercurso(false);
     }
-    
+
     setModalIniciarOpen(true);
   };
 
@@ -273,10 +294,10 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
     }
 
     try {
-      await iniciarPercurso(corridaLocal.idCorrida, { 
-        localDestino: destino, 
+      await iniciarPercurso(corridaLocal.idCorrida, {
+        localDestino: destino,
         odometro_inicial: parseFloat(odometro),
-        localOrigem: ultimoDestino
+        localOrigem: ultimoDestino,
       });
 
       //atualizando odometro na tabela de veiculos
@@ -285,18 +306,18 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
       if (idCarro) {
         CarroService.atualizarOdometro(idCarro, Number(odometro));
       }
-      
-      if (corridaLocal.situacao === 'AGENDADA') {
-        await atualizarSituacaoCorrida(corridaLocal.idCorrida, 'ANDAMENTO');
-        
-        const corridaAtualizada = { ...corridaLocal, situacao: 'ANDAMENTO' };
+
+      if (corridaLocal.situacao === "AGENDADA") {
+        await atualizarSituacaoCorrida(corridaLocal.idCorrida, "ANDAMENTO");
+
+        const corridaAtualizada = { ...corridaLocal, situacao: "ANDAMENTO" };
         setCorridaLocal(corridaAtualizada);
-        
+
         if (onCorridaUpdate) {
           onCorridaUpdate(corridaAtualizada);
         }
       }
-      
+
       const percursoAtivo = await buscarPercursoAtivo(corridaLocal.idCorrida);
       setIsCorridaIniciada(true);
       setPercursoAtual(percursoAtivo);
@@ -306,20 +327,23 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
       setSuccessModalOpen(true);
     } catch (error: unknown) {
       console.error("Erro ao iniciar percurso:", error);
-      const message = error instanceof Error ? error.message : "Ocorreu um erro desconhecido";
+      const message =
+        error instanceof Error ? error.message : "Ocorreu um erro desconhecido";
       alert(message);
     }
   };
 
   const handleFinalizarPercurso = async () => {
     if (!odometroFinal || !percursoAtual?.idPercurso) {
-      alert("Não foi possível encontrar o percurso atual ou o odômetro não foi preenchido.");
+      alert(
+        "Não foi possível encontrar o percurso atual ou o odômetro não foi preenchido."
+      );
       return;
     }
 
     try {
       await finalizarPercurso(percursoAtual.idPercurso, {
-        chegadaOdometro: parseFloat(odometroFinal)
+        chegadaOdometro: parseFloat(odometroFinal),
       });
 
       if (idCarro) {
@@ -327,33 +351,38 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
       }
 
       setOdometroAtual(odometroFinal);
-      
-      if (isUltimoPercurso && percursoAtual.localDestino === corridaLocal.localDeSaida) {
-        await atualizarSituacaoCorrida(corridaLocal.idCorrida, 'FINALIZADA');
-        
-        const corridaAtualizada = { ...corridaLocal, situacao: 'FINALIZADA' };
+
+      if (
+        isUltimoPercurso &&
+        percursoAtual.localDestino === corridaLocal.localDeSaida
+      ) {
+        await atualizarSituacaoCorrida(corridaLocal.idCorrida, "FINALIZADA");
+
+        const corridaAtualizada = { ...corridaLocal, situacao: "FINALIZADA" };
         setCorridaLocal(corridaAtualizada);
-        
+
         if (onCorridaUpdate) {
           onCorridaUpdate(corridaAtualizada);
         }
       }
-      
+
       setIsCorridaIniciada(false);
       setPercursoAtual(null);
       setIsUltimoPercurso(false);
 
       handleCloseFinalizarModal();
       setFinalizeSuccessModalOpen(true);
-      
-      const ultimoPercurso = await buscarUltimoPercursoFinalizado(corridaLocal.idCorrida);
+
+      const ultimoPercurso = await buscarUltimoPercursoFinalizado(
+        corridaLocal.idCorrida
+      );
       if (ultimoPercurso) {
         setUltimoDestino(ultimoPercurso.localDestino);
       }
-
     } catch (error: unknown) {
       console.error("Erro ao finalizar percurso:", error);
-      const message = error instanceof Error ? error.message : "Ocorreu um erro desconhecido";
+      const message =
+        error instanceof Error ? error.message : "Ocorreu um erro desconhecido";
       alert(message);
     }
   };
@@ -361,33 +390,48 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
   return (
     <Box sx={{ p: 4, maxWidth: 800, mx: "auto" }}>
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h5" fontWeight="bold" color="text.primary" gutterBottom>
+        <Typography
+          variant="h5"
+          fontWeight="bold"
+          color="text.primary"
+          gutterBottom
+        >
           Corrida:
         </Typography>
         {!chaveEmprestada && (
-          <Typography variant="body2" fontWeight="bold" gutterBottom sx={{ color: 'red' }}>
+          <Typography
+            variant="body2"
+            fontWeight="bold"
+            gutterBottom
+            sx={{ color: "red" }}
+          >
             Retire a chave para liberar a corrida!
           </Typography>
         )}
         <Typography
           variant="body2"
           color={
-            corridaLocal.situacao === 'FINALIZADA' ? "success.main" :
-            corridaLocal.situacao === 'ANDAMENTO' ? "warning.main" : "text.secondary"
+            corridaLocal.situacao === "FINALIZADA"
+              ? "success.main"
+              : corridaLocal.situacao === "ANDAMENTO"
+                ? "warning.main"
+                : "text.secondary"
           }
-          sx={{ mb: 2, fontWeight: 'bold' }}
+          sx={{ mb: 2, fontWeight: "bold" }}
         >
-          Situação: {corridaLocal.situacao} 
+          Situação: {corridaLocal.situacao}
         </Typography>
-        
-        <ModalPercursos 
-          corridaId={corridaLocal.idCorrida} 
-          situacaoCorrida={corridaLocal.situacao || 'AGENDADA'} 
+
+        <ModalPercursos
+          corridaId={corridaLocal.idCorrida}
+          situacaoCorrida={corridaLocal.situacao || "AGENDADA"}
         />
 
         <Typography variant="subtitle2" color="text.secondary">
           De {formatDate(corridaLocal.dataInicio)} até{" "}
-          {corridaLocal.dataTermino ? formatDate(corridaLocal.dataTermino) : "em andamento"}
+          {corridaLocal.dataTermino
+            ? formatDate(corridaLocal.dataTermino)
+            : "em andamento"}
         </Typography>
       </Box>
 
@@ -399,108 +443,110 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
         }}
       >
         {menuItems.map((item) => {
-            const isIniciar = item.label === "Iniciar Percurso";
-            const isFinalizar = item.label === "Finalizar Percurso";
-            const isAbastecimento = item.label === "Abastecimento";
-            const isOcorrencia = item.label === "Ocorrências";
+          const isIniciar = item.label === "Iniciar Percurso";
+          const isFinalizar = item.label === "Finalizar Percurso";
+          const isAbastecimento = item.label === "Abastecimento";
+          const isOcorrencia = item.label === "Ocorrências";
 
-            let isDisabled = false;
-            let tooltipTitle = "";
+          let isDisabled = false;
+          let tooltipTitle = "";
 
-            if (isIniciar) {
-                isDisabled = isIniciarDisabled || !chaveEmprestada;
-                tooltipTitle = isDisabled ? "Percurso já iniciado" : "";
-            } else if (isFinalizar) {
-                isDisabled = isFinalizarDisabled;
-                tooltipTitle = isDisabled ? "Nenhum percurso ativo" : "";
-            } else if (isAbastecimento) {
-                isDisabled = isAbastecimentoDisabled;
-                tooltipTitle = isDisabled ? "Chave não emprestada" : "";
-            } else if (isOcorrencia) {
-                isDisabled = isOcorrenciaDisabled;
-                tooltipTitle = isDisabled ? "Chave não emprestada" : "";
-            }
+          if (isIniciar) {
+            isDisabled = isIniciarDisabled || !chaveEmprestada;
+            tooltipTitle = isDisabled ? "Percurso já iniciado" : "";
+          } else if (isFinalizar) {
+            isDisabled = isFinalizarDisabled;
+            tooltipTitle = isDisabled ? "Nenhum percurso ativo" : "";
+          } else if (isAbastecimento) {
+            isDisabled = isAbastecimentoDisabled;
+            tooltipTitle = isDisabled ? "Chave não emprestada" : "";
+          } else if (isOcorrencia) {
+            isDisabled = isOcorrenciaDisabled;
+            tooltipTitle = isDisabled ? "Chave não emprestada" : "";
+          }
 
-            return (
-              <Tooltip key={item.label} title={tooltipTitle} placement="top">
-                <ButtonBase
-                  onClick={() => handleClick(item.path, item.label)}
-                  sx={{ borderRadius: 3, width: "100%" }}
-                  disabled={isDisabled}
+          return (
+            <Tooltip key={item.label} title={tooltipTitle} placement="top">
+              <ButtonBase
+                onClick={() => handleClick(item.path, item.label)}
+                sx={{ borderRadius: 3, width: "100%" }}
+                disabled={isDisabled}
+              >
+                <Paper
+                  elevation={4}
+                  sx={{
+                    width: "100%",
+                    p: 3,
+                    textAlign: "center",
+                    borderRadius: 3,
+                    transition: "transform 0.2s, box-shadow 0.2s",
+                    "&:hover": {
+                      transform: isDisabled ? "none" : "scale(1.03)",
+                      boxShadow: isDisabled ? 4 : 6,
+                      cursor: isDisabled ? "not-allowed" : "pointer",
+                    },
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minHeight: "120px",
+                    opacity: isDisabled ? 0.6 : 1,
+                    backgroundColor: isDisabled
+                      ? "action.disabledBackground"
+                      : "background.paper",
+                  }}
                 >
-                  <Paper
-                    elevation={4}
+                  <Typography
                     sx={{
-                      width: "100%",
-                      p: 3,
-                      textAlign: "center",
-                      borderRadius: 3,
-                      transition: "transform 0.2s, box-shadow 0.2s",
-                      "&:hover": {
-                        transform: isDisabled ? "none" : "scale(1.03)",
-                        boxShadow: isDisabled ? 4 : 6,
-                        cursor: isDisabled ? "not-allowed" : "pointer"
-                      },
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minHeight: '120px',
-                      opacity: isDisabled ? 0.6 : 1,
-                      backgroundColor: isDisabled ? "action.disabledBackground" : "background.paper"
+                      fontWeight: "bold",
+                      color: isDisabled ? "text.disabled" : "text.primary",
                     }}
                   >
-                    <Typography
-                      sx={{ 
-                          fontWeight: "bold",
-                          color: isDisabled ? "text.disabled" : "text.primary"
-                      }}
-                    >
-                      {item.label}
-                    </Typography>
-                  </Paper>
-                </ButtonBase>
-              </Tooltip>
-            )
+                    {item.label}
+                  </Typography>
+                </Paper>
+              </ButtonBase>
+            </Tooltip>
+          );
         })}
       </Box>
 
       {modalOcorrenciaAberto && (
-      <CadastrarOcorrencia 
-        open={modalOcorrenciaAberto} 
-        chaveEmprestada={chaveEmprestada}
-        onClose={fecharModalOcorrencia} 
-        corrida={corridaLocal.idCorrida}
-        onSuccess={() => {
-          fecharModalOcorrencia();
-        }}
-        onError={(erro) => {
-          console.error("Erro ao salvar ocorrência:", erro);
-        }}
-      />
+        <CadastrarOcorrencia
+          open={modalOcorrenciaAberto}
+          chaveEmprestada={chaveEmprestada}
+          onClose={fecharModalOcorrencia}
+          corrida={corridaLocal.idCorrida}
+          onSuccess={() => {
+            fecharModalOcorrencia();
+          }}
+          onError={(erro) => {
+            console.error("Erro ao salvar ocorrência:", erro);
+          }}
+        />
       )}
 
       {modalAbastecimentoAberto && (
-      <AbastecimentoModal
-        open={modalAbastecimentoAberto}
-        onClose={fecharModalAbastecimento}
-        corrida={corridaLocal}
-        onSuccess={() => {
-          fecharModalAbastecimento();
-        }}
-      />
+        <AbastecimentoModal
+          open={modalAbastecimentoAberto}
+          onClose={fecharModalAbastecimento}
+          corrida={corridaLocal}
+          onSuccess={() => {
+            fecharModalAbastecimento();
+          }}
+        />
       )}
-      
+
       {modalConfirmacaoOpen && (
-      <ModalConfirmacaoUltimoPercurso
-        open={modalConfirmacaoOpen}
-        onClose={handleCloseConfirmacaoModal}
-        onConfirm={handleConfirmacaoUltimoPercurso}
-        localOrigem={corridaLocal.localDeSaida || ""}
-      />
+        <ModalConfirmacaoUltimoPercurso
+          open={modalConfirmacaoOpen}
+          onClose={handleCloseConfirmacaoModal}
+          onConfirm={handleConfirmacaoUltimoPercurso}
+          localOrigem={corridaLocal.localDeSaida || ""}
+        />
       )}
 
       {modalIniciarOpen && (
-      <ModalIniciarPercurso
+        <ModalIniciarPercurso
           open={modalIniciarOpen}
           onClose={handleCloseIniciarModal}
           onConfirm={handleIniciarPercurso}
@@ -512,34 +558,36 @@ const PainelCorridaMotorista: React.FC<PainelCorridaMotoristaProps> = ({ corrida
           percursosAtivosCount={percursosAtivosCount}
           chaveEmprestada={chaveEmprestada}
           isUltimoPercurso={isUltimoPercurso}
-          localOrigemCorrida={corridaLocal.localDeSaida || ""} odometroAtual={odometroAtual}      />
+          localOrigemCorrida={corridaLocal.localDeSaida || ""}
+          odometroAtual={odometroAtual}
+        />
       )}
 
       {modalFinalizarOpen && (
-      <ModalFinalizarPercurso
-        open={modalFinalizarOpen}
-        onClose={handleCloseFinalizarModal}
-        onConfirm={handleFinalizarPercurso}
-        odometroFinal={odometroFinal}
-        setOdometroFinal={setOdometroFinal}
-        percursoAtual={percursoAtual}
-      />
+        <ModalFinalizarPercurso
+          open={modalFinalizarOpen}
+          onClose={handleCloseFinalizarModal}
+          onConfirm={handleFinalizarPercurso}
+          odometroFinal={odometroFinal}
+          setOdometroFinal={setOdometroFinal}
+          percursoAtual={percursoAtual}
+        />
       )}
 
       {successModalOpen && (
-      <ModalSucesso
-        open={successModalOpen}
-        onClose={handleSuccessClose}
-        title="Percurso iniciado com sucesso"
-      />
+        <ModalSucesso
+          open={successModalOpen}
+          onClose={handleSuccessClose}
+          title="Percurso iniciado com sucesso"
+        />
       )}
 
       {finalizeSuccessModalOpen && (
-      <ModalSucesso
-        open={finalizeSuccessModalOpen}
-        onClose={handleFinalizeSuccessClose}
-        title="Percurso finalizado com sucesso"
-      />
+        <ModalSucesso
+          open={finalizeSuccessModalOpen}
+          onClose={handleFinalizeSuccessClose}
+          title="Percurso finalizado com sucesso"
+        />
       )}
     </Box>
   );

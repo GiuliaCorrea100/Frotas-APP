@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -9,36 +9,44 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  useTheme
+  useTheme,
+  Tooltip,
+  Chip,
 } from "@mui/material";
-import CreateIcon from '@mui/icons-material/Create';
-import CancelIcon from '@mui/icons-material/Cancel';
-import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
-import { CorridaFrontend, CorridaDto, getCorridas, CorridaService, atualizarSituacaoCorrida } from '../../../services/CorridaService';
+import CreateIcon from "@mui/icons-material/Create";
+import CancelIcon from "@mui/icons-material/Cancel";
+import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
+import {
+  CorridaFrontend,
+  CorridaDto,
+  getCorridas,
+  CorridaService,
+  atualizarSituacaoCorrida,
+} from "../../../services/CorridaService";
 
 import SalvarEdicaoCorrida from "./modais/ModalEdicaoPainelCorrida";
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import CadastrarCorrida from './modais/ModalCadastroCorrida';
-import { CarroService } from '../../../services/CarroService';
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import CadastrarCorrida from "./modais/ModalCadastroCorrida";
+import { CarroService } from "../../../services/CarroService";
 
-import Menu from '../../../components/Menu';
-import axiosConnect from '../../../services/axios/axiosConnect';
+import axiosConnect from "../../../services/axios/axiosConnect";
+import AppLayout from "../../../components/Layout";
 
 const formatDate = (dateString: string | null) => {
-  if (!dateString) return 'Em andamento';
+  if (!dateString) return "Em andamento";
   try {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {
-      return 'Data inválida';
+      return "Data inválida";
     }
-    
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
+
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
-    
+
     return `${day}/${month}/${year}`;
   } catch {
-    return 'Data inválida';
+    return "Data inválida";
   }
 };
 
@@ -52,15 +60,18 @@ const mapToDto = (c: CorridaFrontend): CorridaDto => ({
 export default function ListaCorrida() {
   const theme = useTheme();
 
-  const [busca, setBusca] = useState('');
+  const [busca, setBusca] = useState("");
   const [corridas, setCorridas] = useState<CorridaFrontend[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [selectedCorrida, setSelectedCorrida] = useState<CorridaFrontend | null>(null);
-  const [senhaLiberarChave, setSenhaLiberarChave] = useState('');
-  const [corridaParaEditar, setCorridaParaEditar] = useState<CorridaFrontend | null>(null);
+  const [selectedCorrida, setSelectedCorrida] =
+    useState<CorridaFrontend | null>(null);
+  const [senhaLiberarChave, setSenhaLiberarChave] = useState("");
+  const [corridaParaEditar, setCorridaParaEditar] =
+    useState<CorridaFrontend | null>(null);
 
-  const [showModalCadastrarCorrida, setShowModalCadastrarCorrida] = useState(false);
+  const [showModalCadastrarCorrida, setShowModalCadastrarCorrida] =
+    useState(false);
   const [showModalLiberarChave, setShowModalLiberarChave] = useState(false);
   const [showModalReceberChave, setShowModalReceberChave] = useState(false);
   const [showModalEditar, setShowModalEditar] = useState(false);
@@ -69,8 +80,8 @@ export default function ListaCorrida() {
   const [senhaError, setSenhaError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const [filtroSituacao, setFiltroSituacao] = useState<string>('AGENDADA');
-  const [authMode, setAuthMode] = useState<string>('SIGAA');
+  const [filtroSituacao, setFiltroSituacao] = useState<string>("AGENDADA");
+  const [authMode, setAuthMode] = useState<string>("SIGAA");
 
   const navigate = useNavigate();
 
@@ -78,18 +89,18 @@ export default function ListaCorrida() {
   useEffect(() => {
     const fetchAuthMode = async () => {
       try {
-        const response = await axiosConnect.get('/auth/mode');
+        const response = await axiosConnect.get("/auth/mode");
         setAuthMode(response.data.mode);
       } catch (error) {
-        console.error('Erro ao buscar modo de autenticação:', error);
-        setAuthMode('SIGAA');
+        console.error("Erro ao buscar modo de autenticação:", error);
+        setAuthMode("SIGAA");
       }
     };
     fetchAuthMode();
   }, []);
 
   useEffect(() => {
-    carregarCorridas(); 
+    carregarCorridas();
   }, []);
 
   const carregarCorridas = async () => {
@@ -103,19 +114,24 @@ export default function ListaCorrida() {
     }
   };
 
-  const qtdAgendadas = corridas.filter(c => c.situacao === 'AGENDADA').length;
-  const qtdEmAndamento = corridas.filter(c => c.situacao === 'ANDAMENTO').length;
-  const qtdFinalizadas = corridas.filter(c => c.situacao === 'FINALIZADA').length;
-  const qtdCanceladas = corridas.filter(c => c.situacao === 'CANCELADA').length;
+  const qtdAgendadas = corridas.filter((c) => c.situacao === "AGENDADA").length;
+  const qtdEmAndamento = corridas.filter(
+    (c) => c.situacao === "ANDAMENTO",
+  ).length;
+  const qtdFinalizadas = corridas.filter(
+    (c) => c.situacao === "FINALIZADA",
+  ).length;
+  const qtdCanceladas = corridas.filter(
+    (c) => c.situacao === "CANCELADA",
+  ).length;
 
-  const dadosFiltrados = corridas.filter(corrida => {
-    const matchesSearch = Object.values(corrida).some(valor =>
-      String(valor).toLowerCase().includes(busca.toLowerCase())
+  const dadosFiltrados = corridas.filter((corrida) => {
+    const matchesSearch = Object.values(corrida).some((valor) =>
+      String(valor).toLowerCase().includes(busca.toLowerCase()),
     );
 
     const matchesSituacao =
-      filtroSituacao === 'TODOS' ||
-      corrida.situacao === filtroSituacao;
+      filtroSituacao === "TODOS" || corrida.situacao === filtroSituacao;
 
     return matchesSearch && matchesSituacao;
   });
@@ -123,7 +139,7 @@ export default function ListaCorrida() {
   const handleAbrirModalLiberarChave = (corrida: CorridaFrontend) => {
     setSelectedCorrida(corrida);
     setSenhaError(null);
-    setSenhaLiberarChave('');
+    setSenhaLiberarChave("");
     setIsProcessing(false);
     setShowModalLiberarChave(true);
   };
@@ -147,10 +163,10 @@ export default function ListaCorrida() {
     if (!selectedCorrida) return;
 
     setSenhaError(null);
-    
+
     // Validar senha
     if (!senhaLiberarChave.trim()) {
-      setSenhaError('Digite sua senha');
+      setSenhaError("Digite sua senha");
       return;
     }
 
@@ -158,58 +174,62 @@ export default function ListaCorrida() {
 
     try {
       // No modo MOCK, validar com senha fixa
-      if (authMode === 'MOCK') {
-        if (senhaLiberarChave !== 'secret') {
-          setSenhaError('Senha incorreta. No modo TESTE use a senha: secret');
+      if (authMode === "MOCK") {
+        if (senhaLiberarChave !== "secret") {
+          setSenhaError("Senha incorreta. No modo TESTE use a senha: secret");
           setIsProcessing(false);
           return;
         }
-        
+
         // Simular a liberação da chave no modo MOCK
         await CorridaService.confirmarLiberarChaveMock(
-          selectedCorrida.idCorrida, 
-          selectedCorrida.idMotorista
+          selectedCorrida.idCorrida,
+          selectedCorrida.idMotorista,
         );
       } else {
         // Modo SIGAA normal
         await CorridaService.confirmarLiberarChave(
-          selectedCorrida.idCorrida, 
-          selectedCorrida.idMotorista, 
-          senhaLiberarChave
+          selectedCorrida.idCorrida,
+          selectedCorrida.idMotorista,
+          senhaLiberarChave,
         );
       }
-      
-      await CarroService.atualizarSituacaoCarro(selectedCorrida.idCarro, "VIAGEM");
-      
+
+      await CarroService.atualizarSituacaoCarro(
+        selectedCorrida.idCarro,
+        "VIAGEM",
+      );
+
       const dadosAtualizados = await getCorridas();
       setCorridas(dadosAtualizados);
       setShowModalLiberarChave(false);
-      setSenhaLiberarChave('');
+      setSenhaLiberarChave("");
       setSenhaError(null);
-      
     } catch (error: any) {
       console.error("Erro ao processar liberação da chave:", error);
-      
+
       // Verificar se é erro de senha
-      const errorMessage = error.response?.data?.message || error.message || '';
+      const errorMessage = error.response?.data?.message || error.message || "";
       const errorMessageLower = errorMessage.toLowerCase();
-      
-      if (error.response?.status === 401 || 
-          errorMessageLower.includes('senha') ||
-          errorMessageLower.includes('password') ||
-          errorMessageLower.includes('credenciais') ||
-          errorMessageLower.includes('autenticação') ||
-          errorMessageLower.includes('incorreto') ||
-          errorMessageLower.includes('inválido')) {
-        setSenhaError('Senha inválida. Verifique e tente novamente.');
+
+      if (
+        error.response?.status === 401 ||
+        errorMessageLower.includes("senha") ||
+        errorMessageLower.includes("password") ||
+        errorMessageLower.includes("credenciais") ||
+        errorMessageLower.includes("autenticação") ||
+        errorMessageLower.includes("incorreto") ||
+        errorMessageLower.includes("inválido")
+      ) {
+        setSenhaError("Senha inválida. Verifique e tente novamente.");
       } else if (error.response?.status === 400) {
-        setSenhaError('Requisição inválida. Verifique os dados.');
+        setSenhaError("Requisição inválida. Verifique os dados.");
       } else if (error.response?.status === 403) {
-        setSenhaError('Acesso não autorizado.');
+        setSenhaError("Acesso não autorizado.");
       } else if (error.response?.status === 500) {
-        setSenhaError('Erro interno do servidor. Tente novamente mais tarde.');
+        setSenhaError("Erro interno do servidor. Tente novamente mais tarde.");
       } else {
-        setSenhaError('Erro ao liberar chave. Tente novamente.');
+        setSenhaError("Erro ao liberar chave. Tente novamente.");
       }
     } finally {
       setIsProcessing(false);
@@ -218,78 +238,76 @@ export default function ListaCorrida() {
 
   const columns: GridColDef<CorridaFrontend>[] = [
     {
-      field: 'idCorrida',
-      headerName: 'Nº',
+      field: "idCorrida",
+      headerName: "Nº",
       flex: 0.2,
-      renderCell: (params) => (
-        <Typography>{params.value}</Typography>
-      )
+      renderCell: (params) => <Typography>{params.value}</Typography>,
     },
     {
-      field: 'nomeMotorista',
-      headerName: 'Motorista',
+      field: "nomeMotorista",
+      headerName: "Motorista",
       flex: 0.8,
-      renderCell: (params) => (
-        <Typography>{params.value}</Typography>
-      )
+      renderCell: (params) => <Typography>{params.value}</Typography>,
     },
     {
-      field: 'placaVeiculo',
-      headerName: 'Veículo',
+      field: "placaVeiculo",
+      headerName: "Veículo",
       width: 150,
-      renderCell: (params) => (
-        <Typography>{params.value}</Typography>
-      )
+      renderCell: (params) => <Typography>{params.value}</Typography>,
     },
     {
-      field: 'dataInicio',
-      headerName: 'Data/Hora Início',
+      field: "dataInicio",
+      headerName: "Data/Hora Início",
       width: 200,
       renderCell: (params) => (
         <Typography variant="body2">
           {formatDate(params.value as string)}
         </Typography>
-      )
+      ),
     },
     {
-      field: 'dataTermino',
-      headerName: 'Data/Hora Término',
+      field: "dataTermino",
+      headerName: "Data/Hora Término",
       width: 200,
       renderCell: (params) => (
         <Typography variant="body2">
           {formatDate(params.value as string | null)}
         </Typography>
-      )
+      ),
     },
     {
-      field: 'situacao',
-      headerName: 'Situação',
-      width: 100,
+      field: "situacao",
+      headerName: "Situação",
+      width: 150,
       renderCell: (params) => {
+        const situacao = params.value || '';
         let color;
-        switch (params.value) {
-          case 'AGENDADA':
-            color = theme.palette.info.main;
+        switch (situacao) {
+          case "AGENDADA":
+            color = 'info';
             break;
-          case 'ANDAMENTO':
-            color = theme.palette.warning.main;
+          case "ANDAMENTO":
+            color = 'warning';
             break;
-          case 'FINALIZADA':
-            color = theme.palette.success.main;
+          case "FINALIZADA":
+            color = 'success';
             break;
           default:
-            color = theme.palette.text.secondary;
+            color = 'error';
         }
         return (
-          <Typography variant="body2" sx={{ color, fontWeight: 600 }}>
-            {params.value}
-          </Typography>
+          <Chip
+            label={situacao}
+            color={color as any}
+            size="small"
+            variant="outlined"
+          />
         );
-      }
+      },
     },
     {
-      field: 'acoes',
-      headerName: 'Ações',
+      field: "acoes",
+      headerName: "Ações",
       width: 450,
       minWidth: 450,
       maxWidth: 600,
@@ -299,179 +317,325 @@ export default function ListaCorrida() {
       renderCell: (params) => {
         const corrida = params.row;
         return (
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              variant="outlined"
-              color="warning"
-              size="small"
-              onClick={() => handleAbrirModalEditar(corrida)}
-              disabled={((corrida.chaveEmprestada === true) && (corrida.situacao === "FINALIZADA" || corrida.situacao === "ANDAMENTO" || corrida.situacao === "AGENDADA" || corrida.situacao === "CANCELADA"))
-                || ((corrida.situacao === "FINALIZADA"|| corrida.situacao === "CANCELADA") && (corrida.chaveEmprestada === false))}
-              startIcon={<CreateIcon />}
-            >
-            </Button>
-            <Button
-              variant="contained"
-              color="success"
-              size="small"
-              onClick={() => navigate(`/DetalhesCorrida/${corrida.idCorrida}`)}
-              disabled={corrida.situacao === "CANCELADA"}
-              startIcon={<VisibilityIcon />}
-            >
-            </Button>
-            <Button
-              variant="outlined"
-              color="warning"
-              size="small"
-              onClick={() => handleAbrirModalCancelarCorrida(corrida)}
-              disabled={((corrida.chaveEmprestada === true) && (corrida.situacao === "FINALIZADA" || corrida.situacao === "ANDAMENTO" || corrida.situacao === "AGENDADA"|| corrida.situacao === "CANCELADA"))
-                || ((corrida.situacao === "FINALIZADA"|| corrida.situacao === "CANCELADA") && (corrida.chaveEmprestada === false))}
-              startIcon={<CancelIcon />}
-            >
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              size="small"
-              onClick={() => handleAbrirModalLiberarChave(corrida)}
-              disabled={((corrida.chaveEmprestada === true) && (corrida.situacao === "FINALIZADA" || corrida.situacao === "ANDAMENTO" || corrida.situacao === "AGENDADA"|| corrida.situacao === "CANCELADA"))
-                || ((corrida.situacao === "FINALIZADA"|| corrida.situacao === "CANCELADA") && (corrida.chaveEmprestada === false))}
-            >
-              Liberar Chave
-            </Button>
-            <Button
-              variant="outlined"
-              color="secondary"
-              size="small"
-              onClick={() => handleAbrirModalReceberChave(corrida)}
-              disabled={((corrida.chaveEmprestada === false) && (corrida.situacao === "AGENDADA" || corrida.situacao === "ANDAMENTO" || corrida.situacao === "FINALIZADA"|| corrida.situacao === "CANCELADA"))
-                || ((corrida.chaveEmprestada === true) && (corrida.situacao === "CANCELADA"))}
-            >
-              Receber Chave
-            </Button>
+          <Box sx={{ display: "flex", gap: 1 }}>
+            {/* EDITAR */}
+            <Tooltip title="Editar corrida">
+              <Button
+                variant="contained"
+                color="warning"
+                size="small"
+                onClick={() => handleAbrirModalEditar(corrida)}
+                disabled={
+                  (corrida.chaveEmprestada === true &&
+                    (corrida.situacao === "FINALIZADA" ||
+                      corrida.situacao === "ANDAMENTO" ||
+                      corrida.situacao === "AGENDADA" ||
+                      corrida.situacao === "CANCELADA")) ||
+                  ((corrida.situacao === "FINALIZADA" ||
+                    corrida.situacao === "CANCELADA") &&
+                    corrida.chaveEmprestada === false)
+                }
+                startIcon={<CreateIcon />}
+                sx={{
+                  width: 42,
+                  height: 42,
+                  minWidth: 42,
+                  padding: 0,
+                  borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  "& .MuiButton-startIcon": {
+                    margin: 0,
+                  },
+                }}
+              ></Button>
+            </Tooltip>
+
+            {/* DETALHES */}
+            <Tooltip title="Ver detalhes">
+              <Button
+                variant="contained"
+                color="success"
+                size="small"
+                onClick={() =>
+                  navigate(`/DetalhesCorrida/${corrida.idCorrida}`)
+                }
+                disabled={corrida.situacao === "CANCELADA"}
+                startIcon={<VisibilityIcon />}
+                sx={{
+                  width: 42,
+                  height: 42,
+                  minWidth: 42,
+                  padding: 0,
+                  borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  "& .MuiButton-startIcon": {
+                    margin: 0,
+                  },
+                }}
+              ></Button>
+            </Tooltip>
+
+            {/* CANCELAR */}
+            <Tooltip title="Cancelar corrida">
+              <Button
+                variant="contained"
+                color="error"
+                size="small"
+                onClick={() => handleAbrirModalCancelarCorrida(corrida)}
+                disabled={
+                  (corrida.chaveEmprestada === true &&
+                    (corrida.situacao === "FINALIZADA" ||
+                      corrida.situacao === "ANDAMENTO" ||
+                      corrida.situacao === "AGENDADA" ||
+                      corrida.situacao === "CANCELADA")) ||
+                  ((corrida.situacao === "FINALIZADA" ||
+                    corrida.situacao === "CANCELADA") &&
+                    corrida.chaveEmprestada === false)
+                }
+                startIcon={<CancelIcon />}
+                sx={{
+                  width: 42,
+                  height: 42,
+                  minWidth: 42,
+                  padding: 0,
+                  borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  "& .MuiButton-startIcon": {
+                    margin: 0,
+                  },
+                  color:
+                    theme.palette.mode === "dark"
+                      ? "rgba(0, 0, 0, 0.87)"
+                      : undefined,
+                }}
+              ></Button>
+            </Tooltip>
+
+            {/* LIBERAR CHAVE */}
+            <Tooltip title="Liberar chave ao motorista">
+              <Button
+                variant="contained"
+                color="primary"
+                size="small"
+                onClick={() => handleAbrirModalLiberarChave(corrida)}
+                disabled={
+                  (corrida.chaveEmprestada === true &&
+                    (corrida.situacao === "FINALIZADA" ||
+                      corrida.situacao === "ANDAMENTO" ||
+                      corrida.situacao === "AGENDADA" ||
+                      corrida.situacao === "CANCELADA")) ||
+                  ((corrida.situacao === "FINALIZADA" ||
+                    corrida.situacao === "CANCELADA") &&
+                    corrida.chaveEmprestada === false)
+                }
+              >
+                Liberar Chave
+              </Button>
+            </Tooltip>
+
+            {/* RECEBER CHAVE */}
+            <Tooltip title="Receber chave do motorista">
+              <Button
+                variant="contained"
+                color="secondary"
+                size="small"
+                onClick={() => handleAbrirModalReceberChave(corrida)}
+                disabled={
+                  (corrida.chaveEmprestada === false &&
+                    (corrida.situacao === "AGENDADA" ||
+                      corrida.situacao === "ANDAMENTO" ||
+                      corrida.situacao === "FINALIZADA" ||
+                      corrida.situacao === "CANCELADA")) ||
+                  (corrida.chaveEmprestada === true &&
+                    corrida.situacao === "CANCELADA")
+                }
+              >
+                Receber Chave
+              </Button>
+            </Tooltip>
           </Box>
         );
-      }
-    }
+      },
+    },
   ];
 
   return (
-    <>
-      <Menu />
-      <Box sx={{
-        p: 3,
-        backgroundColor: theme.palette.background.default,
-        display: 'flex',
-        flexDirection: 'column',
-        flex: 1 
-      }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h5" fontWeight="bold" color="textPrimary">
-            Listagem de Corridas
-          </Typography>
-          <Button
-            onClick={() => setShowModalCadastrarCorrida(true)}
-            variant="contained"
-            sx={{ textTransform: 'none', fontWeight: 600, boxShadow: theme.shadows[2] }}
-          >
-            + Nova Corrida
-          </Button>
-        </Box>
+    <AppLayout>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={3}
+      >
+        <Typography variant="h5" fontWeight="bold" color="textPrimary">
+          Listagem de Corridas
+        </Typography>
+        <Button
+          onClick={() => setShowModalCadastrarCorrida(true)}
+          variant="contained"
+          sx={{
+            textTransform: "none",
+            fontWeight: 600,
+            boxShadow: theme.shadows[2],
+          }}
+        >
+          + Nova Corrida
+        </Button>
+      </Box>
 
-        <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
-          {[
-            { label: 'AGENDADAS', value: 'AGENDADA', count: qtdAgendadas, color: theme.palette.info.main },
-            { label: 'EM ANDAMENTO', value: 'ANDAMENTO', count: qtdEmAndamento, color: theme.palette.warning.main },
-            { label: 'FINALIZADAS', value: 'FINALIZADA', count: qtdFinalizadas, color: theme.palette.success.main },
-            {label: 'CANCELADAS', value: 'CANCELADA', count: qtdCanceladas, color: theme.palette.success.main },
-            { label: 'TODAS', value: 'TODOS', count: corridas.length, color: theme.palette.primary.dark }
-          ].map((tab) => (
-            <Button
-              key={tab.value}
-              variant={filtroSituacao === tab.value ? "contained" : "outlined"}
-              onClick={() => setFiltroSituacao(tab.value)}
-              sx={{
-                textTransform: 'none',
-                borderRadius: 2,
-                px: 2,
-                fontWeight: filtroSituacao === tab.value ? 600 : 500,
-                color: filtroSituacao === tab.value ? 'white' : 'text.primary',
-                bgcolor: filtroSituacao === tab.value ? tab.color : 'background.paper',
-                '&:hover': {
-                  bgcolor: filtroSituacao === tab.value
+      <Box sx={{ display: "flex", gap: 1, mb: 3, flexWrap: "wrap" }}>
+        {[
+          {
+            label: "AGENDADAS",
+            value: "AGENDADA",
+            count: qtdAgendadas,
+            color: theme.palette.info.main,
+          },
+          {
+            label: "EM ANDAMENTO",
+            value: "ANDAMENTO",
+            count: qtdEmAndamento,
+            color: theme.palette.warning.main,
+          },
+          {
+            label: "FINALIZADAS",
+            value: "FINALIZADA",
+            count: qtdFinalizadas,
+            color: theme.palette.success.main,
+          },
+          {
+            label: "CANCELADAS",
+            value: "CANCELADA",
+            count: qtdCanceladas,
+            color: theme.palette.success.main,
+          },
+          {
+            label: "TODAS",
+            value: "TODOS",
+            count: corridas.length,
+            color: theme.palette.primary.dark,
+          },
+        ].map((tab) => (
+          <Button
+            key={tab.value}
+            variant={filtroSituacao === tab.value ? "contained" : "outlined"}
+            onClick={() => setFiltroSituacao(tab.value)}
+            sx={{
+              textTransform: "none",
+              borderRadius: 2,
+              px: 2,
+              fontWeight: filtroSituacao === tab.value ? 600 : 500,
+              color: filtroSituacao === tab.value ? "white" : "text.primary",
+              bgcolor:
+                filtroSituacao === tab.value ? tab.color : "background.paper",
+              "&:hover": {
+                bgcolor:
+                  filtroSituacao === tab.value
                     ? theme.palette.primary.dark
                     : theme.palette.action.hover,
-                }
-              }}
-            >
-              {tab.label}
-              <Box sx={{
+              },
+            }}
+          >
+            {tab.label}
+            <Box
+              sx={{
                 ml: 1,
                 fontWeight: 600,
-                backgroundColor: filtroSituacao === tab.value 
-                  ? 'rgba(255,255,255,0.2)' 
-                  : (theme.palette.mode === 'dark' ? theme.palette.grey[700] : theme.palette.grey[200]),
-                color: filtroSituacao === tab.value 
-                  ? 'white' 
-                  : (theme.palette.mode === 'dark' ? theme.palette.grey[100] : theme.palette.text.primary),
+                backgroundColor:
+                  filtroSituacao === tab.value
+                    ? "rgba(255,255,255,0.2)"
+                    : theme.palette.mode === "dark"
+                      ? theme.palette.grey[700]
+                      : theme.palette.grey[200],
+                color:
+                  filtroSituacao === tab.value
+                    ? "white"
+                    : theme.palette.mode === "dark"
+                      ? theme.palette.grey[100]
+                      : theme.palette.text.primary,
                 px: 1,
-                borderRadius: 12
-              }}>
-                {tab.count}
-              </Box>
-            </Button>
-          ))}
-        </Box>
-
-        <Box sx={{ mb: 3 }}>
-          <TextField
-            placeholder="Buscar corridas..."
-            variant="outlined"
-            size="small"
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            fullWidth
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, backgroundColor: theme.palette.background.paper } }}
-          />
-        </Box>
-
-        <Box sx={{ width: '100%' }}>
-          <DataGrid
-            rows={dadosFiltrados}
-            columns={columns}
-            loading={loading}
-            getRowId={(row) => row.idCorrida}
-            initialState={{ pagination: { paginationModel: { pageSize: 8, page: 0 } } }}
-            pageSizeOptions={[8, 16, 24]}
-            localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
-            sx={{
-              '& .MuiDataGrid-cell': { borderBottom: `1px solid ${theme.palette.divider}`, py: 1.5 },
-              '& .MuiDataGrid-columnHeaders': {
-                backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[100],
-                fontWeight: 'bold',
-                borderRadius: 1,
-                borderBottom: `2px solid ${theme.palette.divider}`
-              },
-              '& .MuiDataGrid-row': { '&:hover': { backgroundColor: theme.palette.action.hover }, '&.Mui-selected': { backgroundColor: theme.palette.action.selected } },
-              '& .MuiDataGrid-footerContainer': { borderTop: `1px solid ${theme.palette.divider}` },
-              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-                marginBottom: 0,
-                alignSelf: 'center',
-              },
-              '& .MuiTablePagination-toolbar': {
-                minHeight: '52px',
-                alignItems: 'center',
-              },
-              boxShadow: theme.shadows[1],
-              borderRadius: 2,
-              border: 'none',
-              backgroundColor: theme.palette.background.paper,
-              height: 'calc(100vh - 350px)',
-            }}
-            rowSelection={false}
-          />
-        </Box>
+                borderRadius: 12,
+              }}
+            >
+              {tab.count}
+            </Box>
+          </Button>
+        ))}
       </Box>
+
+      <Box sx={{ mb: 3 }}>
+        <TextField
+          placeholder="Buscar corridas..."
+          variant="outlined"
+          size="small"
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          fullWidth
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 2,
+              backgroundColor: theme.palette.background.paper,
+            },
+          }}
+        />
+      </Box>
+
+      <DataGrid
+        rows={dadosFiltrados}
+        columns={columns}
+        loading={loading}
+        getRowId={(row) => row.idCorrida}
+        initialState={{
+          pagination: { paginationModel: { pageSize: 8, page: 0 } },
+        }}
+        pageSizeOptions={[8, 16, 24]}
+        localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+        sx={{
+          "& .MuiDataGrid-cell": {
+            borderBottom: `1px solid ${theme.palette.divider}`,
+            py: 1.5,
+          },
+          "& .MuiDataGrid-columnHeaders": {
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? theme.palette.grey[800]
+                : theme.palette.grey[100],
+            fontWeight: "bold",
+            borderRadius: 1,
+            borderBottom: `2px solid ${theme.palette.divider}`,
+          },
+          "& .MuiDataGrid-row": {
+            "&:hover": { backgroundColor: theme.palette.action.hover },
+            "&.Mui-selected": {
+              backgroundColor: theme.palette.action.selected,
+            },
+          },
+          "& .MuiDataGrid-footerContainer": {
+            borderTop: `1px solid ${theme.palette.divider}`,
+          },
+          "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
+          {
+            marginBottom: 0,
+            alignSelf: "center",
+          },
+          "& .MuiTablePagination-toolbar": {
+            minHeight: "52px",
+            alignItems: "center",
+          },
+          boxShadow: theme.shadows[1],
+          borderRadius: 2,
+          border: "none",
+          backgroundColor: theme.palette.background.paper,
+          height: "calc(100vh - 350px)",
+        }}
+        rowSelection={false}
+      />
 
       {/* Modal de Liberar Chave */}
       <Dialog
@@ -486,13 +650,15 @@ export default function ListaCorrida() {
         maxWidth="sm"
         PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
       >
-        <DialogTitle color="text.primary" sx={{ fontWeight: 600 }}>Liberar chave</DialogTitle>
+        <DialogTitle color="text.primary" sx={{ fontWeight: 600 }}>
+          Liberar chave
+        </DialogTitle>
         <DialogContent>
           <Typography color="text.primary" mb={2}>
             Você está entregando a chave do carro ao motorista:
             <strong> {selectedCorrida?.nomeMotorista}</strong>
           </Typography>
-          
+
           <TextField
             label="Digite sua senha"
             type="password"
@@ -508,30 +674,30 @@ export default function ListaCorrida() {
             autoFocus
             disabled={isProcessing}
             onKeyPress={(e) => {
-              if (e.key === 'Enter' && !isProcessing) {
+              if (e.key === "Enter" && !isProcessing) {
                 e.preventDefault();
                 handleLiberarChave();
               }
             }}
           />
 
-          {authMode === 'MOCK' && (
-            <Typography 
-              variant="caption" 
-              color="text.secondary" 
-              sx={{ display: 'block', mt: 1, fontStyle: 'italic' }}
+          {authMode === "MOCK" && (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: "block", mt: 1, fontStyle: "italic" }}
             >
               Modo de teste ativo. Use a senha: <strong>secret</strong>
             </Typography>
           )}
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0 }}>
-          <Button 
+          <Button
             onClick={() => {
               setShowModalLiberarChave(false);
               setSenhaError(null);
-            }} 
-            variant="outlined" 
+            }}
+            variant="outlined"
             sx={{ borderRadius: 2 }}
             disabled={isProcessing}
           >
@@ -544,7 +710,7 @@ export default function ListaCorrida() {
             sx={{ borderRadius: 2 }}
             disabled={isProcessing}
           >
-            {isProcessing ? 'Processando...' : 'Confirmar'}
+            {isProcessing ? "Processando..." : "Confirmar"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -557,28 +723,36 @@ export default function ListaCorrida() {
         PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
       >
         <DialogTitle sx={{ fontWeight: 600 }}>
-          <Typography color="text.primary">
-            Cancelar corrida
-            </Typography>
-          </DialogTitle>
+          <Typography color="text.primary">Cancelar corrida</Typography>
+        </DialogTitle>
         <DialogContent>
           <Typography color="text.primary">
             Você tem certeza que deseja cancelar essa corrida?
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0 }}>
-          <Button onClick={() => setShowModalCancelar(false)} variant="outlined" sx={{ borderRadius: 2 }}>
+          <Button
+            onClick={() => setShowModalCancelar(false)}
+            variant="outlined"
+            sx={{ borderRadius: 2 }}
+          >
             Cancelar
           </Button>
           <Button
             onClick={async () => {
               if (selectedCorrida) {
                 try {
-                  await atualizarSituacaoCorrida(selectedCorrida.idCorrida, 'CANCELADA');
-                  
+                  await atualizarSituacaoCorrida(
+                    selectedCorrida.idCorrida,
+                    "CANCELADA",
+                  );
+
                   // Atualizar situação do carro para DISPONIVEL quando a corrida for cancelada
-                  await CarroService.atualizarSituacaoCarro(selectedCorrida.idCarro, "DISPONIVEL");
-                  
+                  await CarroService.atualizarSituacaoCarro(
+                    selectedCorrida.idCarro,
+                    "DISPONIVEL",
+                  );
+
                   const dadosAtualizados = await getCorridas();
                   setCorridas(dadosAtualizados);
                   setShowModalCancelar(false);
@@ -603,7 +777,9 @@ export default function ListaCorrida() {
         maxWidth="sm"
         PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
       >
-        <DialogTitle color="text.primary" sx={{ fontWeight: 600 }}>Receber chave</DialogTitle>
+        <DialogTitle color="text.primary" sx={{ fontWeight: 600 }}>
+          Receber chave
+        </DialogTitle>
         <DialogContent>
           <Typography color="text.primary">
             Você confirma que está recebendo a chave do motorista
@@ -611,27 +787,41 @@ export default function ListaCorrida() {
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0 }}>
-          <Button onClick={() => setShowModalReceberChave(false)} variant="outlined" sx={{ borderRadius: 2 }}>
+          <Button
+            onClick={() => setShowModalReceberChave(false)}
+            variant="outlined"
+            sx={{ borderRadius: 2 }}
+          >
             Cancelar
           </Button>
           <Button
             onClick={async () => {
               if (selectedCorrida) {
                 try {
-                  await CorridaService.confirmarReceberChave(selectedCorrida.idCorrida);
-                  
-                  await CarroService.atualizarSituacaoCarro(selectedCorrida.idCarro, "DISPONIVEL");
+                  await CorridaService.confirmarReceberChave(
+                    selectedCorrida.idCorrida,
+                  );
 
-                  if(selectedCorrida.situacao === 'ANDAMENTO'){
-                    await atualizarSituacaoCorrida(selectedCorrida.idCorrida, 'FINALIZADA');
+                  await CarroService.atualizarSituacaoCarro(
+                    selectedCorrida.idCarro,
+                    "DISPONIVEL",
+                  );
+
+                  if (selectedCorrida.situacao === "ANDAMENTO") {
+                    await atualizarSituacaoCorrida(
+                      selectedCorrida.idCorrida,
+                      "FINALIZADA",
+                    );
                   }
-                  
+
                   const dadosAtualizados = await getCorridas();
                   setCorridas(dadosAtualizados);
                   setShowModalReceberChave(false);
-                  
                 } catch (error) {
-                  console.error("Erro ao processar recebimento da chave:", error);
+                  console.error(
+                    "Erro ao processar recebimento da chave:",
+                    error,
+                  );
                 }
               }
             }}
@@ -647,10 +837,15 @@ export default function ListaCorrida() {
       <SalvarEdicaoCorrida
         open={showModalEditar}
         onClose={() => setShowModalEditar(false)}
-        corrida={corridaParaEditar ? {
-          ...mapToDto(corridaParaEditar),
-          dataTermino: mapToDto(corridaParaEditar).dataTermino || new Date()
-        } : null}
+        corrida={
+          corridaParaEditar
+            ? {
+              ...mapToDto(corridaParaEditar),
+              dataTermino:
+                mapToDto(corridaParaEditar).dataTermino || new Date(),
+            }
+            : null
+        }
         onSuccess={async (msg) => {
           console.log(msg);
           const dadosAtualizados = await getCorridas();
@@ -670,13 +865,13 @@ export default function ListaCorrida() {
             await carregarCorridas();
           }}
           onError={(error) => {
-            console.error('Erro ao cadastrar requisição:', error);
+            console.error("Erro ao cadastrar requisição:", error);
             if (error.response?.status === 401) {
-              navigate('/');
+              navigate("/");
             }
           }}
         />
       )}
-    </>
+    </AppLayout>
   );
 }
