@@ -1,4 +1,4 @@
-import { Add, Cancel } from '@mui/icons-material';
+import { Add, Cancel } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -11,13 +11,14 @@ import {
   DialogActions,
   Autocomplete,
   CircularProgress,
+  Tooltip,
 } from "@mui/material";
-import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
-import { useEffect, useState } from 'react';
-import React from 'react';
-import { AdminUserService } from '../../services/AdministradorService';
-import Menu from '../../components/Menu';
-import axiosConnect from '../../services/axios/axiosConnect';
+import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
+import { useEffect, useState } from "react";
+import React from "react";
+import { AdminUserService } from "../../services/AdministradorService";
+import axiosConnect from "../../services/axios/axiosConnect";
+import AppLayout from "../../components/Layout";
 
 interface AdminUserDto {
   idUsuario: number;
@@ -33,7 +34,7 @@ export default function ListaAdministradores() {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
-  const [NomeAdmin, setNomeAdmin] = useState('');
+  const [NomeAdmin, setNomeAdmin] = useState("");
   const [usuariosDisponiveis, setUsuariosDisponiveis] = useState<any[]>([]);
   const [showModalCadastro, setShowModalCadastro] = useState(false);
   const [showModalConfirmar, setShowModalConfirmar] = useState(false);
@@ -48,8 +49,8 @@ export default function ListaAdministradores() {
         const dados = await AdminUserService.buscarTodos();
         setAdmins(dados);
       } catch (e) {
-        console.error('Erro ao carregar administradores:', e);
-        setErro('Erro ao carregar administradores.');
+        console.error("Erro ao carregar administradores:", e);
+        setErro("Erro ao carregar administradores.");
       } finally {
         setLoading(false);
       }
@@ -58,7 +59,7 @@ export default function ListaAdministradores() {
   }, []);
 
   const handleAbriModalNovoAdmin = () => {
-    setNomeAdmin('');
+    setNomeAdmin("");
     setSelectedAdmin(null);
     setErroVinculo(null);
     setShowModalCadastro(true);
@@ -67,7 +68,7 @@ export default function ListaAdministradores() {
   const handleAbrirModalConfirmar = (usuario: AdminUserDto) => {
     setSelectedUsuario(usuario);
     setShowModalConfirmar(true);
-  }
+  };
 
   const buscarUsuario = async (nome: string) => {
     if (nome.length < 3) {
@@ -75,7 +76,7 @@ export default function ListaAdministradores() {
       return;
     }
 
-     try {
+    try {
       setLoadingAdmin(true);
       const response = await axiosConnect.get(`/usuarioSigaa?nome=${nome}`);
 
@@ -88,7 +89,7 @@ export default function ListaAdministradores() {
 
       setUsuariosDisponiveis(usuariosUnicosEOrdenados);
     } catch (error) {
-      console.error('Erro ao buscar usuários:', error);
+      console.error("Erro ao buscar usuários:", error);
       setUsuariosDisponiveis([]);
     } finally {
       setLoadingAdmin(false);
@@ -104,210 +105,218 @@ export default function ListaAdministradores() {
   };
 
   const handleSubmitCadastro = async () => {
-    
     if (!SelectedAdmin) {
-      setErroVinculo('Nenhum usuário selecionado.');
+      setErroVinculo("Nenhum usuário selecionado.");
       return;
     }
 
     try {
-      const response = await axiosConnect.get(`/usuario/consultaCadastro/${SelectedAdmin.idPessoaSigaa}`, {
-        params: {
-          nome: SelectedAdmin.nome
-        }
-      });
+      const response = await axiosConnect.get(
+        `/usuario/consultaCadastro/${SelectedAdmin.idPessoaSigaa}`,
+        {
+          params: {
+            nome: SelectedAdmin.nome,
+          },
+        },
+      );
 
       const idUsuarioAdministrador = response.data.idUsuario;
-      
+
       if (!idUsuarioAdministrador) {
         throw new Error("Não foi possível obter o ID do usuário no sistema");
       }
 
       // Alterar permissão de administrador
       await AdminUserService.confirmarCadastro(idUsuarioAdministrador);
-      
+
       // Atualizar lista
       const dadosAtualizados = await AdminUserService.buscarTodos();
       setAdmins(dadosAtualizados);
-      
+
       // 5. Fechar modais e limpar estados
       setShowModalCadastro(false);
       setSelectedAdmin(null);
-      setErro('');
-      setErroVinculo('');
-
+      setErro("");
+      setErroVinculo("");
     } catch (error) {
-      console.error('Erro ao alterar permissão:', error);
-      setErroVinculo('Erro ao alterar permissão do usuário. Tente novamente.');
+      console.error("Erro ao alterar permissão:", error);
+      setErroVinculo("Erro ao alterar permissão do usuário. Tente novamente.");
     }
   };
 
   const handleSubmitRevogacao = async () => {
-    
     if (!SelectedUsuario) {
-      setErroVinculo('Nenhum usuário selecionado.');
+      setErroVinculo("Nenhum usuário selecionado.");
       return;
     }
 
     try {
       // Alterar permissão de administrador
       await AdminUserService.confirmarCadastro(SelectedUsuario.idUsuario);
-      
+
       // Atualizar lista
       const dadosAtualizados = await AdminUserService.buscarTodos();
       setAdmins(dadosAtualizados);
-      
+
       // 5. Fechar modais e limpar estados
       setShowModalConfirmar(false);
       setSelectedUsuario(null);
-      setErro('');
-      setErroVinculo('');
-
+      setErro("");
+      setErroVinculo("");
     } catch (error) {
-      console.error('Erro ao alterar permissão:', error);
-      setErroVinculo('Erro ao alterar permissão do usuário. Tente novamente.');
+      console.error("Erro ao alterar permissão:", error);
+      setErroVinculo("Erro ao alterar permissão do usuário. Tente novamente.");
     }
   };
 
   const colunas: GridColDef[] = [
-    { 
-      field: 'nome', 
-      headerName: 'Nome', 
-      flex: 1,
+    {
+      field: "nome",
+      headerName: "Nome",
+      width: 450,
       renderCell: (params) => (
-        <Typography fontWeight="bold">
-          {params.value}
-        </Typography>
-      )
+        <Typography>{params.value}</Typography>
+      ),
     },
     // { field: 'email', headerName: 'E-mail', flex: 1 },
     {
-      field: 'acoes',
-      headerName: 'Controle de acesso',
+      field: "acoes",
+      headerName: "Controle de acesso",
       flex: 1,
       sortable: false,
       filterable: false,
       renderCell: (params) => (
-        <Box 
-          display="flex" 
-          justifyContent="space-between" 
-          width="100%"
-        >
-          <Button
-            variant="outlined"
-            size="small"
-            color="error"
-            startIcon={<Cancel />}
-            onClick={() => handleAbrirModalConfirmar(params.row)}
-            sx={{
-              textTransform: 'none',
-              fontWeight: 600
-            }}
-          >
-            Revogar
-          </Button>
+        <Box display="flex" justifyContent="space-between" width="100%">
+          <Tooltip title="Revogar permissão de administrador do sistema">
+            <Button
+              variant="contained"
+              size="small"
+              color="error"
+              startIcon={<Cancel />}
+              onClick={() => handleAbrirModalConfirmar(params.row)}
+              sx={{
+                width: 180,
+                minWidth: 180,
+                height: 42,
+                padding: "0 12px",
+                borderRadius: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                "& .MuiButton-startIcon": {
+                  margin: 0,
+                  marginRight: theme.spacing(0.5),
+                },
+                gap: 0.5,
+                color:
+                  theme.palette.mode === "dark"
+                    ? "rgba(0, 0, 0, 0.87)"
+                    : undefined,
+              }}
+            >
+              Revogar permissão
+            </Button>
+          </Tooltip>
         </Box>
       ),
     },
   ];
 
   return (
-    <>
-      <Menu />
-      <Box sx={{
-        p: 3,
-        backgroundColor: theme.palette.background.default,
-        display: 'flex',
-        flexDirection: 'column',
-        flex: 1 
-      }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h5" fontWeight="bold" color="text.primary">
-            Administradores
-          </Typography>
-          
-          <Button 
-            variant="contained"
-            onClick={handleAbriModalNovoAdmin}
-            startIcon={<Add />}
-            sx={{ 
-              textTransform: 'none',
-              fontWeight: 600,
-              boxShadow: theme.shadows[2]
-            }}
-          >
-            Novo Administrador
-          </Button>
-        </Box>
+    <AppLayout>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={3}
+      >
+        <Typography variant="h5" fontWeight="bold" color="text.primary">
+          Administradores
+        </Typography>
 
-        <DataGrid
-          rows={admins}
-          columns={colunas}
-          getRowId={(row) => row.idUsuario}
-          loading={loading}
-          initialState={{
-            pagination: {
-              paginationModel: { pageSize: 10, page: 0 },
-            },
-          }}
-          pageSizeOptions={[10, 25, 50]}
-          localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
-          autoHeight
+        <Button
+          variant="contained"
+          onClick={handleAbriModalNovoAdmin}
+          startIcon={<Add />}
           sx={{
-            '& .MuiDataGrid-cell': {
-              borderBottom: `1px solid ${theme.palette.divider}`,
-              py: 1.5,
-            },
-            '& .MuiDataGrid-columnHeaders': {
-              backgroundColor: theme.palette.mode === 'dark' 
-                ? theme.palette.grey[800] 
-                : theme.palette.grey[100],
-              fontWeight: 'bold',
-              borderRadius: 1,
-              borderBottom: `2px solid ${theme.palette.divider}`
-            },
-            '& .MuiDataGrid-row': {
-              '&:hover': {
-                backgroundColor: theme.palette.action.hover,
-              },
-              '&.Mui-selected': {
-                backgroundColor: theme.palette.action.selected,
-                '&:hover': {
-                  backgroundColor: theme.palette.action.selected,
-                }
-              }
-            },
-            '& .MuiDataGrid-footerContainer': {
-              borderTop: `1px solid ${theme.palette.divider}`,
-            },
-            '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-              marginBottom: 0,
-              alignSelf: 'center',
-            },
-            '& .MuiTablePagination-toolbar': {
-              minHeight: '52px',
-              alignItems: 'center',
-            },
-            boxShadow: theme.shadows[1],
-            borderRadius: 2,
-            border: 'none',
-            backgroundColor: theme.palette.background.paper
+            textTransform: "none",
+            fontWeight: 600,
+            boxShadow: theme.shadows[2],
           }}
-          rowSelection={false}
-        />
+        >
+          Novo Administrador
+        </Button>
       </Box>
 
+      <DataGrid
+        rows={admins}
+        columns={colunas}
+        getRowId={(row) => row.idUsuario}
+        loading={loading}
+        initialState={{
+          pagination: {
+            paginationModel: { pageSize: 10, page: 0 },
+          },
+        }}
+        pageSizeOptions={[10, 25, 50]}
+        localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+        autoHeight
+        sx={{
+          "& .MuiDataGrid-cell": {
+            borderBottom: `1px solid ${theme.palette.divider}`,
+            py: 1.5,
+          },
+          "& .MuiDataGrid-columnHeaders": {
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? theme.palette.grey[800]
+                : theme.palette.grey[100],
+            fontWeight: "bold",
+            borderRadius: 1,
+            borderBottom: `2px solid ${theme.palette.divider}`,
+          },
+          "& .MuiDataGrid-row": {
+            "&:hover": {
+              backgroundColor: theme.palette.action.hover,
+            },
+            "&.Mui-selected": {
+              backgroundColor: theme.palette.action.selected,
+              "&:hover": {
+                backgroundColor: theme.palette.action.selected,
+              },
+            },
+          },
+          "& .MuiDataGrid-footerContainer": {
+            borderTop: `1px solid ${theme.palette.divider}`,
+          },
+          "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
+          {
+            marginBottom: 0,
+            alignSelf: "center",
+          },
+          "& .MuiTablePagination-toolbar": {
+            minHeight: "52px",
+            alignItems: "center",
+          },
+          boxShadow: theme.shadows[1],
+          borderRadius: 2,
+          border: "none",
+          backgroundColor: theme.palette.background.paper,
+        }}
+        rowSelection={false}
+      />
+
       {/* Modal de Adicionar novo Administrador */}
-      <Dialog 
-        open={showModalCadastro} 
+      <Dialog
+        open={showModalCadastro}
         onClose={() => setShowModalCadastro(false)}
-        fullWidth 
+        fullWidth
         maxWidth="md"
         PaperProps={{
           sx: {
             borderRadius: 2,
-            p: 1
-          }
+            p: 1,
+          },
         }}
       >
         <DialogTitle sx={{ fontWeight: 600 }}>
@@ -319,11 +328,11 @@ export default function ListaAdministradores() {
           <Autocomplete
             options={usuariosDisponiveis}
             getOptionLabel={(option) => {
-                  if (option.nome && option.cpf) {
-                    return `${option.nome} (${option.cpf})`;
-                  }
-                  return option.nome || ''; 
-                }}
+              if (option.nome && option.cpf) {
+                return `${option.nome} (${option.cpf})`;
+              }
+              return option.nome || "";
+            }}
             isOptionEqualToValue={(option, value) => option.cpf === value.cpf}
             loading={loadingAdmin}
             onInputChange={(_, value) => {
@@ -345,7 +354,9 @@ export default function ListaAdministradores() {
                   ...params.InputProps,
                   endAdornment: (
                     <>
-                      {loadingAdmin ? <CircularProgress color="inherit" size={20} /> : null}
+                      {loadingAdmin ? (
+                        <CircularProgress color="inherit" size={20} />
+                      ) : null}
                       {params.InputProps.endAdornment}
                     </>
                   ),
@@ -354,19 +365,21 @@ export default function ListaAdministradores() {
             )}
           />
           {erroVinculo && (
-            <Typography color="error" sx={{ mt: 1 }}>{erroVinculo}</Typography>
+            <Typography color="error" sx={{ mt: 1 }}>
+              {erroVinculo}
+            </Typography>
           )}
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0 }}>
-          <Button 
-            onClick={() => setShowModalCadastro(false)} 
+          <Button
+            onClick={() => setShowModalCadastro(false)}
             variant="outlined"
             sx={{ borderRadius: 2 }}
           >
             Cancelar
           </Button>
           <Button
-             onClick={handleSubmitCadastro}
+            onClick={handleSubmitCadastro}
             variant="contained"
             sx={{ borderRadius: 2 }}
           >
@@ -374,35 +387,36 @@ export default function ListaAdministradores() {
           </Button>
         </DialogActions>
       </Dialog>
-      
+
       {/* Modal de confirmar a ação de revogar permissão de admnistrador */}
-      <Dialog 
-        open={showModalConfirmar} 
-        onClose={() => setShowModalConfirmar(false)} 
-        fullWidth 
+      <Dialog
+        open={showModalConfirmar}
+        onClose={() => setShowModalConfirmar(false)}
+        fullWidth
         maxWidth="sm"
         PaperProps={{
           sx: {
             borderRadius: 2,
-            p: 1
-          }
+            p: 1,
+          },
         }}
       >
         <DialogTitle sx={{ fontWeight: 600 }}>Revogar permissão</DialogTitle>
         <DialogContent>
           <Typography>
-            Você está prestes a revogar a permissão de Administrador de <strong>{SelectedUsuario?.nome}</strong>
+            Você está prestes a revogar a permissão de Administrador de{" "}
+            <strong>{SelectedUsuario?.nome}</strong>
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0 }}>
-          <Button 
-            onClick={() => setShowModalConfirmar(false)} 
+          <Button
+            onClick={() => setShowModalConfirmar(false)}
             variant="outlined"
             sx={{ borderRadius: 2 }}
           >
             Cancelar
           </Button>
-          <Button 
+          <Button
             onClick={handleSubmitRevogacao}
             variant="contained"
             color="primary"
@@ -412,6 +426,6 @@ export default function ListaAdministradores() {
           </Button>
         </DialogActions>
       </Dialog>
-    </>
+    </AppLayout>
   );
-};
+}
