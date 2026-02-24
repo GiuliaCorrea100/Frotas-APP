@@ -70,6 +70,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
   );
   const [fileError, setFileError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [mensagemMotorista, setMensagemMotorista] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -82,6 +83,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
       setValorInfracao("");
       setArquivoSelecionado(null);
       setFileError(null);
+      setMensagemMotorista(null);
     }
   }, [open]);
 
@@ -143,9 +145,10 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
       const valorInfracaoNum = valorInfracao ? Number(valorInfracao) : 0;
       const autoInfracaoNum = autoInfracao ? Number(autoInfracao) : 0;
 
+      let response;
+
       if (arquivoSelecionado) {
         const formData = new FormData();
-
         formData.append("codigoInfracao", codigoInfracaoNum.toString());
         formData.append("classificacao", classificacao);
         formData.append("valorInfracao", valorInfracaoNum.toString());
@@ -154,7 +157,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
         formData.append("autoInfracao", autoInfracaoNum.toString());
         formData.append("arquivo", arquivoSelecionado);
 
-        await MultaService.criarMultaComArquivo(formData);
+        response = await MultaService.criarMultaComArquivo(formData);
       } else {
         const dadosMultas = {
           codigoInfracao: codigoInfracaoNum,
@@ -164,15 +167,23 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
           dataInfracao: dataHoraInfracaoISO,
           autoInfracao: autoInfracaoNum,
         };
-        await MultaService.criarMulta(dadosMultas);
+        response = await MultaService.criarMulta(dadosMultas);
       }
 
-      onSuccess("Multa cadastrada com sucesso");
+      if (response?.mensagem) {
+        setMensagemMotorista(response.mensagem);
+        setTimeout(() => {
+          setMensagemMotorista(null);
+          onClose();
+        }, 3000);
+      } else {
+        onSuccess("Multa cadastrada com sucesso");
+        onClose();
+      }
     } catch (error) {
       onError(error);
     } finally {
       setLoading(false);
-      onClose();
     }
   };
 
@@ -389,6 +400,23 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
               Formatos permitidos: PDF, JPG, JPEG, PNG, DOC, DOCX (Máx: {MAX_FILE_SIZE_MB}MB)
             </Typography>
           </Box>
+
+          {mensagemMotorista && (
+            <Box
+              sx={{
+                width: "100%",
+                p: 2,
+                mt: 2,
+                borderRadius: 1,
+                backgroundColor: "#FFF4E5",
+                border: "1px solid #FFA726",
+              }}
+            >
+              <Typography color="warning.main" fontWeight="bold">
+                {mensagemMotorista}
+              </Typography>
+            </Box>
+          )}
 
           <Box
             display="flex"

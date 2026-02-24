@@ -44,22 +44,24 @@ export class MultaService {
     }
   }
 
-  static async criarMulta(dados: MultaBackend): Promise<void> {
+  static async criarMulta(dados: MultaBackend): Promise<any> {
     try {
-      await axiosConnect.post("/multa", dados);
+      const response = await axiosConnect.post("/multa", dados);
+      return response.data;
     } catch (error) {
       console.error("Erro ao cadastrar multa:", error);
       throw error;
     }
   }
 
-  static async criarMultaComArquivo(formData: FormData): Promise<void> {
+  static async criarMultaComArquivo(formData: FormData): Promise<any> {
     try {
-      await axiosConnect.post("/multa/com-arquivo", formData, {
+      const response = await axiosConnect.post("/multa/com-arquivo", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
+      return response.data;
     } catch (error) {
       console.error("Erro ao cadastrar multa com arquivo:", error);
       throw error;
