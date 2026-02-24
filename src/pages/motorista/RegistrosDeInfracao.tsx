@@ -7,6 +7,10 @@ import {
   Alert,
   useTheme,
   TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -25,6 +29,8 @@ interface JwtPayload {
   iat: number;
   exp: number;
 }
+
+const CLASSIFICACOES = ["LEVE", "MEDIA", "GRAVE", "GRAVISSIMA"];
 
 const formatDate = (data: string | Date | null) => {
   if (!data) return "Não informada";
@@ -47,10 +53,8 @@ export default function RegistrosDeInfracao() {
   const [multas, setMultas] = useState<MultaDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const [placaVeiculo, setPlacaVeiculo] = useState("");
-  const [classificacao, setClassificacao] = useState("");
-  const [codigoInfracao, setCodigoInfracao] = useState("");
+  const [busca, setBusca] = useState("");
+  const [openSuccessModal, setOpenSuccessModal] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -66,7 +70,6 @@ export default function RegistrosDeInfracao() {
     try {
       const token = localStorage.getItem("token");
       if (!token) throw new Error();
-
       jwtDecode<JwtPayload>(token);
       const dados = await MultaService.listarMultas(params);
       setMultas(dados);
@@ -77,20 +80,25 @@ export default function RegistrosDeInfracao() {
     }
   };
 
-  const buscar = () => {
+  const buscar = (valor: string) => {
+    const texto = valor.trim().toUpperCase();
+
+    if (!texto) {
+      carregarMultas();
+      return;
+    }
+
+    const classificacaoValida = CLASSIFICACOES.includes(texto);
+    const parecePlaca = !classificacaoValida && texto.length <= 10;
+
     carregarMultas({
-      placaVeiculo: placaVeiculo || undefined,
-      classificacao: classificacao || undefined,
-      codigoInfracao: codigoInfracao
-        ? Number(codigoInfracao)
-        : undefined,
+      placaVeiculo: parecePlaca ? texto : undefined,
+      classificacao: classificacaoValida ? texto : undefined,
     });
   };
 
   const limparBusca = () => {
-    setPlacaVeiculo("");
-    setClassificacao("");
-    setCodigoInfracao("");
+    setBusca("");
     carregarMultas();
   };
 
@@ -156,6 +164,49 @@ export default function RegistrosDeInfracao() {
         </Button>
       ),
     },
+    {
+      field: "comprovantePagamento",
+      headerName: "Comprovante de Pagamento",
+      width: 220,
+      sortable: false,
+      renderCell: (params) => {
+        const possuiBoleto = !!params.row.urlArquivo;
+
+        return (
+          <Box display="flex" alignItems="center" gap={1} height="100%">
+            <Button
+              size="small"
+              component="label"
+              variant="outlined"
+              disabled={!possuiBoleto}
+            >
+              Upload
+              <input
+                type="file"
+                hidden
+                accept="application/pdf,image/*"
+                disabled={!possuiBoleto}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file || !params.row.idMulta) return;
+
+                  try {
+                    await MultaService.uploadComprovante(
+                      params.row.idMulta,
+                      file
+                    );
+                    await carregarMultas();
+                    setOpenSuccessModal(true);
+                  } finally {
+                    e.target.value = "";
+                  }
+                }}
+              />
+            </Button>
+          </Box>
+        );
+      },
+    },
   ];
 
   return (
@@ -169,34 +220,23 @@ export default function RegistrosDeInfracao() {
           </Typography>
         </Box>
 
-        <Box
-          mb={2}
-          display="flex"
-          gap={2}
-          flexWrap="wrap"
-          alignItems="center"
-        >
+        <Box mb={2} width="100%" display="flex" gap={2}>
           <TextField
-            label="Placa"
+            fullWidth
             size="small"
-            value={placaVeiculo}
-            onChange={(e) => setPlacaVeiculo(e.target.value)}
+            label="Buscar por placa ou classificação"
+            value={busca}
+            onChange={(e) => {
+              const v = e.target.value;
+              setBusca(v);
+              buscar(v);
+            }}
+            InputProps={{
+              startAdornment: (
+                <SearchIcon color="action" style={{ marginRight: 8 }} />
+              ),
+            }}
           />
-          <TextField
-            label="Classificação"
-            size="small"
-            value={classificacao}
-            onChange={(e) => setClassificacao(e.target.value)}
-          />
-
-          <Button
-            variant="contained"
-            startIcon={<SearchIcon />}
-            onClick={buscar}
-          >
-            Buscar
-          </Button>
-
           <Button
             variant="outlined"
             startIcon={<ClearIcon />}
@@ -224,6 +264,26 @@ export default function RegistrosDeInfracao() {
           sx={{ height: "calc(100vh - 320px)" }}
         />
       </Box>
+
+      <Dialog
+        open={openSuccessModal}
+        onClose={() => setOpenSuccessModal(false)}
+      >
+        <DialogTitle>Sucesso</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Upload do comprovante de pagamento feito com sucesso.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="contained"
+            onClick={() => setOpenSuccessModal(false)}
+          >
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
