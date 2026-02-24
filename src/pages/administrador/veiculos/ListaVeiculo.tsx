@@ -2,6 +2,7 @@ import { Add, Cancel, CheckCircle } from "@mui/icons-material";
 import {
   Box,
   Button,
+  Chip,
   IconButton,
   Modal,
   TextField,
@@ -195,15 +196,15 @@ export default function ListaVeiculos() {
     {
       field: "placa",
       headerName: "Placa",
-      width: 120,
+      width: 150,
       renderCell: (params) => (
         <Typography fontWeight="bold">{params.value}</Typography>
       ),
     },
-    { field: "modelo", headerName: "Modelo", width: 250 },
-    { field: "ano", headerName: "Ano", width: 100 },
-    { field: "localidadeFisica", headerName: "Localidade", width: 150 },
-    { field: "tombo", headerName: "Tombo", width: 100 },
+    { field: "modelo", headerName: "Modelo", width: 350 },
+    { field: "ano", headerName: "Ano", width: 150 },
+    { field: "localidadeFisica", headerName: "Localidade", width: 250 },
+    { field: "tombo", headerName: "Tombo", width: 150 },
     {
       field: "nomeTipoCombustivel",
       headerName: "Combustível",
@@ -219,43 +220,49 @@ export default function ListaVeiculos() {
     {
       field: "situacao",
       headerName: "Situação",
-      // flex: 1,
       width: 120,
       renderCell: (params) => {
         if (!params.row.ativo) {
           return (
-            <Typography
-              color="textSecondary"
-              fontStyle="italic"
-              fontWeight={500}
+            <Chip
+              label="Inativo"
+              color={"error"}
+              size="small"
+              variant="outlined"
             >
-              INATIVO
-            </Typography>
+            </Chip>
           );
         }
 
         let color, texto;
         switch (params.value) {
           case "DISPONIVEL":
-            color = theme.palette.success.main;
+            color = "success";
             texto = "Disponível";
             break;
           case "VIAGEM":
-            color = theme.palette.info.main;
+            color = "warning";
             texto = "Em Viagem";
             break;
           case "MANUTENCAO":
-            color = theme.palette.warning.main;
+            color = "error";
             texto = "Manutenção";
             break;
+          case "RESERVADO":
+            color = "info";
+            texto = "Reservado";
+            break;
           default:
-            color = theme.palette.text.secondary;
+            color = "error";
             texto = "Indisponivel";
         }
         return (
-          <Typography style={{ color, fontWeight: 600 }} variant="body2">
-            {texto}
-          </Typography>
+          <Chip
+            label={texto}
+            color={color as any}
+            size="small"
+            variant="outlined"
+          />
         );
       },
     },

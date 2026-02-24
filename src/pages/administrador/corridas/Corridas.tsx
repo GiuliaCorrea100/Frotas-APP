@@ -11,6 +11,7 @@ import {
   DialogActions,
   useTheme,
   Tooltip,
+  Chip,
 } from "@mui/material";
 import CreateIcon from "@mui/icons-material/Create";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -277,26 +278,30 @@ export default function ListaCorrida() {
     {
       field: "situacao",
       headerName: "Situação",
-      width: 100,
+      width: 150,
       renderCell: (params) => {
+        const situacao = params.value || '';
         let color;
-        switch (params.value) {
+        switch (situacao) {
           case "AGENDADA":
-            color = theme.palette.info.main;
+            color = 'info';
             break;
           case "ANDAMENTO":
-            color = theme.palette.warning.main;
+            color = 'warning';
             break;
           case "FINALIZADA":
-            color = theme.palette.success.main;
+            color = 'success';
             break;
           default:
-            color = theme.palette.text.secondary;
+            color = 'error';
         }
         return (
-          <Typography variant="body2" sx={{ color, fontWeight: 600 }}>
-            {params.value}
-          </Typography>
+          <Chip
+            label={situacao}
+            color={color as any}
+            size="small"
+            variant="outlined"
+          />
         );
       },
     },
@@ -413,43 +418,47 @@ export default function ListaCorrida() {
             </Tooltip>
 
             {/* LIBERAR CHAVE */}
-            <Button
-              variant="contained"
-              color="primary"
-              size="small"
-              onClick={() => handleAbrirModalLiberarChave(corrida)}
-              disabled={
-                (corrida.chaveEmprestada === true &&
-                  (corrida.situacao === "FINALIZADA" ||
-                    corrida.situacao === "ANDAMENTO" ||
-                    corrida.situacao === "AGENDADA" ||
-                    corrida.situacao === "CANCELADA")) ||
-                ((corrida.situacao === "FINALIZADA" ||
-                  corrida.situacao === "CANCELADA") &&
-                  corrida.chaveEmprestada === false)
-              }
-            >
-              Liberar Chave
-            </Button>
+            <Tooltip title="Liberar chave ao motorista">
+              <Button
+                variant="contained"
+                color="primary"
+                size="small"
+                onClick={() => handleAbrirModalLiberarChave(corrida)}
+                disabled={
+                  (corrida.chaveEmprestada === true &&
+                    (corrida.situacao === "FINALIZADA" ||
+                      corrida.situacao === "ANDAMENTO" ||
+                      corrida.situacao === "AGENDADA" ||
+                      corrida.situacao === "CANCELADA")) ||
+                  ((corrida.situacao === "FINALIZADA" ||
+                    corrida.situacao === "CANCELADA") &&
+                    corrida.chaveEmprestada === false)
+                }
+              >
+                Liberar Chave
+              </Button>
+            </Tooltip>
 
             {/* RECEBER CHAVE */}
-            <Button
-              variant="contained"
-              color="secondary"
-              size="small"
-              onClick={() => handleAbrirModalReceberChave(corrida)}
-              disabled={
-                (corrida.chaveEmprestada === false &&
-                  (corrida.situacao === "AGENDADA" ||
-                    corrida.situacao === "ANDAMENTO" ||
-                    corrida.situacao === "FINALIZADA" ||
-                    corrida.situacao === "CANCELADA")) ||
-                (corrida.chaveEmprestada === true &&
-                  corrida.situacao === "CANCELADA")
-              }
-            >
-              Receber Chave
-            </Button>
+            <Tooltip title="Receber chave do motorista">
+              <Button
+                variant="contained"
+                color="secondary"
+                size="small"
+                onClick={() => handleAbrirModalReceberChave(corrida)}
+                disabled={
+                  (corrida.chaveEmprestada === false &&
+                    (corrida.situacao === "AGENDADA" ||
+                      corrida.situacao === "ANDAMENTO" ||
+                      corrida.situacao === "FINALIZADA" ||
+                      corrida.situacao === "CANCELADA")) ||
+                  (corrida.chaveEmprestada === true &&
+                    corrida.situacao === "CANCELADA")
+                }
+              >
+                Receber Chave
+              </Button>
+            </Tooltip>
           </Box>
         );
       },

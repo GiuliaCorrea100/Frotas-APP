@@ -11,6 +11,7 @@ import {
   DialogActions,
   Autocomplete,
   CircularProgress,
+  Tooltip,
 } from "@mui/material";
 import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
@@ -172,9 +173,9 @@ export default function ListaAdministradores() {
     {
       field: "nome",
       headerName: "Nome",
-      flex: 1,
+      width: 450,
       renderCell: (params) => (
-        <Typography fontWeight="bold">{params.value}</Typography>
+        <Typography>{params.value}</Typography>
       ),
     },
     // { field: 'email', headerName: 'E-mail', flex: 1 },
@@ -186,19 +187,36 @@ export default function ListaAdministradores() {
       filterable: false,
       renderCell: (params) => (
         <Box display="flex" justifyContent="space-between" width="100%">
-          <Button
-            variant="outlined"
-            size="small"
-            color="error"
-            startIcon={<Cancel />}
-            onClick={() => handleAbrirModalConfirmar(params.row)}
-            sx={{
-              textTransform: "none",
-              fontWeight: 600,
-            }}
-          >
-            Revogar
-          </Button>
+          <Tooltip title="Revogar permissão de administrador do sistema">
+            <Button
+              variant="contained"
+              size="small"
+              color="error"
+              startIcon={<Cancel />}
+              onClick={() => handleAbrirModalConfirmar(params.row)}
+              sx={{
+                width: 180,
+                minWidth: 180,
+                height: 42,
+                padding: "0 12px",
+                borderRadius: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                "& .MuiButton-startIcon": {
+                  margin: 0,
+                  marginRight: theme.spacing(0.5),
+                },
+                gap: 0.5,
+                color:
+                  theme.palette.mode === "dark"
+                    ? "rgba(0, 0, 0, 0.87)"
+                    : undefined,
+              }}
+            >
+              Revogar permissão
+            </Button>
+          </Tooltip>
         </Box>
       ),
     },
@@ -272,10 +290,10 @@ export default function ListaAdministradores() {
             borderTop: `1px solid ${theme.palette.divider}`,
           },
           "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-            {
-              marginBottom: 0,
-              alignSelf: "center",
-            },
+          {
+            marginBottom: 0,
+            alignSelf: "center",
+          },
           "& .MuiTablePagination-toolbar": {
             minHeight: "52px",
             alignItems: "center",
