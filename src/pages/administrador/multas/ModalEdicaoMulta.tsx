@@ -187,10 +187,10 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
 
   const getNomeMotorista = () => {
     if (!multa) return "Não identificado";
-    
-    return multa.nomeMotorista || 
-           multa.motorista?.nome || 
-           (multa.idMotorista ? `Motorista #${multa.idMotorista}` : "Não identificado");
+
+    return multa.nomeMotorista ||
+      multa.motorista?.nome ||
+      (multa.idMotorista ? `Motorista #${multa.idMotorista}` : "Não identificado");
   };
 
   return (
@@ -215,19 +215,19 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
               Motorista Responsável
             </Typography>
           </Box>
-          
+
           <Box display="flex" alignItems="center" justifyContent="space-between">
             <Typography variant="body1" fontWeight="medium" color="text.primary">
               {getNomeMotorista()}
             </Typography>
           </Box>
-          
+
           {multa?.motorista?.email && (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               Email: {multa.motorista.email}
             </Typography>
           )}
-          
+
           {!multa?.idMotorista && (
             <Alert severity="warning" sx={{ mt: 1 }}>
               Não foi possível identificar o motorista responsável para esta infração.
