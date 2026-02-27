@@ -21,6 +21,7 @@ import { jwtDecode } from "jwt-decode";
 import Menu from "../../components/Menu";
 import { MultaDto, MultaService } from "../../services/MultaService";
 import { useAuth } from "../../context/AuthContext";
+import { decodeToken } from "../../utils/jwtDecodeHelper";
 
 interface JwtPayload {
   sub: number;
@@ -50,7 +51,12 @@ export default function RegistrosDeInfracao() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
+  const { token } = useAuth();
+  const decodedToken = token ? decodeToken<{ sub: string }>(token) : null;
+  const idUsuarioLogado = decodedToken?.sub ? Number(decodedToken.sub) : null;
+
   const [multas, setMultas] = useState<MultaDto[]>([]);
+  const [multasFiltradas, setMultasFiltradas] = useState<MultaDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busca, setBusca] = useState("");
@@ -71,8 +77,16 @@ export default function RegistrosDeInfracao() {
       const token = localStorage.getItem("token");
       if (!token) throw new Error();
       jwtDecode<JwtPayload>(token);
+      
       const dados = await MultaService.listarMultas(params);
-      setMultas(dados);
+      
+      // Filtra por idMotorista
+      const multasDoUsuario = dados.filter(
+        (multa) => multa.idMotorista === idUsuarioLogado
+      );
+      
+      setMultas(multasDoUsuario);
+      setMultasFiltradas(multasDoUsuario);
     } catch {
       setError("Erro ao carregar registros de infração.");
     } finally {
@@ -81,25 +95,27 @@ export default function RegistrosDeInfracao() {
   };
 
   const buscar = (valor: string) => {
-    const texto = valor.trim().toUpperCase();
+    const texto = valor.trim().toLowerCase();
+    setBusca(valor);
 
     if (!texto) {
-      carregarMultas();
+      setMultasFiltradas(multas);
       return;
     }
 
-    const classificacaoValida = CLASSIFICACOES.includes(texto);
-    const parecePlaca = !classificacaoValida && texto.length <= 10;
-
-    carregarMultas({
-      placaVeiculo: parecePlaca ? texto : undefined,
-      classificacao: classificacaoValida ? texto : undefined,
+    const filtradas = multas.filter((multa) => {
+      return Object.values(multa).some((valorProp) => {
+        if (valorProp === null || valorProp === undefined) return false;
+        return String(valorProp).toLowerCase().includes(texto);
+      });
     });
+
+    setMultasFiltradas(filtradas);
   };
 
   const limparBusca = () => {
     setBusca("");
-    carregarMultas();
+    setMultasFiltradas(multas);
   };
 
   const handleDownload = async (multa: MultaDto) => {
@@ -214,42 +230,45 @@ export default function RegistrosDeInfracao() {
       <Menu />
       <Box sx={{ p: 3, display: "flex", flexDirection: "column", flex: 1 }}>
         <Box mb={2} display="flex" alignItems="center" gap={1}>
-          <ReceiptIcon color="primary" />
           <Typography variant="h5" fontWeight="bold">
             Registros de Infração
           </Typography>
         </Box>
 
-        <Box mb={2} width="100%" display="flex" gap={2}>
+        {/* CAMPO DE BUSCA CORRIGIDO - IGUAL AO EXEMPLO */}
+        <Box sx={{ mb: 3 }}>
           <TextField
-            fullWidth
+            placeholder="Buscar infrações..."
+            variant="outlined"
             size="small"
-            label="Buscar por placa ou classificação"
             value={busca}
-            onChange={(e) => {
-              const v = e.target.value;
-              setBusca(v);
-              buscar(v);
-            }}
+            onChange={(e) => buscar(e.target.value)}
+            fullWidth
             InputProps={{
               startAdornment: (
                 <SearchIcon color="action" style={{ marginRight: 8 }} />
               ),
+              endAdornment: busca && (
+                <ClearIcon 
+                  color="action" 
+                  style={{ cursor: 'pointer' }} 
+                  onClick={limparBusca}
+                />
+              ),
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 2,
+                backgroundColor: theme.palette.background.paper,
+              },
             }}
           />
-          <Button
-            variant="outlined"
-            startIcon={<ClearIcon />}
-            onClick={limparBusca}
-          >
-            Limpar
-          </Button>
         </Box>
 
         {error && <Alert severity="error">{error}</Alert>}
 
         <DataGrid
-          rows={multas}
+          rows={multasFiltradas}
           columns={columns}
           loading={loading}
           getRowId={(row) =>

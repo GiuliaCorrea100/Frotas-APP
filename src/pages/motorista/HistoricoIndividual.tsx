@@ -114,7 +114,6 @@ export default function HistoricoIndividual() {
               corrida.idCorrida,
             );
             if (ocorrenciasList.length > 0) {
-              // Combinar todas as descrições de ocorrências
               ocorrenciasMap[corrida.idCorrida] = ocorrenciasList
                 .map((occ) => occ.descricao)
                 .join(", ");

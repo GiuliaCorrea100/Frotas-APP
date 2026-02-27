@@ -37,7 +37,9 @@ export class MultaService {
       const response = await axiosConnect.get<MultaDto[]>("/multa", {
         params,
       });
-      return response.data;
+      const multasAtivas = response.data.filter(multa => multa.ativa === true);
+      
+      return multasAtivas;    
     } catch (error) {
       console.error("Erro ao listar multas:", error);
       return [];
