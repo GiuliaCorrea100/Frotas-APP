@@ -66,10 +66,6 @@ const Login: React.FC = () => {
     if (e) {
       e.preventDefault();
     }
-    
-    try {
-      setLoading(true);
-      setError(null);
 
       const cpfNumerico = formValues.cpf.replace(/\D/g, '');
 
@@ -82,10 +78,11 @@ const Login: React.FC = () => {
         throw new Error('reCAPTCHA não carregado');
       }
 
-      // Executa o reCAPTCHA
       const recaptchaToken = await executeRecaptcha('login');
 
-      const response = await axiosConnect.post('/auth/login', {
+      try {
+        setLoading(true);
+        const response = await axiosConnect.post('/auth/login', {
         username: cpfNumerico,
         password: formValues.senha,
       }, {
@@ -94,10 +91,16 @@ const Login: React.FC = () => {
         }
       });
 
-
-      const { token, username, administrador, nome, email } = response.data;
-      login(token, username, administrador, nome, email);
-      navigate('/menu');
+        const { token, username, administrador, nome, email } = response.data;
+        
+        const { hasCorridaAtiva, corridaIdAtiva, administrador: isAdmin } = await login(token, username, administrador, nome, email);
+        
+        // Verifica qual será a página inicial do motorista baseado na existência ou não de corrida ativa
+        if (hasCorridaAtiva && corridaIdAtiva) {
+          navigate(`/PainelCorridaMotorista/${corridaIdAtiva}`);
+        } else {
+          navigate(isAdmin ? '/Corridas' : '/HistoricoIndividual');
+        }
 
     } catch (error: any) { 
       let errorMessage = 'Credenciais inválidas';

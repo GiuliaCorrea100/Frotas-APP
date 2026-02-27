@@ -11,78 +11,43 @@ type PrivateRouteProps = {
   requiredPermission?: boolean;
 };
 
-const PrivateRoute: React.FC<PrivateRouteProps> = ({
-  requiredPermission = false,
-}) => {
-  const { isAuthenticated, administrador } = useAuth();
+const PrivateRoute: React.FC<PrivateRouteProps> = ({ requiredPermission = false }) => {
+  const { isAuthenticated, administrador, hasCorridaAtiva } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const handleRedirect = async () => {
+    // Redirect executado apenas na rota inicial "/" para definir página inicial do usuário de acordo com permisssão e existência de corrida ativa
+    if (location.pathname === '/') {
       if (!isAuthenticated) {
         navigate('/login', { replace: true });
-        setLoading(false);
         return;
       }
 
       if (requiredPermission && !administrador) {
         navigate('/unauthorized', { replace: true });
-        setLoading(false);
         return;
       }
 
-      // Verifica corrida ativa
-      const token = localStorage.getItem('token');
-      if (!token) {
-        if (administrador) navigate('/Corridas', { replace: true });
-        else navigate('/HistoricoIndividual', { replace: true });
-        setLoading(false);
-        return;
-      }
-
-      const decoded = decodeToken<{ sub?: number; idUsuario?: number }>(token);
-      const idUsuario = decoded?.sub ?? decoded?.idUsuario;
-
-      if (!idUsuario) {
-        if (administrador) navigate('/Corridas', { replace: true });
-        else navigate('/HistoricoIndividual', { replace: true });
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const res = await axiosConnect.get(`/corrida/motorista-dashboard/${idUsuario}`);
-        const corrida = res.data.corridaDeHoje;
-
-        if (corrida && corrida.situacao !== 'FINALIZADA') {
-          navigate(`/PainelCorridaMotorista/${corrida.idCorrida}`, { replace: true });
-          setLoading(false);
+      if (hasCorridaAtiva) {
+        const corridaId = localStorage.getItem('corridaIdAtiva');
+        if (corridaId) {
+          navigate(`/PainelCorridaMotorista/${corridaId}`, { replace: true });
           return;
         }
-      } catch (error) {
-        console.error('Erro dashboard:', error);
       }
 
-      if (administrador) {
-        navigate('/Corridas', { replace: true });
-      } else {
-        navigate('/HistoricoIndividual', { replace: true });
-      }
-      setLoading(false);
-    };
-
-    if (location.pathname === '/menu') {
-      handleRedirect();
-    } else {
-      setLoading(false);
+      // Dashboard padrão (quando não á corrida ativa): Painel de Corridas para o Administrador ou Histórico de Corridas para o Motorista
+      navigate(administrador ? '/Corridas' : '/HistoricoIndividual', { replace: true });
     }
-  }, [isAuthenticated, administrador, navigate, location.pathname]);
+
+    setLoading(false);
+  }, [location.pathname, isAuthenticated, administrador, hasCorridaAtiva]);
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
         <CircularProgress />
       </Box>
     );
