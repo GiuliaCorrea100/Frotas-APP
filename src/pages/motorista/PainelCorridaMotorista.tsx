@@ -1,3 +1,6 @@
+import { useAuth } from '../../context/AuthContext';    
+import { decodeToken } from "../../utils/jwtDecodeHelper";
+import axiosConnect from '../../services/axios/axiosConnect'; 
 import React, { useState, useEffect } from "react";
 import { Box, Typography, Paper, ButtonBase, Tooltip, CircularProgress } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
@@ -46,7 +49,8 @@ const formatDate = (dateString: string | null) => {
 
 const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props) => {
 
-  const { idCorrida: paramId } = useParams<{ idCorrida: string }>();
+  const { idCorrida } = useParams<{ idCorrida: string }>();
+  const { token } = useAuth();
   const navigate = useNavigate();
 
   const [corridaLocal, setCorridaLocal] = useState(propCorrida);
@@ -80,10 +84,38 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
   const [chaveEmprestada, setChaveEmprestada] = useState(false);
 
   useEffect(() => {
-    if (!corridaLocal && paramId) {
-      buscarCorridaPorId(Number(paramId)).then(setCorridaLocal);
+    if (!corridaLocal && idCorrida) {
+      buscarCorridaPorId(Number(idCorrida)).then(setCorridaLocal);
     }
-  }, [paramId]);
+  }, [idCorrida]);
+
+  useEffect(() => {
+    const verificarAcesso = async () => {
+      if (!token || !idCorrida) {
+        navigate('/unauthorized');
+        return;
+      }
+
+      try {
+        const decoded = decodeToken<{ sub?: number; idUsuario?: number }>(token);
+        const idUsuarioLogado = decoded.sub ?? decoded.idUsuario;
+
+        const res = await axiosConnect.get(`/corrida/${idCorrida}`);
+        const corrida = res.data;
+      
+        if (corrida.idMotorista !== idUsuarioLogado) {
+          navigate('/unauthorized', { replace: true });
+          return;
+        }
+
+      } catch (error) {
+        console.error('❌ Erro verificação:', error);
+        navigate('/unauthorized', { replace: true });
+      }
+    };
+
+    verificarAcesso();
+  }, [idCorrida, token, navigate]);
 
   useEffect(() => {
     const fetchStatusChave = async () => {
@@ -165,6 +197,14 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
     fetchDadosVeiculo();
     return () => { isMounted = false; };
   }, [corridaLocal?.idCorrida]);
+
+   if (!token || !idCorrida) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   // Lógica de desabilitação dos botões
   const isIniciarDisabled = isCorridaIniciada;
@@ -265,9 +305,6 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
         localOrigem: ultimoDestino,
       });
 
-      //atualizando odometro na tabela de veiculos
-      //const idCarro = (await getCorridaById(corridaLocal?.idCorrida)).idCarro;
-      //CarroService.atualizarOdometro(idCarro, Number(odometro));
       if (idCarro) {
         CarroService.atualizarOdometro(idCarro, Number(odometro));
       }

@@ -110,7 +110,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     console.error('Erro ao realizar login', error);
     throw error;
   }
-};
+  };
 
   const logout = () => {
     localStorage.clear();
@@ -140,8 +140,8 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     <AuthContext.Provider value={{ isAuthenticated, hasCorridaAtiva, login, logout, cpf, token, administrador, nome, email }}>
       {children}
     </AuthContext.Provider>
-  );
-};
+    );
+  };
 
 const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
