@@ -153,7 +153,7 @@ const Login: React.FC = () => {
     <Box sx={{
       display: 'flex',
       flexDirection: 'column',
-      minHeight: `calc(100vh - 44px)`, // Considera a barra do governo
+      minHeight: `calc(100vh - 44px)`,
       backgroundColor: theme.palette.mode === 'dark' ? '#121212' : '#f5f7fa',
       overflow: 'hidden',
       width: '100%',

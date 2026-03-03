@@ -111,6 +111,77 @@ const Menu: React.FC = () => {
     navigate("/", { replace: true });
   };
 
+  // Recursos para TODOS os usuários
+  const recursosPadrao = [
+    { label: 'Registros de Infração', path: '/RegistrosDeInfracao' },
+    { label: 'Histórico', path: '/HistoricoIndividual' },
+  ];
+
+  // Recursos EXCLUSIVOS para admin
+  const recursosAdmin = [
+    { label: 'Corridas', path: '/Corridas' },
+    { label: 'Veículos', path: '/Veiculos' },
+    { label: 'Multas', path: '/Multas' },
+    { label: 'Administradores', path: '/Administradores' },
+    { label: 'Relatórios', path: '/Relatorios' },
+  ];
+
+  // Função para renderizar botões desktop
+  const renderBotoesDesktop = () => (
+    <>
+      {administrador && recursosAdmin.map((recurso) => (
+        <Button
+          key={recurso.label}
+          color="inherit"
+          component={Link}
+          to={recurso.path}
+          sx={{ fontFamily: 'inherit', fontSize: '0.875rem' }}
+        >
+          {recurso.label}
+        </Button>
+      ))}
+      {recursosPadrao.map((recurso) => (
+        <Button
+          key={recurso.label}
+          color="inherit"
+          component={Link}
+          to={recurso.path}
+          sx={{ fontFamily: 'inherit', fontSize: '0.875rem' }}
+        >
+          {recurso.label}
+        </Button>
+      ))}
+    </>
+  );
+
+  // Função para renderizar botões mobile
+  const renderItensMobile = () => (
+    <>
+      {administrador && recursosAdmin.map((recurso) => (
+        <DropdownItem
+          key={recurso.label}
+          component={Link}
+          to={recurso.path}
+          onClick={() => setShowMobileMenu(false)}
+          sx={{ fontSize: '0.9rem', py: 1 }}
+        >
+          {recurso.label}
+        </DropdownItem>
+      ))}
+      {recursosPadrao.map((recurso) => (
+        <DropdownItem
+          key={recurso.label}
+          component={Link}
+          to={recurso.path}
+          onClick={() => setShowMobileMenu(false)}
+          sx={{ fontSize: '0.9rem', py: 1 }}
+        >
+          {recurso.label}
+        </DropdownItem>
+      ))}
+    </>
+  );
+
   // Efeito para escutar renovação de token
   useEffect(() => {
     const handleTokenRenewed = (event: CustomEvent) => {
@@ -225,69 +296,7 @@ const Menu: React.FC = () => {
                       </Tooltip>
                     )}
 
-                    {administrador === true && (
-                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                        <Button
-                          color="inherit"
-                          component={Link}
-                          to="/Corridas"
-                          sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
-                        >
-                          Corridas
-                        </Button>
-                        <Button
-                          color="inherit"
-                          component={Link}
-                          to="/Veiculos"
-                          sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
-                        >
-                          Veículos
-                        </Button>
-                        <Button
-                          color="inherit"
-                          component={Link}
-                          to="/Multas"
-                          sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
-                        >
-                          Multas
-                        </Button>
-                        <Button
-                          color="inherit"
-                          component={Link}
-                          to="/Administradores"
-                          sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
-                        >
-                          Administradores
-                        </Button>
-
-                        <Button
-                          color="inherit"
-                          component={Link}
-                          to="/Relatorios"
-                          sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
-                        >
-                          Relatórios
-                        </Button>
-                      </Box>
-                    )}
-
-                    <Button
-                      color="inherit"
-                      component={Link}
-                      to="/RegistrosDeInfracao"
-                      sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
-                    >
-                      Registros de Infração
-                    </Button>
-
-                    <Button
-                      color="inherit"
-                      component={Link}
-                      to="/HistoricoIndividual"
-                      sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
-                    >
-                      Historico
-                    </Button>
+                    {isAuthenticated && !isMobile && renderBotoesDesktop()}
                   </>
                 )}
 
@@ -309,7 +318,7 @@ const Menu: React.FC = () => {
                     {hasCorridaAtiva && (
                       <DropdownItem
                         component={Link}
-                        to="/corrida-andamento"
+                        to={`/PainelCorridaMotorista/${idCorridaAtiva}`}
                         onClick={() => setShowMobileMenu(false)}
                         sx={{
                           fontSize: '0.9rem',
@@ -323,69 +332,7 @@ const Menu: React.FC = () => {
                       </DropdownItem>
                     )}
 
-                    {administrador === true && (
-                      <>
-                        <DropdownItem
-                          component={Link}
-                          to="/Corridas"
-                          onClick={() => setShowMobileMenu(false)}
-                          sx={{ fontSize: '0.9rem', py: 1 }}
-                        >
-                          Painel Corrida
-                        </DropdownItem>
-                        <DropdownItem
-                          component={Link}
-                          to="/Veiculos"
-                          onClick={() => setShowMobileMenu(false)}
-                          sx={{ fontSize: '0.9rem', py: 1 }}
-                        >
-                          Veículos
-                        </DropdownItem>
-                        <DropdownItem
-                          component={Link}
-                          to="/Multas"
-                          onClick={() => setShowMobileMenu(false)}
-                          sx={{ fontSize: '0.9rem', py: 1 }}
-                        >
-                          Multas
-                        </DropdownItem>
-                        <DropdownItem
-                          component={Link}
-                          to="/Administradores"
-                          onClick={() => setShowMobileMenu(false)}
-                          sx={{ fontSize: '0.9rem', py: 1 }}
-                        >
-                          Administradores
-                        </DropdownItem>
-                      </>
-                    )}
-
-                    <DropdownItem
-                      component={Link}
-                      to="/Boletos"
-                      onClick={() => setShowMobileMenu(false)}
-                      sx={{ fontSize: '0.9rem', py: 1 }}
-                    >
-                      Boletos
-                    </DropdownItem>
-
-                    <DropdownItem
-                      component={Link}
-                      to="/HistoricoIndividual"
-                      onClick={() => setShowMobileMenu(false)}
-                      sx={{ fontSize: '0.9rem', py: 1 }}
-                    >
-                      Histórico Individual
-                    </DropdownItem>
-
-                    <DropdownItem
-                      component={Link}
-                      to="/Relatorios"
-                      onClick={() => setShowMobileMenu(false)}
-                      sx={{ fontSize: '0.9rem', py: 1 }}
-                    >
-                      Relatórios
-                    </DropdownItem>
+                    {renderItensMobile()}
                   </>
                 </DropdownMenu>
 

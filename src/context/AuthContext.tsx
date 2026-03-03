@@ -20,6 +20,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [hasCorridaAtiva, setHasCorridaAtiva] = useState<boolean>(false); 
+  const [idCorridaAtiva, setIdCorridaAtiva] = useState<string | null>(null);
   const [cpf, setCpf] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [administrador, setAdministrador] = useState<boolean>(false);
@@ -35,7 +36,10 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       const storedNome = localStorage.getItem('nome');
       const storedEmail = localStorage.getItem('email');
       const storedIdCorrida = localStorage.getItem('corridaIdAtiva');
-
+      if (storedIdCorrida) {
+        setIdCorridaAtiva(storedIdCorrida);
+        setHasCorridaAtiva(storedIdCorrida !== ''); // Corrida ativa se ID existe
+      }
 
       if (storedToken && storedCpf) {
         try {
@@ -106,6 +110,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     setEmail(email);
     setIsAuthenticated(true);
     setHasCorridaAtiva(hasCorridaAtiva);
+    setIdCorridaAtiva(corridaIdAtiva || null); 
     
     return { hasCorridaAtiva, corridaIdAtiva, administrador };
   } catch (error) {
@@ -139,7 +144,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, hasCorridaAtiva, login, logout, cpf, token, administrador, nome, email }}>
+    <AuthContext.Provider value={{ isAuthenticated, hasCorridaAtiva, idCorridaAtiva, login, logout, cpf, token, administrador, nome, email }}>
       {children}
     </AuthContext.Provider>
     );

@@ -37,11 +37,11 @@ const App: React.FC = () => {
             {/*Rotas de administrador*/}
             <Route element={<PrivateRoute requiredPermission={true} />}>
               {/*Paginas de Cadastro*/}
-              <Route path="/Relatorios" element={<Relatorios />} />
+              <Route path="/Corridas" element={<ListaCorrida />} />
+              <Route path="/Veiculos" element={<ListaVeiculos />} />
               <Route path="/Multas" element={<ListaMulta />} />
               <Route path="/Administradores" element={<ListaAdministradores />} />
-              <Route path="/Veiculos" element={<ListaVeiculos />} />
-              <Route path="/Corridas" element={<ListaCorrida />} />
+              <Route path="/Relatorios" element={<Relatorios />} />
               <Route path="/DetalhesCorrida/:id" element={< DetalhesRequisicao />} />
             </Route>
 
