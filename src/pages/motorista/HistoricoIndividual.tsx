@@ -32,6 +32,7 @@ import { OcorrenciaService } from "../../services/OcorrenciaService";
 import { decodeToken } from "../../utils/jwtDecodeHelper";
 import { useAuth } from "../../context/AuthContext";
 import AppLayout from "../../components/Layout";
+import BemVindo from '../BemVindo';
 
 const formatDate = (dateString: string | null) => {
   if (!dateString) return "Em andamento";
@@ -265,6 +266,9 @@ export default function HistoricoIndividual() {
 
   return (
     <AppLayout>
+
+      <BemVindo />
+
       <Box>
         <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
           <Typography

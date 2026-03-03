@@ -28,35 +28,10 @@ import axiosConnect from "../services/axios/axiosConnect";
 import { Tooltip } from '@mui/material';
 import ContrastIcon from '@mui/icons-material/Contrast';
 import { useThemeContext } from '../context/ThemeContext';
-
-interface JwtPayload {
-  sub: number;
-  login: string;
-  administrador: boolean;
-  iat: number;
-  exp: number;
-  nome: string;
-  email: string;
-  idUsuario: number;
-}
-
-interface Corrida {
-  idCorrida: number;
-  dataInicio: string;
-  itinerario: string;
-  situacao: 'AGENDADA' | 'ANDAMENTO' | 'FINALIZADA' | 'CANCELADA';
-  placaVeiculo?: string;
-  nomeMotorista?: string;
-  dataTermino?: string | null;
-}
-
-interface MotoristaDashboard {
-  corridaDeHoje: Corrida | null;
-  proximasCorridas: Corrida[];
-}
+import DadosPerfil from '../pages/DadosPerfil';
 
 const Menu: React.FC = () => {
-  const { isAuthenticated, cpf, logout, administrador, nome, email } = useAuth();
+  const { isAuthenticated, cpf, logout, administrador, nome, email, hasCorridaAtiva, idCorridaAtiva } = useAuth()
   const { themeMode, toggleTheme } = useThemeContext();
   const navigate = useNavigate();
   const location = useLocation();
@@ -179,37 +154,6 @@ const Menu: React.FC = () => {
   const handleAbrirModalDadosPerfil = () => setShowModalDadosPerfil(true);
   const handleFecharModalDadosPerfil = () => setShowModalDadosPerfil(false);
 
-  const carregarDadosDoDashboard = useCallback(async () => {
-    setLoading(true);
-    const token = localStorage.getItem('token');
-    if (!token || !isAuthenticated) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const decodedToken = jwtDecode<JwtPayload>(token);
-      const idUsuario = decodedToken?.sub;
-
-      if (idUsuario) {
-        const response = await axiosConnect.get<MotoristaDashboard>(`/corrida/motorista-dashboard/${idUsuario}`);
-        setDashboardData(response.data);
-      }
-    } catch (error) {
-      console.error("Erro ao carregar dados do dashboard:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [isAuthenticated]);
-
-  useEffect(() => {
-    carregarDadosDoDashboard();
-  }, [carregarDadosDoDashboard]);
-
-  const hasActiveRide = dashboardData?.corridaDeHoje &&
-    (dashboardData.corridaDeHoje.situacao === 'ANDAMENTO' ||
-      dashboardData.corridaDeHoje.situacao === 'AGENDADA');
-
   return (
     <>
       <AppBar position="static">
@@ -256,16 +200,16 @@ const Menu: React.FC = () => {
               <>
                 {!isMobile && (
                   <>
-                    {hasActiveRide && (
+                    {hasCorridaAtiva && (
                       <Tooltip title={"Corrida em Andamento"}>
                         <span>
                           <IconButton
                             color="inherit"
                             component={Link}
-                            to={`/PainelCorridaMotorista/${dashboardData?.corridaDeHoje?.idCorrida}`}
+                            to={`/PainelCorridaMotorista/${idCorridaAtiva}`}
                             sx={{
                               position: 'relative',
-                              animation: hasActiveRide ? 'pulse 2s infinite' : 'none',
+                              animation: hasCorridaAtiva ? 'pulse 2s infinite' : 'none',
                               '@keyframes pulse': {
                                 '0%': { opacity: 1 },
                                 '50%': { opacity: 0.6 },
@@ -362,7 +306,7 @@ const Menu: React.FC = () => {
                   }}
                 >
                   <>
-                    {hasActiveRide && (
+                    {hasCorridaAtiva && (
                       <DropdownItem
                         component={Link}
                         to="/corrida-andamento"
@@ -456,9 +400,7 @@ const Menu: React.FC = () => {
                       <IconButton
                         color="inherit"
                         onClick={handleAbrirModalDadosPerfil}
-                        sx={{
-                          p: 1
-                        }}
+                        sx={{ p: 1 }}
                       >
                         <AccountCircleIcon />
                       </IconButton>
@@ -469,9 +411,7 @@ const Menu: React.FC = () => {
                       <IconButton
                         color="inherit"
                         onClick={toggleTheme}
-                        sx={{
-                          p: 1
-                        }}
+                        sx={{ p: 1 }}
                       >
                         <ContrastIcon />
                       </IconButton>
@@ -501,109 +441,13 @@ const Menu: React.FC = () => {
                       <IconButton
                         color="inherit"
                         onClick={handleLogout}
-                        sx={{
-                          p: 1
-                        }}
+                        sx={{ p: 1 }}
                       >
                         <ExitToAppIcon />
                       </IconButton>
                     </span>
                   </Tooltip>
                 </Box>
-
-                <Dialog
-                  open={showModalDadosPerfil}
-                  onClose={handleFecharModalDadosPerfil}
-                  fullWidth
-                  maxWidth="sm"
-                  PaperProps={{
-                    sx: {
-                      borderRadius: 2,
-                      p: 2
-                    }
-                  }}
-                >
-                  <DialogTitle sx={{
-                    fontSize: '1.25rem',
-                    p: 2,
-                    color: 'text.primary',
-                    fontWeight: 600
-                  }}>
-                    Seus Dados
-                  </DialogTitle>
-                  <DialogContent sx={{ p: 2 }}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography
-                          sx={{
-                            minWidth: 80,
-                            color: 'text.secondary',
-                            fontWeight: 500
-                          }}
-                        >
-                          Nome:
-                        </Typography>
-                        <Typography
-                          fontWeight="medium"
-                          sx={{ color: 'text.primary', ml: 1 }}
-                        >
-                          {nome}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography
-                          sx={{
-                            minWidth: 80,
-                            color: 'text.secondary',
-                            fontWeight: 500
-                          }}
-                        >
-                          Email:
-                        </Typography>
-                        <Typography
-                          fontWeight="medium"
-                          sx={{ color: 'text.primary', ml: 1 }}
-                        >
-                          {email}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography
-                          sx={{
-                            minWidth: 80,
-                            color: 'text.secondary',
-                            fontWeight: 500
-                          }}
-                        >
-                          CPF:
-                        </Typography>
-                        <Typography
-                          fontWeight="medium"
-                          sx={{ color: 'text.primary', ml: 1 }}
-                        >
-                          {cpf}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </DialogContent>
-                  <DialogActions sx={{ p: 2 }}>
-                    <Button
-                      onClick={handleFecharModalDadosPerfil}
-                      variant="contained"
-                      sx={{
-                        borderRadius: 1,
-                        textTransform: 'none',
-                        px: 3,
-                        bgcolor: 'primary.main',
-                        '&:hover': {
-                          bgcolor: 'primary.dark'
-                        }
-                      }}
-                    >
-                      Fechar
-                    </Button>
-                  </DialogActions>
-                </Dialog>
               </>
             )}
 
@@ -621,17 +465,20 @@ const Menu: React.FC = () => {
         </Toolbar>
       </AppBar>
 
-      {location.pathname === '/menu' && (
-        <Box sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'flex-start',
-          width: '100%',
-          mt: 4,
-          p: 2,
-          flex: 1
-        }}>
-        </Box>
+      {showModalDadosPerfil && (
+        <DadosPerfil
+          open={showModalDadosPerfil}
+          onClose={() => setShowModalDadosPerfil(false)}
+          onSuccess={async (msg) => {
+            console.log(msg);
+          }}
+          onError={(error) => {
+            console.error("Erro ao exibir dados do perfil:", error);
+            if (error.response?.status === 401) {
+              navigate("/");
+            }
+          }}
+        />
       )}
     </>
   );

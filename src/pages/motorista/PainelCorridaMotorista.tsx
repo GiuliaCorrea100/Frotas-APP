@@ -27,6 +27,7 @@ import CadastrarOcorrencia from "../administrador/corridas/modais/ModalCadastroO
 import ModalFinalizarPercurso from "./modais/ModalFinalizarPercurso";
 import { CarroService } from "../../services/CarroService";
 import AppLayout from "../../components/Layout";
+import BemVindo from '../BemVindo';
 
 const menuItems = [
   { label: "Iniciar Percurso", path: "/IniciarPercurso" },
@@ -391,6 +392,7 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
 
   return (
     <AppLayout>
+      <BemVindo />
       <Box sx={{ p: 4, maxWidth: 800, mx: "auto" }}>
         <Box sx={{ mb: 4 }}>
           <Typography

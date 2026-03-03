@@ -12,6 +12,7 @@ interface AuthContextType {
   administrador: boolean;
   nome: string | null;
   email: string | null;
+  idCorridaAtiva?: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,6 +34,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       const storedAdministrador = localStorage.getItem('administrador');
       const storedNome = localStorage.getItem('nome');
       const storedEmail = localStorage.getItem('email');
+      const storedIdCorrida = localStorage.getItem('corridaIdAtiva');
 
 
       if (storedToken && storedCpf) {
@@ -93,7 +95,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         localStorage.setItem('hasCorridaAtiva', hasCorridaAtiva.toString());
         localStorage.setItem('corridaIdAtiva', corridaIdAtiva);
       } catch (corridaError) {
-        console.log('⚠️ Sem corrida ativa');
+        console.log('Sem corrida ativa');
       }
     }
 

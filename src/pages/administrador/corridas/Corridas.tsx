@@ -31,6 +31,7 @@ import { CarroService } from "../../../services/CarroService";
 
 import axiosConnect from "../../../services/axios/axiosConnect";
 import AppLayout from "../../../components/Layout";
+import BemVindo from '../../BemVindo';
 
 const formatDate = (dateString: string | null) => {
   if (!dateString) return "Em andamento";
@@ -441,6 +442,13 @@ export default function ListaCorrida() {
                       corrida.situacao === "CANCELADA") &&
                       corrida.chaveEmprestada === false)
                   }
+                  sx={{
+                    minHeight: 42,
+                    height: 42,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
                 >
                   Liberar Chave
                 </Button>
@@ -464,6 +472,13 @@ export default function ListaCorrida() {
                     (corrida.chaveEmprestada === true &&
                       corrida.situacao === "CANCELADA")
                   }
+                  sx={{
+                  minHeight: 42,
+                  height: 42,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
                 >
                   Receber Chave
                 </Button>
@@ -477,6 +492,9 @@ export default function ListaCorrida() {
 
   return (
     <AppLayout>
+
+      <BemVindo />
+
       <Box
         display="flex"
         justifyContent="space-between"
@@ -875,7 +893,7 @@ export default function ListaCorrida() {
             await carregarCorridas();
           }}
           onError={(error) => {
-            console.error("Erro ao cadastrar requisição:", error);
+            console.error("Erro ao cadastrar corrida:", error);
             if (error.response?.status === 401) {
               navigate("/");
             }
