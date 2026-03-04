@@ -60,19 +60,25 @@ export default function ListaMulta() {
   }), [multas]);
 
   const dadosFiltrados = useMemo(() => {
-    return multas.filter(multa => {
-      const matchesSearch =
-        busca === '' ||
-        Object.values(multa).some(valor =>
-          String(valor).toLowerCase().includes(busca.toLowerCase())
-        );
+    return multas
+      .filter(multa => {
+        const matchesSearch =
+          busca === '' ||
+          Object.values(multa).some(valor =>
+            String(valor).toLowerCase().includes(busca.toLowerCase())
+          );
 
-      const matchesClassificacao =
-        filtroClassificacao === 'TODOS' ||
-        multa.classificacao === filtroClassificacao;
+        const matchesClassificacao =
+          filtroClassificacao === 'TODOS' ||
+          multa.classificacao === filtroClassificacao;
 
-      return matchesSearch && matchesClassificacao;
-    });
+        return matchesSearch && matchesClassificacao;
+      })
+      .sort((a, b) => {
+        const dataA = a.dataInfracao ? new Date(a.dataInfracao).getTime() : 0;
+        const dataB = b.dataInfracao ? new Date(b.dataInfracao).getTime() : 0;
+        return dataB - dataA;
+      });
   }, [multas, busca, filtroClassificacao]);
 
   const columns: GridColDef[] = [
