@@ -20,7 +20,6 @@ import Menu from '../../../components/Menu';
 import { MultaDto, MultaService } from '../../../services/MultaService';
 import CadastroMultaModal from './ModalCadastroMulta';
 import EditarMultaModal from './ModalEdicaoMulta';
-import ModalComprovanteMulta from "./ModalComprovanteBoleto";
 
 export default function ListaMulta() {
   const theme = useTheme();
@@ -32,7 +31,6 @@ export default function ListaMulta() {
   const [modalCadastrarAberto, setModalCadastroAberto] = useState(false);
   const [modalEditarAberto, setModalEditarAberto] = useState(false);
   const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
-  const [modalComprovanteAberto, setModalComprovanteAberto] = useState(false);
 
   const [multaSelecionada, setMultaSelecionada] = useState<MultaDto | null>(null);
 
@@ -47,7 +45,7 @@ export default function ListaMulta() {
       const multasAtivas = dados.filter((m) => m.ativa);
       setMultas(multasAtivas);
     } catch (error) {
-      console.error("Erro ao carregar multas:", error);
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -153,9 +151,16 @@ export default function ListaMulta() {
             size="small"
             variant="outlined"
             disabled={!url}
-            onClick={() => {
-              setMultaSelecionada(params.row);
-              setModalComprovanteAberto(true);
+            onClick={async () => {
+              if (!url) return;
+              const fileName = url.split('/').pop()!;
+              const blob = await MultaService.downloadArquivo(fileName);
+              const downloadUrl = window.URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = downloadUrl;
+              link.download = `comprovante_${params.row.autoInfracao}.pdf`;
+              link.click();
+              window.URL.revokeObjectURL(downloadUrl);
             }}
           >
             Comprovante
@@ -306,12 +311,6 @@ export default function ListaMulta() {
           setModalEditarAberto(false);
         }}
         onError={() => {}}
-      />
-
-      <ModalComprovanteMulta
-        open={modalComprovanteAberto}
-        multa={multaSelecionada}
-        onClose={() => setModalComprovanteAberto(false)}
       />
     </>
   );
