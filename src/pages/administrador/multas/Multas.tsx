@@ -215,6 +215,10 @@ export default function ListaMulta() {
                 alignItems: "center",
                 justifyContent: "center",
                 "& .MuiButton-startIcon": { margin: 0 },
+                color:
+                  theme.palette.mode === "dark"
+                    ? "rgba(0, 0, 0, 0.87)"
+                    : undefined,
               }}
             />
           </Tooltip>
