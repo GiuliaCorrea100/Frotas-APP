@@ -171,64 +171,98 @@ export default function ListaMulta() {
     {
       field: 'acoes',
       headerName: 'Ações',
-      width: 120,
+      width: 220,
       sortable: false,
       filterable: false,
-      renderCell: (params) => (
-        <Box sx={{ display: "flex", gap: 1 }}>
-          <Tooltip title="Editar multa">
-            <Button
-              variant="contained"
-              color="warning"
-              size="small"
-              onClick={() => {
-                setMultaSelecionada(params.row);
-                setModalEditarAberto(true);
-              }}
-              startIcon={<CreateIcon />}
-              sx={{
-                width: 42,
-                height: 42,
-                minWidth: 42,
-                padding: 0,
-                borderRadius: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                "& .MuiButton-startIcon": { margin: 0 },
-              }}
-            />
-          </Tooltip>
+      renderCell: (params) => {
+        const possuiComprovante = Boolean(params.row.urlComprovantePagamento);
 
-          <Tooltip title="Excluir multa">
-            <Button
-              variant="contained"
-              color="error"
-              size="small"
-              onClick={() => {
-                setMultaSelecionada(params.row);
-                setModalExcluirAberto(true);
-              }}
-              startIcon={<CancelIcon />}
-              sx={{
-                width: 42,
-                height: 42,
-                minWidth: 42,
-                padding: 0,
-                borderRadius: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                "& .MuiButton-startIcon": { margin: 0 },
-                color:
-                  theme.palette.mode === "dark"
-                    ? "rgba(0, 0, 0, 0.87)"
-                    : undefined,
-              }}
-            />
-          </Tooltip>
-        </Box>
-      )
+        return (
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Tooltip title="Aprovar comprovante">
+              <Button
+                variant="contained"
+                color="success"
+                size="small"
+                disabled={!possuiComprovante}
+                sx={{
+                  width: 42,
+                  height: 42,
+                  minWidth: 42,
+                  padding: 0,
+                  borderRadius: 1,
+                }}
+              >
+                ✓
+              </Button>
+            </Tooltip>
+
+            <Tooltip title="Reprovar comprovante">
+              <Button
+                variant="contained"
+                color="error"
+                size="small"
+                disabled={!possuiComprovante}
+                sx={{
+                  width: 42,
+                  height: 42,
+                  minWidth: 42,
+                  padding: 0,
+                  borderRadius: 1,
+                }}
+              >
+                ✕
+              </Button>
+            </Tooltip>
+
+            <Tooltip title="Editar multa">
+              <Button
+                variant="contained"
+                color="warning"
+                size="small"
+                onClick={() => {
+                  setMultaSelecionada(params.row);
+                  setModalEditarAberto(true);
+                }}
+                startIcon={<CreateIcon />}
+                sx={{
+                  width: 42,
+                  height: 42,
+                  minWidth: 42,
+                  padding: 0,
+                  borderRadius: 1,
+                  "& .MuiButton-startIcon": { margin: 0 },
+                }}
+              />
+            </Tooltip>
+
+            <Tooltip title="Excluir multa">
+              <Button
+                variant="contained"
+                color="error"
+                size="small"
+                onClick={() => {
+                  setMultaSelecionada(params.row);
+                  setModalExcluirAberto(true);
+                }}
+                startIcon={<CancelIcon />}
+                sx={{
+                  width: 42,
+                  height: 42,
+                  minWidth: 42,
+                  padding: 0,
+                  borderRadius: 1,
+                  "& .MuiButton-startIcon": { margin: 0 },
+                  color:
+                    theme.palette.mode === "dark"
+                      ? "rgba(0, 0, 0, 0.87)"
+                      : undefined,
+                }}
+              />
+            </Tooltip>
+          </Box>
+        );
+      }
     }
   ];
 
