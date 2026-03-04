@@ -153,17 +153,15 @@ export default function ListaMulta() {
             disabled={!url}
             onClick={async () => {
               if (!url) return;
+
               const fileName = url.split('/').pop()!;
               const blob = await MultaService.downloadArquivo(fileName);
-              const downloadUrl = window.URL.createObjectURL(blob);
-              const link = document.createElement('a');
-              link.href = downloadUrl;
-              link.download = `comprovante_${params.row.autoInfracao}.pdf`;
-              link.click();
-              window.URL.revokeObjectURL(downloadUrl);
+              const fileURL = window.URL.createObjectURL(blob);
+
+              window.open(fileURL, '_blank');
             }}
           >
-            Comprovante
+            Visualizar Comprovante
           </Button>
         );
       }
