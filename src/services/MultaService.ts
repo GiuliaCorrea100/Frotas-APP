@@ -31,6 +31,8 @@ export interface MultaBackend {
   situacao?: string;
 }
 
+
+
 export class MultaService {
   static async listarMultas(params?: any): Promise<MultaDto[]> {
     try {
@@ -175,4 +177,6 @@ export class MultaService {
       throw error;
     }
   }
+
+ 
 }

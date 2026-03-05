@@ -11,10 +11,13 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Tooltip,
+  Chip,
 } from "@mui/material";
 import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
 import DownloadIcon from "@mui/icons-material/Download";
-import ReceiptIcon from "@mui/icons-material/Receipt";
+import UploadIcon from '@mui/icons-material/Upload';
+import GavelIcon from '@mui/icons-material/Gavel';
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import { jwtDecode } from "jwt-decode";
@@ -22,6 +25,8 @@ import Menu from "../../components/Menu";
 import { MultaDto, MultaService } from "../../services/MultaService";
 import { useAuth } from "../../context/AuthContext";
 import { decodeToken } from "../../utils/jwtDecodeHelper";
+import SolicitarRecursoModal from "./modais/ModalSolicitarRecurso";
+
 
 interface JwtPayload {
   sub: number;
@@ -61,6 +66,8 @@ export default function RegistrosDeInfracao() {
   const [error, setError] = useState<string | null>(null);
   const [busca, setBusca] = useState("");
   const [openSuccessModal, setOpenSuccessModal] = useState(false);
+  const [openRecursoModal, setOpenRecursoModal] = useState(false);
+  const [selectedMulta, setSelectedMulta] = useState<MultaDto | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -80,7 +87,6 @@ export default function RegistrosDeInfracao() {
       
       const dados = await MultaService.listarMultas(params);
       
-      // Filtra por idMotorista
       const multasDoUsuario = dados.filter(
         (multa) => multa.idMotorista === idUsuarioLogado
       );
@@ -132,8 +138,32 @@ export default function RegistrosDeInfracao() {
     window.URL.revokeObjectURL(url);
   };
 
+  const handleSolicitarRecurso = (multa: MultaDto) => {
+    setSelectedMulta(multa);
+    setOpenRecursoModal(true);
+  };
+
+  const handleRecursoSuccess = (message: string) => {
+    setOpenSuccessModal(true);
+    carregarMultas();
+  };
+
+  const handleRecursoError = (error: any) => {
+    console.error("Erro ao solicitar recurso:", error);
+    setError("Erro ao solicitar recurso. Tente novamente.");
+  };
+
   const columns: GridColDef<MultaDto>[] = [
-    { field: "placaVeiculo", headerName: "Veículo", flex: 0.6 },
+    { 
+      field: "placaVeiculo", 
+      headerName: "Veículo", 
+      flex: 0.6,
+      renderCell: (params) => (
+              <Typography fontWeight="bold">
+                {params.value}
+              </Typography>
+            )
+     },
     {
       field: "dataInfracao",
       headerName: "Data",
@@ -144,20 +174,38 @@ export default function RegistrosDeInfracao() {
         </Typography>
       ),
     },
-    {
-      field: "classificacao",
-      headerName: "Classificação",
+    { 
+      field: 'classificacao', 
+      headerName: 'Classificação', 
       flex: 0.6,
-      renderCell: (params) => (
-        <Typography fontWeight={600}>{params.value}</Typography>
-      ),
+      renderCell: (params) => {
+        const classificacao = params.value || '';
+        let color = 'default';
+        
+        switch(classificacao) {
+          case 'LEVE': color = 'success'; break;
+          case 'MEDIA': color = 'warning'; break;
+          case 'GRAVE': color = 'error'; break;
+          case 'GRAVISSIMA': color = 'error'; break;
+          default: color = 'default';
+        }
+        
+        return (
+          <Chip 
+            label={classificacao}
+            color={color as any}
+            size="small"
+            variant="outlined"
+          />
+        );
+      }
     },
     {
       field: "valorInfracao",
       headerName: "Valor",
       flex: 0.6,
       renderCell: (params) => (
-        <Typography fontWeight={600} color={theme.palette.error.main}>
+        <Typography  color={theme.palette.error.main}>
           {formatValor(params.value as number)}
         </Typography>
       ),
@@ -166,37 +214,38 @@ export default function RegistrosDeInfracao() {
     {
       field: "acoes",
       headerName: "Ações",
-      width: 150,
+      width: 550,
+      minWidth: 550,
+      maxWidth: 700,
+      flex: 1,
       sortable: false,
-      renderCell: (params) => (
-        <Button
-          variant="contained"
-          size="small"
-          startIcon={<DownloadIcon />}
-          disabled={!params.row.urlArquivo}
-          onClick={() => handleDownload(params.row)}
-        >
-          Boleto
-        </Button>
-      ),
-    },
-    {
-      field: "comprovantePagamento",
-      headerName: "Comprovante de Pagamento",
-      width: 220,
-      sortable: false,
+      filterable: false,
       renderCell: (params) => {
         const possuiBoleto = !!params.row.urlArquivo;
 
-        return (
-          <Box display="flex" alignItems="center" gap={1} height="100%">
-            <Button
+        return(
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Tooltip title="Baixar Boleto">
+              <Button
+              variant="contained"
+              size="small"
+              startIcon={<DownloadIcon />}
+              disabled={!params.row.urlArquivo}
+              onClick={() => handleDownload(params.row)}
+              >
+                Boleto
+              </Button>
+            </Tooltip>
+
+            <Tooltip title="Enviar comprovante de pagamento">
+              <Button
               size="small"
               component="label"
-              variant="outlined"
+              variant="contained"
+              startIcon={<UploadIcon />}
               disabled={!possuiBoleto}
             >
-              Upload
+              Comprovante
               <input
                 type="file"
                 hidden
@@ -219,10 +268,27 @@ export default function RegistrosDeInfracao() {
                 }}
               />
             </Button>
+            </Tooltip>
+
+            <Tooltip title="Solicitar recurso de multa">
+              <Button
+              size="small"
+              variant="contained"
+              color="warning"
+              startIcon={<GavelIcon />}
+              disabled={!possuiBoleto}
+              onClick={() => handleSolicitarRecurso(params.row)}
+            >
+              Solicitar Recurso
+            </Button>
+            </Tooltip>
+
           </Box>
         );
       },
+      
     },
+
   ];
 
   return (
@@ -230,12 +296,11 @@ export default function RegistrosDeInfracao() {
       <Menu />
       <Box sx={{ p: 3, display: "flex", flexDirection: "column", flex: 1 }}>
         <Box mb={2} display="flex" alignItems="center" gap={1}>
-          <Typography variant="h5" fontWeight="bold">
-            Registros de Infração
+          <Typography variant="h5" fontWeight="bold" color="textPrimary">
+              Registros de Infrações
           </Typography>
         </Box>
 
-        {/* CAMPO DE BUSCA CORRIGIDO - IGUAL AO EXEMPLO */}
         <Box sx={{ mb: 3 }}>
           <TextField
             placeholder="Buscar infrações..."
@@ -284,6 +349,19 @@ export default function RegistrosDeInfracao() {
         />
       </Box>
 
+      {/* Modal de Solicitar Recurso */}
+      <SolicitarRecursoModal
+        open={openRecursoModal}
+        onClose={() => {
+          setOpenRecursoModal(false);
+          setSelectedMulta(null);
+        }}
+        onSuccess={handleRecursoSuccess}
+        onError={handleRecursoError}
+        multaId={selectedMulta?.idMulta}
+      />
+
+      {/* Modal de Sucesso */}
       <Dialog
         open={openSuccessModal}
         onClose={() => setOpenSuccessModal(false)}
