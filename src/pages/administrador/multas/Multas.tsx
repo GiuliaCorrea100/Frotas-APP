@@ -12,6 +12,8 @@ import {
   Tooltip,
   Typography,
   useTheme,
+  Snackbar,
+  Alert
 } from "@mui/material";
 import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 import { useEffect, useMemo, useState } from 'react';
@@ -31,8 +33,13 @@ export default function ListaMulta() {
   const [modalCadastrarAberto, setModalCadastroAberto] = useState(false);
   const [modalEditarAberto, setModalEditarAberto] = useState(false);
   const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
+  const [modalAprovarAberto, setModalAprovarAberto] = useState(false);
 
   const [multaSelecionada, setMultaSelecionada] = useState<MultaDto | null>(null);
+
+  const [mensagem, setMensagem] = useState("");
+  const [tipoMensagem, setTipoMensagem] = useState<"success" | "error" | "warning" | "info">("success");
+  const [snackbarAberto, setSnackbarAberto] = useState(false);
 
   useEffect(() => {
     carregarMultas();
@@ -48,6 +55,26 @@ export default function ListaMulta() {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const aprovarComprovante = async () => {
+    if (!multaSelecionada) return;
+
+    try {
+      await MultaService.aprovarComprovante(multaSelecionada.idMulta!);
+
+      setMensagem("Comprovante aprovado com sucesso!");
+      setTipoMensagem("success");
+      setSnackbarAberto(true);
+
+      setModalAprovarAberto(false);
+
+      await carregarMultas();
+    } catch (error) {
+      setMensagem("Erro ao aprovar comprovante.");
+      setTipoMensagem("error");
+      setSnackbarAberto(true);
     }
   };
 
@@ -189,6 +216,10 @@ export default function ListaMulta() {
                 color="success"
                 size="small"
                 disabled={!possuiComprovante}
+                onClick={() => {
+                  setMultaSelecionada(params.row);
+                  setModalAprovarAberto(true);
+                }}
                 sx={{
                   width: 42,
                   height: 42,
@@ -305,6 +336,21 @@ export default function ListaMulta() {
         />
       </Box>
 
+      <Dialog open={modalAprovarAberto} onClose={() => setModalAprovarAberto(false)}>
+        <DialogTitle>Aprovar comprovante</DialogTitle>
+        <DialogContent>
+          <Typography>Deseja aprovar esse comprovante de pagamento?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setModalAprovarAberto(false)} variant="outlined">
+            Não
+          </Button>
+          <Button onClick={aprovarComprovante} variant="contained" color="success">
+            Sim
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Dialog open={modalExcluirAberto} onClose={() => setModalExcluirAberto(false)}>
         <DialogTitle>Excluir Multa</DialogTitle>
         <DialogContent>
@@ -350,6 +396,22 @@ export default function ListaMulta() {
         }}
         onError={() => {}}
       />
+
+      <Snackbar
+        open={snackbarAberto}
+        autoHideDuration={4000}
+        onClose={() => setSnackbarAberto(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbarAberto(false)}
+          severity={tipoMensagem}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {mensagem}
+        </Alert>
+      </Snackbar>
     </>
   );
 }
