@@ -473,12 +473,12 @@ export default function ListaCorrida() {
                       corrida.situacao === "CANCELADA")
                   }
                   sx={{
-                  minHeight: 42,
-                  height: 42,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
+                    minHeight: 42,
+                    height: 42,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
                 >
                   Receber Chave
                 </Button>
