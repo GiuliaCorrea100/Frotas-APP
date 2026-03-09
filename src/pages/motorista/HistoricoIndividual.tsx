@@ -20,26 +20,11 @@ import AbastecimentoService, {
 } from "../../services/AbastecimentoService";
 import { OcorrenciaService } from "../../services/OcorrenciaService";
 import { ModalDetalhesHistorico } from "./modais/ModalDetalhesHistorico";
+import { formatDate } from "../../utils/formatDate";
 import { decodeToken } from "../../utils/jwtDecodeHelper";
 import { useAuth } from "../../context/AuthContext";
 import AppLayout from "../../components/Layout";
 import BemVindo from "../BemVindo";
-
-const formatDate = (dateInput: string | Date | null) => {
-  if (!dateInput) return "Em andamento";
-  const dateString =
-    typeof dateInput === "string" ? dateInput : dateInput.toISOString();
-  try {
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-
-    return `${day}/${month}/${year}`;
-  } catch {
-    return "Data inválida";
-  }
-};
 
 const situacaoMap = {
   AGENDADA: "info",
@@ -142,7 +127,7 @@ export default function HistoricoIndividual() {
       renderCell: (params) => <Typography>{params.value}</Typography>,
     },
     {
-      field: "dataInicio",
+      field: "dataHoraLiberacaoChave",
       headerName: "Data/Hora Início",
       width: 200,
       renderCell: (params) => (
@@ -150,7 +135,7 @@ export default function HistoricoIndividual() {
       ),
     },
     {
-      field: "dataTermino",
+      field: "dataHoraRecebimentoChave",
       headerName: "Data/Hora Término",
       width: 200,
       renderCell: (params) => (
@@ -343,7 +328,6 @@ export default function HistoricoIndividual() {
           abastecimentos={abastecimentos}
           ocorrencias={ocorrencias}
           modalLoading={modalLoading}
-          formatDate={formatDate}
           getSituacaoChipProps={getSituacaoChipProps}
         />
       )}

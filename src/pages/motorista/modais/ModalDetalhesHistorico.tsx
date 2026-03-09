@@ -15,6 +15,7 @@ import {
 import { CorridaFrontend } from "../../../services/CorridaService";
 import { PercursoBackend } from "../../../services/PercursoService";
 import { Abastecimento } from "../../../services/AbastecimentoService";
+import { formatDate, formatDateOnly } from "../../../utils/formatDate";
 import {
   AccessTime,
   ArrowForward,
@@ -48,7 +49,6 @@ type ModalDetalhesHistoricoProps = {
   abastecimentos: Abastecimento[];
   ocorrencias: Record<number, string>;
   modalLoading: boolean;
-  formatDate: (d: string | Date | null) => string;
   getSituacaoChipProps: (s: string | undefined) => {
     label: string | undefined;
     color: any;
@@ -64,7 +64,6 @@ export function ModalDetalhesHistorico(props: ModalDetalhesHistoricoProps) {
     abastecimentos,
     ocorrencias,
     modalLoading,
-    formatDate,
     getSituacaoChipProps,
   } = props;
 
@@ -194,7 +193,7 @@ export function ModalDetalhesHistorico(props: ModalDetalhesHistoricoProps) {
                             color: "text.primary",
                           }}
                         >
-                          {formatDate(corrida.dataInicio)}
+                          {formatDate(corrida.dataHoraLiberacaoChave)}
                         </Typography>
                       </Box>
                     }
@@ -225,7 +224,7 @@ export function ModalDetalhesHistorico(props: ModalDetalhesHistoricoProps) {
                           variant="body1"
                           sx={{ color: "text.primary" }}
                         >
-                          {formatDate(corrida.dataTermino)}
+                          {formatDate(corrida.dataHoraRecebimentoChave)}
                         </Typography>
                       </Box>
                     }
@@ -370,7 +369,7 @@ export function ModalDetalhesHistorico(props: ModalDetalhesHistoricoProps) {
                           variant="body2"
                           sx={{ fontWeight: 500, color: "text.primary" }}
                         >
-                          {formatDate(ab.dataAbastecimento)} -{" "}
+                          {formatDateOnly(ab.dataAbastecimento)} -{" "}
                           {Math.floor(ab.quantidade)}L (R$ {ab.valorTotal})
                         </Typography>
                       }
