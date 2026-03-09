@@ -53,21 +53,6 @@ const getSituacaoChipProps = (situacao: string | undefined) => ({
   color: situacaoMap[situacao as keyof typeof situacaoMap] || "default",
 });
 
-const modalStyle = {
-  position: "absolute" as const,
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "80%",
-  maxWidth: 800,
-  maxHeight: "90vh",
-  overflow: "auto",
-  bgcolor: "background.paper",
-  boxShadow: 24,
-  p: 4,
-  borderRadius: 2,
-};
-
 export default function HistoricoIndividual() {
   const theme = useTheme();
   const { token } = useAuth();
@@ -101,7 +86,6 @@ export default function HistoricoIndividual() {
               corrida.idCorrida,
             );
             if (ocorrenciasList.length > 0) {
-              // Combina todas as descrições de ocorrências
               ocorrenciasMap[corrida.idCorrida] = ocorrenciasList
                 .map((occ) => occ.descricao)
                 .join(", ");
@@ -350,7 +334,7 @@ export default function HistoricoIndividual() {
         rowSelection={false}
       />
 
-      {selectedCorrida && openDetails && (
+      {openDetails && (
         <ModalDetalhesHistorico
           open={openDetails}
           onClose={handleCloseDetails}
@@ -361,7 +345,6 @@ export default function HistoricoIndividual() {
           modalLoading={modalLoading}
           formatDate={formatDate}
           getSituacaoChipProps={getSituacaoChipProps}
-          modalStyle={modalStyle}
         />
       )}
     </AppLayout>
