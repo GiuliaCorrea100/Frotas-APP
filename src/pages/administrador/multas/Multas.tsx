@@ -13,7 +13,8 @@ import {
   Typography,
   useTheme,
   Snackbar,
-  Alert
+  Alert,
+  TextField
 } from "@mui/material";
 import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 import { useEffect, useMemo, useState } from 'react';
@@ -34,6 +35,8 @@ export default function ListaMulta() {
   const [modalEditarAberto, setModalEditarAberto] = useState(false);
   const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
   const [modalAprovarAberto, setModalAprovarAberto] = useState(false);
+  const [modalReprovarAberto, setModalReprovarAberto] = useState(false);
+  const [motivoReprovacao, setMotivoReprovacao] = useState("");
 
   const [multaSelecionada, setMultaSelecionada] = useState<MultaDto | null>(null);
 
@@ -73,6 +76,30 @@ export default function ListaMulta() {
       await carregarMultas();
     } catch (error) {
       setMensagem("Erro ao aprovar comprovante.");
+      setTipoMensagem("error");
+      setSnackbarAberto(true);
+    }
+  };
+
+  const reprovarComprovante = async () => {
+    if (!multaSelecionada) return;
+
+    try {
+      await MultaService.reprovarComprovante(
+        multaSelecionada.idMulta!,
+        motivoReprovacao
+      );
+
+      setMensagem("Comprovante reprovado com sucesso!");
+      setTipoMensagem("success");
+      setSnackbarAberto(true);
+
+      setModalReprovarAberto(false);
+      setMotivoReprovacao("");
+
+      await carregarMultas();
+    } catch (error) {
+      setMensagem("Erro ao reprovar comprovante.");
       setTipoMensagem("error");
       setSnackbarAberto(true);
     }
@@ -238,12 +265,20 @@ export default function ListaMulta() {
                 color="error"
                 size="small"
                 disabled={!possuiComprovante}
+                onClick={() => {
+                  setMultaSelecionada(params.row);
+                  setModalReprovarAberto(true);
+                }}
                 sx={{
                   width: 42,
                   height: 42,
                   minWidth: 42,
                   padding: 0,
                   borderRadius: 1,
+                  color:
+                    theme.palette.mode === "dark"
+                      ? "rgba(0,0,0,0.87)"
+                      : undefined,
                 }}
               >
                 ✕
@@ -336,17 +371,119 @@ export default function ListaMulta() {
         />
       </Box>
 
-      <Dialog open={modalAprovarAberto} onClose={() => setModalAprovarAberto(false)}>
-        <DialogTitle>Aprovar comprovante</DialogTitle>
-        <DialogContent>
-          <Typography>Deseja aprovar esse comprovante de pagamento?</Typography>
+      <Dialog
+        open={modalAprovarAberto}
+        onClose={() => setModalAprovarAberto(false)}
+        PaperProps={{
+          sx: {
+            backgroundColor: theme.palette.background.paper,
+            color: theme.palette.text.primary,
+            borderRadius: 2,
+            minWidth: 380
+          }
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: 700,
+            color: theme.palette.text.primary
+          }}
+        >
+          Aprovar comprovante
+        </DialogTitle>
+
+        <DialogContent
+          sx={{
+            pt: 1,
+            pb: 1,
+            color: theme.palette.text.primary
+          }}
+        >
+          <Typography sx={{ color: theme.palette.text.primary }}>
+            Deseja aprovar esse comprovante de pagamento?
+          </Typography>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setModalAprovarAberto(false)} variant="outlined">
+
+        <DialogActions
+          sx={{
+            px: 3,
+            pb: 2
+          }}
+        >
+          <Button
+            onClick={() => setModalAprovarAberto(false)}
+            variant="outlined"
+            sx={{
+              textTransform: "none",
+              fontWeight: 600
+            }}
+          >
             Não
           </Button>
-          <Button onClick={aprovarComprovante} variant="contained" color="success">
+
+          <Button
+            onClick={aprovarComprovante}
+            variant="contained"
+            color="success"
+            sx={{
+              textTransform: "none",
+              fontWeight: 600
+            }}
+          >
             Sim
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={modalReprovarAberto}
+        onClose={() => setModalReprovarAberto(false)}
+        PaperProps={{
+          sx: {
+            backgroundColor: theme.palette.background.paper,
+            color: theme.palette.text.primary,
+            borderRadius: 2,
+            minWidth: 420
+          }
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: 700,
+            color: theme.palette.text.primary
+          }}
+        >
+          Motivo da reprovação
+        </DialogTitle>
+
+        <DialogContent>
+          <TextField
+            fullWidth
+            multiline
+            minRows={3}
+            value={motivoReprovacao}
+            onChange={(e) => setMotivoReprovacao(e.target.value)}
+            placeholder="Digite o motivo da reprovação"
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setModalReprovarAberto(false)}
+            variant="outlined"
+            sx={{ textTransform: "none", fontWeight: 600 }}
+          >
+            Cancelar
+          </Button>
+
+          <Button
+            onClick={reprovarComprovante}
+            variant="contained"
+            color="error"
+            sx={{ textTransform: "none", fontWeight: 600 }}
+          >
+            Reprovar
           </Button>
         </DialogActions>
       </Dialog>
