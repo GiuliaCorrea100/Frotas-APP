@@ -15,39 +15,44 @@ import ListaMulta from './pages/administrador/multas/Multas';
 import ListaAdministradores from './pages/administrador/Administradores';
 import ListaVeiculos from './pages/administrador/veiculos/ListaVeiculo';
 import RegistrosDeInfracao from './pages/motorista/RegistrosDeInfracao';
+import PainelCorridaMotorista from './pages/motorista/PainelCorridaMotorista';
 
 const App: React.FC = () => {
-  return (    
+  return (
     <CustomThemeProvider>
       <AuthProvider>
         <Router>
           <Routes>
             {/* Rota para pagina de login */}
-            {/*rota publica*/}
+            {/*Rota publica*/}
             <Route path="/" element={<PaginaDeLogin />} />
 
-            {/*rotas de administrador*/}
+            {/* Rota privada para o Menu */}
+            <Route path="/menu" element={
+              <PrivateRoute />
+            }>
+              <Route index element={<Menu />} />
+            </Route>
+
+            {/*Rotas de administrador*/}
             <Route element={<PrivateRoute requiredPermission={true} />}>
               {/*Paginas de Cadastro*/}
-              <Route path="/Relatorios" element={<Relatorios />} />
+              <Route path="/Corridas" element={<ListaCorrida />} />
+              <Route path="/Veiculos" element={<ListaVeiculos />} />
               <Route path="/Multas" element={<ListaMulta />} />
               <Route path="/Administradores" element={<ListaAdministradores />} />
-              <Route path="/Veiculos" element={<ListaVeiculos />} />
-              <Route path="/Corridas" element={<ListaCorrida />} />
-              <Route path="/DetalhesCorrida/:id" element={< DetalhesRequisicao/>} />
+              <Route path="/Relatorios" element={<Relatorios />} />
+              <Route path="/DetalhesCorrida/:id" element={< DetalhesRequisicao />} />
             </Route>
 
             {/* Rotas usuario comum */}
-            <Route path="/HistoricoIndividual" element={<HistoricoIndividual/>} />
+            <Route path="/PainelCorridaMotorista/:idCorrida" element={<PainelCorridaMotorista />} />
+            <Route path="/HistoricoIndividual" element={<HistoricoIndividual />} />
             <Route path="/RegistrosDeInfracao" element={<RegistrosDeInfracao />} />
 
             {/* Rota para acesso negado */}
             <Route path="/unauthorized" element={<Unauthorized />} />
 
-            {/* Rota para o Menu */}
-            <Route path="/menu" element={<Menu />} />
-            
-            
           </Routes>
         </Router>
       </AuthProvider>

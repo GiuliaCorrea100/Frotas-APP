@@ -31,6 +31,7 @@ import { CarroService } from "../../../services/CarroService";
 
 import axiosConnect from "../../../services/axios/axiosConnect";
 import AppLayout from "../../../components/Layout";
+import BemVindo from '../../BemVindo';
 
 const formatDate = (dateString: string | null) => {
   if (!dateString) return "Em andamento";
@@ -320,144 +321,168 @@ export default function ListaCorrida() {
           <Box sx={{ display: "flex", gap: 1 }}>
             {/* EDITAR */}
             <Tooltip title="Editar corrida">
-              <Button
-                variant="contained"
-                color="warning"
-                size="small"
-                onClick={() => handleAbrirModalEditar(corrida)}
-                disabled={
-                  (corrida.chaveEmprestada === true &&
-                    (corrida.situacao === "FINALIZADA" ||
-                      corrida.situacao === "ANDAMENTO" ||
-                      corrida.situacao === "AGENDADA" ||
-                      corrida.situacao === "CANCELADA")) ||
-                  ((corrida.situacao === "FINALIZADA" ||
-                    corrida.situacao === "CANCELADA") &&
-                    corrida.chaveEmprestada === false)
-                }
-                startIcon={<CreateIcon />}
-                sx={{
-                  width: 42,
-                  height: 42,
-                  minWidth: 42,
-                  padding: 0,
-                  borderRadius: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  "& .MuiButton-startIcon": {
-                    margin: 0,
-                  },
-                }}
-              ></Button>
+              <span>
+                <Button
+                  variant="contained"
+                  color="warning"
+                  size="small"
+                  onClick={() => handleAbrirModalEditar(corrida)}
+                  disabled={
+                    (corrida.chaveEmprestada === true &&
+                      (corrida.situacao === "FINALIZADA" ||
+                        corrida.situacao === "ANDAMENTO" ||
+                        corrida.situacao === "AGENDADA" ||
+                        corrida.situacao === "CANCELADA")) ||
+                    ((corrida.situacao === "FINALIZADA" ||
+                      corrida.situacao === "CANCELADA") &&
+                      corrida.chaveEmprestada === false)
+                  }
+                  startIcon={<CreateIcon />}
+                  sx={{
+                    width: 42,
+                    height: 42,
+                    minWidth: 42,
+                    padding: 0,
+                    borderRadius: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    "& .MuiButton-startIcon": {
+                      margin: 0,
+                    },
+                  }}
+                ></Button>
+              </span>
             </Tooltip>
 
             {/* DETALHES */}
             <Tooltip title="Ver detalhes">
-              <Button
-                variant="contained"
-                color="success"
-                size="small"
-                onClick={() =>
-                  navigate(`/DetalhesCorrida/${corrida.idCorrida}`)
-                }
-                disabled={corrida.situacao === "CANCELADA"}
-                startIcon={<VisibilityIcon />}
-                sx={{
-                  width: 42,
-                  height: 42,
-                  minWidth: 42,
-                  padding: 0,
-                  borderRadius: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  "& .MuiButton-startIcon": {
-                    margin: 0,
-                  },
-                }}
-              ></Button>
+              <span>
+                <Button
+                  variant="contained"
+                  color="success"
+                  size="small"
+                  onClick={() =>
+                    navigate(`/DetalhesCorrida/${corrida.idCorrida}`)
+                  }
+                  disabled={corrida.situacao === "CANCELADA"}
+                  startIcon={<VisibilityIcon />}
+                  sx={{
+                    width: 42,
+                    height: 42,
+                    minWidth: 42,
+                    padding: 0,
+                    borderRadius: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    "& .MuiButton-startIcon": {
+                      margin: 0,
+                    },
+                  }}
+                ></Button>
+              </span>
             </Tooltip>
 
             {/* CANCELAR */}
             <Tooltip title="Cancelar corrida">
-              <Button
-                variant="contained"
-                color="error"
-                size="small"
-                onClick={() => handleAbrirModalCancelarCorrida(corrida)}
-                disabled={
-                  (corrida.chaveEmprestada === true &&
-                    (corrida.situacao === "FINALIZADA" ||
-                      corrida.situacao === "ANDAMENTO" ||
-                      corrida.situacao === "AGENDADA" ||
-                      corrida.situacao === "CANCELADA")) ||
-                  ((corrida.situacao === "FINALIZADA" ||
-                    corrida.situacao === "CANCELADA") &&
-                    corrida.chaveEmprestada === false)
-                }
-                startIcon={<CancelIcon />}
-                sx={{
-                  width: 42,
-                  height: 42,
-                  minWidth: 42,
-                  padding: 0,
-                  borderRadius: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  "& .MuiButton-startIcon": {
-                    margin: 0,
-                  },
-                  color:
-                    theme.palette.mode === "dark"
-                      ? "rgba(0, 0, 0, 0.87)"
-                      : undefined,
-                }}
-              ></Button>
+              <span>
+                <Button
+                  variant="contained"
+                  color="error"
+                  size="small"
+                  onClick={() => handleAbrirModalCancelarCorrida(corrida)}
+                  disabled={
+                    (corrida.chaveEmprestada === true &&
+                      (corrida.situacao === "FINALIZADA" ||
+                        corrida.situacao === "ANDAMENTO" ||
+                        corrida.situacao === "AGENDADA" ||
+                        corrida.situacao === "CANCELADA")) ||
+                    ((corrida.situacao === "FINALIZADA" ||
+                      corrida.situacao === "CANCELADA") &&
+                      corrida.chaveEmprestada === false)
+                  }
+                  startIcon={<CancelIcon />}
+                  sx={{
+                    width: 42,
+                    height: 42,
+                    minWidth: 42,
+                    padding: 0,
+                    borderRadius: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    "& .MuiButton-startIcon": {
+                      margin: 0,
+                    },
+                    color:
+                      theme.palette.mode === "dark"
+                        ? "rgba(0, 0, 0, 0.87)"
+                        : undefined,
+                  }}
+                ></Button>
+              </span>
             </Tooltip>
 
             {/* LIBERAR CHAVE */}
             <Tooltip title="Liberar chave ao motorista">
-              <Button
-                variant="contained"
-                color="primary"
-                size="small"
-                onClick={() => handleAbrirModalLiberarChave(corrida)}
-                disabled={
-                  (corrida.chaveEmprestada === true &&
-                    (corrida.situacao === "FINALIZADA" ||
-                      corrida.situacao === "ANDAMENTO" ||
-                      corrida.situacao === "AGENDADA" ||
-                      corrida.situacao === "CANCELADA")) ||
-                  ((corrida.situacao === "FINALIZADA" ||
-                    corrida.situacao === "CANCELADA") &&
-                    corrida.chaveEmprestada === false)
-                }
-              >
-                Liberar Chave
-              </Button>
+              <span>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="small"
+                  onClick={() => handleAbrirModalLiberarChave(corrida)}
+                  disabled={
+                    (corrida.chaveEmprestada === true &&
+                      (corrida.situacao === "FINALIZADA" ||
+                        corrida.situacao === "ANDAMENTO" ||
+                        corrida.situacao === "AGENDADA" ||
+                        corrida.situacao === "CANCELADA")) ||
+                    ((corrida.situacao === "FINALIZADA" ||
+                      corrida.situacao === "CANCELADA") &&
+                      corrida.chaveEmprestada === false)
+                  }
+                  sx={{
+                    minHeight: 42,
+                    height: 42,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  Liberar Chave
+                </Button>
+              </span>
             </Tooltip>
 
             {/* RECEBER CHAVE */}
             <Tooltip title="Receber chave do motorista">
-              <Button
-                variant="contained"
-                color="secondary"
-                size="small"
-                onClick={() => handleAbrirModalReceberChave(corrida)}
-                disabled={
-                  (corrida.chaveEmprestada === false &&
-                    (corrida.situacao === "AGENDADA" ||
-                      corrida.situacao === "ANDAMENTO" ||
-                      corrida.situacao === "FINALIZADA" ||
-                      corrida.situacao === "CANCELADA")) ||
-                  (corrida.chaveEmprestada === true &&
-                    corrida.situacao === "CANCELADA")
-                }
-              >
-                Receber Chave
-              </Button>
+              <span>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  size="small"
+                  onClick={() => handleAbrirModalReceberChave(corrida)}
+                  disabled={
+                    (corrida.chaveEmprestada === false &&
+                      (corrida.situacao === "AGENDADA" ||
+                        corrida.situacao === "ANDAMENTO" ||
+                        corrida.situacao === "FINALIZADA" ||
+                        corrida.situacao === "CANCELADA")) ||
+                    (corrida.chaveEmprestada === true &&
+                      corrida.situacao === "CANCELADA")
+                  }
+                  sx={{
+                    minHeight: 42,
+                    height: 42,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  Receber Chave
+                </Button>
+              </span>
             </Tooltip>
           </Box>
         );
@@ -467,6 +492,9 @@ export default function ListaCorrida() {
 
   return (
     <AppLayout>
+
+      <BemVindo />
+
       <Box
         display="flex"
         justifyContent="space-between"
@@ -865,7 +893,7 @@ export default function ListaCorrida() {
             await carregarCorridas();
           }}
           onError={(error) => {
-            console.error("Erro ao cadastrar requisição:", error);
+            console.error("Erro ao cadastrar corrida:", error);
             if (error.response?.status === 401) {
               navigate("/");
             }
