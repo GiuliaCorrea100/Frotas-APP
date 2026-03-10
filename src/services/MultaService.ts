@@ -122,6 +122,32 @@ export class MultaService {
     }
   }
 
+  static async aprovarComprovante(idMulta: number): Promise<any> {
+    try {
+      const response = await axiosConnect.patch(`/multa/${idMulta}/aprovar-comprovante`);
+      return response.data;
+    } catch (error) {
+      console.error(`Erro ao aprovar comprovante da multa ${idMulta}:`, error);
+      throw error;
+    }
+  }
+
+  static async reprovarComprovante(
+    idMulta: number,
+    motivo: string
+  ): Promise<any> {
+    try {
+      const response = await axiosConnect.patch(
+        `/multa/${idMulta}/reprovar-comprovante`,
+        { motivo }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Erro ao reprovar comprovante ${idMulta}:`, error);
+      throw error;
+    }
+  }
+
   static async removerMulta(idMulta: number): Promise<void> {
     try {
       await axiosConnect.patch(`/multa/deletar-multa/${idMulta}`);

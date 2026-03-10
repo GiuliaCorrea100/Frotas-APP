@@ -265,21 +265,17 @@ export default function RegistrosDeInfracao() {
         />
       </Box>
 
-      <Dialog
-        open={openSuccessModal}
-        onClose={() => setOpenSuccessModal(false)}
-      >
-        <DialogTitle>Sucesso</DialogTitle>
+      <Dialog open={openSuccessModal} onClose={() => setOpenSuccessModal(false)}>
+        <DialogTitle sx={{ color: theme.palette.text.primary }}>
+          Sucesso
+        </DialogTitle>
         <DialogContent>
-          <Typography>
+          <Typography sx={{ color: theme.palette.text.primary }}>
             Upload do comprovante de pagamento feito com sucesso.
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button
-            variant="contained"
-            onClick={() => setOpenSuccessModal(false)}
-          >
+          <Button variant="contained" onClick={() => setOpenSuccessModal(false)}>
             OK
           </Button>
         </DialogActions>
