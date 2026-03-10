@@ -31,13 +31,17 @@ export interface MultaBackend {
   situacao?: string;
 }
 
+
+
 export class MultaService {
   static async listarMultas(params?: any): Promise<MultaDto[]> {
     try {
       const response = await axiosConnect.get<MultaDto[]>("/multa", {
         params,
       });
-      return response.data;
+      const multasAtivas = response.data.filter(multa => multa.ativa === true);
+      
+      return multasAtivas;    
     } catch (error) {
       console.error("Erro ao listar multas:", error);
       return [];
@@ -199,4 +203,6 @@ export class MultaService {
       throw error;
     }
   }
+
+ 
 }
