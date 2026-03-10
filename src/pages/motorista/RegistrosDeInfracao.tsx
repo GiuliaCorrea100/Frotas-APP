@@ -368,15 +368,12 @@ export default function RegistrosDeInfracao() {
       >
         <DialogTitle>Sucesso</DialogTitle>
         <DialogContent>
-          <Typography>
+          <Typography sx={{ color: theme.palette.text.primary }}>
             Upload do comprovante de pagamento feito com sucesso.
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button
-            variant="contained"
-            onClick={() => setOpenSuccessModal(false)}
-          >
+          <Button variant="contained" onClick={() => setOpenSuccessModal(false)}>
             OK
           </Button>
         </DialogActions>
