@@ -11,16 +11,22 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Tooltip,
+  Chip,
 } from "@mui/material";
 import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
 import DownloadIcon from "@mui/icons-material/Download";
-import ReceiptIcon from "@mui/icons-material/Receipt";
+import UploadIcon from '@mui/icons-material/Upload';
+import GavelIcon from '@mui/icons-material/Gavel';
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import { jwtDecode } from "jwt-decode";
 import Menu from "../../components/Menu";
 import { MultaDto, MultaService } from "../../services/MultaService";
 import { useAuth } from "../../context/AuthContext";
+import { decodeToken } from "../../utils/jwtDecodeHelper";
+import SolicitarRecursoModal from "./modais/ModalSolicitarRecurso";
+
 
 interface JwtPayload {
   sub: number;
@@ -50,11 +56,18 @@ export default function RegistrosDeInfracao() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
+  const { token } = useAuth();
+  const decodedToken = token ? decodeToken<{ sub: string }>(token) : null;
+  const idUsuarioLogado = decodedToken?.sub ? Number(decodedToken.sub) : null;
+
   const [multas, setMultas] = useState<MultaDto[]>([]);
+  const [multasFiltradas, setMultasFiltradas] = useState<MultaDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busca, setBusca] = useState("");
   const [openSuccessModal, setOpenSuccessModal] = useState(false);
+  const [openRecursoModal, setOpenRecursoModal] = useState(false);
+  const [selectedMulta, setSelectedMulta] = useState<MultaDto | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -71,8 +84,15 @@ export default function RegistrosDeInfracao() {
       const token = localStorage.getItem("token");
       if (!token) throw new Error();
       jwtDecode<JwtPayload>(token);
+      
       const dados = await MultaService.listarMultas(params);
-      setMultas(dados);
+      
+      const multasDoUsuario = dados.filter(
+        (multa) => multa.idMotorista === idUsuarioLogado
+      );
+      
+      setMultas(multasDoUsuario);
+      setMultasFiltradas(multasDoUsuario);
     } catch {
       setError("Erro ao carregar registros de infração.");
     } finally {
@@ -81,25 +101,27 @@ export default function RegistrosDeInfracao() {
   };
 
   const buscar = (valor: string) => {
-    const texto = valor.trim().toUpperCase();
+    const texto = valor.trim().toLowerCase();
+    setBusca(valor);
 
     if (!texto) {
-      carregarMultas();
+      setMultasFiltradas(multas);
       return;
     }
 
-    const classificacaoValida = CLASSIFICACOES.includes(texto);
-    const parecePlaca = !classificacaoValida && texto.length <= 10;
-
-    carregarMultas({
-      placaVeiculo: parecePlaca ? texto : undefined,
-      classificacao: classificacaoValida ? texto : undefined,
+    const filtradas = multas.filter((multa) => {
+      return Object.values(multa).some((valorProp) => {
+        if (valorProp === null || valorProp === undefined) return false;
+        return String(valorProp).toLowerCase().includes(texto);
+      });
     });
+
+    setMultasFiltradas(filtradas);
   };
 
   const limparBusca = () => {
     setBusca("");
-    carregarMultas();
+    setMultasFiltradas(multas);
   };
 
   const handleDownload = async (multa: MultaDto) => {
@@ -116,8 +138,32 @@ export default function RegistrosDeInfracao() {
     window.URL.revokeObjectURL(url);
   };
 
+  const handleSolicitarRecurso = (multa: MultaDto) => {
+    setSelectedMulta(multa);
+    setOpenRecursoModal(true);
+  };
+
+  const handleRecursoSuccess = (message: string) => {
+    setOpenSuccessModal(true);
+    carregarMultas();
+  };
+
+  const handleRecursoError = (error: any) => {
+    console.error("Erro ao solicitar recurso:", error);
+    setError("Erro ao solicitar recurso. Tente novamente.");
+  };
+
   const columns: GridColDef<MultaDto>[] = [
-    { field: "placaVeiculo", headerName: "Veículo", flex: 0.6 },
+    { 
+      field: "placaVeiculo", 
+      headerName: "Veículo", 
+      flex: 0.6,
+      renderCell: (params) => (
+              <Typography fontWeight="bold">
+                {params.value}
+              </Typography>
+            )
+     },
     {
       field: "dataInfracao",
       headerName: "Data",
@@ -128,20 +174,38 @@ export default function RegistrosDeInfracao() {
         </Typography>
       ),
     },
-    {
-      field: "classificacao",
-      headerName: "Classificação",
+    { 
+      field: 'classificacao', 
+      headerName: 'Classificação', 
       flex: 0.6,
-      renderCell: (params) => (
-        <Typography fontWeight={600}>{params.value}</Typography>
-      ),
+      renderCell: (params) => {
+        const classificacao = params.value || '';
+        let color = 'default';
+        
+        switch(classificacao) {
+          case 'LEVE': color = 'success'; break;
+          case 'MEDIA': color = 'warning'; break;
+          case 'GRAVE': color = 'error'; break;
+          case 'GRAVISSIMA': color = 'error'; break;
+          default: color = 'default';
+        }
+        
+        return (
+          <Chip 
+            label={classificacao}
+            color={color as any}
+            size="small"
+            variant="outlined"
+          />
+        );
+      }
     },
     {
       field: "valorInfracao",
       headerName: "Valor",
       flex: 0.6,
       renderCell: (params) => (
-        <Typography fontWeight={600} color={theme.palette.error.main}>
+        <Typography  color={theme.palette.error.main}>
           {formatValor(params.value as number)}
         </Typography>
       ),
@@ -150,37 +214,38 @@ export default function RegistrosDeInfracao() {
     {
       field: "acoes",
       headerName: "Ações",
-      width: 150,
+      width: 550,
+      minWidth: 550,
+      maxWidth: 700,
+      flex: 1,
       sortable: false,
-      renderCell: (params) => (
-        <Button
-          variant="contained"
-          size="small"
-          startIcon={<DownloadIcon />}
-          disabled={!params.row.urlArquivo}
-          onClick={() => handleDownload(params.row)}
-        >
-          Boleto
-        </Button>
-      ),
-    },
-    {
-      field: "comprovantePagamento",
-      headerName: "Comprovante de Pagamento",
-      width: 220,
-      sortable: false,
+      filterable: false,
       renderCell: (params) => {
         const possuiBoleto = !!params.row.urlArquivo;
 
-        return (
-          <Box display="flex" alignItems="center" gap={1} height="100%">
-            <Button
+        return(
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Tooltip title="Baixar Boleto">
+              <Button
+              variant="contained"
+              size="small"
+              startIcon={<DownloadIcon />}
+              disabled={!params.row.urlArquivo}
+              onClick={() => handleDownload(params.row)}
+              >
+                Boleto
+              </Button>
+            </Tooltip>
+
+            <Tooltip title="Enviar comprovante de pagamento">
+              <Button
               size="small"
               component="label"
-              variant="outlined"
+              variant="contained"
+              startIcon={<UploadIcon />}
               disabled={!possuiBoleto}
             >
-              Upload
+              Comprovante
               <input
                 type="file"
                 hidden
@@ -203,10 +268,27 @@ export default function RegistrosDeInfracao() {
                 }}
               />
             </Button>
+            </Tooltip>
+
+            <Tooltip title="Solicitar recurso de multa">
+              <Button
+              size="small"
+              variant="contained"
+              color="warning"
+              startIcon={<GavelIcon />}
+              disabled={!possuiBoleto}
+              onClick={() => handleSolicitarRecurso(params.row)}
+            >
+              Solicitar Recurso
+            </Button>
+            </Tooltip>
+
           </Box>
         );
       },
+      
     },
+
   ];
 
   return (
@@ -214,42 +296,44 @@ export default function RegistrosDeInfracao() {
       <Menu />
       <Box sx={{ p: 3, display: "flex", flexDirection: "column", flex: 1 }}>
         <Box mb={2} display="flex" alignItems="center" gap={1}>
-          <ReceiptIcon color="primary" />
-          <Typography variant="h5" fontWeight="bold">
-            Registros de Infração
+          <Typography variant="h5" fontWeight="bold" color="textPrimary">
+              Registros de Infrações
           </Typography>
         </Box>
 
-        <Box mb={2} width="100%" display="flex" gap={2}>
+        <Box sx={{ mb: 3 }}>
           <TextField
-            fullWidth
+            placeholder="Buscar infrações..."
+            variant="outlined"
             size="small"
-            label="Buscar por placa ou classificação"
             value={busca}
-            onChange={(e) => {
-              const v = e.target.value;
-              setBusca(v);
-              buscar(v);
-            }}
+            onChange={(e) => buscar(e.target.value)}
+            fullWidth
             InputProps={{
               startAdornment: (
                 <SearchIcon color="action" style={{ marginRight: 8 }} />
               ),
+              endAdornment: busca && (
+                <ClearIcon 
+                  color="action" 
+                  style={{ cursor: 'pointer' }} 
+                  onClick={limparBusca}
+                />
+              ),
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 2,
+                backgroundColor: theme.palette.background.paper,
+              },
             }}
           />
-          <Button
-            variant="outlined"
-            startIcon={<ClearIcon />}
-            onClick={limparBusca}
-          >
-            Limpar
-          </Button>
         </Box>
 
         {error && <Alert severity="error">{error}</Alert>}
 
         <DataGrid
-          rows={multas}
+          rows={multasFiltradas}
           columns={columns}
           loading={loading}
           getRowId={(row) =>
@@ -265,10 +349,24 @@ export default function RegistrosDeInfracao() {
         />
       </Box>
 
-      <Dialog open={openSuccessModal} onClose={() => setOpenSuccessModal(false)}>
-        <DialogTitle sx={{ color: theme.palette.text.primary }}>
-          Sucesso
-        </DialogTitle>
+      {/* Modal de Solicitar Recurso */}
+      <SolicitarRecursoModal
+        open={openRecursoModal}
+        onClose={() => {
+          setOpenRecursoModal(false);
+          setSelectedMulta(null);
+        }}
+        onSuccess={handleRecursoSuccess}
+        onError={handleRecursoError}
+        multaId={selectedMulta?.idMulta}
+      />
+
+      {/* Modal de Sucesso */}
+      <Dialog
+        open={openSuccessModal}
+        onClose={() => setOpenSuccessModal(false)}
+      >
+        <DialogTitle>Sucesso</DialogTitle>
         <DialogContent>
           <Typography sx={{ color: theme.palette.text.primary }}>
             Upload do comprovante de pagamento feito com sucesso.
