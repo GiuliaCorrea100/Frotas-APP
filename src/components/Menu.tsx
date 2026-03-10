@@ -2,10 +2,6 @@ import {
   AppBar,
   Box,
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Menu as DropdownMenu,
   MenuItem as DropdownItem,
   Toolbar,
@@ -14,71 +10,80 @@ import {
   Badge,
   Chip,
 } from "@mui/material";
-import { jwtDecode } from 'jwt-decode';
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useMediaQuery } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import axiosConnect from "../services/axios/axiosConnect";
-import { Tooltip } from '@mui/material';
-import ContrastIcon from '@mui/icons-material/Contrast';
-import { useThemeContext } from '../context/ThemeContext';
-import DadosPerfil from '../pages/DadosPerfil';
+import { useMediaQuery } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import { Tooltip } from "@mui/material";
+import ContrastIcon from "@mui/icons-material/Contrast";
+import { useThemeContext } from "../context/ThemeContext";
+import DadosPerfil from "../pages/DadosPerfil";
 
 const Menu: React.FC = () => {
-  const { isAuthenticated, cpf, logout, administrador, nome, email, hasCorridaAtiva, idCorridaAtiva } = useAuth()
+  const {
+    isAuthenticated,
+    logout,
+    administrador,
+    hasCorridaAtiva,
+    idCorridaAtiva,
+  } = useAuth();
   const { themeMode, toggleTheme } = useThemeContext();
   const navigate = useNavigate();
   const location = useLocation();
   const [showModalDadosPerfil, setShowModalDadosPerfil] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [dashboardData, setDashboardData] = useState<MotoristaDashboard | null>(null);
-  const isMobile = useMediaQuery('(max-width:768px)');
+  const isMobile = useMediaQuery("(max-width:768px)");
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   // Estados para o timer de inatividade
-  const [tempoRestante, setTempoRestante] = useState<string>('30:00');
-  const [corTimer, setCorTimer] = useState<string>('#4caf50');
+  const [tempoRestante, setTempoRestante] = useState<string>("30:00");
+  const [corTimer, setCorTimer] = useState<string>("#4caf50");
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Função para iniciar/atualizar o timer
-  const iniciarTimer = useCallback((expiresAt: number) => {
-    // Limpa timer anterior
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-
-    // Configura novo timer
-    timerRef.current = setInterval(() => {
-      const agora = Date.now();
-      const segundosRestantes = Math.max(0, Math.floor((expiresAt - agora) / 1000));
-
-      // Atualiza display
-      const minutos = Math.floor(segundosRestantes / 60);
-      const segundos = segundosRestantes % 60;
-      setTempoRestante(`${minutos}:${segundos < 10 ? '0' : ''}${segundos}`);
-
-      // Atualiza cor
-      if (minutos > 5) {
-        setCorTimer(themeMode === 'dark' ? '#4caf50' : '#2e7d32');
-      } else if (minutos > 1) {
-        setCorTimer(themeMode === 'dark' ? '#ff9800' : '#f57c00');
-      } else {
-        setCorTimer(themeMode === 'dark' ? '#f44336' : '#d32f2f');
-      }
-
-      // Se expirou, para o timer e faz logout
-      if (segundosRestantes <= 0 && timerRef.current) {
+  const iniciarTimer = useCallback(
+    (expiresAt: number) => {
+      // Limpa timer anterior
+      if (timerRef.current) {
         clearInterval(timerRef.current);
-        handleAutoLogout();
       }
-    }, 1000);
-  }, [themeMode]);
+
+      // Configura novo timer
+      timerRef.current = setInterval(() => {
+        const agora = Date.now();
+        const segundosRestantes = Math.max(
+          0,
+          Math.floor((expiresAt - agora) / 1000),
+        );
+
+        // Atualiza display
+        const minutos = Math.floor(segundosRestantes / 60);
+        const segundos = segundosRestantes % 60;
+        setTempoRestante(`${minutos}:${segundos < 10 ? "0" : ""}${segundos}`);
+
+        // Atualiza cor
+        if (minutos > 5) {
+          setCorTimer(themeMode === "dark" ? "#4caf50" : "#2e7d32");
+        } else if (minutos > 1) {
+          setCorTimer(themeMode === "dark" ? "#ff9800" : "#f57c00");
+        } else {
+          setCorTimer(themeMode === "dark" ? "#f44336" : "#d32f2f");
+        }
+
+        // Se expirou, para o timer e faz logout
+        if (segundosRestantes <= 0 && timerRef.current) {
+          clearInterval(timerRef.current);
+          handleAutoLogout();
+        }
+      }, 1000);
+    },
+    [themeMode],
+  );
 
   // Função para logout automático
   const handleAutoLogout = useCallback(async () => {
@@ -113,40 +118,41 @@ const Menu: React.FC = () => {
 
   // Recursos para TODOS os usuários
   const recursosPadrao = [
-    { label: 'Registros de Infração', path: '/RegistrosDeInfracao' },
-    { label: 'Histórico', path: '/HistoricoIndividual' },
+    { label: "Registros de Infração", path: "/RegistrosDeInfracao" },
+    { label: "Histórico", path: "/HistoricoIndividual" },
   ];
 
   // Recursos EXCLUSIVOS para admin
   const recursosAdmin = [
-    { label: 'Corridas', path: '/Corridas' },
-    { label: 'Veículos', path: '/Veiculos' },
-    { label: 'Multas', path: '/Multas' },
-    { label: 'Administradores', path: '/Administradores' },
-    { label: 'Relatórios', path: '/Relatorios' },
+    { label: "Corridas", path: "/Corridas" },
+    { label: "Veículos", path: "/Veiculos" },
+    { label: "Multas", path: "/Multas" },
+    { label: "Administradores", path: "/Administradores" },
+    { label: "Relatórios", path: "/Relatorios" },
   ];
 
   // Função para renderizar botões desktop
   const renderBotoesDesktop = () => (
     <>
-      {administrador && recursosAdmin.map((recurso) => (
-        <Button
-          key={recurso.label}
-          color="inherit"
-          component={Link}
-          to={recurso.path}
-          sx={{ fontFamily: 'inherit', fontSize: '0.875rem' }}
-        >
-          {recurso.label}
-        </Button>
-      ))}
+      {administrador &&
+        recursosAdmin.map((recurso) => (
+          <Button
+            key={recurso.label}
+            color="inherit"
+            component={Link}
+            to={recurso.path}
+            sx={{ fontFamily: "inherit", fontSize: "0.875rem" }}
+          >
+            {recurso.label}
+          </Button>
+        ))}
       {recursosPadrao.map((recurso) => (
         <Button
           key={recurso.label}
           color="inherit"
           component={Link}
           to={recurso.path}
-          sx={{ fontFamily: 'inherit', fontSize: '0.875rem' }}
+          sx={{ fontFamily: "inherit", fontSize: "0.875rem" }}
         >
           {recurso.label}
         </Button>
@@ -157,24 +163,25 @@ const Menu: React.FC = () => {
   // Função para renderizar botões mobile
   const renderItensMobile = () => (
     <>
-      {administrador && recursosAdmin.map((recurso) => (
-        <DropdownItem
-          key={recurso.label}
-          component={Link}
-          to={recurso.path}
-          onClick={() => setShowMobileMenu(false)}
-          sx={{ fontSize: '0.9rem', py: 1 }}
-        >
-          {recurso.label}
-        </DropdownItem>
-      ))}
+      {administrador &&
+        recursosAdmin.map((recurso) => (
+          <DropdownItem
+            key={recurso.label}
+            component={Link}
+            to={recurso.path}
+            onClick={() => setShowMobileMenu(false)}
+            sx={{ fontSize: "0.9rem", py: 1 }}
+          >
+            {recurso.label}
+          </DropdownItem>
+        ))}
       {recursosPadrao.map((recurso) => (
         <DropdownItem
           key={recurso.label}
           component={Link}
           to={recurso.path}
           onClick={() => setShowMobileMenu(false)}
-          sx={{ fontSize: '0.9rem', py: 1 }}
+          sx={{ fontSize: "0.9rem", py: 1 }}
         >
           {recurso.label}
         </DropdownItem>
@@ -191,7 +198,10 @@ const Menu: React.FC = () => {
       }
     };
 
-    window.addEventListener('tokenRenewed', handleTokenRenewed as EventListener);
+    window.addEventListener(
+      "tokenRenewed",
+      handleTokenRenewed as EventListener,
+    );
 
     // Inicializa com tempo atual do localStorage
     const storedExpiresAt = localStorage.getItem("tokenExpiresAt");
@@ -206,7 +216,10 @@ const Menu: React.FC = () => {
     }
 
     return () => {
-      window.removeEventListener('tokenRenewed', handleTokenRenewed as EventListener);
+      window.removeEventListener(
+        "tokenRenewed",
+        handleTokenRenewed as EventListener,
+      );
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
@@ -228,10 +241,12 @@ const Menu: React.FC = () => {
   return (
     <>
       <AppBar position="static">
-        <Toolbar sx={{
-          flexWrap: 'wrap',
-          gap: 1,
-        }}>
+        <Toolbar
+          sx={{
+            flexWrap: "wrap",
+            gap: 1,
+          }}
+        >
           {isMobile && (
             <IconButton
               color="inherit"
@@ -251,7 +266,7 @@ const Menu: React.FC = () => {
               color: "inherit",
               fontFamily: "inherit",
               mr: 2,
-              fontSize: isMobile ? '1rem' : '1.25rem',
+              fontSize: isMobile ? "1rem" : "1.25rem",
             }}
             component={Link}
             to={isAuthenticated ? "/menu" : "/"}
@@ -259,14 +274,16 @@ const Menu: React.FC = () => {
             SISTEMA FROTAS
           </Typography>
 
-          <Box sx={{
-            display: 'flex',
-            gap: 1,
-            flexWrap: 'wrap',
-            justifyContent: 'flex-end',
-            flex: 1,
-            alignItems: 'center'
-          }}>
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              flexWrap: "wrap",
+              justifyContent: "flex-end",
+              flex: 1,
+              alignItems: "center",
+            }}
+          >
             {isAuthenticated && (
               <>
                 {!isMobile && (
@@ -279,13 +296,15 @@ const Menu: React.FC = () => {
                             component={Link}
                             to={`/PainelCorridaMotorista/${idCorridaAtiva}`}
                             sx={{
-                              position: 'relative',
-                              animation: hasCorridaAtiva ? 'pulse 2s infinite' : 'none',
-                              '@keyframes pulse': {
-                                '0%': { opacity: 1 },
-                                '50%': { opacity: 0.6 },
-                                '100%': { opacity: 1 },
-                              }
+                              position: "relative",
+                              animation: hasCorridaAtiva
+                                ? "pulse 2s infinite"
+                                : "none",
+                              "@keyframes pulse": {
+                                "0%": { opacity: 1 },
+                                "50%": { opacity: 0.6 },
+                                "100%": { opacity: 1 },
+                              },
                             }}
                           >
                             <Badge color="error" variant="dot">
@@ -301,17 +320,21 @@ const Menu: React.FC = () => {
                 )}
 
                 <DropdownMenu
-                  anchorEl={isMobile ? document.querySelector('.mobile-menu-button') : null}
+                  anchorEl={
+                    isMobile
+                      ? document.querySelector(".mobile-menu-button")
+                      : null
+                  }
                   open={isMobile && showMobileMenu}
                   onClose={() => setShowMobileMenu(false)}
                   PaperProps={{
                     sx: {
                       mt: 1,
                       minWidth: 200,
-                      backgroundColor: 'background.paper',
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                      backgroundColor: "background.paper",
+                      boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                       borderRadius: 1,
-                    }
+                    },
                   }}
                 >
                   <>
@@ -321,13 +344,13 @@ const Menu: React.FC = () => {
                         to={`/PainelCorridaMotorista/${idCorridaAtiva}`}
                         onClick={() => setShowMobileMenu(false)}
                         sx={{
-                          fontSize: '0.9rem',
+                          fontSize: "0.9rem",
                           py: 1,
-                          color: 'error.main',
-                          fontWeight: 'bold'
+                          color: "error.main",
+                          fontWeight: "bold",
                         }}
                       >
-                        <DirectionsCarIcon sx={{ mr: 1, fontSize: '1.2rem' }} />
+                        <DirectionsCarIcon sx={{ mr: 1, fontSize: "1.2rem" }} />
                         Corrida em Andamento
                       </DropdownItem>
                     )}
@@ -336,12 +359,14 @@ const Menu: React.FC = () => {
                   </>
                 </DropdownMenu>
 
-                <Box sx={{
-                  display: 'flex',
-                  gap: 1,
-                  flexWrap: 'nowrap',
-                  alignItems: 'center'
-                }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: 1,
+                    flexWrap: "nowrap",
+                    alignItems: "center",
+                  }}
+                >
                   <Tooltip title={"Perfil"}>
                     <span>
                       <IconButton
@@ -353,7 +378,9 @@ const Menu: React.FC = () => {
                       </IconButton>
                     </span>
                   </Tooltip>
-                  <Tooltip title={`Modo ${themeMode === 'dark' ? 'claro' : 'escuro'}`}>
+                  <Tooltip
+                    title={`Modo ${themeMode === "dark" ? "claro" : "escuro"}`}
+                  >
                     <span>
                       <IconButton
                         color="inherit"
@@ -370,16 +397,17 @@ const Menu: React.FC = () => {
                       icon={<AccessTimeIcon />}
                       label={tempoRestante}
                       sx={{
-                        backgroundColor: themeMode === 'dark'
-                          ? 'rgba(255, 255, 255, 0.08)'
-                          : 'rgba(255, 255, 255, 1)',
+                        backgroundColor:
+                          themeMode === "dark"
+                            ? "rgba(255, 255, 255, 0.08)"
+                            : "rgba(255, 255, 255, 1)",
                         border: `1px solid ${corTimer}30`,
                         color: corTimer,
                         fontWeight: 600,
-                        '& .MuiChip-icon': {
+                        "& .MuiChip-icon": {
                           color: corTimer,
                         },
-                        display: { xs: 'none', sm: 'flex' } // Oculta em mobile
+                        display: { xs: "none", sm: "flex" }, // Oculta em mobile
                       }}
                     />
                   </Tooltip>

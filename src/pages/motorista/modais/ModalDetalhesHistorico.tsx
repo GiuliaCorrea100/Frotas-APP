@@ -385,6 +385,7 @@ export function ModalDetalhesHistorico(props: ModalDetalhesHistoricoProps) {
           </Box>
         </Box>
 
+        <Divider />
         <Box
           sx={{
             display: "flex",
