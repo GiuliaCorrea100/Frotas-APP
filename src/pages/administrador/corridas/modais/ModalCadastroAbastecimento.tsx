@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -13,28 +13,16 @@ import {
   InputAdornment,
   Paper,
   Divider,
-  CircularProgress, 
-} from '@mui/material';
-import { LocalGasStation, CalendarToday } from '@mui/icons-material';
-import { CorridaFrontend } from '../../../../services/CorridaService';
-import { TipoCombustivel, TipoCombustivelService } from '../../../../services/TipoCombustivelService';
-import AbastecimentoService from '../../../../services/AbastecimentoService';
-
-// Estilo para o modal
-const modalStyle = {
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: '80%',
-  maxWidth: 800,
-  maxHeight: '90vh',
-  overflow: 'auto',
-  bgcolor: 'background.paper',
-  boxShadow: 24,
-  p: 4,
-  borderRadius: 2
-};
+  CircularProgress,
+} from "@mui/material";
+import { LocalGasStation, CalendarToday } from "@mui/icons-material";
+import { CorridaFrontend } from "../../../../services/CorridaService";
+import {
+  TipoCombustivel,
+  TipoCombustivelService,
+} from "../../../../services/TipoCombustivelService";
+import AbastecimentoService from "../../../../services/AbastecimentoService";
+import { modalStyle } from "../../../../utils/modalStyle";
 
 interface AbastecimentoModalProps {
   open: boolean;
@@ -47,26 +35,27 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
   open,
   onClose,
   corrida,
-  onSuccess
+  onSuccess,
 }) => {
   const [formData, setFormData] = useState({
-    quantidade: '',
-    codigoPagamento: '',
-    valorTotal: '',
-    dataAbastecimento: '',
-    valorUnitario: '',
-    justificativaAlteracao: '',
-    tipoCombustivelId: '',
-    idCorrida: corrida ? corrida.idCorrida.toString() : '',
+    quantidade: "",
+    codigoPagamento: "",
+    valorTotal: "",
+    dataAbastecimento: "",
+    valorUnitario: "",
+    justificativaAlteracao: "",
+    tipoCombustivelId: "",
+    idCorrida: corrida ? corrida.idCorrida.toString() : "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [tiposCombustivel, setTiposCombustivel] = useState<TipoCombustivel[]>([]);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [tiposCombustivel, setTiposCombustivel] = useState<TipoCombustivel[]>(
+    [],
+  );
   const [carregandoTipos, setCarregandoTipos] = useState(true);
-  
-  
+
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const dataMinima = corrida?.dataHoraLiberacaoChave
@@ -82,12 +71,14 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
     : new Date();
   dataLimite.setHours(0, 0, 0, 0); // Caso a corrida esteja finalizada o limite é a data de recebimento da chave, caso contrário o limite é o dia atual
 
-  const minDate = dataMinima ? dataMinima.toISOString().slice(0, 10) : undefined;
+  const minDate = dataMinima
+    ? dataMinima.toISOString().slice(0, 10)
+    : undefined;
   const maxDate = dataLimite.toISOString().slice(0, 10);
 
   useEffect(() => {
     if (open && corrida?.idCorrida) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         idCorrida: corrida.idCorrida.toString(),
       }));
@@ -106,7 +97,9 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
             console.error("Formato inválido de resposta:", res);
           }
         })
-        .catch((err) => console.error('Erro ao buscar tipos de combustível:', err))
+        .catch((err) =>
+          console.error("Erro ao buscar tipos de combustível:", err),
+        )
         .finally(() => setCarregandoTipos(false));
     }
   }, [open]);
@@ -119,9 +112,9 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
       if (!isNaN(litros) && !isNaN(valorUnitario)) {
         const precoFinal = litros * valorUnitario;
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          valorTotal: precoFinal.toFixed(2)
+          valorTotal: precoFinal.toFixed(2),
         }));
       }
     }
@@ -132,27 +125,27 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
     // Validações obrigatórias
     if (!formData.quantidade || parseFloat(formData.quantidade) <= 0) {
-      newErrors.litros = 'Litros são obrigatórios e devem ser maiores que zero';
+      newErrors.litros = "Litros são obrigatórios e devem ser maiores que zero";
     }
 
     if (!formData.codigoPagamento) {
-      newErrors.codigoPagamento = 'Código de pagamento é obrigatório';
+      newErrors.codigoPagamento = "Código de pagamento é obrigatório";
     }
 
     if (!formData.valorTotal || parseFloat(formData.valorTotal) <= 0) {
-      newErrors.preco_final = 'Preço final é obrigatório';
+      newErrors.preco_final = "Preço final é obrigatório";
     }
 
     if (!formData.dataAbastecimento) {
-      newErrors.dataAbastecimento = 'Data é obrigatória';
+      newErrors.dataAbastecimento = "Data é obrigatória";
     }
 
     if (!formData.tipoCombustivelId) {
-      newErrors.tipoCombustivelId = 'Tipo de combustível é obrigatório';
+      newErrors.tipoCombustivelId = "Tipo de combustível é obrigatório";
     }
 
     if (!formData.idCorrida) {
-      newErrors.id_corrida = 'Corrida é obrigatória';
+      newErrors.id_corrida = "Corrida é obrigatória";
     }
 
     // Validação de data (deve ser entre a data de liberação e recebimento da chave)
@@ -160,43 +153,47 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 
     if (formData.dataAbastecimento) {
-      const [ano, mes, dia] = formData.dataAbastecimento.split('-').map(Number);
+      const [ano, mes, dia] = formData.dataAbastecimento.split("-").map(Number);
       const dataAbastecimento = new Date(ano, mes - 1, dia);
 
-      if (dataMinima && apenasData(dataAbastecimento) < apenasData(dataMinima)) {
-        newErrors.dataAbastecimento = 'Data não pode ser anterior à liberação da chave';
+      if (
+        dataMinima &&
+        apenasData(dataAbastecimento) < apenasData(dataMinima)
+      ) {
+        newErrors.dataAbastecimento =
+          "Data não pode ser anterior à liberação da chave";
       } else if (apenasData(dataAbastecimento) > apenasData(dataLimite)) {
-        newErrors.dataAbastecimento = 'Data não pode ser posterior à data de encerramento da corrida';
+        newErrors.dataAbastecimento =
+          "Data não pode ser posterior à data de encerramento da corrida";
       }
     }
 
     setErrors(newErrors);
-      return Object.keys(newErrors).length === 0;
-    };
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) return;
 
-    
     setIsSubmitting(true);
 
     // Encontrar o tipo de combustível selecionado
     const tipoCombustivelSelecionado = tiposCombustivel.find(
-      tipo => tipo.idTipoCombustivel === parseInt(formData.tipoCombustivelId)
+      (tipo) => tipo.idTipoCombustivel === parseInt(formData.tipoCombustivelId),
     );
 
     if (!tipoCombustivelSelecionado) {
-      setErrors({ submit: 'Tipo de combustível inválido' });
-      setIsSubmitting(false); 
+      setErrors({ submit: "Tipo de combustível inválido" });
+      setIsSubmitting(false);
       return;
     }
 
     // Utilizar apenas a data e não o horário
     let dataAbastecimento: Date | null = null;
     if (formData.dataAbastecimento) {
-      const [ano, mes, dia] = formData.dataAbastecimento.split('-').map(Number);
+      const [ano, mes, dia] = formData.dataAbastecimento.split("-").map(Number);
       dataAbastecimento = new Date(ano, mes - 1, dia);
     }
 
@@ -205,8 +202,10 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       codigoPagamento: formData.codigoPagamento,
       valorTotal: parseFloat(formData.valorTotal),
       dataAbastecimento: dataAbastecimento as Date,
-      valorUnitario: formData.valorUnitario ? parseFloat(formData.valorUnitario) : 0,
-      justificativaAlteracao: formData.justificativaAlteracao || '',
+      valorUnitario: formData.valorUnitario
+        ? parseFloat(formData.valorUnitario)
+        : 0,
+      justificativaAlteracao: formData.justificativaAlteracao || "",
       tipoCombustivel: tipoCombustivelSelecionado.idTipoCombustivel as number,
       idCorrida: parseInt(formData.idCorrida),
     };
@@ -214,33 +213,34 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
     try {
       setLoading(true);
       await AbastecimentoService.cadastrarAbastecimento(dadosParaCadastro);
-      setSuccessMessage('Abastecimento cadastrado com sucesso!');
-      
+      setSuccessMessage("Abastecimento cadastrado com sucesso!");
 
       setTimeout(() => {
-        setSuccessMessage('');
+        setSuccessMessage("");
         setFormData({
-          quantidade: '',
-          codigoPagamento: '',
-          valorTotal: '',
-           dataAbastecimento: '',
-          valorUnitario: '',
-          justificativaAlteracao: '',
-          tipoCombustivelId: '',
-          idCorrida: corrida?.idCorrida ? corrida?.idCorrida.toString() : '',
+          quantidade: "",
+          codigoPagamento: "",
+          valorTotal: "",
+          dataAbastecimento: "",
+          valorUnitario: "",
+          justificativaAlteracao: "",
+          tipoCombustivelId: "",
+          idCorrida: corrida?.idCorrida ? corrida?.idCorrida.toString() : "",
         });
 
         if (onSuccess) onSuccess();
         onClose();
       }, 1500);
     } catch (error: any) {
-      console.error('Erro ao cadastrar:', error);
+      console.error("Erro ao cadastrar:", error);
       setErrors({
-        submit: error.response?.data?.message || 'Erro ao cadastrar abastecimento. Tente novamente.'
+        submit:
+          error.response?.data?.message ||
+          "Erro ao cadastrar abastecimento. Tente novamente.",
       });
     } finally {
       setLoading(false);
-      setIsSubmitting(false); 
+      setIsSubmitting(false);
     }
   };
 
@@ -248,7 +248,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
     const { name, value } = e.target;
 
     if (errors[name]) {
-      setErrors(prev => {
+      setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[name];
         return newErrors;
@@ -265,7 +265,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
     const { name, value } = e.target;
 
     if (errors[name]) {
-      setErrors(prev => {
+      setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[name];
         return newErrors;
@@ -280,18 +280,18 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
   const handleClose = () => {
     setFormData({
-      quantidade: '',
-      codigoPagamento: '',
-      valorTotal: '',
-      dataAbastecimento: '',
-      valorUnitario: '',
-      justificativaAlteracao: '',
-      tipoCombustivelId: '',
-      idCorrida: corrida?.idCorrida ? corrida?.idCorrida.toString() : '',
+      quantidade: "",
+      codigoPagamento: "",
+      valorTotal: "",
+      dataAbastecimento: "",
+      valorUnitario: "",
+      justificativaAlteracao: "",
+      tipoCombustivelId: "",
+      idCorrida: corrida?.idCorrida ? corrida?.idCorrida.toString() : "",
     });
     setErrors({});
-    setSuccessMessage('');
-    setIsSubmitting(false); 
+    setSuccessMessage("");
+    setIsSubmitting(false);
     onClose();
   };
 
@@ -303,8 +303,15 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       aria-describedby="modal-cadastro-abastecimento"
     >
       <Paper sx={modalStyle}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center" }}>
             <LocalGasStation color="primary" sx={{ fontSize: 32, mr: 1 }} />
             <Typography variant="h5" component="h2" color="text.primary">
               Cadastro de Abastecimento
@@ -331,7 +338,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
               Informações Básicas
             </Typography>
 
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
               <TextField
                 label="Litros"
                 name="quantidade"
@@ -342,11 +349,13 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                 error={!!errors.quantidade}
                 helperText={errors.quantidade}
                 inputProps={{ min: 0, step: 0.01 }}
-                sx={{ flex: '1 1 200px' }}
+                sx={{ flex: "1 1 200px" }}
                 InputProps={{
-                  endAdornment: <InputAdornment position="end">L</InputAdornment>,
+                  endAdornment: (
+                    <InputAdornment position="end">L</InputAdornment>
+                  ),
                 }}
-                disabled={isSubmitting} 
+                disabled={isSubmitting}
               />
 
               <TextField
@@ -357,12 +366,12 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                 required
                 error={!!errors.codigoPagamento}
                 helperText={errors.codigoPagamento}
-                sx={{ flex: '1 1 200px' }}
-                disabled={isSubmitting} 
+                sx={{ flex: "1 1 200px" }}
+                disabled={isSubmitting}
               />
             </Box>
 
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
               <TextField
                 label="Valor Unitário por Litro"
                 name="valorUnitario"
@@ -370,11 +379,13 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                 value={formData.valorUnitario}
                 onChange={handleInputChange}
                 inputProps={{ min: 0, step: 0.001 }}
-                sx={{ flex: '1 1 200px' }}
+                sx={{ flex: "1 1 200px" }}
                 InputProps={{
-                  startAdornment: <InputAdornment position="start">R$</InputAdornment>,
+                  startAdornment: (
+                    <InputAdornment position="start">R$</InputAdornment>
+                  ),
                 }}
-                disabled={isSubmitting} 
+                disabled={isSubmitting}
               />
 
               <TextField
@@ -386,12 +397,14 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                 required
                 error={!!errors.valorTotal}
                 helperText={errors.valorTotal}
-                sx={{ flex: '1 1 200px' }}
+                sx={{ flex: "1 1 200px" }}
                 InputProps={{
-                  startAdornment: <InputAdornment position="start">R$</InputAdornment>,
+                  startAdornment: (
+                    <InputAdornment position="start">R$</InputAdornment>
+                  ),
                   readOnly: true,
                 }}
-                disabled={isSubmitting} 
+                disabled={isSubmitting}
               />
             </Box>
 
@@ -412,12 +425,12 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                   </InputAdornment>
                 ),
                 inputProps: {
-                   min: minDate,
-                   max: maxDate,
+                  min: minDate,
+                  max: maxDate,
                 },
               }}
-              sx={{ mb: 2, width: '100%', maxWidth: 400 }}
-              disabled={isSubmitting} 
+              sx={{ mb: 2, width: "100%", maxWidth: 400 }}
+              disabled={isSubmitting}
             />
           </Box>
 
@@ -429,20 +442,30 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
               Tipo de Combustível
             </Typography>
 
-            <FormControl fullWidth required error={!!errors.tipoCombustivelId} sx={{ mb: 2 }}>
+            <FormControl
+              fullWidth
+              required
+              error={!!errors.tipoCombustivelId}
+              sx={{ mb: 2 }}
+            >
               <InputLabel>Tipo de Combustível</InputLabel>
               <Select
                 name="tipoCombustivelId"
                 value={formData.tipoCombustivelId}
                 onChange={handleSelectChange}
                 label="Tipo de Combustível"
-                disabled={isSubmitting} 
+                disabled={isSubmitting}
               >
                 {carregandoTipos ? (
-                  <MenuItem value="">Carregando tipos de combustível...</MenuItem>
+                  <MenuItem value="">
+                    Carregando tipos de combustível...
+                  </MenuItem>
                 ) : (
                   tiposCombustivel.map((tipo) => (
-                    <MenuItem key={tipo.idTipoCombustivel} value={tipo.idTipoCombustivel}>
+                    <MenuItem
+                      key={tipo.idTipoCombustivel}
+                      value={tipo.idTipoCombustivel}
+                    >
                       {tipo.nome}
                     </MenuItem>
                   ))
@@ -457,31 +480,34 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
           </Box>
 
           <Divider sx={{ my: 2 }} />
-          
+
           {/* Botões */}
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
+          <Box
+            sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}
+          >
             <Button
               variant="outlined"
               onClick={handleClose}
-              disabled={isSubmitting || !!successMessage} 
+              disabled={isSubmitting || !!successMessage}
             >
               Cancelar
             </Button>
             <Button
               type="submit"
               variant="contained"
-              disabled={loading || isSubmitting || !!successMessage} 
-              sx={{ minWidth: 120 }} 
+              disabled={loading || isSubmitting || !!successMessage}
+              sx={{ minWidth: 120 }}
             >
               {isSubmitting ? (
-                
                 <>
-                  <CircularProgress size={20} sx={{ mr: 1, color: 'inherit' }} />
+                  <CircularProgress
+                    size={20}
+                    sx={{ mr: 1, color: "inherit" }}
+                  />
                   Cadastrando...
                 </>
               ) : (
-                
-                'Cadastrar'
+                "Cadastrar"
               )}
             </Button>
           </Box>

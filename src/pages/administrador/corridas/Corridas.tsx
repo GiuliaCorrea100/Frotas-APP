@@ -785,7 +785,6 @@ export default function ListaCorrida() {
           <Button
             onClick={() => setShowModalCancelar(false)}
             variant="outlined"
-            sx={{ borderRadius: 2 }}
           >
             Cancelar
           </Button>
@@ -814,7 +813,6 @@ export default function ListaCorrida() {
             }}
             variant="contained"
             color="primary"
-            sx={{ borderRadius: 2 }}
           >
             Confirmar
           </Button>
