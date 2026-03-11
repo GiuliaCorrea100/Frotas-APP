@@ -24,7 +24,7 @@ import {
   atualizarSituacaoCorrida,
 } from "../../../services/CorridaService";
 
-import SalvarEdicaoCorrida from "./modais/ModalEdicaoPainelCorrida";
+import SalvarEdicaoCorrida from "./modais/ModalEdicaoCorrida";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import CadastrarCorrida from "./modais/ModalCadastroCorrida";
 import { CarroService } from "../../../services/CarroService";

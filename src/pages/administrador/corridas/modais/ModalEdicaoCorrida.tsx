@@ -359,9 +359,7 @@ export default function EditarInfoCorrida({
                   }
                 />
               )}
-              sx={{
-                width: "100%",
-              }}
+              fullWidth
             />
           </Box>
 
@@ -408,9 +406,7 @@ export default function EditarInfoCorrida({
                   }
                 />
               )}
-              sx={{
-                width: "100%",
-              }}
+              fullWidth
             />
           </Box>
 

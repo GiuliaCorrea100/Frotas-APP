@@ -1101,31 +1101,32 @@ const DetalhesRequisicao: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      <ModalEditarOcorrencia
-        open={modalEditarOcorrenciaAberto}
-        ocorrencia={ocorrenciaSelecionada}
-        onClose={handleFecharModalEditarOcorrencia}
-        onSuccess={async (msg) => {
-          await carregarDados();
-        }}
-        onError={(err) => {
-          console.error(err);
-        }}
-      />
-
       {modalCadastroOcorrenciaAberto && (
         <CadastrarOcorrencia
           open={modalCadastroOcorrenciaAberto}
           onClose={handleFecharModalCadastroOcorrencia}
           corrida={idcorridaNumber}
           onSuccess={async () => {
-            console.log("Ocorrência salva com sucesso!");
             await carregarDados();
           }}
           onError={(erro) => {
             console.error("Erro ao salvar ocorrência:", erro);
           }}
           chaveEmprestada={false}
+        />
+      )}
+
+      {modalEditarOcorrenciaAberto && (
+        <ModalEditarOcorrencia
+          open={modalEditarOcorrenciaAberto}
+          ocorrencia={ocorrenciaSelecionada}
+          onClose={handleFecharModalEditarOcorrencia}
+          onSuccess={async (msg) => {
+            await carregarDados();
+          }}
+          onError={(err) => {
+            console.error(err);
+          }}
         />
       )}
 

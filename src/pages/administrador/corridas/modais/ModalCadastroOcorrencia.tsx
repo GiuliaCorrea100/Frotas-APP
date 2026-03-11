@@ -66,7 +66,6 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
       };
 
       await OcorrenciaService.criar(dadosOcorrencia);
-      console.log(dadosOcorrencia);
 
       setSuccessMessage("Ocorrência cadastrada com sucesso!");
 
@@ -100,11 +99,13 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
     <Modal open={open} onClose={handleClose}>
       <Box sx={modalStyle}>
         <Box
+          component="form"
+          onSubmit={handleSubmit}
           sx={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            mb: 2,
+            mb: 0,
           }}
         >
           <Typography
@@ -190,7 +191,7 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
             Cancelar
           </Button>
           <Button
-            type="submit"
+            onClick={handleSubmit}
             variant="contained"
             disabled={
               loading ||
@@ -199,7 +200,7 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
               !!successMessage
             }
           >
-            {loading ? <CircularProgress size={24} /> : "Cadastrar"}
+            {loading ? <CircularProgress size={24} /> : "Salvar"}
           </Button>
         </Box>
       </Box>

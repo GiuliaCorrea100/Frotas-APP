@@ -355,9 +355,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
               option.idCarro === value.idCarro
             }
             noOptionsText="Digite pelo menos 3 caracteres para buscar (placa ou modelo do veículo)"
-            sx={{
-              width: "100%",
-            }}
+            fullWidth
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -408,9 +406,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
                 }
               />
             )}
-            sx={{
-              width: "100%",
-            }}
+            fullWidth
           />
         </Box>
 
