@@ -322,7 +322,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
               pt: 1,
             }}
           >
-            <CalendarMonthIcon color="primary" sx={{ fontSize: 32, mr: 1 }} />
+            <CalendarMonthIcon color="primary" sx={{ fontSize: 24, mr: 1 }} />
             Agendar corrida
           </Typography>
           <IconButton onClick={onClose} disabled={loading || isSubmitting}>

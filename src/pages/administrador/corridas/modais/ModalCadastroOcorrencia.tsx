@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Modal,
   Box,
@@ -8,9 +8,12 @@ import {
   CircularProgress,
   Alert,
   InputAdornment,
-} from '@mui/material';
-import { OcorrenciaService } from '../../../../services/OcorrenciaService';
-import { CalendarToday } from '@mui/icons-material';
+  IconButton,
+  Divider,
+} from "@mui/material";
+import { OcorrenciaService } from "../../../../services/OcorrenciaService";
+import { CalendarToday, Close, Warning } from "@mui/icons-material";
+import { modalStyle } from "../../../../utils/modalStyle";
 
 interface CadastrarOcorrenciaProps {
   open: boolean;
@@ -27,40 +30,29 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
   onClose,
   onSuccess,
   onError,
-  corrida
+  corrida,
 }) => {
-  const [descricao, setDescricao] = useState('');
+  const [descricao, setDescricao] = useState("");
   const [dataOcorrencia, setDataOcorrencia] = useState<Date | null>(null);
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState("");
 
   const resetForm = () => {
-    setDescricao('');
+    setDescricao("");
     setDataOcorrencia(null);
-    setSuccessMessage('');
+    setSuccessMessage("");
   };
-
-  // const formatDateForBackend = (date: Date | null): string | null => {
-  //   if (!date) return null;
-    
-  //   // Formata como YYYY-MM-DD (apenas data)
-  //   const year = date.getFullYear();
-  //   const month = String(date.getMonth() + 1).padStart(2, '0');
-  //   const day = String(date.getDate()).padStart(2, '0');
-    
-  //   return `${year}-${month}-${day}`;
-  // };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     if (!descricao.trim()) {
-      onError('A descrição é obrigatória');
+      onError("A descrição é obrigatória");
       return;
     }
 
     if (!dataOcorrencia) {
-      onError('A data da ocorrência é obrigatória');
+      onError("A data da ocorrência é obrigatória");
       return;
     }
 
@@ -70,28 +62,29 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
       const dadosOcorrencia = {
         descricao: descricao.trim(),
         idCorrida: corrida,
-        dataOcorrencia: dataOcorrencia, 
+        dataOcorrencia: dataOcorrencia,
       };
 
       await OcorrenciaService.criar(dadosOcorrencia);
       console.log(dadosOcorrencia);
-      
-      setSuccessMessage('Ocorrência cadastrada com sucesso!');
-      
-      onSuccess('Ocorrência cadastrada com sucesso!');
-      
+
+      setSuccessMessage("Ocorrência cadastrada com sucesso!");
+
+      onSuccess("Ocorrência cadastrada com sucesso!");
+
       setTimeout(() => {
         onClose();
         resetForm();
       }, 1500);
-      
     } catch (error: any) {
-      console.error('Erro ao cadastrar ocorrência:', error);
-      
+      console.error("Erro ao cadastrar ocorrência:", error);
+
       if (error.response?.status === 401) {
-        onError('Sessão expirada. Faça login novamente.');
+        onError("Sessão expirada. Faça login novamente.");
       } else {
-        onError(error.response?.data?.message || 'Erro ao cadastrar ocorrência');
+        onError(
+          error.response?.data?.message || "Erro ao cadastrar ocorrência",
+        );
       }
     } finally {
       setLoading(false);
@@ -105,24 +98,32 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
 
   return (
     <Modal open={open} onClose={handleClose}>
-      <Box
-        component="form"
-        onSubmit={handleSubmit}
-        sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 400,
-          bgcolor: 'background.paper',
-          borderRadius: 2,
-          boxShadow: 24,
-          p: 4,
-        }}
-      >
-        <Typography variant="h6" component="h2" mb={2} fontWeight="bold" color="text.primary">
-          Nova Ocorrência
-        </Typography>
+      <Box sx={modalStyle}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+          }}
+        >
+          <Typography
+            variant="h6"
+            color="text.primary"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontWeight: "bold",
+              pt: 1,
+            }}
+          >
+            <Warning color="primary" sx={{ fontSize: 24, mr: 1 }} />
+            Cadastrar ocorrência
+          </Typography>
+          <IconButton onClick={onClose} disabled={loading}>
+            <Close />
+          </IconButton>
+        </Box>
 
         {successMessage && (
           <Alert severity="success" sx={{ mb: 2 }}>
@@ -130,62 +131,75 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
           </Alert>
         )}
 
-        <TextField
-          label="Descrição"
-          value={descricao}
-          onChange={(e) => setDescricao(e.target.value)}
-          fullWidth
-          required
-          multiline
-          rows={3}
-          variant="outlined"
-          margin="normal"
-          error={!descricao.trim() && descricao !== ''}
-          helperText={!descricao.trim() && descricao !== '' ? "Descrição não pode estar vazia" : ""}
-          disabled={!!successMessage || loading}
-        />
-
-        <TextField
-          label="Data da ocorrência"
-          type="date"
-          fullWidth
-          value={dataOcorrencia ? dataOcorrencia.toISOString().slice(0, 10) : ""}
-          onChange={(e) => {
-            const selectedDate = e.target.value;
-            if (selectedDate) {
-              // Cria uma data com hora fixa (meia-noite)
-              const date = new Date(selectedDate + 'T00:00:00');
-              setDataOcorrencia(date);
-            } else {
-              setDataOcorrencia(null);
+        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+          <TextField
+            label="Descrição"
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+            fullWidth
+            required
+            multiline
+            rows={3}
+            variant="outlined"
+            margin="normal"
+            error={!descricao.trim() && descricao !== ""}
+            helperText={
+              !descricao.trim() && descricao !== ""
+                ? "Descrição não pode estar vazia"
+                : ""
             }
-          }}
-          InputLabelProps={{ shrink: true }}
-          required
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <CalendarToday fontSize="small" />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ mb: 2 }}
-        />
+            disabled={!!successMessage || loading}
+          />
+        </Box>
 
-        <Box mt={3} display="flex" justifyContent="flex-end" gap={2}>
-          <Button 
-            variant="outlined" 
-            onClick={handleClose} 
-            disabled={loading}
-          >
+        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+          <TextField
+            label="Data da ocorrência"
+            type="date"
+            fullWidth
+            value={
+              dataOcorrencia ? dataOcorrencia.toISOString().slice(0, 10) : ""
+            }
+            onChange={(e) => {
+              const selectedDate = e.target.value;
+              if (selectedDate) {
+                const date = new Date(selectedDate + "T00:00:00");
+                setDataOcorrencia(date);
+              } else {
+                setDataOcorrencia(null);
+              }
+            }}
+            InputLabelProps={{ shrink: true }}
+            required
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <CalendarToday fontSize="small" />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Box>
+
+        <Divider sx={{ my: 2 }} />
+
+        <Box
+          sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}
+        >
+          <Button variant="outlined" onClick={handleClose} disabled={loading}>
             Cancelar
           </Button>
           <Button
             type="submit"
             variant="contained"
-            disabled={loading || !descricao.trim() || !dataOcorrencia || !!successMessage}
+            disabled={
+              loading ||
+              !descricao.trim() ||
+              !dataOcorrencia ||
+              !!successMessage
+            }
           >
-            {loading ? <CircularProgress size={24} /> : 'Salvar'}
+            {loading ? <CircularProgress size={24} /> : "Cadastrar"}
           </Button>
         </Box>
       </Box>

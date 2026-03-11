@@ -43,6 +43,7 @@ import EdicaoAbastecimentoModal from "./modais/ModalEdicaoAbastecimento";
 import EdicaoPercursosModal from "./modais/ModalEdicaoPercurso";
 import CadastrarPercursosModal from "./modais/ModalCadastroPercurso";
 import AppLayout from "../../../components/Layout";
+import { formatDate, formatDateOnly } from "../../../utils/formatDate";
 
 const DetalhesRequisicao: React.FC = () => {
   const theme = useTheme();
@@ -129,6 +130,7 @@ const DetalhesRequisicao: React.FC = () => {
   };
 
   const idcorridaNumber = Number(id);
+  const isAgendada = corrida ? !corrida.dataHoraLiberacaoChave : false;
 
   // Função para formatar valores como moeda
   const formatCurrency = (value: number) => {
@@ -137,32 +139,6 @@ const DetalhesRequisicao: React.FC = () => {
       style: "currency",
       currency: "BRL",
     }).format(value);
-  };
-
-  // Função para formatar datas com horas
-  const formatDateTime = (dateString?: string | null) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Data inválida";
-    return date.toLocaleString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  // Função para formatar datas sem horas
-  const formatDate = (dateString?: string | null) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "Data inválida";
-    return date.toLocaleString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
   };
 
   const columnsOcorrencias: GridColDef<OcorrenciaDto>[] = [
@@ -179,7 +155,9 @@ const DetalhesRequisicao: React.FC = () => {
       headerName: "Data",
       flex: 1,
       renderCell: (params) => (
-        <Typography color="text.primary">{formatDate(params.value)}</Typography>
+        <Typography color="text.primary">
+          {formatDateOnly(params.value)}
+        </Typography>
       ),
     },
     {
@@ -212,8 +190,7 @@ const DetalhesRequisicao: React.FC = () => {
                     margin: 0,
                   },
                 }}
-              >
-              </Button>
+              ></Button>
             </Tooltip>
             <Tooltip title="Excluir ocorrência">
               <Button
@@ -239,8 +216,7 @@ const DetalhesRequisicao: React.FC = () => {
                       ? "rgba(0, 0, 0, 0.87)"
                       : undefined,
                 }}
-              >
-              </Button>
+              ></Button>
             </Tooltip>
           </Box>
         );
@@ -291,7 +267,9 @@ const DetalhesRequisicao: React.FC = () => {
       headerName: "Data Abastecimento",
       flex: 1,
       renderCell: (params) => (
-        <Typography color="text.primary">{formatDate(params.value)}</Typography>
+        <Typography color="text.primary">
+          {formatDateOnly(params.value)}
+        </Typography>
       ),
     },
     {
@@ -309,7 +287,9 @@ const DetalhesRequisicao: React.FC = () => {
                 variant="contained"
                 color="warning"
                 size="small"
-                onClick={() => handleAbrirModalEditarAbastecimento(abastecimento)}
+                onClick={() =>
+                  handleAbrirModalEditarAbastecimento(abastecimento)
+                }
                 startIcon={<CreateIcon />}
                 sx={{
                   width: 42,
@@ -324,8 +304,7 @@ const DetalhesRequisicao: React.FC = () => {
                     margin: 0,
                   },
                 }}
-              >
-              </Button>
+              ></Button>
             </Tooltip>
             <Tooltip title="Excluir abastecimento">
               <Button
@@ -353,8 +332,7 @@ const DetalhesRequisicao: React.FC = () => {
                       ? "rgba(0, 0, 0, 0.87)"
                       : undefined,
                 }}
-              >
-              </Button>
+              ></Button>
             </Tooltip>
           </Box>
         );
@@ -378,9 +356,7 @@ const DetalhesRequisicao: React.FC = () => {
       flex: 1,
       sortable: false,
       renderCell: (params) => (
-        <Typography color="text.primary">
-          {formatDateTime(params.value)}
-        </Typography>
+        <Typography color="text.primary">{formatDate(params.value)}</Typography>
       ),
     },
     {
@@ -407,9 +383,7 @@ const DetalhesRequisicao: React.FC = () => {
       flex: 1,
       sortable: false,
       renderCell: (params) => (
-        <Typography color="text.primary">
-          {formatDateTime(params.value)}
-        </Typography>
+        <Typography color="text.primary">{formatDate(params.value)}</Typography>
       ),
     },
     {
@@ -451,8 +425,7 @@ const DetalhesRequisicao: React.FC = () => {
                     margin: 0,
                   },
                 }}
-              >
-              </Button>
+              ></Button>
             </Tooltip>
             <Tooltip title="Excluir percurso">
               <Button
@@ -478,8 +451,7 @@ const DetalhesRequisicao: React.FC = () => {
                       ? "rgba(0, 0, 0, 0.87)"
                       : undefined,
                 }}
-              >
-              </Button>
+              ></Button>
             </Tooltip>
           </Box>
         );
@@ -662,21 +634,29 @@ const DetalhesRequisicao: React.FC = () => {
 
                 <Box>
                   <Typography variant="body2" color="text.secondary">
-                    Data de liberação da chave:
+                    {isAgendada
+                      ? "Data agendada para início da corrida"
+                      : "Data e hora de início da corrida"}
                   </Typography>
                   <Typography variant="body1" color="text.primary">
-                    {new Date(corrida.dataInicio).toLocaleString()}
+                    {isAgendada
+                      ? formatDateOnly(corrida.dataInicio)
+                      : formatDate(corrida.dataHoraLiberacaoChave)}
                   </Typography>
                 </Box>
 
                 <Box>
                   <Typography variant="body2" color="text.secondary">
-                    Data de entrega da chave:
+                    {isAgendada
+                      ? "Data agendada para término da corrida"
+                      : "Data e hora de término da corrida"}
                   </Typography>
                   <Typography variant="body1" color="text.primary">
-                    {corrida.dataTermino
-                      ? new Date(corrida.dataTermino).toLocaleString()
-                      : "Em andamento"}
+                    {isAgendada
+                      ? formatDateOnly(corrida.dataTermino)
+                      : corrida.dataHoraRecebimentoChave
+                        ? formatDate(corrida.dataHoraRecebimentoChave)
+                        : "-"}
                   </Typography>
                 </Box>
 
@@ -749,7 +729,7 @@ const DetalhesRequisicao: React.FC = () => {
                 Carregando ocorrências...
               </Typography>
             ) : ocorrencias.length > 0 ? (
-              <Box sx={{ minHeight: 200, width: '100%' }}>
+              <Box sx={{ minHeight: 200, width: "100%" }}>
                 <DataGrid
                   rows={ocorrencias}
                   columns={columnsOcorrencias}
@@ -759,15 +739,15 @@ const DetalhesRequisicao: React.FC = () => {
                     },
                   }}
                   sx={{
-                    width: '100%',
+                    width: "100%",
                     "& .MuiDataGrid-footerContainer": {
                       borderTop: `1px solid ${theme.palette.divider}`,
                     },
                     "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-                    {
-                      marginBottom: 0,
-                      alignSelf: "center",
-                    },
+                      {
+                        marginBottom: 0,
+                        alignSelf: "center",
+                      },
                     "& .MuiTablePagination-toolbar": {
                       minHeight: "52px",
                       alignItems: "center",
@@ -832,7 +812,7 @@ const DetalhesRequisicao: React.FC = () => {
                 Carregando Abastecimentos...
               </Typography>
             ) : abastecimentos.length > 0 ? (
-              <Box sx={{ minHeight: 200, width: '100%' }}>
+              <Box sx={{ minHeight: 200, width: "100%" }}>
                 <DataGrid
                   rows={abastecimentos}
                   columns={columnsAbastecimentos}
@@ -842,15 +822,15 @@ const DetalhesRequisicao: React.FC = () => {
                     },
                   }}
                   sx={{
-                    width: '100%',
+                    width: "100%",
                     "& .MuiDataGrid-footerContainer": {
                       borderTop: `1px solid ${theme.palette.divider}`,
                     },
                     "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-                    {
-                      marginBottom: 0,
-                      alignSelf: "center",
-                    },
+                      {
+                        marginBottom: 0,
+                        alignSelf: "center",
+                      },
                     "& .MuiTablePagination-toolbar": {
                       minHeight: "52px",
                       alignItems: "center",
@@ -915,7 +895,7 @@ const DetalhesRequisicao: React.FC = () => {
                 Carregando Percursos...
               </Typography>
             ) : percursos.length > 0 ? (
-              <Box sx={{ minHeight: 200, width: '100%' }}>
+              <Box sx={{ minHeight: 200, width: "100%" }}>
                 <DataGrid
                   rows={percursos}
                   columns={colunsPercursos}
@@ -925,15 +905,15 @@ const DetalhesRequisicao: React.FC = () => {
                     },
                   }}
                   sx={{
-                    width: '100%',
+                    width: "100%",
                     "& .MuiDataGrid-footerContainer": {
                       borderTop: `1px solid ${theme.palette.divider}`,
                     },
                     "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-                    {
-                      marginBottom: 0,
-                      alignSelf: "center",
-                    },
+                      {
+                        marginBottom: 0,
+                        alignSelf: "center",
+                      },
                     "& .MuiTablePagination-toolbar": {
                       minHeight: "52px",
                       alignItems: "center",
@@ -1133,19 +1113,21 @@ const DetalhesRequisicao: React.FC = () => {
         }}
       />
 
-      <CadastrarOcorrencia
-        open={modalCadastroOcorrenciaAberto}
-        onClose={handleFecharModalCadastroOcorrencia}
-        corrida={idcorridaNumber}
-        onSuccess={async () => {
-          console.log("Ocorrência salva com sucesso!");
-          await carregarDados();
-        }}
-        onError={(erro) => {
-          console.error("Erro ao salvar ocorrência:", erro);
-        }}
-        chaveEmprestada={false}
-      />
+      {modalCadastroOcorrenciaAberto && (
+        <CadastrarOcorrencia
+          open={modalCadastroOcorrenciaAberto}
+          onClose={handleFecharModalCadastroOcorrencia}
+          corrida={idcorridaNumber}
+          onSuccess={async () => {
+            console.log("Ocorrência salva com sucesso!");
+            await carregarDados();
+          }}
+          onError={(erro) => {
+            console.error("Erro ao salvar ocorrência:", erro);
+          }}
+          chaveEmprestada={false}
+        />
+      )}
 
       <AbastecimentoModal
         open={modalCadastroAbertoAbastecimento}

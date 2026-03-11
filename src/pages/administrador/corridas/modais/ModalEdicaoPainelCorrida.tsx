@@ -425,7 +425,6 @@ export default function EditarInfoCorrida({
                 setFormData((prev) => ({ ...prev, dataInicio: e.target.value }))
               }
               required
-              sx={{ mb: 2 }}
               InputLabelProps={{ shrink: true }}
             />
 
@@ -437,7 +436,6 @@ export default function EditarInfoCorrida({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, dataFim: e.target.value }))
               }
-              sx={{ mb: 2 }}
               InputLabelProps={{ shrink: true }}
             />
           </Box>
