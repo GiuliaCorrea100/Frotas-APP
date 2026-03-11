@@ -266,6 +266,7 @@ const Menu: React.FC = () => {
               color: "inherit",
               fontFamily: "inherit",
               mr: 2,
+              ml: 3,
               fontSize: isMobile ? "1rem" : "1.25rem",
             }}
             component={Link}
@@ -416,7 +417,7 @@ const Menu: React.FC = () => {
                       <IconButton
                         color="inherit"
                         onClick={handleLogout}
-                        sx={{ p: 1 }}
+                        sx={{ p: 1, mr: 2.5 }}
                       >
                         <ExitToAppIcon />
                       </IconButton>
