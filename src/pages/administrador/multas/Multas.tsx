@@ -235,6 +235,10 @@ export default function ListaMulta() {
       renderCell: (params) => {
         const possuiComprovante = Boolean(params.row.urlComprovantePagamento);
 
+        const jaAnalisado =
+          params.row.situacao === "QUITADA/PAGA" ||
+          params.row.situacao === "PENDENTE DE ACAO";
+
         return (
           <Box sx={{ display: "flex", gap: 1 }}>
             <Tooltip title="Aprovar comprovante">
@@ -242,7 +246,7 @@ export default function ListaMulta() {
                 variant="contained"
                 color="success"
                 size="small"
-                disabled={!possuiComprovante}
+                disabled={!possuiComprovante || jaAnalisado}
                 onClick={() => {
                   setMultaSelecionada(params.row);
                   setModalAprovarAberto(true);
@@ -264,7 +268,7 @@ export default function ListaMulta() {
                 variant="contained"
                 color="error"
                 size="small"
-                disabled={!possuiComprovante}
+                disabled={!possuiComprovante || jaAnalisado}
                 onClick={() => {
                   setMultaSelecionada(params.row);
                   setModalReprovarAberto(true);
