@@ -12,13 +12,17 @@ import {
   Autocomplete,
   CircularProgress,
   Tooltip,
+  Modal,
+  IconButton,
 } from "@mui/material";
+import { Close, Person } from "@mui/icons-material";
 import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import React from "react";
 import { AdminUserService } from "../../services/AdministradorService";
 import axiosConnect from "../../services/axios/axiosConnect";
 import AppLayout from "../../components/Layout";
+import { modalStyle } from "../../utils/modalStyle";
 
 interface AdminUserDto {
   idUsuario: number;
@@ -174,9 +178,7 @@ export default function ListaAdministradores() {
       field: "nome",
       headerName: "Nome",
       width: 450,
-      renderCell: (params) => (
-        <Typography>{params.value}</Typography>
-      ),
+      renderCell: (params) => <Typography>{params.value}</Typography>,
     },
     // { field: 'email', headerName: 'E-mail', flex: 1 },
     {
@@ -290,10 +292,10 @@ export default function ListaAdministradores() {
             borderTop: `1px solid ${theme.palette.divider}`,
           },
           "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-          {
-            marginBottom: 0,
-            alignSelf: "center",
-          },
+            {
+              marginBottom: 0,
+              alignSelf: "center",
+            },
           "& .MuiTablePagination-toolbar": {
             minHeight: "52px",
             alignItems: "center",
@@ -306,25 +308,43 @@ export default function ListaAdministradores() {
         rowSelection={false}
       />
 
-      {/* Modal de Adicionar novo Administrador */}
-      <Dialog
+      {/* Modal de cadastro de Administrador */}
+      <Modal
         open={showModalCadastro}
         onClose={() => setShowModalCadastro(false)}
-        fullWidth
-        maxWidth="md"
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            p: 1,
-          },
-        }}
       >
-        <DialogTitle sx={{ fontWeight: 600 }}>
-          <Typography variant="h6" color="text.primary" fontWeight={600}>
-            Novo Administrador
-          </Typography>
-        </DialogTitle>
-        <DialogContent>
+        <Box sx={modalStyle}>
+          <Box
+            component="form"
+            onSubmit={handleSubmitCadastro}
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 0,
+            }}
+          >
+            <Typography
+              variant="h6"
+              color="text.primary"
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                fontWeight: "bold",
+                pt: 1,
+              }}
+            >
+              <Person color="primary" sx={{ mr: 1 }} />
+              Novo Administrador
+            </Typography>
+            <IconButton
+              onClick={() => setShowModalCadastro(false)}
+              disabled={loadingAdmin}
+            >
+              <Close />
+            </IconButton>
+          </Box>
+
           <Autocomplete
             options={usuariosDisponiveis}
             getOptionLabel={(option) => {
@@ -347,8 +367,6 @@ export default function ListaAdministradores() {
                 label="Buscar Usuário"
                 placeholder="Digite pelo menos 3 caracteres"
                 fullWidth
-                margin="normal"
-                variant="outlined"
                 sx={{ mt: 2 }}
                 InputProps={{
                   ...params.InputProps,
@@ -364,29 +382,34 @@ export default function ListaAdministradores() {
               />
             )}
           />
+
           {erroVinculo && (
             <Typography color="error" sx={{ mt: 1 }}>
               {erroVinculo}
             </Typography>
           )}
-        </DialogContent>
-        <DialogActions sx={{ p: 3, pt: 0 }}>
-          <Button
-            onClick={() => setShowModalCadastro(false)}
-            variant="outlined"
-            sx={{ borderRadius: 2 }}
+
+          {/* Botões */}
+          <Box
+            sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 3 }}
           >
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleSubmitCadastro}
-            variant="contained"
-            sx={{ borderRadius: 2 }}
-          >
-            Confirmar
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <Button
+              onClick={() => setShowModalCadastro(false)}
+              variant="outlined"
+              disabled={loadingAdmin}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSubmitCadastro}
+              variant="contained"
+              disabled={loadingAdmin}
+            >
+              Confirmar
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
 
       {/* Modal de confirmar a ação de revogar permissão de admnistrador */}
       <Dialog
@@ -408,19 +431,17 @@ export default function ListaAdministradores() {
             <strong>{SelectedUsuario?.nome}</strong>
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ p: 3, pt: 0 }}>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
           <Button
             onClick={() => setShowModalConfirmar(false)}
             variant="outlined"
-            sx={{ borderRadius: 2 }}
           >
             Cancelar
           </Button>
           <Button
             onClick={handleSubmitRevogacao}
             variant="contained"
-            color="primary"
-            sx={{ borderRadius: 2 }}
+            color="error"
           >
             Confirmar
           </Button>

@@ -8,17 +8,10 @@ import {
   Divider,
   InputAdornment,
   CircularProgress,
-  Paper,
   IconButton,
   Alert,
 } from "@mui/material";
-import {
-  LocalGasStation,
-  CalendarToday,
-  Close,
-  Numbers,
-  AddLocationAlt,
-} from "@mui/icons-material";
+import { CalendarToday, Close, AddLocationAlt } from "@mui/icons-material";
 import {
   atualizarPercurso,
   PercursoDto,
