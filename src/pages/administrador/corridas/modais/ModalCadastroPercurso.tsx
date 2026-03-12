@@ -125,12 +125,20 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
           </Alert>
         )}
 
-        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            mb: 2,
+            flexDirection: { xs: "column", md: "row" },
+          }}
+        >
           <TextField
             label="Local de Origem"
             value={localOrigem}
             onChange={(e) => setLocalOrigem(e.target.value.toUpperCase())}
             required
+            sx={{ flex: 1 }}
           />
 
           <TextField
@@ -143,6 +151,7 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
             InputProps={{
               endAdornment: <InputAdornment position="end">km</InputAdornment>,
             }}
+            sx={{ flex: 1 }}
           />
 
           <TextField
@@ -164,12 +173,20 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
           />
         </Box>
 
-        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            mb: 2,
+            flexDirection: { xs: "column", md: "row" },
+          }}
+        >
           <TextField
             label="Local de Destino"
             value={localDestino}
             onChange={(e) => setLocalDestino(e.target.value.toUpperCase())}
             required
+            sx={{ flex: 1 }}
           />
 
           <TextField
@@ -182,6 +199,7 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
             InputProps={{
               endAdornment: <InputAdornment position="end">km</InputAdornment>,
             }}
+            sx={{ flex: 1 }}
           />
 
           <TextField
