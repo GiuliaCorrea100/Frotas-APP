@@ -69,6 +69,8 @@ export default function RegistrosDeInfracao() {
   const [openRecursoModal, setOpenRecursoModal] = useState(false);
   const [selectedMulta, setSelectedMulta] = useState<MultaDto | null>(null);
 
+  
+
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/");
@@ -222,7 +224,10 @@ export default function RegistrosDeInfracao() {
       filterable: false,
       renderCell: (params) => {
         const possuiBoleto = !!params.row.urlArquivo;
+        const possuiComprovante = !!params.row.urlComprovantePagamento;
 
+        const podeEnviarComprovante = possuiBoleto && !possuiComprovante;
+        
         return(
           <Box sx={{ display: "flex", gap: 1 }}>
             <Tooltip title="Baixar Boleto">
@@ -243,14 +248,14 @@ export default function RegistrosDeInfracao() {
               component="label"
               variant="contained"
               startIcon={<UploadIcon />}
-              disabled={!possuiBoleto}
+              disabled={!podeEnviarComprovante}
             >
               Comprovante
               <input
                 type="file"
                 hidden
                 accept="application/pdf,image/*"
-                disabled={!possuiBoleto}
+                disabled={!podeEnviarComprovante}
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (!file || !params.row.idMulta) return;
@@ -276,7 +281,7 @@ export default function RegistrosDeInfracao() {
               variant="contained"
               color="warning"
               startIcon={<GavelIcon />}
-              disabled={!possuiBoleto}
+              disabled={!possuiBoleto && !possuiComprovante}
               onClick={() => handleSolicitarRecurso(params.row)}
             >
               Solicitar Recurso
