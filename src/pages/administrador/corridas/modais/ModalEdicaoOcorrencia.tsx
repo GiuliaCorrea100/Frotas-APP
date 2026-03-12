@@ -55,25 +55,6 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
     }
   }, [ocorrencia]);
 
-  const resetForm = () => {
-    if (ocorrencia) {
-      setDescricao(ocorrencia.descricao || "");
-      if (ocorrencia.dataOcorrencia) {
-        if (typeof ocorrencia.dataOcorrencia === "string") {
-          const dateString = ocorrencia.dataOcorrencia.includes("T")
-            ? ocorrencia.dataOcorrencia.split("T")[0] + "T00:00:00"
-            : ocorrencia.dataOcorrencia + "T00:00:00";
-          setDataOcorrencia(new Date(dateString));
-        } else {
-          setDataOcorrencia(ocorrencia.dataOcorrencia);
-        }
-      } else {
-        setDataOcorrencia(null);
-      }
-    }
-    setSuccessMessage("");
-  };
-
   const formatarDataParaEnvio = (date: Date | null): string | null => {
     if (!date) return null;
     return date.toISOString();
@@ -128,13 +109,8 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
     }
   };
 
-  const handleClose = () => {
-    resetForm();
-    onClose();
-  };
-
   return (
-    <Modal open={open} onClose={handleClose}>
+    <Modal open={open} onClose={onClose}>
       <Box sx={modalStyle}>
         <Box
           component="form"
@@ -228,7 +204,7 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
         >
           <Button
             variant="outlined"
-            onClick={handleClose}
+            onClick={onClose}
             disabled={loading || !!successMessage}
           >
             Cancelar

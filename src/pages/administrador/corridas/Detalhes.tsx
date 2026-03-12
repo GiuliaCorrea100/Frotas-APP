@@ -1121,53 +1121,61 @@ const DetalhesRequisicao: React.FC = () => {
         />
       )}
 
-      <AbastecimentoModal
-        open={modalCadastroAbertoAbastecimento}
-        corrida={corrida}
-        onClose={handleFecharModalCadastroAbastecimento}
-        onSuccess={async () => {
-          await carregarDados();
-        }}
-      />
+      {modalCadastroAbertoAbastecimento && (
+        <AbastecimentoModal
+          open={modalCadastroAbertoAbastecimento}
+          corrida={corrida}
+          onClose={handleFecharModalCadastroAbastecimento}
+          onSuccess={async () => {
+            await carregarDados();
+          }}
+        />
+      )}
 
-      <EdicaoAbastecimentoModal
-        open={modalEditarAbastecimentoAberto}
-        abastecimento={abastecimentoSelecionado}
-        corrida={corrida}
-        onClose={handleFecharModalEditarAbastecimento}
-        onSuccess={async () => {
-          await carregarDados();
-        }}
-        onError={(err) => {
-          console.error(err);
-        }}
-      />
+      {modalEditarAbastecimentoAberto && (
+        <EdicaoAbastecimentoModal
+          open={modalEditarAbastecimentoAberto}
+          abastecimento={abastecimentoSelecionado}
+          corrida={corrida}
+          onClose={handleFecharModalEditarAbastecimento}
+          onSuccess={async () => {
+            await carregarDados();
+          }}
+          onError={(err) => {
+            console.error(err);
+          }}
+        />
+      )}
 
-      <EdicaoPercursosModal
-        open={modalEditarPercursoAberto}
-        percurso={percursoSelecionado}
-        onClose={handleFecharModalEditarPercurso}
-        onSuccess={async (msg) => {
-          console.log(msg);
-          await carregarDados();
-        }}
-        onError={(err) => {
-          console.error(err);
-        }}
-      />
+      {modalCadastrarPercursoAberto && (
+        <CadastrarPercursosModal
+          open={modalCadastrarPercursoAberto}
+          onClose={handleFecharModalCadastroPercurso}
+          onSuccess={async (msg) => {
+            console.log(msg);
+            await carregarDados();
+          }}
+          onError={(err) => {
+            console.error(err);
+          }}
+          corrida={idcorridaNumber}
+        />
+      )}
 
-      <CadastrarPercursosModal
-        open={modalCadastrarPercursoAberto}
-        onClose={handleFecharModalCadastroPercurso}
-        onSuccess={async (msg) => {
-          console.log(msg);
-          await carregarDados();
-        }}
-        onError={(err) => {
-          console.error(err);
-        }}
-        corrida={idcorridaNumber}
-      />
+      {modalEditarPercursoAberto && (
+        <EdicaoPercursosModal
+          open={modalEditarPercursoAberto}
+          percurso={percursoSelecionado}
+          onClose={handleFecharModalEditarPercurso}
+          onSuccess={async (msg) => {
+            console.log(msg);
+            await carregarDados();
+          }}
+          onError={(err) => {
+            console.error(err);
+          }}
+        />
+      )}
     </AppLayout>
   );
 };

@@ -47,7 +47,6 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
     tipoCombustivelId: "",
     idCorrida: corrida ? corrida.idCorrida.toString() : "",
   });
-
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -55,7 +54,6 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
     [],
   );
   const [carregandoTipos, setCarregandoTipos] = useState(true);
-
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const dataMinima = corrida?.dataHoraLiberacaoChave
@@ -278,27 +276,10 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
     }));
   };
 
-  const handleClose = () => {
-    setFormData({
-      quantidade: "",
-      codigoPagamento: "",
-      valorTotal: "",
-      dataAbastecimento: "",
-      valorUnitario: "",
-      justificativaAlteracao: "",
-      tipoCombustivelId: "",
-      idCorrida: corrida?.idCorrida ? corrida?.idCorrida.toString() : "",
-    });
-    setErrors({});
-    setSuccessMessage("");
-    setIsSubmitting(false);
-    onClose();
-  };
-
   return (
     <Modal
       open={open}
-      onClose={handleClose}
+      onClose={onClose}
       aria-labelledby="modal-abastecimento"
       aria-describedby="modal-cadastro-abastecimento"
     >
@@ -482,7 +463,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
         >
           <Button
             variant="outlined"
-            onClick={handleClose}
+            onClick={onClose}
             disabled={isSubmitting || !!successMessage}
           >
             Cancelar

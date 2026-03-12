@@ -277,22 +277,8 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
     }
   };
 
-  const handleClose = () => {
-    setFormData({
-      quantidade: 0,
-      valorTotal: 0,
-      valorUnitario: 0,
-      dataAbastecimento: "",
-      tipoCombustivelId: "",
-    });
-    setErrors({});
-    setSuccessMessage("");
-    setIsSubmitting(false);
-    onClose();
-  };
-
   return (
-    <Modal open={open} onClose={handleClose}>
+    <Modal open={open} onClose={onClose}>
       <Box sx={modalStyle}>
         <Box
           component="form"
@@ -454,7 +440,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
           sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}
         >
           <Button
-            onClick={handleClose}
+            onClick={onClose}
             variant="outlined"
             disabled={isSubmitting || !!successMessage}
           >

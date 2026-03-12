@@ -37,12 +37,6 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-  const resetForm = () => {
-    setDescricao("");
-    setDataOcorrencia(null);
-    setSuccessMessage("");
-  };
-
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -73,7 +67,6 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
 
       setTimeout(() => {
         onClose();
-        resetForm();
       }, 1500);
     } catch (error: any) {
       console.error("Erro ao cadastrar ocorrência:", error);
@@ -90,13 +83,8 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
     }
   };
 
-  const handleClose = () => {
-    resetForm();
-    onClose();
-  };
-
   return (
-    <Modal open={open} onClose={handleClose}>
+    <Modal open={open} onClose={onClose}>
       <Box sx={modalStyle}>
         <Box
           component="form"
@@ -187,7 +175,7 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
         <Box
           sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}
         >
-          <Button variant="outlined" onClick={handleClose} disabled={loading}>
+          <Button variant="outlined" onClick={onClose} disabled={loading}>
             Cancelar
           </Button>
           <Button
