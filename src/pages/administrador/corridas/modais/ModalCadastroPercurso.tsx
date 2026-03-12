@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Modal,
   Box,
@@ -8,13 +8,12 @@ import {
   Divider,
   InputAdornment,
   CircularProgress,
-  Paper,
+  IconButton,
+  Alert,
 } from "@mui/material";
-import {
-  CalendarToday,
-  AddLocationAlt,
-} from "@mui/icons-material";
+import { CalendarToday, AddLocationAlt, Close } from "@mui/icons-material";
 import { inserirPercursoCompleto } from "../../../../services/PercursoService";
+import { modalStyle } from "../../../../utils/modalStyle";
 
 interface CadastrarModalProps {
   open: boolean;
@@ -24,27 +23,9 @@ interface CadastrarModalProps {
   corrida: number;
 }
 
-const modalStyle = {
-  position: "absolute" as const,
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "80%",
-  maxWidth: 800,
-  maxHeight: "90vh",
-  overflow: "auto",
-  bgcolor: "background.paper",
-  boxShadow: 24,
-  p: 4,
-  borderRadius: 2,
-};
-
-
 const toLocalDateTimeInputValue = (date: Date) => {
   const offset = date.getTimezoneOffset() * 60000;
-  return new Date(date.getTime() - offset)
-    .toISOString()
-    .slice(0, 16);
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 };
 
 const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
@@ -60,30 +41,15 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
   const [chegadaHora, setChegadaHora] = useState<Date | null>(null);
   const [chegadaOdometro, setChegadaOdometro] = useState<string>("");
   const [localOrigem, setLocalOrigem] = useState("");
-
+  const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleNumericInput = (
     value: string,
-    setter: React.Dispatch<React.SetStateAction<string>>
+    setter: React.Dispatch<React.SetStateAction<string>>,
   ) => {
     setter(value.replace(/[^\d]/g, ""));
   };
-
-  const getNumericValue = (value: string): number => {
-    return value ? parseInt(value, 10) : 0;
-  };
-
-  useEffect(() => {
-    if (open) {
-      setSaidaHora(null);
-      setSaidaOdometro("");
-      setLocalDestino("");
-      setChegadaHora(null);
-      setChegadaOdometro("");
-      setLocalOrigem("");
-    }
-  }, [open]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -98,58 +64,86 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
     try {
       const dadosPercurso = {
         saidaHora,
-        saidaOdometro: getNumericValue(saidaOdometro),
+        saidaOdometro: Number(saidaOdometro),
         localDestino,
         chegadaHora,
-        chegadaOdometro: getNumericValue(chegadaOdometro),
+        chegadaOdometro: Number(chegadaOdometro),
         localOrigem,
       };
 
       await inserirPercursoCompleto(corrida, dadosPercurso);
-      onSuccess("Percurso cadastrado com sucesso!");
+
+      setSuccessMessage("Percurso cadastrado com sucesso!");
+
+      setTimeout(() => {
+        setSuccessMessage("");
+        onSuccess("Percurso cadastrado com sucesso!");
+        onClose();
+      }, 1500);
     } catch (error) {
       console.error("Erro ao salvar percurso:", error);
       onError(error);
     } finally {
       setLoading(false);
-      onClose();
     }
   };
 
   return (
     <Modal open={open} onClose={onClose}>
-      <Paper sx={modalStyle}>
-        {/* Cabeçalho */}
-        <Box display="flex" alignItems="center" mb={2}>
-          <AddLocationAlt color="primary" sx={{ mr: 1 }} />
-          <Typography variant="h6">Cadastro de Percurso</Typography>
+      <Box sx={modalStyle}>
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+          }}
+        >
+          <Typography
+            variant="h6"
+            color="text.primary"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontWeight: "bold",
+              pt: 1,
+            }}
+          >
+            <AddLocationAlt color="primary" sx={{ mr: 1 }} />
+            Cadastrar de Percurso
+          </Typography>
+          <IconButton onClick={onClose} disabled={loading}>
+            <Close />
+          </IconButton>
         </Box>
 
-        <Box component="form" onSubmit={handleSubmit}>
-          <Typography variant="subtitle1" gutterBottom>
-            Informações de Saída
-          </Typography>
+        {successMessage && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            {successMessage}
+          </Alert>
+        )}
 
-          <Box display="flex" gap={2} flexWrap="wrap" mb={2}>
-            <TextField
-              label="Local de Origem"
-              value={localOrigem}
-              onChange={(e) => setLocalOrigem(e.target.value.toUpperCase())}
-              required
-              sx={{ flex: "1 1 200px" }}
-            />
+        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+          <TextField
+            label="Local de Origem"
+            value={localOrigem}
+            onChange={(e) => setLocalOrigem(e.target.value.toUpperCase())}
+            required
+          />
 
-            <TextField
-              label="Odômetro de Saída"
-              value={saidaOdometro}
-              onChange={(e) => handleNumericInput(e.target.value, setSaidaOdometro)}
-              required
-              sx={{ flex: "1 1 200px" }}
-              InputProps={{
-                endAdornment: <InputAdornment position="end">km</InputAdornment>,
-              }}
-            />
-          </Box>
+          <TextField
+            label="Odômetro de Saída"
+            value={saidaOdometro}
+            onChange={(e) =>
+              handleNumericInput(e.target.value, setSaidaOdometro)
+            }
+            required
+            InputProps={{
+              endAdornment: <InputAdornment position="end">km</InputAdornment>,
+            }}
+          />
 
           <TextField
             label="Hora de Saída"
@@ -166,37 +160,29 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
                 </InputAdornment>
               ),
             }}
-            sx={{ mb: 2 }}
+            sx={{ flex: "1" }}
+          />
+        </Box>
+
+        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+          <TextField
+            label="Local de Destino"
+            value={localDestino}
+            onChange={(e) => setLocalDestino(e.target.value.toUpperCase())}
+            required
           />
 
-          <Divider sx={{ my: 2 }} />
-
-          <Typography variant="subtitle1" gutterBottom>
-            Informações de Chegada
-          </Typography>
-
-          <Box display="flex" gap={2} flexWrap="wrap" mb={2}>
-            <TextField
-              label="Local de Destino"
-              value={localDestino}
-              onChange={(e) => setLocalDestino(e.target.value.toUpperCase())}
-              required
-              sx={{ flex: "1 1 200px" }}
-            />
-
-            <TextField
-              label="Odômetro de Chegada"
-              value={chegadaOdometro}
-              onChange={(e) =>
-                handleNumericInput(e.target.value, setChegadaOdometro)
-              }
-              required
-              sx={{ flex: "1 1 200px" }}
-              InputProps={{
-                endAdornment: <InputAdornment position="end">km</InputAdornment>,
-              }}
-            />
-          </Box>
+          <TextField
+            label="Odômetro de Chegada"
+            value={chegadaOdometro}
+            onChange={(e) =>
+              handleNumericInput(e.target.value, setChegadaOdometro)
+            }
+            required
+            InputProps={{
+              endAdornment: <InputAdornment position="end">km</InputAdornment>,
+            }}
+          />
 
           <TextField
             label="Hora de Chegada"
@@ -213,20 +199,32 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
                 </InputAdornment>
               ),
             }}
-            sx={{ mb: 2 }}
+            sx={{ flex: "1" }}
           />
-
-          <Box display="flex" justifyContent="flex-end" gap={1} mt={3}>
-            <Button onClick={onClose} color="inherit" disabled={loading}>
-              Cancelar
-            </Button>
-
-            <Button type="submit" variant="contained" disabled={loading}>
-              {loading ? <CircularProgress size={24} /> : "Cadastrar"}
-            </Button>
-          </Box>
         </Box>
-      </Paper>
+
+        <Divider sx={{ my: 2 }} />
+
+        <Box
+          sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}
+        >
+          <Button
+            onClick={onClose}
+            color="inherit"
+            disabled={loading || !!successMessage}
+          >
+            Cancelar
+          </Button>
+
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            disabled={loading || !!successMessage}
+          >
+            {loading ? <CircularProgress size={24} /> : "Cadastrar"}
+          </Button>
+        </Box>
+      </Box>
     </Modal>
   );
 };

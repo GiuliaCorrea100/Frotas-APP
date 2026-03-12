@@ -697,7 +697,7 @@ const DetalhesRequisicao: React.FC = () => {
           }}
         >
           <CardHeader
-            title="Ocorrências cadastradas na corrida"
+            title="Ocorrências"
             sx={{
               pb: 0,
               "& .MuiCardHeader-title": {
@@ -780,7 +780,7 @@ const DetalhesRequisicao: React.FC = () => {
           }}
         >
           <CardHeader
-            title="Abastecimentos cadastrados na corrida"
+            title="Abastecimentos"
             sx={{
               pb: 0,
               "& .MuiCardHeader-title": {
@@ -863,7 +863,7 @@ const DetalhesRequisicao: React.FC = () => {
           }}
         >
           <CardHeader
-            title="Percursos cadastrados na corrida"
+            title="Percursos"
             sx={{
               pb: 0,
               "& .MuiCardHeader-title": {
@@ -1152,7 +1152,6 @@ const DetalhesRequisicao: React.FC = () => {
           open={modalCadastrarPercursoAberto}
           onClose={handleFecharModalCadastroPercurso}
           onSuccess={async (msg) => {
-            console.log(msg);
             await carregarDados();
           }}
           onError={(err) => {
@@ -1168,7 +1167,6 @@ const DetalhesRequisicao: React.FC = () => {
           percurso={percursoSelecionado}
           onClose={handleFecharModalEditarPercurso}
           onSuccess={async (msg) => {
-            console.log(msg);
             await carregarDados();
           }}
           onError={(err) => {
