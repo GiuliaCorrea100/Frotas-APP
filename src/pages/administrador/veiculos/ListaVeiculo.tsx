@@ -3,6 +3,10 @@ import {
   Box,
   Button,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Modal,
   TextField,
   Tooltip,
@@ -471,56 +475,44 @@ export default function ListaVeiculos() {
       )}
 
       {/* Modal de Ativar/Inativar Veículo */}
-      <Modal
+      <Dialog
         open={showModalAtivacao}
         onClose={() => setShowModalAtivacao(false)}
-        aria-labelledby="modal-ativacao-title"
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 500,
-            bgcolor: "background.paper",
-            boxShadow: 24,
-            p: 4,
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
             borderRadius: 2,
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-          }}
-        >
-          <Typography
-            id="modal-ativacao-title"
-            variant="h6"
-            component="h2"
-            gutterBottom
+            p: 1,
+          },
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>
+          Alterar Status do Veículo
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            Você está prestes a{" "}
+            <strong>{selectedCarro?.ativo ? "inativar" : "ativar"}</strong> o
+            veículo <strong>{selectedCarro?.placa}</strong>.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button
+            onClick={() => setShowModalAtivacao(false)}
+            variant="outlined"
           >
-            Alterar Status do Veículo
-          </Typography>
-          <Typography variant="body1" className="pb-4" gutterBottom>
-            Você está prestes a {selectedCarro?.ativo ? "inativar" : "ativar"} o
-            veículo {selectedCarro?.placa}.
-          </Typography>
-          <Box display="flex" justifyContent="flex-end" gap={2}>
-            <Button
-              onClick={handleConfirmarToggleAtivo}
-              variant="contained"
-              color={selectedCarro?.ativo ? "error" : "success"}
-            >
-              {selectedCarro?.ativo ? "Inativar" : "Ativar"}
-            </Button>
-            <Button
-              onClick={() => setShowModalAtivacao(false)}
-              variant="outlined"
-            >
-              Cancelar
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleConfirmarToggleAtivo}
+            variant="contained"
+            color={selectedCarro?.ativo ? "error" : "success"}
+          >
+            {selectedCarro?.ativo ? "Inativar" : "Ativar"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </AppLayout>
   );
 }
