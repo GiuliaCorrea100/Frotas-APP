@@ -11,11 +11,11 @@ import {
   MenuItem,
   Alert,
   InputAdornment,
-  Paper,
   Divider,
   CircularProgress,
+  IconButton,
 } from "@mui/material";
-import { LocalGasStation, CalendarToday } from "@mui/icons-material";
+import { LocalGasStation, Close, CalendarToday } from "@mui/icons-material";
 import { CorridaFrontend } from "../../../../services/CorridaService";
 import {
   TipoCombustivel,
@@ -302,8 +302,10 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       aria-labelledby="modal-abastecimento"
       aria-describedby="modal-cadastro-abastecimento"
     >
-      <Paper sx={modalStyle}>
+      <Box sx={modalStyle}>
         <Box
+          component="form"
+          onSubmit={handleSubmit}
           sx={{
             display: "flex",
             justifyContent: "space-between",
@@ -311,12 +313,22 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
             mb: 2,
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center" }}>
+          <Typography
+            variant="h6"
+            color="text.primary"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontWeight: "bold",
+              pt: 1,
+            }}
+          >
             <LocalGasStation color="primary" sx={{ fontSize: 32, mr: 1 }} />
-            <Typography variant="h5" component="h2" color="text.primary">
-              Cadastro de Abastecimento
-            </Typography>
-          </Box>
+            Cadastrar Abastecimento
+          </Typography>
+          <IconButton onClick={onClose} disabled={loading}>
+            <Close />
+          </IconButton>
         </Box>
 
         {successMessage && (
@@ -331,188 +343,167 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
           </Alert>
         )}
 
-        <form onSubmit={handleSubmit}>
-          {/* Informações Básicas */}
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="h6" color="text.primary" gutterBottom>
-              Informações Básicas
-            </Typography>
+        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+          <TextField
+            label="Litros"
+            name="quantidade"
+            type="number"
+            value={formData.quantidade}
+            onChange={handleInputChange}
+            required
+            error={!!errors.quantidade}
+            helperText={errors.quantidade}
+            inputProps={{ min: 0, step: 0.01 }}
+            InputProps={{
+              endAdornment: <InputAdornment position="end">L</InputAdornment>,
+            }}
+            disabled={isSubmitting}
+            fullWidth
+          />
+        </Box>
 
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
-              <TextField
-                label="Litros"
-                name="quantidade"
-                type="number"
-                value={formData.quantidade}
-                onChange={handleInputChange}
-                required
-                error={!!errors.quantidade}
-                helperText={errors.quantidade}
-                inputProps={{ min: 0, step: 0.01 }}
-                sx={{ flex: "1 1 200px" }}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">L</InputAdornment>
-                  ),
-                }}
-                disabled={isSubmitting}
-              />
+        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+          <TextField
+            label="Valor Unitário por Litro"
+            name="valorUnitario"
+            type="number"
+            value={formData.valorUnitario}
+            onChange={handleInputChange}
+            inputProps={{ min: 0, step: 0.001 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">R$</InputAdornment>
+              ),
+            }}
+            disabled={isSubmitting}
+            sx={{ flex: "1 1 50%" }}
+          />
 
-              <TextField
-                label="Código de Pagamento"
-                name="codigoPagamento"
-                value={formData.codigoPagamento}
-                onChange={handleInputChange}
-                required
-                error={!!errors.codigoPagamento}
-                helperText={errors.codigoPagamento}
-                sx={{ flex: "1 1 200px" }}
-                disabled={isSubmitting}
-              />
-            </Box>
+          <TextField
+            label="Preço Final"
+            name="preco_final"
+            type="number"
+            value={formData.valorTotal}
+            onChange={handleInputChange}
+            required
+            error={!!errors.valorTotal}
+            helperText={errors.valorTotal}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">R$</InputAdornment>
+              ),
+              readOnly: true,
+            }}
+            disabled={isSubmitting}
+            sx={{
+              flex: "1 1 50%",
+              "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+              "& .MuiOutlinedInput-root": { backgroundColor: "#f5f5f5" },
+            }}
+          />
+        </Box>
 
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
-              <TextField
-                label="Valor Unitário por Litro"
-                name="valorUnitario"
-                type="number"
-                value={formData.valorUnitario}
-                onChange={handleInputChange}
-                inputProps={{ min: 0, step: 0.001 }}
-                sx={{ flex: "1 1 200px" }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">R$</InputAdornment>
-                  ),
-                }}
-                disabled={isSubmitting}
-              />
+        <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+          <TextField
+            label="Código de Pagamento"
+            name="codigoPagamento"
+            value={formData.codigoPagamento}
+            onChange={handleInputChange}
+            required
+            error={!!errors.codigoPagamento}
+            helperText={errors.codigoPagamento}
+            disabled={isSubmitting}
+            sx={{ flex: "1 1 50%" }}
+          />
 
-              <TextField
-                label="Preço Final"
-                name="preco_final"
-                type="number"
-                value={formData.valorTotal}
-                onChange={handleInputChange}
-                required
-                error={!!errors.valorTotal}
-                helperText={errors.valorTotal}
-                sx={{ flex: "1 1 200px" }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">R$</InputAdornment>
-                  ),
-                  readOnly: true,
-                }}
-                disabled={isSubmitting}
-              />
-            </Box>
+          <TextField
+            label="Data de Abastecimento"
+            name="dataAbastecimento"
+            type="date"
+            value={formData.dataAbastecimento}
+            onChange={handleInputChange}
+            required
+            error={!!errors.dataAbastecimento}
+            helperText={errors.dataAbastecimento}
+            InputLabelProps={{ shrink: true }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <CalendarToday fontSize="small" />
+                </InputAdornment>
+              ),
+              inputProps: {
+                min: minDate,
+                max: maxDate,
+              },
+            }}
+            disabled={isSubmitting}
+            sx={{ flex: "1 1 50%" }}
+          />
+        </Box>
 
-            <TextField
-              label="Data de Abastecimento"
-              name="dataAbastecimento"
-              type="date"
-              value={formData.dataAbastecimento}
-              onChange={handleInputChange}
-              required
-              error={!!errors.dataAbastecimento}
-              helperText={errors.dataAbastecimento}
-              InputLabelProps={{ shrink: true }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <CalendarToday fontSize="small" />
-                  </InputAdornment>
-                ),
-                inputProps: {
-                  min: minDate,
-                  max: maxDate,
-                },
-              }}
-              sx={{ mb: 2, width: "100%", maxWidth: 400 }}
+        {/* Tipo de Combustível */}
+        <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+          <FormControl fullWidth required error={!!errors.tipoCombustivelId}>
+            <InputLabel>Tipo de Combustível</InputLabel>
+            <Select
+              name="tipoCombustivelId"
+              value={formData.tipoCombustivelId}
+              onChange={handleSelectChange}
+              label="Tipo de Combustível"
               disabled={isSubmitting}
-            />
-          </Box>
-
-          <Divider sx={{ my: 2 }} />
-
-          {/* Tipo de Combustível */}
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="h6" color="text.primary" gutterBottom>
-              Tipo de Combustível
-            </Typography>
-
-            <FormControl
-              fullWidth
-              required
-              error={!!errors.tipoCombustivelId}
-              sx={{ mb: 2 }}
             >
-              <InputLabel>Tipo de Combustível</InputLabel>
-              <Select
-                name="tipoCombustivelId"
-                value={formData.tipoCombustivelId}
-                onChange={handleSelectChange}
-                label="Tipo de Combustível"
-                disabled={isSubmitting}
-              >
-                {carregandoTipos ? (
-                  <MenuItem value="">
-                    Carregando tipos de combustível...
-                  </MenuItem>
-                ) : (
-                  tiposCombustivel.map((tipo) => (
-                    <MenuItem
-                      key={tipo.idTipoCombustivel}
-                      value={tipo.idTipoCombustivel}
-                    >
-                      {tipo.nome}
-                    </MenuItem>
-                  ))
-                )}
-              </Select>
-              {errors.tipoCombustivelId && (
-                <Typography variant="caption" color="error" sx={{ ml: 2 }}>
-                  {errors.tipoCombustivelId}
-                </Typography>
-              )}
-            </FormControl>
-          </Box>
-
-          <Divider sx={{ my: 2 }} />
-
-          {/* Botões */}
-          <Box
-            sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}
-          >
-            <Button
-              variant="outlined"
-              onClick={handleClose}
-              disabled={isSubmitting || !!successMessage}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={loading || isSubmitting || !!successMessage}
-              sx={{ minWidth: 120 }}
-            >
-              {isSubmitting ? (
-                <>
-                  <CircularProgress
-                    size={20}
-                    sx={{ mr: 1, color: "inherit" }}
-                  />
-                  Cadastrando...
-                </>
+              {carregandoTipos ? (
+                <MenuItem value="">Carregando tipos de combustível...</MenuItem>
               ) : (
-                "Cadastrar"
+                tiposCombustivel.map((tipo) => (
+                  <MenuItem
+                    key={tipo.idTipoCombustivel}
+                    value={tipo.idTipoCombustivel}
+                  >
+                    {tipo.nome}
+                  </MenuItem>
+                ))
               )}
-            </Button>
-          </Box>
-        </form>
-      </Paper>
+            </Select>
+            {errors.tipoCombustivelId && (
+              <Typography variant="caption" color="error" sx={{ ml: 2 }}>
+                {errors.tipoCombustivelId}
+              </Typography>
+            )}
+          </FormControl>
+        </Box>
+
+        <Divider sx={{ my: 2 }} />
+
+        {/* Botões */}
+        <Box
+          sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}
+        >
+          <Button
+            variant="outlined"
+            onClick={handleClose}
+            disabled={isSubmitting || !!successMessage}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            disabled={loading || isSubmitting || !!successMessage}
+            sx={{ minWidth: 120 }}
+          >
+            {isSubmitting ? (
+              <>
+                <CircularProgress size={20} sx={{ mr: 1, color: "inherit" }} />
+                Cadastrando...
+              </>
+            ) : (
+              "Cadastrar"
+            )}
+          </Button>
+        </Box>
+      </Box>
     </Modal>
   );
 };

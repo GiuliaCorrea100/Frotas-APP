@@ -973,18 +973,13 @@ const DetalhesRequisicao: React.FC = () => {
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0 }}>
-          <Button
-            onClick={handleFecharModalExcluirPercurso}
-            variant="outlined"
-            sx={{ borderRadius: 2 }}
-          >
+          <Button onClick={handleFecharModalExcluirPercurso} variant="outlined">
             Cancelar
           </Button>
           <Button
             onClick={handleConfirmarExclusaoPercurso}
             variant="contained"
             color="error"
-            sx={{ borderRadius: 2 }}
           >
             Confirmar Exclusão
           </Button>
@@ -1031,7 +1026,6 @@ const DetalhesRequisicao: React.FC = () => {
           <Button
             onClick={handleFecharModalExcluirOcorrencia}
             variant="outlined"
-            sx={{ borderRadius: 2 }}
           >
             Cancelar
           </Button>
@@ -1039,9 +1033,8 @@ const DetalhesRequisicao: React.FC = () => {
             onClick={handleConfirmarExclusaoOcorrencia}
             variant="contained"
             color="error"
-            sx={{ borderRadius: 2 }}
           >
-            Confirmar Exclusão
+            Confirmar
           </Button>
         </DialogActions>
       </Dialog>
@@ -1086,7 +1079,6 @@ const DetalhesRequisicao: React.FC = () => {
           <Button
             onClick={handleFecharModalExcluirAbastecimento}
             variant="outlined"
-            sx={{ borderRadius: 2 }}
           >
             Cancelar
           </Button>
@@ -1094,9 +1086,8 @@ const DetalhesRequisicao: React.FC = () => {
             onClick={handleConfirmarExclusaoAbastecimento}
             variant="contained"
             color="error"
-            sx={{ borderRadius: 2 }}
           >
-            Confirmar Exclusão
+            Confirmar
           </Button>
         </DialogActions>
       </Dialog>

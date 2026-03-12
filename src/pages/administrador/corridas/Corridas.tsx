@@ -701,8 +701,8 @@ export default function ListaCorrida() {
         maxWidth="sm"
         PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
       >
-        <DialogTitle color="text.primary" sx={{ fontWeight: 600 }}>
-          Liberar chave
+        <DialogTitle color="text.primary" sx={{ fontWeight: "bold" }}>
+          LIBERAR CHAVE
         </DialogTitle>
         <DialogContent>
           <Typography color="text.primary" mb={2}>
@@ -749,7 +749,6 @@ export default function ListaCorrida() {
               setSenhaError(null);
             }}
             variant="outlined"
-            sx={{ borderRadius: 2 }}
             disabled={isProcessing}
           >
             Cancelar
@@ -758,7 +757,6 @@ export default function ListaCorrida() {
             onClick={handleLiberarChave}
             variant="contained"
             color="primary"
-            sx={{ borderRadius: 2 }}
             disabled={isProcessing}
           >
             {isProcessing ? "Processando..." : "Confirmar"}
@@ -826,8 +824,8 @@ export default function ListaCorrida() {
         maxWidth="sm"
         PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
       >
-        <DialogTitle color="text.primary" sx={{ fontWeight: 600 }}>
-          Receber chave
+        <DialogTitle color="text.primary" sx={{ fontWeight: "bold" }}>
+          RECEBER CHAVE
         </DialogTitle>
         <DialogContent>
           <Typography color="text.primary">
@@ -839,7 +837,6 @@ export default function ListaCorrida() {
           <Button
             onClick={() => setShowModalReceberChave(false)}
             variant="outlined"
-            sx={{ borderRadius: 2 }}
           >
             Cancelar
           </Button>
@@ -876,7 +873,6 @@ export default function ListaCorrida() {
             }}
             variant="contained"
             color="primary"
-            sx={{ borderRadius: 2 }}
           >
             Confirmar
           </Button>

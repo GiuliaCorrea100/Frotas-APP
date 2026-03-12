@@ -107,23 +107,21 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
         dadosAtualizados,
       );
 
-      setSuccessMessage("Ocorrência atualizada com sucesso!");
-      onSuccess("Ocorrência atualizada com sucesso!");
+      setSuccessMessage("Ocorrência editada com sucesso!");
+      onSuccess("Ocorrência editada com sucesso!");
 
       setTimeout(() => {
         onClose();
       }, 1500);
     } catch (error: any) {
-      console.error("Erro ao atualizar ocorrência:", error);
+      console.error("Erro ao editar ocorrência:", error);
 
       if (error.response?.status === 401) {
         onError("Sessão expirada. Faça login novamente.");
       } else if (error.response?.status === 400) {
         onError(error.response?.data?.message || "Dados inválidos");
       } else {
-        onError(
-          error.response?.data?.message || "Erro ao atualizar ocorrência",
-        );
+        onError(error.response?.data?.message || "Erro ao editar ocorrência");
       }
     } finally {
       setLoading(false);
