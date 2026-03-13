@@ -506,8 +506,18 @@ export default function ListaVeiculos() {
           },
         }}
       >
-        <DialogTitle sx={{ fontWeight: 600 }}>
-          Alterar Status do Veículo
+        <DialogTitle sx={{ fontWeight: "600" }}>
+          <Typography
+            variant="h6"
+            color="text.primary"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontWeight: "bold",
+            }}
+          >
+            Alterar Status do Veículo
+          </Typography>
         </DialogTitle>
         <DialogContent>
           <Typography>

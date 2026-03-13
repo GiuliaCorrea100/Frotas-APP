@@ -456,7 +456,19 @@ export default function ListaAdministradores() {
           },
         }}
       >
-        <DialogTitle sx={{ fontWeight: 600 }}>Revogar permissão</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 600 }}>
+          <Typography
+            variant="h6"
+            color="text.primary"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontWeight: "bold",
+            }}
+          >
+            Revogar permissão
+          </Typography>
+        </DialogTitle>
         <DialogContent>
           <Typography>
             Você está prestes a revogar a permissão de Administrador de{" "}

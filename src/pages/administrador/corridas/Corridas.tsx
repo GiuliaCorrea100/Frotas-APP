@@ -756,7 +756,17 @@ export default function ListaCorrida() {
         PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
       >
         <DialogTitle sx={{ fontWeight: 600 }}>
-          <Typography color="text.primary">Cancelar corrida</Typography>
+          <Typography
+            variant="h6"
+            color="text.primary"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontWeight: "bold",
+            }}
+          >
+            Cancelar corrida
+          </Typography>
         </DialogTitle>
         <DialogContent>
           <Typography color="text.primary">
@@ -794,7 +804,7 @@ export default function ListaCorrida() {
               }
             }}
             variant="contained"
-            color="primary"
+            color="error"
           >
             Confirmar
           </Button>
