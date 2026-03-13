@@ -377,11 +377,7 @@ export default function ListaMulta() {
       <Menu />
       <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', flex: 1 }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography
-            variant="h5"
-            fontWeight="bold"
-            sx={{ color: theme.palette.text.primary }}
-          >
+          <Typography variant="h5" fontWeight="bold" color="text.primary">
             Listagem de Multas
           </Typography>
           <Button
@@ -442,12 +438,35 @@ export default function ListaMulta() {
       </Dialog>
 
       <Dialog open={modalExcluirAberto} onClose={() => setModalExcluirAberto(false)}>
-        <DialogTitle>Excluir Multa</DialogTitle>
+        <DialogTitle
+          sx={{
+            color: theme.palette.mode === "dark" ? "#fff" : "inherit"
+          }}
+        >
+          Excluir Multa
+        </DialogTitle>
+
         <DialogContent>
-          <Typography>Você tem certeza que deseja excluir esta multa?</Typography>
+          <Typography
+            sx={{
+              color: theme.palette.mode === "dark" ? "#fff" : "inherit"
+            }}
+          >
+            Você tem certeza que deseja excluir esta multa?
+          </Typography>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setModalExcluirAberto(false)}>Cancelar</Button>
+
+        <DialogActions
+          sx={{
+            "& .MuiButton-root": {
+              color: theme.palette.mode === "dark" ? "#fff" : "inherit"
+            }
+          }}
+        >
+          <Button onClick={() => setModalExcluirAberto(false)}>
+            Cancelar
+          </Button>
+
           <Button
             onClick={async () => {
               if (multaSelecionada) {
