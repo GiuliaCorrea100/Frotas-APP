@@ -227,6 +227,7 @@ export default function RegistrosDeInfracao() {
         const possuiComprovante = !!params.row.urlComprovantePagamento;
 
         const podeEnviarComprovante = possuiBoleto && !possuiComprovante;
+        const podePedirRecurso = possuiBoleto && !possuiComprovante;
         
         return(
           <Box sx={{ display: "flex", gap: 1 }}>
@@ -281,7 +282,7 @@ export default function RegistrosDeInfracao() {
               variant="contained"
               color="warning"
               startIcon={<GavelIcon />}
-              disabled={!possuiBoleto && !possuiComprovante}
+              disabled={!podePedirRecurso}
               onClick={() => handleSolicitarRecurso(params.row)}
             >
               Solicitar Recurso
