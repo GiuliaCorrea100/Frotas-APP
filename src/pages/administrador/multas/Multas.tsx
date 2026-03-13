@@ -197,6 +197,38 @@ export default function ListaMulta() {
         );
       }
     },
+    {
+      field: 'situacao',
+      headerName: 'Situação',
+      width: 150,
+      renderCell: (params) => {
+        const situacao = params.value || '';
+        let color;
+
+        switch (situacao) {
+          case "AGUARDANDO COMPROVANTE":
+            color = 'info';
+            break;
+          case "PENDENTE DE ACAO":
+            color = 'warning';
+            break;
+          case "QUITADA/PAGA":
+            color = 'success';
+            break;
+          default:
+            color = 'error';
+        }
+
+        return (
+          <Chip
+            label={situacao}
+            color={color as any}
+            size="small"
+            variant="outlined"
+          />
+        );
+      },
+    },
     { field: 'autoInfracao', headerName: 'Número do auto', flex: 1 },
     {
       field: 'comprovantePagamento',
@@ -345,7 +377,13 @@ export default function ListaMulta() {
       <Menu />
       <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', flex: 1 }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h5" fontWeight="bold">Listagem de Multas</Typography>
+          <Typography
+            variant="h5"
+            fontWeight="bold"
+            sx={{ color: theme.palette.text.primary }}
+          >
+            Listagem de Multas
+          </Typography>
           <Button
             variant="contained"
             startIcon={<Add />}
@@ -375,91 +413,19 @@ export default function ListaMulta() {
         />
       </Box>
 
-      <Dialog
-        open={modalAprovarAberto}
-        onClose={() => setModalAprovarAberto(false)}
-        PaperProps={{
-          sx: {
-            backgroundColor: theme.palette.background.paper,
-            color: theme.palette.text.primary,
-            borderRadius: 2,
-            minWidth: 380
-          }
-        }}
-      >
-        <DialogTitle
-          sx={{
-            fontWeight: 700,
-            color: theme.palette.text.primary
-          }}
-        >
-          Aprovar comprovante
-        </DialogTitle>
-
-        <DialogContent
-          sx={{
-            pt: 1,
-            pb: 1,
-            color: theme.palette.text.primary
-          }}
-        >
-          <Typography sx={{ color: theme.palette.text.primary }}>
-            Deseja aprovar esse comprovante de pagamento?
-          </Typography>
+      <Dialog open={modalAprovarAberto} onClose={() => setModalAprovarAberto(false)}>
+        <DialogTitle>Aprovar comprovante</DialogTitle>
+        <DialogContent>
+          <Typography>Deseja aprovar esse comprovante de pagamento?</Typography>
         </DialogContent>
-
-        <DialogActions
-          sx={{
-            px: 3,
-            pb: 2
-          }}
-        >
-          <Button
-            onClick={() => setModalAprovarAberto(false)}
-            variant="outlined"
-            sx={{
-              textTransform: "none",
-              fontWeight: 600
-            }}
-          >
-            Não
-          </Button>
-
-          <Button
-            onClick={aprovarComprovante}
-            variant="contained"
-            color="success"
-            sx={{
-              textTransform: "none",
-              fontWeight: 600
-            }}
-          >
-            Sim
-          </Button>
+        <DialogActions>
+          <Button onClick={() => setModalAprovarAberto(false)}>Não</Button>
+          <Button onClick={aprovarComprovante} variant="contained" color="success">Sim</Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog
-        open={modalReprovarAberto}
-        onClose={() => setModalReprovarAberto(false)}
-        PaperProps={{
-          sx: {
-            backgroundColor: theme.palette.background.paper,
-            color: theme.palette.text.primary,
-            borderRadius: 2,
-            minWidth: 420
-          }
-        }}
-      >
-        <DialogTitle
-          sx={{
-            fontWeight: 700,
-            color: theme.palette.text.primary
-          }}
-        >
-          Motivo da reprovação
-        </DialogTitle>
-
+      <Dialog open={modalReprovarAberto} onClose={() => setModalReprovarAberto(false)}>
+        <DialogTitle>Motivo da reprovação</DialogTitle>
         <DialogContent>
           <TextField
             fullWidth
@@ -467,28 +433,11 @@ export default function ListaMulta() {
             minRows={3}
             value={motivoReprovacao}
             onChange={(e) => setMotivoReprovacao(e.target.value)}
-            placeholder="Digite o motivo da reprovação"
-            sx={{ mt: 1 }}
           />
         </DialogContent>
-
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button
-            onClick={() => setModalReprovarAberto(false)}
-            variant="outlined"
-            sx={{ textTransform: "none", fontWeight: 600 }}
-          >
-            Cancelar
-          </Button>
-
-          <Button
-            onClick={reprovarComprovante}
-            variant="contained"
-            color="error"
-            sx={{ textTransform: "none", fontWeight: 600 }}
-          >
-            Reprovar
-          </Button>
+        <DialogActions>
+          <Button onClick={() => setModalReprovarAberto(false)}>Cancelar</Button>
+          <Button onClick={reprovarComprovante} variant="contained" color="error">Reprovar</Button>
         </DialogActions>
       </Dialog>
 
@@ -498,9 +447,7 @@ export default function ListaMulta() {
           <Typography>Você tem certeza que deseja excluir esta multa?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setModalExcluirAberto(false)} variant="outlined">
-            Cancelar
-          </Button>
+          <Button onClick={() => setModalExcluirAberto(false)}>Cancelar</Button>
           <Button
             onClick={async () => {
               if (multaSelecionada) {
