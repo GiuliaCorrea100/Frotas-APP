@@ -31,7 +31,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       >
         <Box
           sx={{
-            pt: 3,
+            pt: 1.5,
             pb: 0,
             px: 3,
             width: "100%",

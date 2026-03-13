@@ -72,6 +72,7 @@ export default function EditarInfoCorrida({
   const [loadingMotorista, setLoadingMotorista] = useState(false);
   const [loadingVeiculo, setLoadingVeiculo] = useState(false);
   const [authMode, setAuthMode] = useState<string>("SIGAA");
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     const fetchAuthMode = async () => {
@@ -269,8 +270,14 @@ export default function EditarInfoCorrida({
         `/corrida/salvar-edicao-adm/${corrida.idCorrida}`,
         dadosAtualizados,
       );
-      onSuccess("Corrida atualizada com sucesso!");
-      onClose();
+
+      setSuccessMessage("Corrida editada com sucesso!");
+
+      setTimeout(() => {
+        setSuccessMessage("");
+        onSuccess("Corrida editada com sucesso!");
+        onClose();
+      }, 1500);
     } catch (error: any) {
       setError(
         error.response?.data?.message ||
@@ -310,6 +317,12 @@ export default function EditarInfoCorrida({
             <Close />
           </IconButton>
         </Box>
+
+        {successMessage && (
+          <Alert severity="success" sx={{ mb: 3 }}>
+            {successMessage}
+          </Alert>
+        )}
 
         <form onSubmit={handleSubmit}>
           {error && (
@@ -445,10 +458,15 @@ export default function EditarInfoCorrida({
               variant="outlined"
               onClick={onClose}
               sx={{ textTransform: "none" }}
+              disabled={loading || !!successMessage}
             >
               Cancelar
             </Button>
-            <Button type="submit" variant="contained" disabled={loading}>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={loading || !!successMessage}
+            >
               {loading ? <CircularProgress size={24} /> : "Confirmar"}
             </Button>
           </Box>

@@ -26,7 +26,7 @@ const BemVindo: React.FC = () => {
   return (
     <Box
       sx={{
-        mt: 0,
+        mt: 1.5,
         mb: 1.5,
         py: 3,
         px: 3,

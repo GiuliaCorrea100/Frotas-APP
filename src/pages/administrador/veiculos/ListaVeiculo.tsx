@@ -298,7 +298,7 @@ export default function ListaVeiculos() {
         justifyContent="space-between"
         alignItems="center"
         mb={1.5}
-        mx={3}
+        mx={3.5}
         height={56}
       >
         <Typography
@@ -327,7 +327,7 @@ export default function ListaVeiculos() {
         </Button>
       </Box>
 
-      {/* Filtros por status (Ativos/Inativos) */}
+      {/* Filtros por situação + campo de busca + datagrid */}
       <Box
         sx={{
           bgcolor:
@@ -427,7 +427,7 @@ export default function ListaVeiculos() {
         {/* Busca */}
         <Box sx={{ mb: 3, mx: 3 }}>
           <TextField
-            placeholder="Buscar veículos..."
+            placeholder="Buscar veículo"
             variant="outlined"
             size="small"
             value={busca}

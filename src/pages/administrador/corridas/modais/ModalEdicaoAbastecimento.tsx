@@ -309,7 +309,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
         </Box>
 
         {successMessage && (
-          <Alert severity="success" sx={{ mb: 2 }}>
+          <Alert severity="success" sx={{ mb: 3 }}>
             {successMessage}
           </Alert>
         )}

@@ -32,24 +32,7 @@ import { CarroService } from "../../../services/CarroService";
 import axiosConnect from "../../../services/axios/axiosConnect";
 import AppLayout from "../../../components/Layout";
 import BemVindo from "../../BemVindo";
-
-const formatDate = (dateString: string | null) => {
-  if (!dateString) return "Em andamento";
-  try {
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-      return "Data inválida";
-    }
-
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-
-    return `${day}/${month}/${year}`;
-  } catch {
-    return "Data inválida";
-  }
-};
+import { formatDateOnly } from "../../../utils/formatDate";
 
 // Função para converter CorridaFrontend em CorridaDto
 const mapToDto = (c: CorridaFrontend): CorridaDto => ({
@@ -262,7 +245,7 @@ export default function ListaCorrida() {
       width: 200,
       renderCell: (params) => (
         <Typography variant="body2">
-          {formatDate(params.value as string)}
+          {formatDateOnly(params.value as string)}
         </Typography>
       ),
     },
@@ -272,7 +255,7 @@ export default function ListaCorrida() {
       width: 200,
       renderCell: (params) => (
         <Typography variant="body2">
-          {formatDate(params.value as string | null)}
+          {formatDateOnly(params.value as string | null)}
         </Typography>
       ),
     },
@@ -499,7 +482,7 @@ export default function ListaCorrida() {
         justifyContent="space-between"
         alignItems="center"
         mb={1.5}
-        mx={3}
+        mx={3.5}
         height={56}
       >
         <Typography
@@ -526,6 +509,7 @@ export default function ListaCorrida() {
         </Button>
       </Box>
 
+      {/* Filtros por situação + campo de busca + datagrid */}
       <Box
         sx={{
           bgcolor:
@@ -636,7 +620,7 @@ export default function ListaCorrida() {
 
         <Box sx={{ mb: 3, mx: 3 }}>
           <TextField
-            placeholder="Buscar corridas..."
+            placeholder="Buscar corrida"
             variant="outlined"
             size="small"
             value={busca}
@@ -666,7 +650,7 @@ export default function ListaCorrida() {
           rowSelection={false}
           rowHeight={50}
           columnHeaderHeight={60}
-          autoHeight={true}
+          autoHeight
           sx={{
             "& .MuiDataGrid-columnHeaders": {
               "& .MuiDataGrid-columnHeader:first-child": {

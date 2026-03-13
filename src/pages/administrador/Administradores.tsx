@@ -37,7 +37,7 @@ export default function ListaAdministradores() {
   const [admins, setAdmins] = useState<AdminUserDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
-
+  const [busca, setBusca] = useState("");
   const [NomeAdmin, setNomeAdmin] = useState("");
   const [usuariosDisponiveis, setUsuariosDisponiveis] = useState<any[]>([]);
   const [showModalCadastro, setShowModalCadastro] = useState(false);
@@ -224,15 +224,30 @@ export default function ListaAdministradores() {
     },
   ];
 
+  const dadosFiltrados = admins.filter((admin) =>
+    Object.values(admin).some((valor) =>
+      String(valor).toLowerCase().includes(busca.toLowerCase()),
+    ),
+  );
+
   return (
     <AppLayout>
       <Box
         display="flex"
         justifyContent="space-between"
         alignItems="center"
-        mb={3}
+        mb={1.5}
+        mt={0}
+        mx={3.5}
+        height={56}
       >
-        <Typography variant="h5" fontWeight="bold" color="text.primary">
+        <Typography
+          variant="h5"
+          fontWeight="bold"
+          color="text.primary"
+          display="flex"
+          pb={0}
+        >
           Administradores
         </Typography>
 
@@ -244,69 +259,86 @@ export default function ListaAdministradores() {
             textTransform: "none",
             fontWeight: 600,
             boxShadow: theme.shadows[2],
+            mb: 1,
+            mt: 1,
           }}
         >
           Novo Administrador
         </Button>
       </Box>
 
-      <DataGrid
-        rows={admins}
-        columns={colunas}
-        getRowId={(row) => row.idUsuario}
-        loading={loading}
-        initialState={{
-          pagination: {
-            paginationModel: { pageSize: 10, page: 0 },
-          },
-        }}
-        pageSizeOptions={[10, 25, 50]}
-        localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
-        autoHeight
+      <Box
         sx={{
-          "& .MuiDataGrid-cell": {
-            borderBottom: `1px solid ${theme.palette.divider}`,
-            py: 1.5,
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            backgroundColor:
-              theme.palette.mode === "dark"
-                ? theme.palette.grey[800]
-                : theme.palette.grey[100],
-            fontWeight: "bold",
-            borderRadius: 1,
-            borderBottom: `2px solid ${theme.palette.divider}`,
-          },
-          "& .MuiDataGrid-row": {
-            "&:hover": {
-              backgroundColor: theme.palette.action.hover,
+          bgcolor:
+            theme.palette.mode === "light"
+              ? "#FFF"
+              : theme.palette.background.paper,
+          borderRadius: 2,
+          py: 2,
+          mb: 0,
+          boxShadow:
+            theme.palette.mode === "dark"
+              ? "0px 4px 20px rgba(0, 0, 0, 0.3)"
+              : "0px 8px 24px rgba(0, 0, 0, 0.08)",
+          border:
+            theme.palette.mode === "dark"
+              ? "1px solid transparent"
+              : "1px solid #E7E9EE",
+        }}
+      >
+        <Box sx={{ mb: 3, mt: 1, mx: 3 }}>
+          <TextField
+            placeholder="Buscar administrador"
+            variant="outlined"
+            size="small"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            fullWidth
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 2,
+                backgroundColor: theme.palette.background.paper,
+              },
+            }}
+          />
+        </Box>
+
+        <DataGrid
+          rows={dadosFiltrados}
+          columns={colunas}
+          getRowId={(row) => row.idUsuario}
+          loading={loading}
+          initialState={{
+            pagination: {
+              paginationModel: { pageSize: 10, page: 0 },
             },
-            "&.Mui-selected": {
-              backgroundColor: theme.palette.action.selected,
-              "&:hover": {
-                backgroundColor: theme.palette.action.selected,
+          }}
+          pageSizeOptions={[10, 25, 50]}
+          localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+          rowHeight={50}
+          columnHeaderHeight={60}
+          autoHeight
+          sx={{
+            "& .MuiDataGrid-columnHeaders": {
+              "& .MuiDataGrid-columnHeader:first-child": {
+                pl: 4,
+              },
+              "& .MuiDataGrid-columnHeader:last-child": {
+                pr: 4,
               },
             },
-          },
-          "& .MuiDataGrid-footerContainer": {
-            borderTop: `1px solid ${theme.palette.divider}`,
-          },
-          "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-            {
-              marginBottom: 0,
-              alignSelf: "center",
+            "& .MuiDataGrid-row": {
+              "& .MuiDataGrid-cell:first-child": {
+                pl: 4,
+              },
+              "& .MuiDataGrid-cell:last-child": {
+                pr: 4,
+              },
             },
-          "& .MuiTablePagination-toolbar": {
-            minHeight: "52px",
-            alignItems: "center",
-          },
-          boxShadow: theme.shadows[1],
-          borderRadius: 2,
-          border: "none",
-          backgroundColor: theme.palette.background.paper,
-        }}
-        rowSelection={false}
-      />
+          }}
+          rowSelection={false}
+        />
+      </Box>
 
       {/* Modal de cadastro de Administrador */}
       <Modal

@@ -14,6 +14,7 @@ import {
   CircularProgress,
   Divider,
   IconButton,
+  Alert,
 } from "@mui/material";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import axios, { AxiosError } from "axios";
@@ -75,7 +76,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [alertOpen, setAlertOpen] = useState(false);
   const [authMode, setAuthMode] = useState<string>("SIGAA");
-
+  const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const navigate = useNavigate();
@@ -270,12 +271,13 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
 
       await createCorrida(corridaParaEnviar);
 
-      setTimeout(() => {
-        navigate("/Corridas");
-      }, 1500);
+      setSuccessMessage("Corrida cadastrada com sucesso!");
 
-      onSuccess("Corrida cadastrada com sucesso!");
-      onClose();
+      setTimeout(() => {
+        setSuccessMessage("");
+        onSuccess("Corrida cadastrada com sucesso!");
+        onClose();
+      }, 1500);
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response) {
         if (error.response.status === 409) {
@@ -329,6 +331,12 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
             <Close />
           </IconButton>
         </Box>
+
+        {successMessage && (
+          <Alert severity="success" sx={{ mb: 3 }}>
+            {successMessage}
+          </Alert>
+        )}
 
         {error && (
           <Typography color="error" sx={{ mb: 2 }}>
@@ -479,7 +487,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
           <Button
             variant="outlined"
             onClick={onClose}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !!successMessage}
             sx={{ textTransform: "none" }}
           >
             Cancelar
@@ -487,7 +495,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
           <Button
             variant="contained"
             onClick={handleSubmit}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !!successMessage}
           >
             {isSubmitting ? (
               <CircularProgress size={24} color="inherit" />
