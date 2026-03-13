@@ -156,9 +156,7 @@ export default function ListaVeiculos() {
       field: "placa",
       headerName: "Placa",
       width: 150,
-      renderCell: (params) => (
-        <Typography fontWeight="bold">{params.value}</Typography>
-      ),
+      renderCell: (params) => <Typography>{params.value}</Typography>,
     },
     { field: "modelo", headerName: "Modelo", width: 350 },
     { field: "ano", headerName: "Ano", width: 150 },
@@ -299,9 +297,17 @@ export default function ListaVeiculos() {
         display="flex"
         justifyContent="space-between"
         alignItems="center"
-        mb={3}
+        mb={1.5}
+        mx={3}
+        height={56}
       >
-        <Typography variant="h5" fontWeight="bold" color="textPrimary">
+        <Typography
+          variant="h5"
+          fontWeight="bold"
+          color="text.primary"
+          display="flex"
+          pb={0}
+        >
           Listagem de Veículos
         </Typography>
 
@@ -313,6 +319,8 @@ export default function ListaVeiculos() {
             textTransform: "none",
             fontWeight: 600,
             boxShadow: theme.shadows[2],
+            mb: 1,
+            mt: 1,
           }}
         >
           Novo Veículo
@@ -320,144 +328,155 @@ export default function ListaVeiculos() {
       </Box>
 
       {/* Filtros por status (Ativos/Inativos) */}
-      <Box sx={{ display: "flex", gap: 1, mb: 3, flexWrap: "wrap" }}>
-        {[
-          {
-            label: "ATIVOS",
-            value: "ATIVOS",
-            count: qtdAtivos,
-            color: theme.palette.success.main,
-          },
-          {
-            label: "INATIVOS",
-            value: "INATIVOS",
-            count: qtdInativos,
-            color: theme.palette.error.main,
-          },
-          {
-            label: "TODOS",
-            value: "TODOS",
-            count: carros.length,
-            color: theme.palette.primary.dark,
-          },
-        ].map((tab) => (
-          <Button
-            key={tab.value}
-            variant={filtroStatus === tab.value ? "contained" : "outlined"}
-            onClick={() => setFiltroStatus(tab.value)}
-            sx={{
-              textTransform: "none",
-              borderRadius: 2,
-              px: 2,
-              fontWeight: filtroStatus === tab.value ? 600 : 500,
-              color: filtroStatus === tab.value ? "white" : "text.primary",
-              bgcolor:
-                filtroStatus === tab.value ? tab.color : "background.paper",
-              "&:hover": {
-                bgcolor:
-                  filtroStatus === tab.value
-                    ? theme.palette.primary.dark
-                    : theme.palette.action.hover,
-              },
-            }}
-          >
-            {tab.label}
-            <Box
+      <Box
+        sx={{
+          bgcolor:
+            theme.palette.mode === "light"
+              ? "#FFF"
+              : theme.palette.background.paper,
+          borderRadius: 2,
+          py: 2,
+          mb: 0,
+          boxShadow:
+            theme.palette.mode === "dark"
+              ? "0px 4px 20px rgba(0, 0, 0, 0.3)"
+              : "0px 8px 24px rgba(0, 0, 0, 0.08)",
+          border:
+            theme.palette.mode === "dark"
+              ? "1px solid transparent"
+              : "1px solid #E7E9EE",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            mt: 1,
+            mb: 3,
+            ml: 3,
+            flexWrap: "wrap",
+          }}
+        >
+          {[
+            {
+              label: "ATIVOS",
+              value: "ATIVOS",
+              count: qtdAtivos,
+              color: theme.palette.success.main,
+            },
+            {
+              label: "INATIVOS",
+              value: "INATIVOS",
+              count: qtdInativos,
+              color: theme.palette.error.main,
+            },
+            {
+              label: "TODOS",
+              value: "TODOS",
+              count: carros.length,
+              color: theme.palette.primary.dark,
+            },
+          ].map((tab) => (
+            <Button
+              key={tab.value}
+              variant={filtroStatus === tab.value ? "contained" : "outlined"}
+              onClick={() => setFiltroStatus(tab.value)}
               sx={{
-                ml: 1,
-                fontWeight: 600,
-                backgroundColor:
-                  filtroStatus === tab.value
-                    ? "rgba(255,255,255,0.2)"
-                    : theme.palette.mode === "dark"
-                      ? theme.palette.grey[700]
-                      : theme.palette.grey[200],
-                color:
-                  filtroStatus === tab.value
-                    ? "white"
-                    : theme.palette.mode === "dark"
-                      ? theme.palette.grey[100]
-                      : theme.palette.text.primary,
-                px: 1,
-                borderRadius: 12,
+                textTransform: "none",
+                borderRadius: 2,
+                px: 2,
+                fontWeight: filtroStatus === tab.value ? 600 : 500,
+                color: filtroStatus === tab.value ? "white" : "text.primary",
+                bgcolor:
+                  filtroStatus === tab.value ? tab.color : "background.paper",
+                "&:hover": {
+                  bgcolor:
+                    filtroStatus === tab.value
+                      ? theme.palette.primary.dark
+                      : theme.palette.action.hover,
+                },
               }}
             >
-              {tab.count}
-            </Box>
-          </Button>
-        ))}
-      </Box>
+              {tab.label}
+              <Box
+                sx={{
+                  ml: 1,
+                  fontWeight: 600,
+                  backgroundColor:
+                    filtroStatus === tab.value
+                      ? "rgba(255,255,255,0.2)"
+                      : theme.palette.mode === "dark"
+                        ? theme.palette.grey[700]
+                        : theme.palette.grey[200],
+                  color:
+                    filtroStatus === tab.value
+                      ? "white"
+                      : theme.palette.mode === "dark"
+                        ? theme.palette.grey[100]
+                        : theme.palette.text.primary,
+                  px: 1,
+                  borderRadius: 12,
+                }}
+              >
+                {tab.count}
+              </Box>
+            </Button>
+          ))}
+        </Box>
 
-      {/* Busca */}
-      <Box sx={{ mb: 3 }}>
-        <TextField
-          placeholder="Buscar veículos..."
-          variant="outlined"
-          size="small"
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          fullWidth
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              borderRadius: 2,
-              backgroundColor: theme.palette.background.paper,
+        {/* Busca */}
+        <Box sx={{ mb: 3, mx: 3 }}>
+          <TextField
+            placeholder="Buscar veículos..."
+            variant="outlined"
+            size="small"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            fullWidth
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 2,
+                backgroundColor: theme.palette.background.paper,
+              },
+            }}
+          />
+        </Box>
+
+        <DataGrid
+          rows={filteredCarros}
+          columns={colunas}
+          getRowId={(row) => row.idCarro}
+          initialState={{
+            pagination: {
+              paginationModel: { pageSize: 8, page: 0 },
             },
           }}
+          pageSizeOptions={[8, 16, 24]}
+          localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+          autoHeight
+          sx={{
+            "& .MuiDataGrid-columnHeaders": {
+              "& .MuiDataGrid-columnHeader:first-child": {
+                pl: 4,
+              },
+              "& .MuiDataGrid-columnHeader:last-child": {
+                pr: 4,
+              },
+            },
+            "& .MuiDataGrid-row": {
+              "& .MuiDataGrid-cell:first-child": {
+                pl: 4,
+              },
+              "& .MuiDataGrid-cell:last-child": {
+                pr: 4,
+              },
+            },
+          }}
+          rowSelection={false}
+          rowHeight={50}
+          columnHeaderHeight={60}
         />
       </Box>
-
-      <DataGrid
-        rows={filteredCarros}
-        columns={colunas}
-        getRowId={(row) => row.idCarro}
-        initialState={{
-          pagination: {
-            paginationModel: { pageSize: 8, page: 0 },
-          },
-        }}
-        pageSizeOptions={[8, 16, 24]}
-        localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
-        autoHeight
-        sx={{
-          "& .MuiDataGrid-cell": {
-            borderBottom: `1px solid ${theme.palette.divider}`,
-            py: 1.5,
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            backgroundColor:
-              theme.palette.mode === "dark"
-                ? theme.palette.grey[800]
-                : theme.palette.grey[100],
-            fontWeight: "bold",
-            borderRadius: 1,
-            borderBottom: `2px solid ${theme.palette.divider}`,
-          },
-          "& .MuiDataGrid-row": {
-            "&:hover": { backgroundColor: theme.palette.action.hover },
-            "&.Mui-selected": {
-              backgroundColor: theme.palette.action.selected,
-            },
-          },
-          "& .MuiDataGrid-footerContainer": {
-            borderTop: `1px solid ${theme.palette.divider}`,
-          },
-          "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-            {
-              marginBottom: 0,
-              alignSelf: "center",
-            },
-          "& .MuiTablePagination-toolbar": {
-            minHeight: "52px",
-            alignItems: "center",
-          },
-          boxShadow: theme.shadows[1],
-          borderRadius: 2,
-          border: "none",
-          backgroundColor: theme.palette.background.paper,
-          height: "calc(100vh - 350px)",
-        }}
-        rowSelection={false}
-      />
 
       {/* Modal de cadastro e edição */}
       {openModalCadastroEdicao && (
