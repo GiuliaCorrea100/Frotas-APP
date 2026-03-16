@@ -683,7 +683,7 @@ export default function ListaCorrida() {
         }}
         fullWidth
         maxWidth="sm"
-        PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
+        PaperProps={{ sx: { borderRadius: 2 } }}
       >
         <DialogTitle color="text.primary" sx={{ fontWeight: "bold" }}>
           LIBERAR CHAVE
@@ -753,7 +753,7 @@ export default function ListaCorrida() {
         onClose={() => setShowModalCancelar(false)}
         fullWidth
         maxWidth="sm"
-        PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
+        PaperProps={{ sx: { borderRadius: 2 } }}
       >
         <DialogTitle sx={{ fontWeight: 600 }}>
           <Typography
@@ -816,7 +816,7 @@ export default function ListaCorrida() {
         onClose={() => setShowModalReceberChave(false)}
         fullWidth
         maxWidth="sm"
-        PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
+        PaperProps={{ sx: { borderRadius: 2 } }}
       >
         <DialogTitle color="text.primary" sx={{ fontWeight: "bold" }}>
           RECEBER CHAVE
@@ -873,34 +873,35 @@ export default function ListaCorrida() {
         </DialogActions>
       </Dialog>
 
-      <SalvarEdicaoCorrida
-        open={showModalEditar}
-        onClose={() => setShowModalEditar(false)}
-        corrida={
-          corridaParaEditar
-            ? {
-                ...mapToDto(corridaParaEditar),
-                dataTermino:
-                  mapToDto(corridaParaEditar).dataTermino || new Date(),
-              }
-            : null
-        }
-        onSuccess={async (msg) => {
-          console.log(msg);
-          const dadosAtualizados = await getCorridas();
-          setCorridas(dadosAtualizados);
-        }}
-        onError={(err) => {
-          console.error(err);
-        }}
-      />
+      {showModalEditar && (
+        <SalvarEdicaoCorrida
+          open={showModalEditar}
+          onClose={() => setShowModalEditar(false)}
+          corrida={
+            corridaParaEditar
+              ? {
+                  ...mapToDto(corridaParaEditar),
+                  dataTermino:
+                    mapToDto(corridaParaEditar).dataTermino || new Date(),
+                }
+              : null
+          }
+          onSuccess={async (msg) => {
+            console.log(msg);
+            const dadosAtualizados = await getCorridas();
+            setCorridas(dadosAtualizados);
+          }}
+          onError={(err) => {
+            console.error(err);
+          }}
+        />
+      )}
 
       {showModalCadastrarCorrida && (
         <CadastrarCorrida
           open={showModalCadastrarCorrida}
           onClose={() => setShowModalCadastrarCorrida(false)}
           onSuccess={async (msg) => {
-            console.log(msg);
             await carregarCorridas();
           }}
           onError={(error) => {

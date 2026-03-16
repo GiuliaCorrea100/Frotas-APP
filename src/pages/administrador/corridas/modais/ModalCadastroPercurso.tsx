@@ -112,7 +112,7 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
             }}
           >
             <AddLocationAlt color="primary" sx={{ mr: 1 }} />
-            Cadastrar de Percurso
+            Cadastrar Percurso
           </Typography>
           <IconButton onClick={onClose} disabled={loading}>
             <Close />
@@ -228,7 +228,7 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
         >
           <Button
             onClick={onClose}
-            color="inherit"
+            variant="outlined"
             disabled={loading || !!successMessage}
           >
             Cancelar

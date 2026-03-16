@@ -417,7 +417,7 @@ const Menu: React.FC = () => {
                       <IconButton
                         color="inherit"
                         onClick={handleLogout}
-                        sx={{ p: 1, mr: 2 }}
+                        sx={{ p: 1, mr: 3 }}
                       >
                         <ExitToAppIcon />
                       </IconButton>

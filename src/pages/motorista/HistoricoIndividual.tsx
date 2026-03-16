@@ -270,7 +270,7 @@ export default function HistoricoIndividual() {
               : "1px solid #E7E9EE",
         }}
       >
-        <Box sx={{ mb: 3, mx: 3 }}>
+        <Box sx={{ mb: 3, mt: 1, mx: 3 }}>
           <TextField
             placeholder="Buscar corrida"
             variant="outlined"

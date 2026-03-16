@@ -582,135 +582,154 @@ const DetalhesRequisicao: React.FC = () => {
 
   return (
     <AppLayout>
-      <Box>
+      <Box mt={1.5}>
         {/* Card de Informações Básicas */}
         <Card
           sx={{
-            marginBottom: 2,
-            boxShadow: theme.shadows[1],
-            border: "1px solid",
-            borderColor: "divider",
-            background: theme.palette.mode === "dark" ? "#1E1E1E" : "#fff",
+            marginBottom: 3,
+            boxShadow:
+              theme.palette.mode === "dark"
+                ? "0px 4px 20px rgba(0, 0, 0, 0.3)"
+                : "0px 8px 24px rgba(0, 0, 0, 0.08)",
+            border:
+              theme.palette.mode === "dark"
+                ? "1px solid transparent"
+                : "1px solid #E7E9EE",
+            bgcolor:
+              theme.palette.mode === "light"
+                ? "#FFF"
+                : theme.palette.background.paper,
           }}
         >
-          <CardHeader
-            title="Informações Básicas"
-            sx={{
-              pb: 0,
-              "& .MuiCardHeader-title": {
-                fontSize: "1.25rem",
-                fontWeight: 600,
-                color:
-                  theme.palette.mode === "dark"
-                    ? theme.palette.common.white
-                    : theme.palette.text.primary,
-              },
-            }}
-          />
-          <CardContent>
-            {loading ? (
-              <Typography variant="body2" color="text.secondary">
-                Carregando informações da corrida...
-              </Typography>
-            ) : corrida ? (
-              <Stack spacing={1.5}>
-                <Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Motorista:
-                  </Typography>
-                  <Typography variant="body1" color="text.primary">
-                    {corrida.nomeMotorista}
-                  </Typography>
-                </Box>
+          <Box ml={1.5}>
+            <Typography
+              variant="h6"
+              fontWeight="bold"
+              color="text.primary"
+              ml={1.5}
+              pt={2}
+            >
+              Informações Básicas
+            </Typography>
+            <CardContent>
+              {loading ? (
+                <Typography variant="body2" color="text.secondary">
+                  Carregando informações da corrida...
+                </Typography>
+              ) : corrida ? (
+                <Stack spacing={1.5}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Motorista:
+                    </Typography>
+                    <Typography variant="body1" color="text.primary">
+                      {corrida.nomeMotorista}
+                    </Typography>
+                  </Box>
 
-                <Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Carro:
-                  </Typography>
-                  <Typography variant="body1" color="text.primary">
-                    {corrida.placaVeiculo}
-                  </Typography>
-                </Box>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Veículo (placa):
+                    </Typography>
+                    <Typography variant="body1" color="text.primary">
+                      {corrida.placaVeiculo}
+                    </Typography>
+                  </Box>
 
-                <Box>
-                  <Typography variant="body2" color="text.secondary">
-                    {isAgendada
-                      ? "Data agendada para início da corrida"
-                      : "Data e hora de início da corrida"}
-                  </Typography>
-                  <Typography variant="body1" color="text.primary">
-                    {isAgendada
-                      ? formatDateOnly(corrida.dataInicio)
-                      : formatDate(corrida.dataHoraLiberacaoChave)}
-                  </Typography>
-                </Box>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      {isAgendada
+                        ? "Data agendada para início da corrida"
+                        : "Data e hora de início da corrida"}
+                    </Typography>
+                    <Typography variant="body1" color="text.primary">
+                      {isAgendada
+                        ? formatDateOnly(corrida.dataInicio)
+                        : formatDate(corrida.dataHoraLiberacaoChave)}
+                    </Typography>
+                  </Box>
 
-                <Box>
-                  <Typography variant="body2" color="text.secondary">
-                    {isAgendada
-                      ? "Data agendada para término da corrida"
-                      : "Data e hora de término da corrida"}
-                  </Typography>
-                  <Typography variant="body1" color="text.primary">
-                    {isAgendada
-                      ? formatDateOnly(corrida.dataTermino)
-                      : corrida.dataHoraRecebimentoChave
-                        ? formatDate(corrida.dataHoraRecebimentoChave)
-                        : "-"}
-                  </Typography>
-                </Box>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      {isAgendada
+                        ? "Data agendada para término da corrida"
+                        : "Data e hora de término da corrida"}
+                    </Typography>
+                    <Typography variant="body1" color="text.primary">
+                      {isAgendada
+                        ? formatDateOnly(corrida.dataTermino)
+                        : corrida.dataHoraRecebimentoChave
+                          ? formatDate(corrida.dataHoraRecebimentoChave)
+                          : "-"}
+                    </Typography>
+                  </Box>
 
-                <Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Status:
-                  </Typography>
-                  <Typography variant="body1" color="text.primary">
-                    {corrida.situacao}
-                  </Typography>
-                </Box>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Status:
+                    </Typography>
+                    <Typography variant="body1" color="text.primary">
+                      {corrida.situacao}
+                    </Typography>
+                  </Box>
 
-                <Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Status da chave:
-                  </Typography>
-                  <Typography variant="body1" color="text.primary">
-                    {corrida.chaveEmprestada ? "Emprestada" : "Não Emprestada"}
-                  </Typography>
-                </Box>
-              </Stack>
-            ) : (
-              <Typography variant="body2" color="error">
-                Corrida não encontrada.
-              </Typography>
-            )}
-          </CardContent>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Status da chave:
+                    </Typography>
+                    <Typography variant="body1" color="text.primary">
+                      {corrida.chaveEmprestada
+                        ? "Emprestada"
+                        : "Não Emprestada"}
+                    </Typography>
+                  </Box>
+                </Stack>
+              ) : (
+                <Typography variant="body2" color="error">
+                  Corrida não encontrada.
+                </Typography>
+              )}
+            </CardContent>
+          </Box>
         </Card>
 
         {/* Card de Ocorrências */}
         <Card
           sx={{
-            marginBottom: 2,
-            boxShadow: theme.shadows[1],
-            border: "1px solid",
-            borderColor: "divider",
-            background: theme.palette.mode === "dark" ? "#1E1E1E" : "#fff",
+            marginBottom: 3,
+            boxShadow:
+              theme.palette.mode === "dark"
+                ? "0px 4px 20px rgba(0, 0, 0, 0.3)"
+                : "0px 8px 24px rgba(0, 0, 0, 0.08)",
+            border:
+              theme.palette.mode === "dark"
+                ? "1px solid transparent"
+                : "1px solid #E7E9EE",
+            bgcolor:
+              theme.palette.mode === "light"
+                ? "#FFF"
+                : theme.palette.background.paper,
           }}
         >
-          <CardHeader
-            title="Ocorrências"
+          <Box
             sx={{
-              pb: 0,
-              "& .MuiCardHeader-title": {
-                fontSize: "1.25rem",
-                fontWeight: 600,
-                color:
-                  theme.palette.mode === "dark"
-                    ? theme.palette.common.white
-                    : theme.palette.text.primary,
-              },
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              ml: 3,
+              mr: 3,
+              height: 56,
+              pt: 2,
             }}
-          />
-          <CardContent>
+          >
+            <Typography
+              variant="h6"
+              fontWeight="bold"
+              color="text.primary"
+              pt={1}
+            >
+              Ocorrências
+            </Typography>
             <Button
               variant="contained"
               onClick={handleAbrirModalCadastroOcorrencia}
@@ -719,17 +738,18 @@ const DetalhesRequisicao: React.FC = () => {
                 textTransform: "none",
                 fontWeight: 600,
                 boxShadow: theme.shadows[2],
-                mb: 2,
               }}
             >
               Nova Ocorrência
             </Button>
-            {loading ? (
-              <Typography variant="body2" color="text.secondary">
-                Carregando ocorrências...
-              </Typography>
-            ) : ocorrencias.length > 0 ? (
-              <Box sx={{ minHeight: 200, width: "100%" }}>
+          </Box>
+          <Box m={1}>
+            <CardContent>
+              {loading ? (
+                <Typography variant="body2" color="text.secondary">
+                  Carregando ocorrências...
+                </Typography>
+              ) : ocorrencias.length > 0 ? (
                 <DataGrid
                   rows={ocorrencias}
                   columns={columnsOcorrencias}
@@ -739,20 +759,27 @@ const DetalhesRequisicao: React.FC = () => {
                     },
                   }}
                   sx={{
-                    width: "100%",
-                    "& .MuiDataGrid-footerContainer": {
-                      borderTop: `1px solid ${theme.palette.divider}`,
-                    },
-                    "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-                      {
-                        marginBottom: 0,
-                        alignSelf: "center",
+                    "& .MuiDataGrid-columnHeaders": {
+                      "& .MuiDataGrid-columnHeader:first-child": {
+                        pl: 4,
                       },
-                    "& .MuiTablePagination-toolbar": {
-                      minHeight: "52px",
-                      alignItems: "center",
+                      "& .MuiDataGrid-columnHeader:last-child": {
+                        pr: 4,
+                      },
+                    },
+                    "& .MuiDataGrid-row": {
+                      "& .MuiDataGrid-cell:first-child": {
+                        pl: 4,
+                      },
+                      "& .MuiDataGrid-cell:last-child": {
+                        pr: 4,
+                      },
                     },
                   }}
+                  autoHeight
+                  rowSelection={false}
+                  rowHeight={50}
+                  columnHeaderHeight={60}
                   pageSizeOptions={[5, 10, 25]}
                   localeText={
                     ptBR.components.MuiDataGrid.defaultProps.localeText
@@ -760,40 +787,52 @@ const DetalhesRequisicao: React.FC = () => {
                   disableRowSelectionOnClick
                   getRowId={(row) => row.idOcorrencia}
                 />
-              </Box>
-            ) : (
-              <Typography variant="body2" color="text.secondary">
-                Nenhuma ocorrência cadastrada para esta corrida.
-              </Typography>
-            )}
-          </CardContent>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  Nenhuma ocorrência cadastrada para esta corrida.
+                </Typography>
+              )}
+            </CardContent>
+          </Box>
         </Card>
 
         {/* Card de Abastecimento */}
         <Card
           sx={{
-            marginBottom: 2,
-            boxShadow: theme.shadows[1],
-            border: "1px solid",
-            borderColor: "divider",
-            background: theme.palette.mode === "dark" ? "#1E1E1E" : "#fff",
+            marginBottom: 3,
+            boxShadow:
+              theme.palette.mode === "dark"
+                ? "0px 4px 20px rgba(0, 0, 0, 0.3)"
+                : "0px 8px 24px rgba(0, 0, 0, 0.08)",
+            border:
+              theme.palette.mode === "dark"
+                ? "1px solid transparent"
+                : "1px solid #E7E9EE",
+            bgcolor:
+              theme.palette.mode === "light"
+                ? "#FFF"
+                : theme.palette.background.paper,
           }}
         >
-          <CardHeader
-            title="Abastecimentos"
+          <Box
             sx={{
-              pb: 0,
-              "& .MuiCardHeader-title": {
-                fontSize: "1.25rem",
-                fontWeight: 600,
-                color:
-                  theme.palette.mode === "dark"
-                    ? theme.palette.common.white
-                    : theme.palette.text.primary,
-              },
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              ml: 3,
+              mr: 3,
+              height: 56,
+              pt: 2,
             }}
-          />
-          <CardContent>
+          >
+            <Typography
+              variant="h6"
+              fontWeight="bold"
+              color="text.primary"
+              pt={1}
+            >
+              Abastecimentos
+            </Typography>
             <Button
               variant="contained"
               onClick={handleAbrirModalCadastroAbastecimento}
@@ -802,81 +841,103 @@ const DetalhesRequisicao: React.FC = () => {
                 textTransform: "none",
                 fontWeight: 600,
                 boxShadow: theme.shadows[2],
-                mb: 2,
               }}
             >
               Novo Abastecimento
             </Button>
-            {loading ? (
-              <Typography variant="body2" color="text.secondary">
-                Carregando Abastecimentos...
-              </Typography>
-            ) : abastecimentos.length > 0 ? (
-              <Box sx={{ minHeight: 200, width: "100%" }}>
-                <DataGrid
-                  rows={abastecimentos}
-                  columns={columnsAbastecimentos}
-                  initialState={{
-                    pagination: {
-                      paginationModel: { page: 0, pageSize: 5 },
-                    },
-                  }}
-                  sx={{
-                    width: "100%",
-                    "& .MuiDataGrid-footerContainer": {
-                      borderTop: `1px solid ${theme.palette.divider}`,
-                    },
-                    "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-                      {
-                        marginBottom: 0,
-                        alignSelf: "center",
+          </Box>
+          <Box m={1}>
+            <CardContent>
+              {loading ? (
+                <Typography variant="body2" color="text.secondary">
+                  Carregando Abastecimentos...
+                </Typography>
+              ) : abastecimentos.length > 0 ? (
+                <Box sx={{ minHeight: 200, width: "100%" }}>
+                  <DataGrid
+                    rows={abastecimentos}
+                    columns={columnsAbastecimentos}
+                    initialState={{
+                      pagination: {
+                        paginationModel: { page: 0, pageSize: 5 },
                       },
-                    "& .MuiTablePagination-toolbar": {
-                      minHeight: "52px",
-                      alignItems: "center",
-                    },
-                  }}
-                  pageSizeOptions={[5, 10, 25]}
-                  localeText={
-                    ptBR.components.MuiDataGrid.defaultProps.localeText
-                  }
-                  disableRowSelectionOnClick
-                  getRowId={(row) => row.idAbastecimento!}
-                />
-              </Box>
-            ) : (
-              <Typography variant="body2" color="text.secondary">
-                Nenhum abastecimento cadastrado para esta corrida.
-              </Typography>
-            )}
-          </CardContent>
+                    }}
+                    sx={{
+                      "& .MuiDataGrid-columnHeaders": {
+                        "& .MuiDataGrid-columnHeader:first-child": {
+                          pl: 4,
+                        },
+                        "& .MuiDataGrid-columnHeader:last-child": {
+                          pr: 4,
+                        },
+                      },
+                      "& .MuiDataGrid-row": {
+                        "& .MuiDataGrid-cell:first-child": {
+                          pl: 4,
+                        },
+                        "& .MuiDataGrid-cell:last-child": {
+                          pr: 4,
+                        },
+                      },
+                    }}
+                    autoHeight
+                    rowSelection={false}
+                    rowHeight={50}
+                    columnHeaderHeight={60}
+                    pageSizeOptions={[5, 10, 25]}
+                    localeText={
+                      ptBR.components.MuiDataGrid.defaultProps.localeText
+                    }
+                    disableRowSelectionOnClick
+                    getRowId={(row) => row.idAbastecimento!}
+                  />
+                </Box>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  Nenhum abastecimento cadastrado para esta corrida.
+                </Typography>
+              )}
+            </CardContent>
+          </Box>
         </Card>
 
         {/* Card de Percusos */}
         <Card
           sx={{
-            marginBottom: 2,
-            boxShadow: theme.shadows[1],
-            border: "1px solid",
-            borderColor: "divider",
-            background: theme.palette.mode === "dark" ? "#1E1E1E" : "#fff",
+            marginBottom: 3,
+            boxShadow:
+              theme.palette.mode === "dark"
+                ? "0px 4px 20px rgba(0, 0, 0, 0.3)"
+                : "0px 8px 24px rgba(0, 0, 0, 0.08)",
+            border:
+              theme.palette.mode === "dark"
+                ? "1px solid transparent"
+                : "1px solid #E7E9EE",
+            bgcolor:
+              theme.palette.mode === "light"
+                ? "#FFF"
+                : theme.palette.background.paper,
           }}
         >
-          <CardHeader
-            title="Percursos"
+          <Box
             sx={{
-              pb: 0,
-              "& .MuiCardHeader-title": {
-                fontSize: "1.25rem",
-                fontWeight: 600,
-                color:
-                  theme.palette.mode === "dark"
-                    ? theme.palette.common.white
-                    : theme.palette.text.primary,
-              },
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              ml: 3,
+              mr: 3,
+              height: 56,
+              pt: 2,
             }}
-          />
-          <CardContent>
+          >
+            <Typography
+              variant="h6"
+              fontWeight="bold"
+              color="text.primary"
+              pt={1}
+            >
+              Percursos
+            </Typography>
             <Button
               variant="contained"
               onClick={handleAbrirModalCadastroPercurso}
@@ -885,54 +946,64 @@ const DetalhesRequisicao: React.FC = () => {
                 textTransform: "none",
                 fontWeight: 600,
                 boxShadow: theme.shadows[2],
-                mb: 2,
               }}
             >
               Novo Percurso
             </Button>
-            {loading ? (
-              <Typography variant="body2" color="text.secondary">
-                Carregando Percursos...
-              </Typography>
-            ) : percursos.length > 0 ? (
-              <Box sx={{ minHeight: 200, width: "100%" }}>
-                <DataGrid
-                  rows={percursos}
-                  columns={colunsPercursos}
-                  initialState={{
-                    pagination: {
-                      paginationModel: { page: 0, pageSize: 5 },
-                    },
-                  }}
-                  sx={{
-                    width: "100%",
-                    "& .MuiDataGrid-footerContainer": {
-                      borderTop: `1px solid ${theme.palette.divider}`,
-                    },
-                    "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-                      {
-                        marginBottom: 0,
-                        alignSelf: "center",
+          </Box>
+          <Box m={1}>
+            <CardContent>
+              {loading ? (
+                <Typography variant="body2" color="text.secondary">
+                  Carregando Percursos...
+                </Typography>
+              ) : percursos.length > 0 ? (
+                <Box sx={{ minHeight: 200, width: "100%" }}>
+                  <DataGrid
+                    rows={percursos}
+                    columns={colunsPercursos}
+                    initialState={{
+                      pagination: {
+                        paginationModel: { page: 0, pageSize: 5 },
                       },
-                    "& .MuiTablePagination-toolbar": {
-                      minHeight: "52px",
-                      alignItems: "center",
-                    },
-                  }}
-                  pageSizeOptions={[5, 10, 25]}
-                  localeText={
-                    ptBR.components.MuiDataGrid.defaultProps.localeText
-                  }
-                  disableRowSelectionOnClick
-                  getRowId={(row) => row.idPercurso!}
-                />
-              </Box>
-            ) : (
-              <Typography variant="body2" color="text.secondary">
-                Nenhum percurso cadastrado para esta corrida.
-              </Typography>
-            )}
-          </CardContent>
+                    }}
+                    sx={{
+                      "& .MuiDataGrid-columnHeaders": {
+                        "& .MuiDataGrid-columnHeader:first-child": {
+                          pl: 4,
+                        },
+                        "& .MuiDataGrid-columnHeader:last-child": {
+                          pr: 4,
+                        },
+                      },
+                      "& .MuiDataGrid-row": {
+                        "& .MuiDataGrid-cell:first-child": {
+                          pl: 4,
+                        },
+                        "& .MuiDataGrid-cell:last-child": {
+                          pr: 4,
+                        },
+                      },
+                    }}
+                    autoHeight
+                    rowSelection={false}
+                    rowHeight={50}
+                    columnHeaderHeight={60}
+                    pageSizeOptions={[5, 10, 25]}
+                    localeText={
+                      ptBR.components.MuiDataGrid.defaultProps.localeText
+                    }
+                    disableRowSelectionOnClick
+                    getRowId={(row) => row.idPercurso!}
+                  />
+                </Box>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  Nenhum percurso cadastrado para esta corrida.
+                </Typography>
+              )}
+            </CardContent>
+          </Box>
         </Card>
       </Box>
 
@@ -945,21 +1016,22 @@ const DetalhesRequisicao: React.FC = () => {
         PaperProps={{
           sx: {
             borderRadius: 2,
-            p: 1,
             backgroundColor: theme.palette.background.paper,
           },
         }}
       >
-        <DialogTitle
-          sx={{
-            fontWeight: 600,
-            color:
-              theme.palette.mode === "dark"
-                ? theme.palette.common.white
-                : theme.palette.text.primary,
-          }}
-        >
-          Excluir Percurso
+        <DialogTitle sx={{ fontWeight: "600" }}>
+          <Typography
+            variant="h6"
+            color="text.primary"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontWeight: "bold",
+            }}
+          >
+            Excluir Percurso
+          </Typography>
         </DialogTitle>
         <DialogContent>
           <Typography
@@ -981,7 +1053,7 @@ const DetalhesRequisicao: React.FC = () => {
             variant="contained"
             color="error"
           >
-            Confirmar Exclusão
+            Confirmar
           </Button>
         </DialogActions>
       </Dialog>
@@ -995,21 +1067,22 @@ const DetalhesRequisicao: React.FC = () => {
         PaperProps={{
           sx: {
             borderRadius: 2,
-            p: 1,
             backgroundColor: theme.palette.background.paper,
           },
         }}
       >
-        <DialogTitle
-          sx={{
-            fontWeight: 600,
-            color:
-              theme.palette.mode === "dark"
-                ? theme.palette.common.white
-                : theme.palette.text.primary,
-          }}
-        >
-          Excluir Ocorrência
+        <DialogTitle sx={{ fontWeight: "600" }}>
+          <Typography
+            variant="h6"
+            color="text.primary"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontWeight: "bold",
+            }}
+          >
+            Excluir Ocorrência
+          </Typography>
         </DialogTitle>
         <DialogContent>
           <Typography
@@ -1048,21 +1121,22 @@ const DetalhesRequisicao: React.FC = () => {
         PaperProps={{
           sx: {
             borderRadius: 2,
-            p: 1,
             backgroundColor: theme.palette.background.paper,
           },
         }}
       >
-        <DialogTitle
-          sx={{
-            fontWeight: 600,
-            color:
-              theme.palette.mode === "dark"
-                ? theme.palette.common.white
-                : theme.palette.text.primary,
-          }}
-        >
-          Excluir Abastecimento
+        <DialogTitle sx={{ fontWeight: "600" }}>
+          <Typography
+            variant="h6"
+            color="text.primary"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontWeight: "bold",
+            }}
+          >
+            Excluir Abastecimento
+          </Typography>
         </DialogTitle>
         <DialogContent>
           <Typography

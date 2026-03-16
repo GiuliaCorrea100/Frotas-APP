@@ -367,7 +367,7 @@ export default function ListaAdministradores() {
               }}
             >
               <Person color="primary" sx={{ mr: 1 }} />
-              Novo Administrador
+              Cadastrar Administrador
             </Typography>
             <IconButton
               onClick={() => setShowModalCadastro(false)}
@@ -452,7 +452,6 @@ export default function ListaAdministradores() {
         PaperProps={{
           sx: {
             borderRadius: 2,
-            p: 1,
           },
         }}
       >
@@ -475,7 +474,7 @@ export default function ListaAdministradores() {
             <strong>{SelectedUsuario?.nome}</strong>
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ p: 2, pt: 0 }}>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
           <Button
             onClick={() => setShowModalConfirmar(false)}
             variant="outlined"

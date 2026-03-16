@@ -138,7 +138,7 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
             }}
           >
             <AddLocationAlt color="primary" sx={{ mr: 1 }} />
-            Editar de Percurso
+            Editar Percurso
           </Typography>
           <IconButton onClick={onClose} disabled={loading}>
             <Close />
@@ -254,7 +254,7 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
         >
           <Button
             onClick={onClose}
-            color="inherit"
+            variant="outlined"
             disabled={loading || !!successMessage}
           >
             Cancelar
@@ -265,7 +265,7 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
             variant="contained"
             disabled={loading || !!successMessage}
           >
-            {loading ? <CircularProgress size={24} /> : "Atualizar"}
+            {loading ? <CircularProgress size={24} /> : "Salvar"}
           </Button>
         </Box>
       </Box>

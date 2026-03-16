@@ -301,7 +301,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
             }}
           >
             <LocalGasStation color="primary" sx={{ fontSize: 32, mr: 1 }} />
-            Edição de Abastecimento
+            Editar Abastecimento
           </Typography>
           <IconButton onClick={onClose} disabled={loading}>
             <Close />

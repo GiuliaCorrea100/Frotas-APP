@@ -502,7 +502,6 @@ export default function ListaVeiculos() {
         PaperProps={{
           sx: {
             borderRadius: 2,
-            p: 1,
           },
         }}
       >
@@ -526,7 +525,7 @@ export default function ListaVeiculos() {
             veículo <strong>{selectedCarro?.placa}</strong>.
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ p: 2, pt: 0 }}>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
           <Button
             onClick={() => setShowModalAtivacao(false)}
             variant="outlined"
