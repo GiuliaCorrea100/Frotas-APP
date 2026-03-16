@@ -11,7 +11,7 @@ import {
   IconButton,
   Alert,
 } from "@mui/material";
-import { CalendarToday, Close, AddLocationAlt } from "@mui/icons-material";
+import { Close, AddLocationAlt } from "@mui/icons-material";
 import {
   atualizarPercurso,
   PercursoDto,
@@ -188,13 +188,6 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
             onChange={(e) => setSaidaHora(new Date(e.target.value))}
             InputLabelProps={{ shrink: true }}
             required
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <CalendarToday fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
             sx={{ flex: 1 }}
           />
         </Box>
@@ -236,13 +229,6 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
             onChange={(e) => setChegadaHora(new Date(e.target.value))}
             InputLabelProps={{ shrink: true }}
             required
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <CalendarToday fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
             sx={{ flex: 1 }}
           />
         </Box>

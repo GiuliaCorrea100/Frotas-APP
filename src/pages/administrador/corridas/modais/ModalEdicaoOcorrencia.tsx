@@ -7,11 +7,10 @@ import {
   Button,
   CircularProgress,
   Alert,
-  InputAdornment,
   IconButton,
   Divider,
 } from "@mui/material";
-import { CalendarToday, Close, Warning } from "@mui/icons-material";
+import { Close, Warning } from "@mui/icons-material";
 import { OcorrenciaDto } from "../../../../services/OcorrenciaService";
 import axiosConnect from "../../../../services/axios/axiosConnect";
 import { modalStyle } from "../../../../utils/modalStyle";
@@ -186,13 +185,6 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
             }}
             InputLabelProps={{ shrink: true }}
             required
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <CalendarToday fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
             disabled={!!successMessage || loading}
           />
         </Box>

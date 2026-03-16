@@ -15,7 +15,7 @@ import {
   CircularProgress,
   IconButton,
 } from "@mui/material";
-import { LocalGasStation, Close, CalendarToday } from "@mui/icons-material";
+import { LocalGasStation, Close } from "@mui/icons-material";
 import { CorridaFrontend } from "../../../../services/CorridaService";
 import {
   TipoCombustivel,
@@ -379,7 +379,12 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
             sx={{
               flex: "1 1 50%",
               "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-              "& .MuiOutlinedInput-root": { backgroundColor: "#f5f5f5" },
+              "& .MuiOutlinedInput-root": {
+                backgroundColor: (theme) =>
+                  theme.palette.mode === "dark"
+                    ? "rgba(255, 255, 255, 0.08)"
+                    : "#f5f5f5",
+              },
             }}
           />
         </Box>
@@ -408,11 +413,6 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
             helperText={errors.dataAbastecimento}
             InputLabelProps={{ shrink: true }}
             InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <CalendarToday fontSize="small" />
-                </InputAdornment>
-              ),
               inputProps: {
                 min: minDate,
                 max: maxDate,

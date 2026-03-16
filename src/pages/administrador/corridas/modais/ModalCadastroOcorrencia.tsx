@@ -7,12 +7,11 @@ import {
   Button,
   CircularProgress,
   Alert,
-  InputAdornment,
   IconButton,
   Divider,
 } from "@mui/material";
 import { OcorrenciaService } from "../../../../services/OcorrenciaService";
-import { CalendarToday, Close, Warning } from "@mui/icons-material";
+import { Close, Warning } from "@mui/icons-material";
 import { modalStyle } from "../../../../utils/modalStyle";
 
 interface CadastrarOcorrenciaProps {
@@ -160,13 +159,6 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
             }}
             InputLabelProps={{ shrink: true }}
             required
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <CalendarToday fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
           />
         </Box>
 

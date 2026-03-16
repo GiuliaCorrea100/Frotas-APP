@@ -11,7 +11,7 @@ import {
   IconButton,
   Alert,
 } from "@mui/material";
-import { CalendarToday, AddLocationAlt, Close } from "@mui/icons-material";
+import { AddLocationAlt, Close } from "@mui/icons-material";
 import { inserirPercursoCompleto } from "../../../../services/PercursoService";
 import { modalStyle } from "../../../../utils/modalStyle";
 
@@ -162,13 +162,6 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
             onChange={(e) => setSaidaHora(new Date(e.target.value))}
             InputLabelProps={{ shrink: true }}
             required
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <CalendarToday fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
             sx={{ flex: "1" }}
           />
         </Box>
@@ -210,13 +203,6 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
             onChange={(e) => setChegadaHora(new Date(e.target.value))}
             InputLabelProps={{ shrink: true }}
             required
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <CalendarToday fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
             sx={{ flex: "1" }}
           />
         </Box>

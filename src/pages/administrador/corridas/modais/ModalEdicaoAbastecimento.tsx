@@ -15,7 +15,7 @@ import {
   IconButton,
   Alert,
 } from "@mui/material";
-import { LocalGasStation, CalendarToday, Close } from "@mui/icons-material";
+import { LocalGasStation, Close } from "@mui/icons-material";
 import { Abastecimento } from "../../../../services/AbastecimentoService";
 import abastecimentoService from "../../../../services/AbastecimentoService";
 import { TipoCombustivel } from "../../../../services/CarroService";
@@ -369,7 +369,12 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
             sx={{
               flex: "1 1 50%",
               "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-              "& .MuiOutlinedInput-root": { backgroundColor: "#f5f5f5" },
+              "& .MuiOutlinedInput-root": {
+                backgroundColor: (theme) =>
+                  theme.palette.mode === "dark"
+                    ? "rgba(255, 255, 255, 0.08)"
+                    : "#f5f5f5",
+              },
             }}
             disabled={loading || isSubmitting}
           />
@@ -388,11 +393,6 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
             error={!!errors.dataAbastecimento}
             helperText={errors.dataAbastecimento}
             InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <CalendarToday fontSize="small" />
-                </InputAdornment>
-              ),
               inputProps: {
                 min: minDate,
                 max: maxDate,
