@@ -36,7 +36,7 @@ const ModalFinalizarPercurso: React.FC<ModalFinalizarPercursoProps> = ({
     const saidaOdometroNum = parseFloat(percursoAtual?.saidaOdometro?.toString() || '0');
     
     
-    if (odometroFinalNum < saidaOdometroNum) {
+    if (odometroFinalNum <= saidaOdometroNum) {
       setMostrarAlertaOdometro(true);
       return; 
     }
