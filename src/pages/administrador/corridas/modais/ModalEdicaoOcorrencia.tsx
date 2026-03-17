@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   Box,
@@ -7,11 +7,13 @@ import {
   Button,
   CircularProgress,
   Alert,
-  InputAdornment,
-} from '@mui/material';
-import { CalendarToday } from '@mui/icons-material';
-import { OcorrenciaDto } from '../../../../services/OcorrenciaService';
-import axiosConnect from '../../../../services/axios/axiosConnect';
+  IconButton,
+  Divider,
+} from "@mui/material";
+import { Close, Warning } from "@mui/icons-material";
+import { OcorrenciaDto } from "../../../../services/OcorrenciaService";
+import axiosConnect from "../../../../services/axios/axiosConnect";
+import { modalStyle } from "../../../../utils/modalStyle";
 
 interface ModalEditarOcorrenciaProps {
   open: boolean;
@@ -28,20 +30,20 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
   onSuccess,
   onError,
 }) => {
-  const [descricao, setDescricao] = useState('');
+  const [descricao, setDescricao] = useState("");
   const [dataOcorrencia, setDataOcorrencia] = useState<Date | null>(null);
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     if (ocorrencia) {
-      setDescricao(ocorrencia.descricao || '');
-      
+      setDescricao(ocorrencia.descricao || "");
+
       if (ocorrencia.dataOcorrencia) {
-        if (typeof ocorrencia.dataOcorrencia === 'string') {
-          const dateString = ocorrencia.dataOcorrencia.includes('T') 
-            ? ocorrencia.dataOcorrencia.split('T')[0] + 'T00:00:00'
-            : ocorrencia.dataOcorrencia + 'T00:00:00';
+        if (typeof ocorrencia.dataOcorrencia === "string") {
+          const dateString = ocorrencia.dataOcorrencia.includes("T")
+            ? ocorrencia.dataOcorrencia.split("T")[0] + "T00:00:00"
+            : ocorrencia.dataOcorrencia + "T00:00:00";
           setDataOcorrencia(new Date(dateString));
         } else {
           setDataOcorrencia(ocorrencia.dataOcorrencia);
@@ -52,25 +54,6 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
     }
   }, [ocorrencia]);
 
-  const resetForm = () => {
-    if (ocorrencia) {
-      setDescricao(ocorrencia.descricao || '');
-      if (ocorrencia.dataOcorrencia) {
-        if (typeof ocorrencia.dataOcorrencia === 'string') {
-          const dateString = ocorrencia.dataOcorrencia.includes('T') 
-            ? ocorrencia.dataOcorrencia.split('T')[0] + 'T00:00:00'
-            : ocorrencia.dataOcorrencia + 'T00:00:00';
-          setDataOcorrencia(new Date(dateString));
-        } else {
-          setDataOcorrencia(ocorrencia.dataOcorrencia);
-        }
-      } else {
-        setDataOcorrencia(null);
-      }
-    }
-    setSuccessMessage('');
-  };
-
   const formatarDataParaEnvio = (date: Date | null): string | null => {
     if (!date) return null;
     return date.toISOString();
@@ -78,16 +61,16 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    
+
     if (!ocorrencia) return;
 
     if (!descricao.trim()) {
-      onError('A descrição é obrigatória');
+      onError("A descrição é obrigatória");
       return;
     }
 
     if (!dataOcorrencia) {
-      onError('A data da ocorrência é obrigatória');
+      onError("A data da ocorrência é obrigatória");
       return;
     }
 
@@ -99,118 +82,136 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
         dataOcorrencia: formatarDataParaEnvio(dataOcorrencia),
       };
 
-      await axiosConnect.patch(`/ocorrencia/${ocorrencia.idOcorrencia}`, dadosAtualizados);
-      
-      setSuccessMessage('Ocorrência atualizada com sucesso!');
-      onSuccess('Ocorrência atualizada com sucesso!');
-      
+      await axiosConnect.patch(
+        `/ocorrencia/${ocorrencia.idOcorrencia}`,
+        dadosAtualizados,
+      );
+
+      setSuccessMessage("Ocorrência editada com sucesso!");
+      onSuccess("Ocorrência editada com sucesso!");
+
       setTimeout(() => {
         onClose();
       }, 1500);
-      
     } catch (error: any) {
-      console.error('Erro ao atualizar ocorrência:', error);
-      
+      console.error("Erro ao editar ocorrência:", error);
+
       if (error.response?.status === 401) {
-        onError('Sessão expirada. Faça login novamente.');
+        onError("Sessão expirada. Faça login novamente.");
       } else if (error.response?.status === 400) {
-        onError(error.response?.data?.message || 'Dados inválidos');
+        onError(error.response?.data?.message || "Dados inválidos");
       } else {
-        onError(error.response?.data?.message || 'Erro ao atualizar ocorrência');
+        onError(error.response?.data?.message || "Erro ao editar ocorrência");
       }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleClose = () => {
-    resetForm();
-    onClose();
-  };
-
   return (
-    <Modal open={open} onClose={handleClose}>
-      <Box
-        component="form"
-        onSubmit={handleSubmit}
-        sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 400,
-          bgcolor: 'background.paper',
-          borderRadius: 2,
-          boxShadow: 24,
-          p: 4,
-        }}
-      >
-        <Typography variant="h6" component="h2" mb={2} fontWeight="bold" color="text.primary">
-          Editar Ocorrência
-        </Typography>
+    <Modal open={open} onClose={onClose}>
+      <Box sx={modalStyle}>
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 0,
+          }}
+        >
+          <Typography
+            variant="h6"
+            color="text.primary"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontWeight: "bold",
+              pt: 1,
+            }}
+          >
+            <Warning color="primary" sx={{ fontSize: 24, mr: 1 }} />
+            Editar ocorrência
+          </Typography>
+          <IconButton onClick={onClose} disabled={loading}>
+            <Close />
+          </IconButton>
+        </Box>
 
         {successMessage && (
-          <Alert severity="success" sx={{ mb: 2 }}>
+          <Alert severity="success" sx={{ mb: 3 }}>
             {successMessage}
           </Alert>
         )}
 
-        <TextField
-          label="Descrição"
-          value={descricao}
-          onChange={(e) => setDescricao(e.target.value)}
-          fullWidth
-          required
-          multiline
-          rows={3}
-          variant="outlined"
-          margin="normal"
-          error={!descricao.trim() && descricao !== ''}
-          helperText={!descricao.trim() && descricao !== '' ? "Descrição não pode estar vazia" : ""}
-          disabled={!!successMessage || loading}
-        />
-
-        <TextField
-          label="Data da ocorrência"
-          type="date"
-          fullWidth
-          value={dataOcorrencia ? dataOcorrencia.toISOString().slice(0, 10) : ""}
-          onChange={(e) => {
-            const selectedDate = e.target.value;
-            if (selectedDate) {
-              const date = new Date(selectedDate + 'T00:00:00');
-              setDataOcorrencia(date);
-            } else {
-              setDataOcorrencia(null);
+        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+          <TextField
+            label="Descrição"
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+            fullWidth
+            required
+            multiline
+            rows={3}
+            variant="outlined"
+            margin="normal"
+            error={!descricao.trim() && descricao !== ""}
+            helperText={
+              !descricao.trim() && descricao !== ""
+                ? "Descrição não pode estar vazia"
+                : ""
             }
-          }}
-          InputLabelProps={{ shrink: true }}
-          required
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <CalendarToday fontSize="small" />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ mb: 2 }}
-          disabled={!!successMessage || loading}
-        />
+            disabled={!!successMessage || loading}
+          />
+        </Box>
 
-        <Box mt={3} display="flex" justifyContent="flex-end" gap={2}>
-          <Button 
-            variant="outlined" 
-            onClick={handleClose} 
+        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+          <TextField
+            label="Data da ocorrência"
+            type="date"
+            fullWidth
+            value={
+              dataOcorrencia ? dataOcorrencia.toISOString().slice(0, 10) : ""
+            }
+            onChange={(e) => {
+              const selectedDate = e.target.value;
+              if (selectedDate) {
+                const date = new Date(selectedDate + "T00:00:00");
+                setDataOcorrencia(date);
+              } else {
+                setDataOcorrencia(null);
+              }
+            }}
+            InputLabelProps={{ shrink: true }}
+            required
+            disabled={!!successMessage || loading}
+          />
+        </Box>
+
+        <Divider sx={{ my: 2 }} />
+
+        <Box
+          sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}
+        >
+          <Button
+            variant="outlined"
+            onClick={onClose}
             disabled={loading || !!successMessage}
           >
             Cancelar
           </Button>
           <Button
-            type="submit"
+            onClick={handleSubmit}
             variant="contained"
-            disabled={loading || !descricao.trim() || !dataOcorrencia || !!successMessage}
+            disabled={
+              loading ||
+              !descricao.trim() ||
+              !dataOcorrencia ||
+              !!successMessage
+            }
           >
-            {loading ? <CircularProgress size={24} /> : 'Salvar'}
+            {loading ? <CircularProgress size={24} /> : "Salvar"}
           </Button>
         </Box>
       </Box>

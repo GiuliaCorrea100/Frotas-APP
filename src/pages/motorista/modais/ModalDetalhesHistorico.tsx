@@ -11,35 +11,24 @@ import {
   ListItemText,
   ListItemIcon,
   Button,
+  IconButton,
 } from "@mui/material";
 import { CorridaFrontend } from "../../../services/CorridaService";
 import { PercursoBackend } from "../../../services/PercursoService";
 import { Abastecimento } from "../../../services/AbastecimentoService";
 import { formatDate, formatDateOnly } from "../../../utils/formatDate";
+import { modalStyle } from "../../../utils/modalStyle";
 import {
   AccessTime,
   ArrowForward,
   Article,
   CalendarToday,
+  Close,
   DirectionsCar,
   Event,
   LocalGasStation,
   Warning,
 } from "@mui/icons-material";
-
-const modalStyle = {
-  position: "absolute" as const,
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "80%",
-  maxWidth: 800,
-  maxHeight: "90vh",
-  overflow: "auto",
-  boxShadow: 24,
-  p: 4,
-  borderRadius: 2,
-};
 
 type ModalDetalhesHistoricoProps = {
   open: boolean;
@@ -74,18 +63,30 @@ export function ModalDetalhesHistorico(props: ModalDetalhesHistoricoProps) {
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={modalStyle}>
-        <Typography
-          variant="h6"
-          color="text.primary"
+        <Box
           sx={{
             display: "flex",
+            justifyContent: "space-between",
             alignItems: "center",
-            mb: 2,
+            mb: 0,
           }}
         >
-          <Article sx={{ mr: 1.5, fontSize: 24, color: "primary.main" }} />
-          Detalhes da Corrida
-        </Typography>
+          <Typography
+            variant="h6"
+            color="text.primary"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontWeight: "bold",
+            }}
+          >
+            <Article sx={{ mr: 1.5, fontSize: 24, color: "primary.main" }} />
+            Detalhes da Corrida
+          </Typography>
+          <IconButton onClick={onClose}>
+            <Close />
+          </IconButton>
+        </Box>
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {/* INFORMAÇÕES BÁSICAS */}
