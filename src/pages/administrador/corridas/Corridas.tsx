@@ -24,32 +24,15 @@ import {
   atualizarSituacaoCorrida,
 } from "../../../services/CorridaService";
 
-import SalvarEdicaoCorrida from "./modais/ModalEdicaoPainelCorrida";
+import SalvarEdicaoCorrida from "./modais/ModalEdicaoCorrida";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import CadastrarCorrida from "./modais/ModalCadastroCorrida";
 import { CarroService } from "../../../services/CarroService";
 
 import axiosConnect from "../../../services/axios/axiosConnect";
 import AppLayout from "../../../components/Layout";
-import BemVindo from '../../BemVindo';
-
-const formatDate = (dateString: string | null) => {
-  if (!dateString) return "Em andamento";
-  try {
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-      return "Data inválida";
-    }
-
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-
-    return `${day}/${month}/${year}`;
-  } catch {
-    return "Data inválida";
-  }
-};
+import BemVindo from "../../BemVindo";
+import { formatDateOnly } from "../../../utils/formatDate";
 
 // Função para converter CorridaFrontend em CorridaDto
 const mapToDto = (c: CorridaFrontend): CorridaDto => ({
@@ -262,7 +245,7 @@ export default function ListaCorrida() {
       width: 200,
       renderCell: (params) => (
         <Typography variant="body2">
-          {formatDate(params.value as string)}
+          {formatDateOnly(params.value as string)}
         </Typography>
       ),
     },
@@ -272,7 +255,7 @@ export default function ListaCorrida() {
       width: 200,
       renderCell: (params) => (
         <Typography variant="body2">
-          {formatDate(params.value as string | null)}
+          {formatDateOnly(params.value as string | null)}
         </Typography>
       ),
     },
@@ -281,20 +264,20 @@ export default function ListaCorrida() {
       headerName: "Situação",
       width: 150,
       renderCell: (params) => {
-        const situacao = params.value || '';
+        const situacao = params.value || "";
         let color;
         switch (situacao) {
           case "AGENDADA":
-            color = 'info';
+            color = "info";
             break;
           case "ANDAMENTO":
-            color = 'warning';
+            color = "warning";
             break;
           case "FINALIZADA":
-            color = 'success';
+            color = "success";
             break;
           default:
-            color = 'error';
+            color = "error";
         }
         return (
           <Chip
@@ -445,9 +428,9 @@ export default function ListaCorrida() {
                   sx={{
                     minHeight: 42,
                     height: 42,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
                   Liberar Chave
@@ -475,9 +458,9 @@ export default function ListaCorrida() {
                   sx={{
                     minHeight: 42,
                     height: 42,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
                   Receber Chave
@@ -492,16 +475,23 @@ export default function ListaCorrida() {
 
   return (
     <AppLayout>
-
       <BemVindo />
 
       <Box
         display="flex"
         justifyContent="space-between"
         alignItems="center"
-        mb={3}
+        mb={1.5}
+        mx={3.5}
+        height={56}
       >
-        <Typography variant="h5" fontWeight="bold" color="textPrimary">
+        <Typography
+          variant="h5"
+          fontWeight="bold"
+          color="text.primary"
+          display="flex"
+          pb={0}
+        >
           Listagem de Corridas
         </Typography>
         <Button
@@ -511,159 +501,176 @@ export default function ListaCorrida() {
             textTransform: "none",
             fontWeight: 600,
             boxShadow: theme.shadows[2],
+            mb: 1,
+            mt: 1,
           }}
         >
           + Nova Corrida
         </Button>
       </Box>
 
-      <Box sx={{ display: "flex", gap: 1, mb: 3, flexWrap: "wrap" }}>
-        {[
-          {
-            label: "AGENDADAS",
-            value: "AGENDADA",
-            count: qtdAgendadas,
-            color: theme.palette.info.main,
-          },
-          {
-            label: "EM ANDAMENTO",
-            value: "ANDAMENTO",
-            count: qtdEmAndamento,
-            color: theme.palette.warning.main,
-          },
-          {
-            label: "FINALIZADAS",
-            value: "FINALIZADA",
-            count: qtdFinalizadas,
-            color: theme.palette.success.main,
-          },
-          {
-            label: "CANCELADAS",
-            value: "CANCELADA",
-            count: qtdCanceladas,
-            color: theme.palette.success.main,
-          },
-          {
-            label: "TODAS",
-            value: "TODOS",
-            count: corridas.length,
-            color: theme.palette.primary.dark,
-          },
-        ].map((tab) => (
-          <Button
-            key={tab.value}
-            variant={filtroSituacao === tab.value ? "contained" : "outlined"}
-            onClick={() => setFiltroSituacao(tab.value)}
-            sx={{
-              textTransform: "none",
-              borderRadius: 2,
-              px: 2,
-              fontWeight: filtroSituacao === tab.value ? 600 : 500,
-              color: filtroSituacao === tab.value ? "white" : "text.primary",
-              bgcolor:
-                filtroSituacao === tab.value ? tab.color : "background.paper",
-              "&:hover": {
-                bgcolor:
-                  filtroSituacao === tab.value
-                    ? theme.palette.primary.dark
-                    : theme.palette.action.hover,
-              },
-            }}
-          >
-            {tab.label}
-            <Box
+      {/* Filtros por situação + campo de busca + datagrid */}
+      <Box
+        sx={{
+          bgcolor:
+            theme.palette.mode === "light"
+              ? "#FFF"
+              : theme.palette.background.paper,
+          borderRadius: 2,
+          py: 2,
+          mb: 0,
+          boxShadow:
+            theme.palette.mode === "dark"
+              ? "0px 4px 20px rgba(0, 0, 0, 0.3)"
+              : "0px 8px 24px rgba(0, 0, 0, 0.08)",
+          border:
+            theme.palette.mode === "dark"
+              ? "1px solid transparent"
+              : "1px solid #E7E9EE",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            mt: 1,
+            mb: 3,
+            ml: 3,
+            flexWrap: "wrap",
+          }}
+        >
+          {[
+            {
+              label: "AGENDADAS",
+              value: "AGENDADA",
+              count: qtdAgendadas,
+              color: theme.palette.info.main,
+            },
+            {
+              label: "EM ANDAMENTO",
+              value: "ANDAMENTO",
+              count: qtdEmAndamento,
+              color: theme.palette.warning.main,
+            },
+            {
+              label: "FINALIZADAS",
+              value: "FINALIZADA",
+              count: qtdFinalizadas,
+              color: theme.palette.success.main,
+            },
+            {
+              label: "CANCELADAS",
+              value: "CANCELADA",
+              count: qtdCanceladas,
+              color: theme.palette.success.main,
+            },
+            {
+              label: "TODAS",
+              value: "TODOS",
+              count: corridas.length,
+              color: theme.palette.primary.dark,
+            },
+          ].map((tab) => (
+            <Button
+              key={tab.value}
+              variant={filtroSituacao === tab.value ? "contained" : "outlined"}
+              onClick={() => setFiltroSituacao(tab.value)}
               sx={{
-                ml: 1,
-                fontWeight: 600,
-                backgroundColor:
-                  filtroSituacao === tab.value
-                    ? "rgba(255,255,255,0.2)"
-                    : theme.palette.mode === "dark"
-                      ? theme.palette.grey[700]
-                      : theme.palette.grey[200],
-                color:
-                  filtroSituacao === tab.value
-                    ? "white"
-                    : theme.palette.mode === "dark"
-                      ? theme.palette.grey[100]
-                      : theme.palette.text.primary,
-                px: 1,
-                borderRadius: 12,
+                textTransform: "none",
+                borderRadius: 2,
+                px: 2,
+                fontWeight: filtroSituacao === tab.value ? 600 : 500,
+                color: filtroSituacao === tab.value ? "white" : "text.primary",
+                bgcolor:
+                  filtroSituacao === tab.value ? tab.color : "background.paper",
+                "&:hover": {
+                  bgcolor:
+                    filtroSituacao === tab.value
+                      ? theme.palette.primary.dark
+                      : theme.palette.action.hover,
+                },
               }}
             >
-              {tab.count}
-            </Box>
-          </Button>
-        ))}
-      </Box>
+              {tab.label}
+              <Box
+                sx={{
+                  ml: 1,
+                  fontWeight: 600,
+                  backgroundColor:
+                    filtroSituacao === tab.value
+                      ? "rgba(255,255,255,0.2)"
+                      : theme.palette.mode === "dark"
+                        ? theme.palette.grey[700]
+                        : theme.palette.grey[200],
+                  color:
+                    filtroSituacao === tab.value
+                      ? "white"
+                      : theme.palette.mode === "dark"
+                        ? theme.palette.grey[100]
+                        : theme.palette.text.primary,
+                  px: 1,
+                  borderRadius: 12,
+                }}
+              >
+                {tab.count}
+              </Box>
+            </Button>
+          ))}
+        </Box>
 
-      <Box sx={{ mb: 3 }}>
-        <TextField
-          placeholder="Buscar corridas..."
-          variant="outlined"
-          size="small"
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          fullWidth
+        <Box sx={{ mb: 3, mx: 3 }}>
+          <TextField
+            placeholder="Buscar corrida"
+            variant="outlined"
+            size="small"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            fullWidth
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 2,
+                backgroundColor: theme.palette.background.paper,
+              },
+            }}
+          />
+        </Box>
+
+        <DataGrid
+          rows={dadosFiltrados}
+          columns={columns}
+          loading={loading}
+          getRowId={(row) => row.idCorrida}
+          pageSizeOptions={[5, 10, 15, 20, 25, 50, 100]}
+          initialState={{
+            pagination: {
+              paginationModel: { pageSize: 5, page: 0 },
+            },
+          }}
+          localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+          rowSelection={false}
+          rowHeight={50}
+          columnHeaderHeight={60}
+          autoHeight
           sx={{
-            "& .MuiOutlinedInput-root": {
-              borderRadius: 2,
-              backgroundColor: theme.palette.background.paper,
+            "& .MuiDataGrid-columnHeaders": {
+              "& .MuiDataGrid-columnHeader:first-child": {
+                pl: 4,
+              },
+              "& .MuiDataGrid-columnHeader:last-child": {
+                pr: 4,
+              },
+            },
+            "& .MuiDataGrid-row": {
+              "& .MuiDataGrid-cell:first-child": {
+                pl: 4,
+              },
+              "& .MuiDataGrid-cell:last-child": {
+                pr: 4,
+              },
             },
           }}
         />
       </Box>
-
-      <DataGrid
-        rows={dadosFiltrados}
-        columns={columns}
-        loading={loading}
-        getRowId={(row) => row.idCorrida}
-        initialState={{
-          pagination: { paginationModel: { pageSize: 8, page: 0 } },
-        }}
-        pageSizeOptions={[8, 16, 24]}
-        localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
-        sx={{
-          "& .MuiDataGrid-cell": {
-            borderBottom: `1px solid ${theme.palette.divider}`,
-            py: 1.5,
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            backgroundColor:
-              theme.palette.mode === "dark"
-                ? theme.palette.grey[800]
-                : theme.palette.grey[100],
-            fontWeight: "bold",
-            borderRadius: 1,
-            borderBottom: `2px solid ${theme.palette.divider}`,
-          },
-          "& .MuiDataGrid-row": {
-            "&:hover": { backgroundColor: theme.palette.action.hover },
-            "&.Mui-selected": {
-              backgroundColor: theme.palette.action.selected,
-            },
-          },
-          "& .MuiDataGrid-footerContainer": {
-            borderTop: `1px solid ${theme.palette.divider}`,
-          },
-          "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-          {
-            marginBottom: 0,
-            alignSelf: "center",
-          },
-          "& .MuiTablePagination-toolbar": {
-            minHeight: "52px",
-            alignItems: "center",
-          },
-          boxShadow: theme.shadows[1],
-          borderRadius: 2,
-          border: "none",
-          backgroundColor: theme.palette.background.paper,
-          height: "calc(100vh - 350px)",
-        }}
-        rowSelection={false}
-      />
 
       {/* Modal de Liberar Chave */}
       <Dialog
@@ -676,10 +683,10 @@ export default function ListaCorrida() {
         }}
         fullWidth
         maxWidth="sm"
-        PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
+        PaperProps={{ sx: { borderRadius: 2 } }}
       >
-        <DialogTitle color="text.primary" sx={{ fontWeight: 600 }}>
-          Liberar chave
+        <DialogTitle color="text.primary" sx={{ fontWeight: "bold" }}>
+          LIBERAR CHAVE
         </DialogTitle>
         <DialogContent>
           <Typography color="text.primary" mb={2}>
@@ -726,7 +733,6 @@ export default function ListaCorrida() {
               setSenhaError(null);
             }}
             variant="outlined"
-            sx={{ borderRadius: 2 }}
             disabled={isProcessing}
           >
             Cancelar
@@ -735,7 +741,6 @@ export default function ListaCorrida() {
             onClick={handleLiberarChave}
             variant="contained"
             color="primary"
-            sx={{ borderRadius: 2 }}
             disabled={isProcessing}
           >
             {isProcessing ? "Processando..." : "Confirmar"}
@@ -748,10 +753,20 @@ export default function ListaCorrida() {
         onClose={() => setShowModalCancelar(false)}
         fullWidth
         maxWidth="sm"
-        PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
+        PaperProps={{ sx: { borderRadius: 2 } }}
       >
         <DialogTitle sx={{ fontWeight: 600 }}>
-          <Typography color="text.primary">Cancelar corrida</Typography>
+          <Typography
+            variant="h6"
+            color="text.primary"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontWeight: "bold",
+            }}
+          >
+            Cancelar corrida
+          </Typography>
         </DialogTitle>
         <DialogContent>
           <Typography color="text.primary">
@@ -762,7 +777,6 @@ export default function ListaCorrida() {
           <Button
             onClick={() => setShowModalCancelar(false)}
             variant="outlined"
-            sx={{ borderRadius: 2 }}
           >
             Cancelar
           </Button>
@@ -790,8 +804,7 @@ export default function ListaCorrida() {
               }
             }}
             variant="contained"
-            color="primary"
-            sx={{ borderRadius: 2 }}
+            color="error"
           >
             Confirmar
           </Button>
@@ -803,10 +816,10 @@ export default function ListaCorrida() {
         onClose={() => setShowModalReceberChave(false)}
         fullWidth
         maxWidth="sm"
-        PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
+        PaperProps={{ sx: { borderRadius: 2 } }}
       >
-        <DialogTitle color="text.primary" sx={{ fontWeight: 600 }}>
-          Receber chave
+        <DialogTitle color="text.primary" sx={{ fontWeight: "bold" }}>
+          RECEBER CHAVE
         </DialogTitle>
         <DialogContent>
           <Typography color="text.primary">
@@ -818,7 +831,6 @@ export default function ListaCorrida() {
           <Button
             onClick={() => setShowModalReceberChave(false)}
             variant="outlined"
-            sx={{ borderRadius: 2 }}
           >
             Cancelar
           </Button>
@@ -855,41 +867,41 @@ export default function ListaCorrida() {
             }}
             variant="contained"
             color="primary"
-            sx={{ borderRadius: 2 }}
           >
             Confirmar
           </Button>
         </DialogActions>
       </Dialog>
 
-      <SalvarEdicaoCorrida
-        open={showModalEditar}
-        onClose={() => setShowModalEditar(false)}
-        corrida={
-          corridaParaEditar
-            ? {
-              ...mapToDto(corridaParaEditar),
-              dataTermino:
-                mapToDto(corridaParaEditar).dataTermino || new Date(),
-            }
-            : null
-        }
-        onSuccess={async (msg) => {
-          console.log(msg);
-          const dadosAtualizados = await getCorridas();
-          setCorridas(dadosAtualizados);
-        }}
-        onError={(err) => {
-          console.error(err);
-        }}
-      />
+      {showModalEditar && (
+        <SalvarEdicaoCorrida
+          open={showModalEditar}
+          onClose={() => setShowModalEditar(false)}
+          corrida={
+            corridaParaEditar
+              ? {
+                  ...mapToDto(corridaParaEditar),
+                  dataTermino:
+                    mapToDto(corridaParaEditar).dataTermino || new Date(),
+                }
+              : null
+          }
+          onSuccess={async (msg) => {
+            console.log(msg);
+            const dadosAtualizados = await getCorridas();
+            setCorridas(dadosAtualizados);
+          }}
+          onError={(err) => {
+            console.error(err);
+          }}
+        />
+      )}
 
       {showModalCadastrarCorrida && (
         <CadastrarCorrida
           open={showModalCadastrarCorrida}
           onClose={() => setShowModalCadastrarCorrida(false)}
           onSuccess={async (msg) => {
-            console.log(msg);
             await carregarCorridas();
           }}
           onError={(error) => {

@@ -29,7 +29,7 @@ export const iniciarPercurso = async (
     localDestino: string;
     odometro_inicial: number;
     localOrigem?: string;
-  }
+  },
 ) => {
   try {
     const payload = {
@@ -54,12 +54,15 @@ export const finalizarPercurso = async (
   idPercurso: number,
   data: {
     chegadaOdometro: number;
-  }
+  },
 ) => {
   try {
-    const response = await axiosConnect.put(`/percurso/${idPercurso}/finalizar`, {
-      chegadaOdometro: data.chegadaOdometro,
-    });
+    const response = await axiosConnect.put(
+      `/percurso/${idPercurso}/finalizar`,
+      {
+        chegadaOdometro: data.chegadaOdometro,
+      },
+    );
     return response.data as PercursoBackend;
   } catch (error: unknown) {
     if (error instanceof Error) {
@@ -70,11 +73,11 @@ export const finalizarPercurso = async (
 };
 
 export const buscarUltimoPercursoFinalizado = async (
-  idCorrida: number
+  idCorrida: number,
 ): Promise<PercursoBackend | null> => {
   try {
     const response = await axiosConnect.get(
-      `percurso/corrida/${idCorrida}/ultimo-finalizado`
+      `percurso/corrida/${idCorrida}/ultimo-finalizado`,
     );
     return response.data as PercursoBackend;
   } catch (error) {
@@ -84,10 +87,12 @@ export const buscarUltimoPercursoFinalizado = async (
 };
 
 export const buscarPercursoAtivo = async (
-  idCorrida: number
+  idCorrida: number,
 ): Promise<PercursoBackend | null> => {
   try {
-    const response = await axiosConnect.get(`percurso/corrida/${idCorrida}/ativo`);
+    const response = await axiosConnect.get(
+      `percurso/corrida/${idCorrida}/ativo`,
+    );
     return response.data as PercursoBackend;
   } catch (error) {
     console.error("Erro ao buscar percurso ativo:", error);
@@ -96,18 +101,20 @@ export const buscarPercursoAtivo = async (
 };
 
 export const buscarPercursosDaCorrida = async (
-  idCorrida: number
+  idCorrida: number,
 ): Promise<PercursoBackend[]> => {
   try {
     const response = await axiosConnect.get(`percurso/corrida/${idCorrida}`);
 
     // Ordena os percursos por ID em ordem crescente
     const percursosOrdenados = (response.data as PercursoBackend[]).sort(
-      (a, b) => (a.idPercurso ?? 0) - (b.idPercurso ?? 0)
+      (a, b) => (a.idPercurso ?? 0) - (b.idPercurso ?? 0),
     );
 
-    const percursosAtivos = percursosOrdenados.filter(percurso => percurso.ativo === true);
-    
+    const percursosAtivos = percursosOrdenados.filter(
+      (percurso) => percurso.ativo === true,
+    );
+
     return percursosAtivos;
   } catch (error) {
     console.error("Erro ao buscar percursos da corrida:", error);
@@ -124,7 +131,7 @@ export const atualizarPercurso = async (
     saidaOdometro: number;
     saidaHora: Date | null;
     chegadaHora: Date | null;
-  }
+  },
 ): Promise<any> => {
   try {
     const payload = {
@@ -138,9 +145,8 @@ export const atualizarPercurso = async (
 
     const response = await axiosConnect.patch(
       `/percurso/${idPercurso}/atualizar-percurso`,
-      payload
+      payload,
     );
-    console.log(response.data);
     return response.data;
   } catch (error) {
     console.error("Erro ao salvar percurso: ", error);
@@ -148,18 +154,14 @@ export const atualizarPercurso = async (
   }
 };
 
-export const removerPercurso = async (
-  idPercurso: number
-): Promise<any> => {
+export const removerPercurso = async (idPercurso: number): Promise<any> => {
   try {
-      await axiosConnect.patch(`/percurso/deletar-percurso/${idPercurso}`);
-      console.log(`Percurso ${idPercurso} marcado como deletado`);
-    } catch (error) {
-      console.error(`Erro ao deletar percurso ${idPercurso}:`, error);
-      throw error;
-    }
+    await axiosConnect.patch(`/percurso/deletar-percurso/${idPercurso}`);
+  } catch (error) {
+    console.error(`Erro ao deletar percurso ${idPercurso}:`, error);
+    throw error;
+  }
 };
-
 
 export const inserirPercursoCompleto = async (
   idCorrida: number,
@@ -170,7 +172,7 @@ export const inserirPercursoCompleto = async (
     saidaOdometro: number;
     saidaHora: Date | null;
     chegadaHora: Date | null;
-  }
+  },
 ) => {
   try {
     const payload = {
@@ -183,10 +185,9 @@ export const inserirPercursoCompleto = async (
       chegadaHora: data.chegadaHora,
     };
 
-    console.log(payload);
     const response = await axiosConnect.post(
       `/percurso/percurso-completo/${idCorrida}`,
-      payload
+      payload,
     );
     return response.data as PercursoBackend;
   } catch (error: unknown) {

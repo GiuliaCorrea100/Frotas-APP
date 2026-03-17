@@ -16,8 +16,8 @@ import {
 } from "@mui/material";
 import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
 import DownloadIcon from "@mui/icons-material/Download";
-import UploadIcon from '@mui/icons-material/Upload';
-import GavelIcon from '@mui/icons-material/Gavel';
+import UploadIcon from "@mui/icons-material/Upload";
+import GavelIcon from "@mui/icons-material/Gavel";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import { jwtDecode } from "jwt-decode";
@@ -26,7 +26,6 @@ import { MultaDto, MultaService } from "../../services/MultaService";
 import { useAuth } from "../../context/AuthContext";
 import { decodeToken } from "../../utils/jwtDecodeHelper";
 import SolicitarRecursoModal from "./modais/ModalSolicitarRecurso";
-
 
 interface JwtPayload {
   sub: number;
@@ -84,13 +83,13 @@ export default function RegistrosDeInfracao() {
       const token = localStorage.getItem("token");
       if (!token) throw new Error();
       jwtDecode<JwtPayload>(token);
-      
+
       const dados = await MultaService.listarMultas(params);
-      
+
       const multasDoUsuario = dados.filter(
-        (multa) => multa.idMotorista === idUsuarioLogado
+        (multa) => multa.idMotorista === idUsuarioLogado,
       );
-      
+
       setMultas(multasDoUsuario);
       setMultasFiltradas(multasDoUsuario);
     } catch {
@@ -154,16 +153,14 @@ export default function RegistrosDeInfracao() {
   };
 
   const columns: GridColDef<MultaDto>[] = [
-    { 
-      field: "placaVeiculo", 
-      headerName: "Veículo", 
+    {
+      field: "placaVeiculo",
+      headerName: "Veículo",
       flex: 0.6,
       renderCell: (params) => (
-              <Typography fontWeight="bold">
-                {params.value}
-              </Typography>
-            )
-     },
+        <Typography fontWeight="bold">{params.value}</Typography>
+      ),
+    },
     {
       field: "dataInfracao",
       headerName: "Data",
@@ -174,38 +171,47 @@ export default function RegistrosDeInfracao() {
         </Typography>
       ),
     },
-    { 
-      field: 'classificacao', 
-      headerName: 'Classificação', 
+    {
+      field: "classificacao",
+      headerName: "Classificação",
       flex: 0.6,
       renderCell: (params) => {
-        const classificacao = params.value || '';
-        let color = 'default';
-        
-        switch(classificacao) {
-          case 'LEVE': color = 'success'; break;
-          case 'MEDIA': color = 'warning'; break;
-          case 'GRAVE': color = 'error'; break;
-          case 'GRAVISSIMA': color = 'error'; break;
-          default: color = 'default';
+        const classificacao = params.value || "";
+        let color = "default";
+
+        switch (classificacao) {
+          case "LEVE":
+            color = "success";
+            break;
+          case "MEDIA":
+            color = "warning";
+            break;
+          case "GRAVE":
+            color = "error";
+            break;
+          case "GRAVISSIMA":
+            color = "error";
+            break;
+          default:
+            color = "default";
         }
-        
+
         return (
-          <Chip 
+          <Chip
             label={classificacao}
             color={color as any}
             size="small"
             variant="outlined"
           />
         );
-      }
+      },
     },
     {
       field: "valorInfracao",
       headerName: "Valor",
       flex: 0.6,
       renderCell: (params) => (
-        <Typography  color={theme.palette.error.main}>
+        <Typography color={theme.palette.error.main}>
           {formatValor(params.value as number)}
         </Typography>
       ),
@@ -223,15 +229,15 @@ export default function RegistrosDeInfracao() {
       renderCell: (params) => {
         const possuiBoleto = !!params.row.urlArquivo;
 
-        return(
+        return (
           <Box sx={{ display: "flex", gap: 1 }}>
             <Tooltip title="Baixar Boleto">
               <Button
-              variant="contained"
-              size="small"
-              startIcon={<DownloadIcon />}
-              disabled={!params.row.urlArquivo}
-              onClick={() => handleDownload(params.row)}
+                variant="contained"
+                size="small"
+                startIcon={<DownloadIcon />}
+                disabled={!params.row.urlArquivo}
+                onClick={() => handleDownload(params.row)}
               >
                 Boleto
               </Button>
@@ -239,56 +245,53 @@ export default function RegistrosDeInfracao() {
 
             <Tooltip title="Enviar comprovante de pagamento">
               <Button
-              size="small"
-              component="label"
-              variant="contained"
-              startIcon={<UploadIcon />}
-              disabled={!possuiBoleto}
-            >
-              Comprovante
-              <input
-                type="file"
-                hidden
-                accept="application/pdf,image/*"
+                size="small"
+                component="label"
+                variant="contained"
+                startIcon={<UploadIcon />}
                 disabled={!possuiBoleto}
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file || !params.row.idMulta) return;
+              >
+                Comprovante
+                <input
+                  type="file"
+                  hidden
+                  accept="application/pdf,image/*"
+                  disabled={!possuiBoleto}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file || !params.row.idMulta) return;
 
-                  try {
-                    await MultaService.uploadComprovante(
-                      params.row.idMulta,
-                      file
-                    );
-                    await carregarMultas();
-                    setOpenSuccessModal(true);
-                  } finally {
-                    e.target.value = "";
-                  }
-                }}
-              />
-            </Button>
+                    try {
+                      await MultaService.uploadComprovante(
+                        params.row.idMulta,
+                        file,
+                      );
+                      await carregarMultas();
+                      setOpenSuccessModal(true);
+                    } finally {
+                      e.target.value = "";
+                    }
+                  }}
+                />
+              </Button>
             </Tooltip>
 
             <Tooltip title="Solicitar recurso de multa">
               <Button
-              size="small"
-              variant="contained"
-              color="warning"
-              startIcon={<GavelIcon />}
-              disabled={!possuiBoleto}
-              onClick={() => handleSolicitarRecurso(params.row)}
-            >
-              Solicitar Recurso
-            </Button>
+                size="small"
+                variant="contained"
+                color="warning"
+                startIcon={<GavelIcon />}
+                disabled={!possuiBoleto}
+                onClick={() => handleSolicitarRecurso(params.row)}
+              >
+                Solicitar Recurso
+              </Button>
             </Tooltip>
-
           </Box>
         );
       },
-      
     },
-
   ];
 
   return (
@@ -297,7 +300,7 @@ export default function RegistrosDeInfracao() {
       <Box sx={{ p: 3, display: "flex", flexDirection: "column", flex: 1 }}>
         <Box mb={2} display="flex" alignItems="center" gap={1}>
           <Typography variant="h5" fontWeight="bold" color="textPrimary">
-              Registros de Infrações
+            Registros de Infrações
           </Typography>
         </Box>
 
@@ -314,9 +317,9 @@ export default function RegistrosDeInfracao() {
                 <SearchIcon color="action" style={{ marginRight: 8 }} />
               ),
               endAdornment: busca && (
-                <ClearIcon 
-                  color="action" 
-                  style={{ cursor: 'pointer' }} 
+                <ClearIcon
+                  color="action"
+                  style={{ cursor: "pointer" }}
                   onClick={limparBusca}
                 />
               ),
@@ -373,7 +376,10 @@ export default function RegistrosDeInfracao() {
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button variant="contained" onClick={() => setOpenSuccessModal(false)}>
+          <Button
+            variant="contained"
+            onClick={() => setOpenSuccessModal(false)}
+          >
             OK
           </Button>
         </DialogActions>
