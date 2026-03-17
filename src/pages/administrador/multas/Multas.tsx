@@ -268,7 +268,7 @@ export default function ListaMulta() {
         const possuiComprovante = Boolean(params.row.urlComprovantePagamento);
 
         const jaAnalisado =
-          params.row.situacao === "QUITADA/PAGA" ||
+          params.row.situacao === "PAGA" ||
           params.row.situacao === "PENDENTE DE ACAO";
 
         return (
@@ -410,18 +410,54 @@ export default function ListaMulta() {
       </Box>
 
       <Dialog open={modalAprovarAberto} onClose={() => setModalAprovarAberto(false)}>
-        <DialogTitle>Aprovar comprovante</DialogTitle>
+        <DialogTitle
+          sx={{
+            color: theme.palette.mode === "dark" ? "#fff" : "inherit"
+          }}
+        >
+          Aprovar comprovante
+        </DialogTitle>
+
         <DialogContent>
-          <Typography>Deseja aprovar esse comprovante de pagamento?</Typography>
+          <Typography
+            sx={{
+              color: theme.palette.mode === "dark" ? "#fff" : "inherit"
+            }}
+          >
+            Deseja aprovar esse comprovante de pagamento?
+          </Typography>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setModalAprovarAberto(false)}>Não</Button>
-          <Button onClick={aprovarComprovante} variant="contained" color="success">Sim</Button>
+
+        <DialogActions
+          sx={{
+            "& .MuiButton-root": {
+              color: theme.palette.mode === "dark" ? "#fff" : "inherit"
+            }
+          }}
+        >
+          <Button onClick={() => setModalAprovarAberto(false)}>
+            Não
+          </Button>
+
+          <Button
+            onClick={aprovarComprovante}
+            variant="contained"
+            color="success"
+          >
+            Sim
+          </Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={modalReprovarAberto} onClose={() => setModalReprovarAberto(false)}>
-        <DialogTitle>Motivo da reprovação</DialogTitle>
+        <DialogTitle
+          sx={{
+            color: theme.palette.mode === "dark" ? "#fff" : "inherit"
+          }}
+        >
+          Motivo da reprovação
+        </DialogTitle>
+
         <DialogContent>
           <TextField
             fullWidth
@@ -429,11 +465,35 @@ export default function ListaMulta() {
             minRows={3}
             value={motivoReprovacao}
             onChange={(e) => setMotivoReprovacao(e.target.value)}
+            sx={{
+              "& .MuiInputBase-input": {
+                color: theme.palette.mode === "dark" ? "#fff" : "inherit"
+              },
+              "& .MuiInputLabel-root": {
+                color: theme.palette.mode === "dark" ? "#fff" : "inherit"
+              }
+            }}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setModalReprovarAberto(false)}>Cancelar</Button>
-          <Button onClick={reprovarComprovante} variant="contained" color="error">Reprovar</Button>
+
+        <DialogActions
+          sx={{
+            "& .MuiButton-root": {
+              color: theme.palette.mode === "dark" ? "#fff" : "inherit"
+            }
+          }}
+        >
+          <Button onClick={() => setModalReprovarAberto(false)}>
+            Cancelar
+          </Button>
+
+          <Button
+            onClick={reprovarComprovante}
+            variant="contained"
+            color="error"
+          >
+            Reprovar
+          </Button>
         </DialogActions>
       </Dialog>
 
