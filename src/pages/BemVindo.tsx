@@ -72,7 +72,7 @@ const BemVindo: React.FC = () => {
           variant="body2"
           sx={{ color: theme.palette.text.secondary, mb: 1 }}
         >
-          Seja bem-vindo(a) ao Frotas.
+          Seja bem-vindo(a) ao Sistema Frotas.
         </Typography>
 
         <Typography
