@@ -25,6 +25,8 @@ import { MultaDto, MultaService } from "../../services/MultaService";
 import { useAuth } from "../../context/AuthContext";
 import { decodeToken } from "../../utils/jwtDecodeHelper";
 import SolicitarRecursoModal from "./modais/ModalSolicitarRecurso";
+import AppLayout from "../../components/Layout";
+import BemVindo from "../BemVindo";
 
 interface JwtPayload {
   sub: number;
@@ -346,8 +348,10 @@ export default function RegistrosDeInfracao() {
   ];
 
   return (
-    <>
-      <Menu />
+    <AppLayout>
+
+      <BemVindo />
+
       <Box sx={{ p: 3, display: "flex", flexDirection: "column", flex: 1 }}>
         <Box mb={2} display="flex" alignItems="center" gap={1}>
           <Typography variant="h5" fontWeight="bold" color="textPrimary">
@@ -384,9 +388,7 @@ export default function RegistrosDeInfracao() {
           />
         </Box>
 
-        {/* Área de mensagens de feedback - posicionada entre a busca e a tabela */}
         <Box sx={{ mb: 2 }}>
-          {/* Mensagens de Sucesso */}
           {uploadSuccess && (
             <Alert 
               severity="success" 
@@ -407,7 +409,6 @@ export default function RegistrosDeInfracao() {
             </Alert>
           )}
 
-          {/* Mensagens de Erro */}
           {uploadError && (
             <Alert 
               severity="error" 
@@ -446,7 +447,6 @@ export default function RegistrosDeInfracao() {
         />
       </Box>
 
-      {/* Modal de Solicitar Recurso */}
       <SolicitarRecursoModal
         open={openRecursoModal}
         onClose={() => {
@@ -457,6 +457,8 @@ export default function RegistrosDeInfracao() {
         onError={handleRecursoError}
         multaId={selectedMulta?.idMulta}
       />
-    </>
+
+      
+    </AppLayout>
   );
 }

@@ -80,7 +80,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
   const dataLimite = corrida?.dataHoraRecebimentoChave
     ? new Date(corrida.dataHoraRecebimentoChave)
     : new Date();
-  dataLimite.setHours(0, 0, 0, 0); // Caso a corrida esteja finalizada o limite é a data de recebimento da chave, caso contrário o limite é o dia atual
+  dataLimite.setHours(0, 0, 0, 0); 
 
   const minDate = dataMinima ? dataMinima.toISOString().slice(0, 10) : undefined;
   const maxDate = dataLimite.toISOString().slice(0, 10);
