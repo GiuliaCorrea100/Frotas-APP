@@ -197,6 +197,38 @@ export default function ListaMulta() {
         );
       }
     },
+    {
+      field: 'situacao',
+      headerName: 'Situação',
+      width: 150,
+      renderCell: (params) => {
+        const situacao = params.value || '';
+        let color;
+
+        switch (situacao) {
+          case "AGUARDANDO COMPROVANTE":
+            color = 'info';
+            break;
+          case "PENDENTE DE ACAO":
+            color = 'warning';
+            break;
+          case "QUITADA/PAGA":
+            color = 'success';
+            break;
+          default:
+            color = 'error';
+        }
+
+        return (
+          <Chip
+            label={situacao}
+            color={color as any}
+            size="small"
+            variant="outlined"
+          />
+        );
+      },
+    },
     { field: 'autoInfracao', headerName: 'Número do auto', flex: 1 },
     {
       field: 'comprovantePagamento',
@@ -235,6 +267,10 @@ export default function ListaMulta() {
       renderCell: (params) => {
         const possuiComprovante = Boolean(params.row.urlComprovantePagamento);
 
+        const jaAnalisado =
+          params.row.situacao === "PAGA" ||
+          params.row.situacao === "PENDENTE DE ACAO";
+
         return (
           <Box sx={{ display: "flex", gap: 1 }}>
             <Tooltip title="Aprovar comprovante">
@@ -242,7 +278,7 @@ export default function ListaMulta() {
                 variant="contained"
                 color="success"
                 size="small"
-                disabled={!possuiComprovante}
+                disabled={!possuiComprovante || jaAnalisado}
                 onClick={() => {
                   setMultaSelecionada(params.row);
                   setModalAprovarAberto(true);
@@ -264,7 +300,7 @@ export default function ListaMulta() {
                 variant="contained"
                 color="error"
                 size="small"
-                disabled={!possuiComprovante}
+                disabled={!possuiComprovante || jaAnalisado}
                 onClick={() => {
                   setMultaSelecionada(params.row);
                   setModalReprovarAberto(true);
@@ -341,7 +377,9 @@ export default function ListaMulta() {
       <Menu />
       <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', flex: 1 }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h5" fontWeight="bold">Listagem de Multas</Typography>
+          <Typography variant="h5" fontWeight="bold" color="text.primary">
+            Listagem de Multas
+          </Typography>
           <Button
             variant="contained"
             startIcon={<Add />}
@@ -371,53 +409,33 @@ export default function ListaMulta() {
         />
       </Box>
 
-      <Dialog
-        open={modalAprovarAberto}
-        onClose={() => setModalAprovarAberto(false)}
-        PaperProps={{
-          sx: {
-            backgroundColor: theme.palette.background.paper,
-            color: theme.palette.text.primary,
-            borderRadius: 2,
-            minWidth: 380
-          }
-        }}
-      >
+      <Dialog open={modalAprovarAberto} onClose={() => setModalAprovarAberto(false)}>
         <DialogTitle
           sx={{
-            fontWeight: 700,
-            color: theme.palette.text.primary
+            color: theme.palette.mode === "dark" ? "#fff" : "inherit"
           }}
         >
           Aprovar comprovante
         </DialogTitle>
 
-        <DialogContent
-          sx={{
-            pt: 1,
-            pb: 1,
-            color: theme.palette.text.primary
-          }}
-        >
-          <Typography sx={{ color: theme.palette.text.primary }}>
+        <DialogContent>
+          <Typography
+            sx={{
+              color: theme.palette.mode === "dark" ? "#fff" : "inherit"
+            }}
+          >
             Deseja aprovar esse comprovante de pagamento?
           </Typography>
         </DialogContent>
 
         <DialogActions
           sx={{
-            px: 3,
-            pb: 2
+            "& .MuiButton-root": {
+              color: theme.palette.mode === "dark" ? "#fff" : "inherit"
+            }
           }}
         >
-          <Button
-            onClick={() => setModalAprovarAberto(false)}
-            variant="outlined"
-            sx={{
-              textTransform: "none",
-              fontWeight: 600
-            }}
-          >
+          <Button onClick={() => setModalAprovarAberto(false)}>
             Não
           </Button>
 
@@ -425,32 +443,16 @@ export default function ListaMulta() {
             onClick={aprovarComprovante}
             variant="contained"
             color="success"
-            sx={{
-              textTransform: "none",
-              fontWeight: 600
-            }}
           >
             Sim
           </Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog
-        open={modalReprovarAberto}
-        onClose={() => setModalReprovarAberto(false)}
-        PaperProps={{
-          sx: {
-            backgroundColor: theme.palette.background.paper,
-            color: theme.palette.text.primary,
-            borderRadius: 2,
-            minWidth: 420
-          }
-        }}
-      >
+      <Dialog open={modalReprovarAberto} onClose={() => setModalReprovarAberto(false)}>
         <DialogTitle
           sx={{
-            fontWeight: 700,
-            color: theme.palette.text.primary
+            color: theme.palette.mode === "dark" ? "#fff" : "inherit"
           }}
         >
           Motivo da reprovação
@@ -463,17 +465,25 @@ export default function ListaMulta() {
             minRows={3}
             value={motivoReprovacao}
             onChange={(e) => setMotivoReprovacao(e.target.value)}
-            placeholder="Digite o motivo da reprovação"
-            sx={{ mt: 1 }}
+            sx={{
+              "& .MuiInputBase-input": {
+                color: theme.palette.mode === "dark" ? "#fff" : "inherit"
+              },
+              "& .MuiInputLabel-root": {
+                color: theme.palette.mode === "dark" ? "#fff" : "inherit"
+              }
+            }}
           />
         </DialogContent>
 
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button
-            onClick={() => setModalReprovarAberto(false)}
-            variant="outlined"
-            sx={{ textTransform: "none", fontWeight: 600 }}
-          >
+        <DialogActions
+          sx={{
+            "& .MuiButton-root": {
+              color: theme.palette.mode === "dark" ? "#fff" : "inherit"
+            }
+          }}
+        >
+          <Button onClick={() => setModalReprovarAberto(false)}>
             Cancelar
           </Button>
 
@@ -481,7 +491,6 @@ export default function ListaMulta() {
             onClick={reprovarComprovante}
             variant="contained"
             color="error"
-            sx={{ textTransform: "none", fontWeight: 600 }}
           >
             Reprovar
           </Button>
@@ -489,14 +498,35 @@ export default function ListaMulta() {
       </Dialog>
 
       <Dialog open={modalExcluirAberto} onClose={() => setModalExcluirAberto(false)}>
-        <DialogTitle>Excluir Multa</DialogTitle>
+        <DialogTitle
+          sx={{
+            color: theme.palette.mode === "dark" ? "#fff" : "inherit"
+          }}
+        >
+          Excluir Multa
+        </DialogTitle>
+
         <DialogContent>
-          <Typography>Você tem certeza que deseja excluir esta multa?</Typography>
+          <Typography
+            sx={{
+              color: theme.palette.mode === "dark" ? "#fff" : "inherit"
+            }}
+          >
+            Você tem certeza que deseja excluir esta multa?
+          </Typography>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setModalExcluirAberto(false)} variant="outlined">
+
+        <DialogActions
+          sx={{
+            "& .MuiButton-root": {
+              color: theme.palette.mode === "dark" ? "#fff" : "inherit"
+            }
+          }}
+        >
+          <Button onClick={() => setModalExcluirAberto(false)}>
             Cancelar
           </Button>
+
           <Button
             onClick={async () => {
               if (multaSelecionada) {
