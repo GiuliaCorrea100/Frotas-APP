@@ -14,8 +14,8 @@ import {
 } from "@mui/material";
 import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
 import DownloadIcon from "@mui/icons-material/Download";
-import UploadIcon from '@mui/icons-material/Upload';
-import GavelIcon from '@mui/icons-material/Gavel';
+import UploadIcon from "@mui/icons-material/Upload";
+import GavelIcon from "@mui/icons-material/Gavel";
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from '@mui/icons-material/Close';
 import ClearIcon from "@mui/icons-material/Clear";
@@ -84,13 +84,13 @@ export default function RegistrosDeInfracao() {
       const token = localStorage.getItem("token");
       if (!token) throw new Error();
       jwtDecode<JwtPayload>(token);
-      
+
       const dados = await MultaService.listarMultas(params);
-      
+
       const multasDoUsuario = dados.filter(
-        (multa) => multa.idMotorista === idUsuarioLogado
+        (multa) => multa.idMotorista === idUsuarioLogado,
       );
-      
+
       setMultas(multasDoUsuario);
       setMultasFiltradas(multasDoUsuario);
     } catch {
@@ -168,9 +168,9 @@ export default function RegistrosDeInfracao() {
   };
 
   const columns: GridColDef<MultaDto>[] = [
-    { 
-      field: "placaVeiculo", 
-      headerName: "Veículo", 
+    {
+      field: "placaVeiculo",
+      headerName: "Veículo",
       flex: 0.6,
       renderCell: (params) => (
         <Typography fontWeight="bold">
@@ -188,31 +188,40 @@ export default function RegistrosDeInfracao() {
         </Typography>
       ),
     },
-    { 
-      field: 'classificacao', 
-      headerName: 'Classificação', 
+    {
+      field: "classificacao",
+      headerName: "Classificação",
       flex: 0.6,
       renderCell: (params) => {
-        const classificacao = params.value || '';
-        let color = 'default';
-        
-        switch(classificacao) {
-          case 'LEVE': color = 'success'; break;
-          case 'MEDIA': color = 'warning'; break;
-          case 'GRAVE': color = 'error'; break;
-          case 'GRAVISSIMA': color = 'error'; break;
-          default: color = 'default';
+        const classificacao = params.value || "";
+        let color = "default";
+
+        switch (classificacao) {
+          case "LEVE":
+            color = "success";
+            break;
+          case "MEDIA":
+            color = "warning";
+            break;
+          case "GRAVE":
+            color = "error";
+            break;
+          case "GRAVISSIMA":
+            color = "error";
+            break;
+          default:
+            color = "default";
         }
-        
+
         return (
-          <Chip 
+          <Chip
             label={classificacao}
             color={color as any}
             size="small"
             variant="outlined"
           />
         );
-      }
+      },
     },
     {
       field: "valorInfracao",
@@ -372,9 +381,9 @@ export default function RegistrosDeInfracao() {
                 <SearchIcon color="action" style={{ marginRight: 8 }} />
               ),
               endAdornment: busca && (
-                <ClearIcon 
-                  color="action" 
-                  style={{ cursor: 'pointer' }} 
+                <ClearIcon
+                  color="action"
+                  style={{ cursor: "pointer" }}
                   onClick={limparBusca}
                 />
               ),

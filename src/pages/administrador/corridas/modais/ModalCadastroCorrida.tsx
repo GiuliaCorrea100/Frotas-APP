@@ -1,22 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { 
-  Button, 
-  Box, 
-  TextField, 
-  Typography, 
-  Modal, 
-  Autocomplete, 
-  Dialog, 
-  DialogTitle, 
+import {
+  Button,
+  Box,
+  TextField,
+  Typography,
+  Modal,
+  Autocomplete,
+  Dialog,
+  DialogTitle,
   DialogActions,
-  CircularProgress // Importar CircularProgress para o loading
+  CircularProgress,
+  Divider,
+  IconButton,
+  Alert,
 } from "@mui/material";
-import axios, { AxiosError } from 'axios';
-import { CorridaBackend, createCorrida } from '../../../../services/CorridaService';
-import { CarroService } from '../../../../services/CarroService';
-import axiosConnect from '../../../../services/axios/axiosConnect';
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import axios, { AxiosError } from "axios";
+import {
+  CorridaBackend,
+  createCorrida,
+} from "../../../../services/CorridaService";
+import { CarroService } from "../../../../services/CarroService";
+import axiosConnect from "../../../../services/axios/axiosConnect";
+import { modalStyle } from "../../../../utils/modalStyle";
+import { Close } from "@mui/icons-material";
 
 interface MotoristaDTO {
   idUsuario: number;
@@ -36,22 +45,24 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
   onClose,
   onSuccess,
   onError,
-})=> {
-  const [modeloPlaca, setModeloPlaca] = useState<string>('');
+}) => {
+  const [modeloPlaca, setModeloPlaca] = useState<string>("");
   const [carro, setCarro] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [corrida, setCorrida] = useState({
-    dataInicio: '',
-    dataTermino: '',
-    localDeSaida: '',
-    distanciaKm: '0',
+    dataInicio: "",
+    dataTermino: "",
+    localDeSaida: "",
+    distanciaKm: "0",
     chaveEmprestada: false,
-    situacao: 'AGENDADA',
+    situacao: "AGENDADA",
     motoristaId: null as number | null,
   });
-  
-  const [motoristasDisponiveis, setMotoristasDisponiveis] = useState<MotoristaDTO[]>([]);
+
+  const [motoristasDisponiveis, setMotoristasDisponiveis] = useState<
+    MotoristaDTO[]
+  >([]);
   const [motoristaSelecionado, setMotoristaSelecionado] = useState<any>(null);
   const [carrosDisponiveis, setCarrosDisponiveis] = useState<any[]>([]);
   const [errors, setErrors] = useState({
@@ -59,14 +70,13 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
     dataInicio: false,
     dataTermino: false,
     motorista: false,
-    localDeSaida: false
+    localDeSaida: false,
   });
-  
+
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [alertOpen, setAlertOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<string>('SIGAA');
-  
-  // Adicionar estado para controlar o loading do botão
+  const [authMode, setAuthMode] = useState<string>("SIGAA");
+  const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const navigate = useNavigate();
@@ -75,11 +85,11 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
   useEffect(() => {
     const fetchAuthMode = async () => {
       try {
-        const response = await axiosConnect.get('/auth/mode');
+        const response = await axiosConnect.get("/auth/mode");
         setAuthMode(response.data.mode);
       } catch (error) {
-        console.error('Erro ao buscar modo de autenticação:', error);
-        setAuthMode('SIGAA');
+        console.error("Erro ao buscar modo de autenticação:", error);
+        setAuthMode("SIGAA");
       }
     };
     fetchAuthMode();
@@ -91,14 +101,16 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
       return;
     }
     try {
-      const response = await axiosConnect.get(`/carro/buscar-modelo-placa/${modeloPlaca}`);
+      const response = await axiosConnect.get(
+        `/carro/buscar-modelo-placa/${modeloPlaca}`,
+      );
       setCarrosDisponiveis(response.data);
     } catch (error) {
       const err = error as AxiosError;
       if (err.response?.status === 404) {
-        setError('Veículo não encontrado.');
+        setError("Veículo não encontrado.");
       } else {
-        setError('Erro ao buscar informações do veículo');
+        setError("Erro ao buscar informações do veículo");
         console.error(err);
       }
     } finally {
@@ -113,11 +125,11 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setCorrida(prev => ({
+    setCorrida((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    setErrors(prev => ({ ...prev, [name]: false }));
+    setErrors((prev) => ({ ...prev, [name]: false }));
   };
 
   const buscarMotoristas = async (nome: string) => {
@@ -126,26 +138,26 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
       return;
     }
 
-     try {
+    try {
       setLoading(true);
-      
-      if (authMode === 'MOCK') {
+
+      if (authMode === "MOCK") {
         // Lista estática de motoristas no modo TEST
         const motoristasTeste: MotoristaDTO[] = [
           {
             idUsuario: 1,
-            nome: 'ADMINISTRADOR FROTAS',
-            cpf: '11111111111',
+            nome: "ADMINISTRADOR FROTAS",
+            cpf: "11111111111",
           },
           {
             idUsuario: 2,
-            nome: 'MOTORISTA FROTAS',
-            cpf: '22222222222',
+            nome: "MOTORISTA FROTAS",
+            cpf: "22222222222",
           },
         ];
         // Filtrar motoristas com base no nome digitado
-        const filteredMotoristas = motoristasTeste.filter(motorista =>
-          motorista.nome.toLowerCase().includes(nome.toLowerCase())
+        const filteredMotoristas = motoristasTeste.filter((motorista) =>
+          motorista.nome.toLowerCase().includes(nome.toLowerCase()),
         );
         setMotoristasDisponiveis(filteredMotoristas);
       } else {
@@ -161,9 +173,8 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
         //console.log('Motoristas: ', usuariosUnicosEOrdenados);
         setMotoristasDisponiveis(usuariosUnicosEOrdenados);
       }
-
     } catch (error) {
-      console.error('Erro ao buscar usuários:', error);
+      console.error("Erro ao buscar usuários:", error);
       setMotoristasDisponiveis([]);
     } finally {
       setLoading(false);
@@ -180,7 +191,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
       dataInicio: false,
       dataTermino: false,
       motorista: false,
-      localDeSaida: false
+      localDeSaida: false,
     };
 
     if (!carro) {
@@ -216,8 +227,8 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
     }
 
     if (new Date(corrida.dataTermino) < new Date(corrida.dataInicio)) {
-      showAlert('A data de término não pode ser anterior à data de início');
-      setErrors(prev => ({ ...prev, dataTermino: true }));
+      showAlert("A data de término não pode ser anterior à data de início");
+      setErrors((prev) => ({ ...prev, dataTermino: true }));
       setIsSubmitting(false); // Parar loading
       return;
     }
@@ -225,24 +236,27 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
     try {
       // No modo MOCK, usar diretamente o idUsuario do motorista selecionado
       let idUsuarioMotorista: number;
-      if (authMode === 'MOCK') {
+      if (authMode === "MOCK") {
         idUsuarioMotorista = motoristaSelecionado.idUsuario;
       } else {
         // No modo SIGAA, consultar o endpoint /usuario/consultaCadastro
-        const response = await axiosConnect.get(`/usuario/consultaCadastro/${motoristaSelecionado.idPessoaSigaa}`, {
-          params: {
-            nome: motoristaSelecionado.nome
-          }
-        });
+        const response = await axiosConnect.get(
+          `/usuario/consultaCadastro/${motoristaSelecionado.idPessoaSigaa}`,
+          {
+            params: {
+              nome: motoristaSelecionado.nome,
+            },
+          },
+        );
         idUsuarioMotorista = response.data.idUsuario;
       }
 
       const toLocalDate = (yyyyMmDd: string): Date => {
-        const [ano, mes, dia] = yyyyMmDd.split('-').map(Number);
+        const [ano, mes, dia] = yyyyMmDd.split("-").map(Number);
         return new Date(ano, mes - 1, dia);
       };
 
-      const corridaParaEnviar: Omit<CorridaBackend, 'idCorrida'> = {
+      const corridaParaEnviar: Omit<CorridaBackend, "idCorrida"> = {
         dataInicio: toLocalDate(corrida.dataInicio),
         dataTermino: toLocalDate(corrida.dataTermino),
         localDeSaida: corrida.localDeSaida,
@@ -254,29 +268,33 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
       };
 
       await CarroService.atualizarSituacaoCarro(carro.idCarro, "RESERVADO");
-      
-      await createCorrida(corridaParaEnviar);
-      
-      setTimeout(() => {
-          navigate('/Corridas');
-      }, 1500);
 
-      onSuccess('Corrida cadastrada com sucesso!');
-      onClose();
+      await createCorrida(corridaParaEnviar);
+
+      setSuccessMessage("Corrida cadastrada com sucesso!");
+
+      setTimeout(() => {
+        setSuccessMessage("");
+        onSuccess("Corrida cadastrada com sucesso!");
+        onClose();
+      }, 1500);
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response) {
         if (error.response.status === 409) {
-          if (error.response.data.message.includes('carro')) {
-            showAlert("Este carro já está agendado para outra corrida nesse período.");
+          if (error.response.data.message.includes("carro")) {
+            showAlert(
+              "Este carro já está agendado para outra corrida nesse período.",
+            );
           } else {
             showAlert("Usuário já tem corrida agendada para essa data.");
           }
         } else {
-          const errorMessage = error.response.data?.message || 'Erro ao cadastrar a corrida.';
+          const errorMessage =
+            error.response.data?.message || "Erro ao cadastrar a corrida.";
           showAlert(errorMessage);
         }
       } else {
-        console.error('Erro ao cadastrar a corrida:', error);
+        console.error("Erro ao cadastrar a corrida:", error);
         onError(error);
       }
     } finally {
@@ -286,168 +304,214 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
   };
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      >
+    <Modal open={open} onClose={onClose}>
+      <Box sx={modalStyle}>
         <Box
           sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            p: 4,
-            borderRadius: 2,
-            backgroundColor: 'white',
-            width: { xs: '90%', sm: '500px' },
-            maxWidth: '500px', 
-            maxHeight: '90vh',
-            overflow: 'auto',
-            boxShadow: 24,
-          }}>
-          <Typography variant="h6" color="text.primary" mb={2} gutterBottom>
-            AGENDAR CORRIDA
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+          }}
+        >
+          <Typography
+            variant="h6"
+            color="text.primary"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontWeight: "bold",
+              pt: 1,
+            }}
+          >
+            <CalendarMonthIcon color="primary" sx={{ fontSize: 24, mr: 1 }} />
+            Agendar corrida
           </Typography>
-
-          {error && <Typography color="error" sx={{ mb: 3 }}>{error}</Typography>}
-            <Autocomplete
-              options={carrosDisponiveis}
-              getOptionLabel={(option) => {
-                if (option.modelo && option.placa) {
-                  return `${option.modelo} Placa: ${option.placa}`;
-                }
-                return option.modelo || option.placa || ''; 
-              }}
-              onInputChange={(_, value) => buscarCarro(value)}
-              onChange={(_, newValue) => {
-                setCarro(newValue); 
-                setErrors(prev => ({ ...prev, carro: false }));
-              }}
-              isOptionEqualToValue={(option, value) => option.idCarro === value.idCarro} 
-              noOptionsText="Digite pelo menos 3 caracteres para buscar"
-              sx={{ 
-                width: '100%',
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Veículo"
-                  required
-                  sx={{ mb: 2 }}
-                  error={errors.carro}
-                  helperText={errors.carro ? "Selecione um veículo" : ""}
-                />
-              )}
-            />
-
-              <TextField
-                name="localDeSaida"
-                label="Local de Saída"
-                value={corrida.localDeSaida}
-                onChange={(e) => {
-                  const value = e.target.value.toUpperCase();
-                  setCorrida(prev => ({
-                    ...prev,
-                    localDeSaida: value
-                  }));
-                  setErrors(prev => ({ ...prev, localDeSaida: false }));
-                }}
-                fullWidth
-                required
-                error={errors.localDeSaida}
-                helperText={errors.localDeSaida ? "Informe o local de saída" : ""}
-                sx={{ mb: 2 }}
-              />
-
-              <Autocomplete
-                options={motoristasDisponiveis}
-                getOptionLabel={(option) => {
-                  if (option.nome && option.cpf) {
-                    return `${option.nome} (${option.cpf})`;
-                  }
-                  return option.nome || ''; 
-                }}
-                onInputChange={(_, value) => buscarMotoristas(value)}
-                onChange={(_, value) => {
-                  setMotoristaSelecionado(value);
-                  setCorrida(prev => ({
-                    ...prev,
-                    motoristaId: value?.idUsuario || null,
-                  }));
-                  setErrors(prev => ({ ...prev, motorista: false }));
-                }}
-                isOptionEqualToValue={(option, value) => option.cpf === value.cpf}
-                noOptionsText="Digite pelo menos 3 caracteres para buscar"
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Motorista"
-                    required
-                    error={errors.motorista}
-                    helperText={errors.motorista ? "Selecione um motorista" : ""}
-                    sx={{ mb: 2 }}
-                  />
-                )}
-              />
-
-              <TextField
-                name="dataInicio"
-                label="Data Início"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={corrida.dataInicio}
-                onChange={handleChange}
-                fullWidth
-                required
-                error={errors.dataInicio}
-                helperText={errors.dataInicio ? "Informe a data de início" : ""}
-                sx={{ mb: 2 }}
-                inputProps={{
-                  min: new Date().toISOString().split('T')[0]
-                }}
-              />
-
-              <TextField
-                name="dataTermino"
-                label="Data Término"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={corrida.dataTermino}
-                onChange={handleChange}
-                fullWidth
-                required
-                error={errors.dataTermino}
-                helperText={errors.dataTermino ? "Informe a data de término" : ""}
-                sx={{ mb: 2 }}
-                inputProps={{
-                  min: corrida.dataInicio || new Date().toISOString().split('T')[0]
-                }}
-              />
-
-              <Button
-                variant="contained"
-                onClick={handleSubmit}
-                fullWidth
-                size="large"
-                sx={{ mt: 2 }}
-                disabled={isSubmitting} // Desabilitar botão durante o loading
-              >
-                {isSubmitting ? (
-                  // Mostrar CircularProgress quando estiver carregando
-                  <CircularProgress size={24} color="inherit" />
-                ) : (
-                  // Mostrar texto normal quando não estiver carregando
-                  "Cadastrar Corrida"
-                )}
-              </Button>
-
-            <Dialog open={alertOpen} onClose={() => setAlertOpen(false)}>
-              <DialogTitle>{alertMessage}</DialogTitle>
-              <DialogActions>
-                <Button onClick={() => setAlertOpen(false)}>OK</Button>
-              </DialogActions>
-            </Dialog>
+          <IconButton onClick={onClose} disabled={loading || isSubmitting}>
+            <Close />
+          </IconButton>
         </Box>
+
+        {successMessage && (
+          <Alert severity="success" sx={{ mb: 3 }}>
+            {successMessage}
+          </Alert>
+        )}
+
+        {error && (
+          <Typography color="error" sx={{ mb: 2 }}>
+            {error}
+          </Typography>
+        )}
+
+        {/* Veículo */}
+        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+          <Autocomplete
+            options={carrosDisponiveis}
+            getOptionLabel={(option) => {
+              if (option.modelo && option.placa) {
+                return `${option.modelo} Placa: ${option.placa}`;
+              }
+              return option.modelo || option.placa || "";
+            }}
+            onInputChange={(_, value) => buscarCarro(value)}
+            onChange={(_, newValue) => {
+              setCarro(newValue);
+              setErrors((prev) => ({ ...prev, carro: false }));
+            }}
+            isOptionEqualToValue={(option, value) =>
+              option.idCarro === value.idCarro
+            }
+            noOptionsText="Digite pelo menos 3 caracteres para buscar (placa ou modelo do veículo)"
+            fullWidth
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Veículo"
+                required
+                error={errors.carro}
+                helperText={
+                  errors.carro
+                    ? "Selecione um veículo"
+                    : "Informe o veículo a ser reservado para essa corrida"
+                }
+              />
+            )}
+          />
+        </Box>
+
+        {/* Motorista */}
+        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+          <Autocomplete
+            options={motoristasDisponiveis}
+            getOptionLabel={(option) => {
+              if (option.nome && option.cpf) {
+                return `${option.nome} (${option.cpf})`;
+              }
+              return option.nome || "";
+            }}
+            onInputChange={(_, value) => buscarMotoristas(value)}
+            onChange={(_, value) => {
+              setMotoristaSelecionado(value);
+              setCorrida((prev) => ({
+                ...prev,
+                motoristaId: value?.idUsuario || null,
+              }));
+              setErrors((prev) => ({ ...prev, motorista: false }));
+            }}
+            isOptionEqualToValue={(option, value) => option.cpf === value.cpf}
+            noOptionsText="Digite pelo menos 3 caracteres para buscar"
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Motorista"
+                required
+                error={errors.motorista}
+                helperText={
+                  errors.motorista
+                    ? "Selecione um motorista"
+                    : "Informe o motorista que será responsável por essa corrida"
+                }
+              />
+            )}
+            fullWidth
+          />
+        </Box>
+
+        {/* Local de Saída */}
+        <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+          <TextField
+            name="localDeSaida"
+            label="Local de Saída"
+            value={corrida.localDeSaida}
+            onChange={(e) => {
+              const value = e.target.value.toUpperCase();
+              setCorrida((prev) => ({
+                ...prev,
+                localDeSaida: value,
+              }));
+              setErrors((prev) => ({ ...prev, localDeSaida: false }));
+            }}
+            fullWidth
+            required
+            error={errors.localDeSaida}
+            helperText={
+              errors.localDeSaida
+                ? "Selecione um motorista"
+                : "Informe o local de saída da corrida"
+            }
+            placeholder="Ex: Campus Porto Velho"
+          />
+        </Box>
+
+        {/* Data de Início e Término */}
+        <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+          <TextField
+            name="dataInicio"
+            label="Data Início"
+            type="date"
+            InputLabelProps={{ shrink: true }}
+            value={corrida.dataInicio}
+            onChange={handleChange}
+            fullWidth
+            required
+            error={errors.dataInicio}
+            helperText={errors.dataInicio ? "Informe a data de início" : ""}
+            inputProps={{
+              min: new Date().toISOString().split("T")[0],
+            }}
+          />
+
+          <TextField
+            name="dataTermino"
+            label="Data Término"
+            type="date"
+            InputLabelProps={{ shrink: true }}
+            value={corrida.dataTermino}
+            onChange={handleChange}
+            fullWidth
+            required
+            error={errors.dataTermino}
+            helperText={errors.dataTermino ? "Informe a data de término" : ""}
+            inputProps={{
+              min: corrida.dataInicio || new Date().toISOString().split("T")[0],
+            }}
+          />
+        </Box>
+
+        <Divider sx={{ my: 2 }} />
+
+        <Box
+          sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}
+        >
+          <Button
+            variant="outlined"
+            onClick={onClose}
+            disabled={isSubmitting || !!successMessage}
+            sx={{ textTransform: "none" }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            disabled={isSubmitting || !!successMessage}
+          >
+            {isSubmitting ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              "Cadastrar"
+            )}
+          </Button>
+        </Box>
+
+        <Dialog open={alertOpen} onClose={() => setAlertOpen(false)}>
+          <DialogTitle>{alertMessage}</DialogTitle>
+          <DialogActions>
+            <Button onClick={() => setAlertOpen(false)}>OK</Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
     </Modal>
   );
 };
