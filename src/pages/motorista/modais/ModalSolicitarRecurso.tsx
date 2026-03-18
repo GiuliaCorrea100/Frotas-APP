@@ -10,6 +10,7 @@ import {
   Paper,
   IconButton,
   MenuItem,
+  Alert,
 } from "@mui/material";
 import {
   Close,
@@ -58,6 +59,8 @@ const SolicitarRecursoModal: React.FC<SolcitarRecursoProps> = ({
   const [fileError, setFileError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [mensagemMotorista, setMensagemMotorista] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState('');
+
 
   useEffect(() => {
     if (open) {
@@ -124,6 +127,7 @@ const SolicitarRecursoModal: React.FC<SolcitarRecursoProps> = ({
     }
 
     setLoading(true);
+    
 
     try {
       let response;
@@ -145,8 +149,12 @@ const SolicitarRecursoModal: React.FC<SolcitarRecursoProps> = ({
           onClose();
         }, 3000);
       } else {
-        onSuccess("Recurso solicitado com sucesso!");
-        onClose();
+    
+        setSuccessMessage("Recurso solicitado com sucesso!"); // Mova para cá
+        setTimeout(() => {
+          setSuccessMessage('');
+          onClose();
+        }, 3000);
       }
     } catch (error) {
       onError(error);
@@ -165,7 +173,6 @@ const SolicitarRecursoModal: React.FC<SolcitarRecursoProps> = ({
           mb={3}
         >
           <Box display="flex" alignItems="center">
-            {/* <LocalGasStation color="primary" sx={{ mr: 1 }} /> */}
             <Typography variant="h6" fontWeight="bold" color="text.primary">
               Solicitar recurso de multa
             </Typography>
@@ -174,6 +181,12 @@ const SolicitarRecursoModal: React.FC<SolcitarRecursoProps> = ({
             <Close />
           </IconButton>
         </Box>
+
+        {successMessage && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+              {successMessage}
+            </Alert>
+        )}
 
 
         <Box
