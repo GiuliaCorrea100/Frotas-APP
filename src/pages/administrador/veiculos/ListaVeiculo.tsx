@@ -1,5 +1,6 @@
 import { Add, Cancel, CheckCircle } from "@mui/icons-material";
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -37,6 +38,7 @@ export default function ListaVeiculos() {
   const [qtdDisponivel, setQtdDisponivel] = useState<number>(0);
   const [qtdViagem, setQtdViagem] = useState<number>(0);
   const [qtdManutencao, setQtdManutencao] = useState<number>(0);
+  const [mensagemSucesso, setMensagemSucesso] = useState("");
 
   // Estados para o modal de confirmação (Ativar/Inativar)
   const [showModalAtivacao, setShowModalAtivacao] = useState(false);
@@ -72,7 +74,6 @@ export default function ListaVeiculos() {
 
   // Sucesso no formulário
   const handleSuccessFormulario = (message: string) => {
-    console.log(message);
     // Recarregar a lista de carros
     carregarCarros();
     handleCloseFormulario();
@@ -327,6 +328,21 @@ export default function ListaVeiculos() {
         </Button>
       </Box>
 
+      {mensagemSucesso && (
+        <Alert
+          severity="success"
+          sx={{
+            mb: 3,
+            fontSize: "1.1rem",
+            border: "1px solid",
+            borderColor: "success.main",
+            borderRadius: 1.5,
+          }}
+        >
+          {mensagemSucesso}
+        </Alert>
+      )}
+
       {/* Filtros por situação + campo de busca + datagrid */}
       <Box
         sx={{
@@ -488,7 +504,10 @@ export default function ListaVeiculos() {
           }
           open={openModalCadastroEdicao}
           onClose={handleCloseFormulario}
-          onSuccess={handleSuccessFormulario}
+          onSuccess={(message) => {
+            handleCloseFormulario();
+            setMensagemSucesso(message);
+          }}
           onError={handleErrorFormulario}
         />
       )}
