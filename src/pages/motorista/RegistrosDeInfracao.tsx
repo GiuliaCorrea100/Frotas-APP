@@ -7,18 +7,17 @@ import {
   Alert,
   useTheme,
   TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Tooltip,
   Chip,
+  Snackbar,
+  Alert as MuiAlert,
 } from "@mui/material";
 import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
 import DownloadIcon from "@mui/icons-material/Download";
 import UploadIcon from "@mui/icons-material/Upload";
 import GavelIcon from "@mui/icons-material/Gavel";
 import SearchIcon from "@mui/icons-material/Search";
+import CloseIcon from '@mui/icons-material/Close';
 import ClearIcon from "@mui/icons-material/Clear";
 import { jwtDecode } from "jwt-decode";
 import Menu from "../../components/Menu";
@@ -26,6 +25,8 @@ import { MultaDto, MultaService } from "../../services/MultaService";
 import { useAuth } from "../../context/AuthContext";
 import { decodeToken } from "../../utils/jwtDecodeHelper";
 import SolicitarRecursoModal from "./modais/ModalSolicitarRecurso";
+import AppLayout from "../../components/Layout";
+import BemVindo from "../BemVindo";
 
 interface JwtPayload {
   sub: number;
@@ -34,8 +35,6 @@ interface JwtPayload {
   iat: number;
   exp: number;
 }
-
-const CLASSIFICACOES = ["LEVE", "MEDIA", "GRAVE", "GRAVISSIMA"];
 
 const formatDate = (data: string | Date | null) => {
   if (!data) return "Não informada";
@@ -64,9 +63,11 @@ export default function RegistrosDeInfracao() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busca, setBusca] = useState("");
-  const [openSuccessModal, setOpenSuccessModal] = useState(false);
   const [openRecursoModal, setOpenRecursoModal] = useState(false);
   const [selectedMulta, setSelectedMulta] = useState<MultaDto | null>(null);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [removeSuccess, setRemoveSuccess] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -142,14 +143,28 @@ export default function RegistrosDeInfracao() {
     setOpenRecursoModal(true);
   };
 
-  const handleRecursoSuccess = (message: string) => {
-    setOpenSuccessModal(true);
+  const handleRecursoSuccess = () => {
     carregarMultas();
   };
 
   const handleRecursoError = (error: any) => {
     console.error("Erro ao solicitar recurso:", error);
-    setError("Erro ao solicitar recurso. Tente novamente.");
+    setUploadError("Erro ao solicitar recurso. Tente novamente.");
+  };
+
+  const handleUploadSuccess = () => {
+    setUploadSuccess(true);
+    setTimeout(() => setUploadSuccess(false), 6000);
+  };
+
+  const handleRemoveSuccess = () => {
+    setRemoveSuccess(true);
+    setTimeout(() => setRemoveSuccess(false), 6000);
+  };
+
+  const handleError = (message: string) => {
+    setUploadError(message);
+    setTimeout(() => setUploadError(null), 6000);
   };
 
   const columns: GridColDef<MultaDto>[] = [
@@ -158,8 +173,10 @@ export default function RegistrosDeInfracao() {
       headerName: "Veículo",
       flex: 0.6,
       renderCell: (params) => (
-        <Typography fontWeight="bold">{params.value}</Typography>
-      ),
+        <Typography fontWeight="bold">
+          {params.value}
+        </Typography>
+      )
     },
     {
       field: "dataInfracao",
@@ -228,9 +245,16 @@ export default function RegistrosDeInfracao() {
       filterable: false,
       renderCell: (params) => {
         const possuiBoleto = !!params.row.urlArquivo;
+        const possuiComprovante = !!params.row.urlComprovantePagamento;
+        const nomeArquivo = params.row.urlComprovantePagamento 
+          ? params.row.urlComprovantePagamento.split('/').pop() || 'comprovante.pdf'
+          : '';
 
-        return (
-          <Box sx={{ display: "flex", gap: 1 }}>
+        const podeEnviarComprovante = possuiBoleto && !possuiComprovante;
+        const podePedirRecurso = possuiBoleto && !possuiComprovante;
+        
+        return(
+          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
             <Tooltip title="Baixar Boleto">
               <Button
                 variant="contained"
@@ -243,38 +267,76 @@ export default function RegistrosDeInfracao() {
               </Button>
             </Tooltip>
 
-            <Tooltip title="Enviar comprovante de pagamento">
-              <Button
-                size="small"
-                component="label"
-                variant="contained"
-                startIcon={<UploadIcon />}
-                disabled={!possuiBoleto}
-              >
-                Comprovante
-                <input
-                  type="file"
-                  hidden
-                  accept="application/pdf,image/*"
-                  disabled={!possuiBoleto}
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file || !params.row.idMulta) return;
+            {possuiComprovante ? (
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                <Tooltip title="Excluir comprovante enviado">
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="error"
+                    startIcon={<CloseIcon />}
+                    onClick={async () => {
+                      if (!params.row.urlComprovantePagamento) return;
 
-                    try {
-                      await MultaService.uploadComprovante(
-                        params.row.idMulta,
-                        file,
-                      );
-                      await carregarMultas();
-                      setOpenSuccessModal(true);
-                    } finally {
-                      e.target.value = "";
-                    }
-                  }}
-                />
-              </Button>
-            </Tooltip>
+                      if (!params.row.idMulta) {
+                        console.error("ID da multa não encontrado");
+                        return;
+                      }
+                        
+                      try {
+                        await MultaService.removerArquivoComprovante(params.row.idMulta);
+                        await carregarMultas();
+                        handleRemoveSuccess();
+                      } catch (error) {
+                        console.error("Erro ao excluir o comprovante:", error);
+                        handleError("Erro ao excluir o comprovante. Tente novamente.");
+                      }
+                    }}
+                  >
+                    {nomeArquivo.length > 20 
+                      ? `${nomeArquivo.substring(0, 17)}...` 
+                      : nomeArquivo}
+                  </Button>
+                </Tooltip>
+              </Box>
+            ) : (
+              <Tooltip title="Enviar comprovante de pagamento">
+                <Button
+                  size="small"
+                  component="label"
+                  variant="contained"
+                  color="success"
+                  startIcon={<UploadIcon />}
+                  disabled={!podeEnviarComprovante}
+                >
+                  Comprovante
+                  <input
+                    type="file"
+                    hidden
+                    accept="application/pdf,image/*"
+                    disabled={!podeEnviarComprovante}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file || !params.row.idMulta) return;
+
+                      try {
+                        await MultaService.uploadComprovante(
+                          params.row.idMulta,
+                          file
+                        );
+                        await carregarMultas();
+                        handleUploadSuccess();
+                      } catch (error) {
+                        console.error("Erro ao enviar comprovante:", error);
+                        handleError("Erro ao enviar comprovante. Tente novamente.");
+                      } finally {
+                        e.target.value = "";
+                      }
+                    }}
+                  />
+                </Button>
+              </Tooltip>
+            )}
 
             <Tooltip title="Solicitar recurso de multa">
               <Button
@@ -282,7 +344,7 @@ export default function RegistrosDeInfracao() {
                 variant="contained"
                 color="warning"
                 startIcon={<GavelIcon />}
-                disabled={!possuiBoleto}
+                disabled={!podePedirRecurso}
                 onClick={() => handleSolicitarRecurso(params.row)}
               >
                 Solicitar Recurso
@@ -295,8 +357,10 @@ export default function RegistrosDeInfracao() {
   ];
 
   return (
-    <>
-      <Menu />
+    <AppLayout>
+
+      <BemVindo />
+
       <Box sx={{ p: 3, display: "flex", flexDirection: "column", flex: 1 }}>
         <Box mb={2} display="flex" alignItems="center" gap={1}>
           <Typography variant="h5" fontWeight="bold" color="textPrimary">
@@ -333,7 +397,47 @@ export default function RegistrosDeInfracao() {
           />
         </Box>
 
-        {error && <Alert severity="error">{error}</Alert>}
+        <Box sx={{ mb: 2 }}>
+          {uploadSuccess && (
+            <Alert 
+              severity="success" 
+              sx={{ mb: 1 }}
+              onClose={() => setUploadSuccess(false)}
+            >
+              Comprovante de pagamento enviado com sucesso!
+            </Alert>
+          )}
+
+          {removeSuccess && (
+            <Alert 
+              severity="success" 
+              sx={{ mb: 1 }}
+              onClose={() => setRemoveSuccess(false)}
+            >
+              Comprovante de pagamento removido com sucesso!
+            </Alert>
+          )}
+
+          {uploadError && (
+            <Alert 
+              severity="error" 
+              sx={{ mb: 1 }}
+              onClose={() => setUploadError(null)}
+            >
+              {uploadError}
+            </Alert>
+          )}
+
+          {error && (
+            <Alert 
+              severity="error" 
+              sx={{ mb: 1 }}
+              onClose={() => setError(null)}
+            >
+              {error}
+            </Alert>
+          )}
+        </Box>
 
         <DataGrid
           rows={multasFiltradas}
@@ -352,7 +456,6 @@ export default function RegistrosDeInfracao() {
         />
       </Box>
 
-      {/* Modal de Solicitar Recurso */}
       <SolicitarRecursoModal
         open={openRecursoModal}
         onClose={() => {
@@ -364,26 +467,7 @@ export default function RegistrosDeInfracao() {
         multaId={selectedMulta?.idMulta}
       />
 
-      {/* Modal de Sucesso */}
-      <Dialog
-        open={openSuccessModal}
-        onClose={() => setOpenSuccessModal(false)}
-      >
-        <DialogTitle>Sucesso</DialogTitle>
-        <DialogContent>
-          <Typography sx={{ color: theme.palette.text.primary }}>
-            Upload do comprovante de pagamento feito com sucesso.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            variant="contained"
-            onClick={() => setOpenSuccessModal(false)}
-          >
-            OK
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </>
+      
+    </AppLayout>
   );
 }

@@ -193,6 +193,15 @@ export class MultaService {
     }
   }
 
+  static async removerArquivoComprovante(idMulta: number): Promise<void> {
+    try {
+      await axiosConnect.delete(`/multa/${idMulta}/comprovante`);
+    } catch (error) {
+      console.error(`Erro ao remover arquivo de comprovante ${idMulta}:`, error);
+      throw error;
+    }
+  }
+
   static async deletarArquivoPorUrl(urlArquivo: string): Promise<void> {
     try {
       await axiosConnect.delete("/anexo/remover-por-url", {
