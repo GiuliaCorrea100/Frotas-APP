@@ -212,7 +212,7 @@ export default function ListaMulta() {
           case "PENDENTE DE ACAO":
             color = 'warning';
             break;
-          case "QUITADA/PAGA":
+          case "PAGA":
             color = 'success';
             break;
           default:
