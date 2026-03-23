@@ -20,7 +20,6 @@ import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from '@mui/icons-material/Close';
 import ClearIcon from "@mui/icons-material/Clear";
 import { jwtDecode } from "jwt-decode";
-import Menu from "../../components/Menu";
 import { MultaDto, MultaService } from "../../services/MultaService";
 import { useAuth } from "../../context/AuthContext";
 import { decodeToken } from "../../utils/jwtDecodeHelper";
