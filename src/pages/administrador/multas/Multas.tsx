@@ -200,31 +200,42 @@ export default function ListaMulta() {
     {
       field: 'situacao',
       headerName: 'Situação',
-      width: 150,
+      width: 180,
       renderCell: (params) => {
         const situacao = params.value || '';
-        let color;
 
-        switch (situacao) {
-          case "AGUARDANDO COMPROVANTE":
-            color = 'info';
-            break;
-          case "PENDENTE DE ACAO":
-            color = 'warning';
-            break;
-          case "PAGA":
-            color = 'success';
-            break;
-          default:
-            color = 'error';
-        }
+        const getColor = () => {
+          switch (situacao) {
+            case "PAGA":
+              return "#2e7d32";
+            case "ANALISE PENDENTE":
+              return "#1976d2";
+            case "AGUARDANDO COMPROVANTE":
+              return "#6a1b9a";
+            case "PENDENTE DE ACAO":
+              return "#ed6c02";
+            case "ATRIBUIDA":
+              return "#f9a825";
+            case "MOTORISTA NAO IDENTIFICADO":
+              return "#616161";
+            default:
+              return "#d32f2f";
+          }
+        };
+
+        const color = getColor();
 
         return (
           <Chip
             label={situacao}
-            color={color as any}
             size="small"
             variant="outlined"
+            sx={{
+              color: color,
+              borderColor: color,
+              fontWeight: 600,
+              backgroundColor: "transparent"
+            }}
           />
         );
       },
@@ -410,51 +421,23 @@ export default function ListaMulta() {
       </Box>
 
       <Dialog open={modalAprovarAberto} onClose={() => setModalAprovarAberto(false)}>
-        <DialogTitle
-          sx={{
-            color: theme.palette.mode === "dark" ? "#fff" : "inherit"
-          }}
-        >
+        <DialogTitle sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
           Aprovar comprovante
         </DialogTitle>
 
         <DialogContent>
-          <Typography
-            sx={{
-              color: theme.palette.mode === "dark" ? "#fff" : "inherit"
-            }}
-          >
+          <Typography sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
             Deseja aprovar esse comprovante de pagamento?
           </Typography>
         </DialogContent>
-
-        <DialogActions
-          sx={{
-            "& .MuiButton-root": {
-              color: theme.palette.mode === "dark" ? "#fff" : "inherit"
-            }
-          }}
-        >
-          <Button onClick={() => setModalAprovarAberto(false)}>
-            Não
-          </Button>
-
-          <Button
-            onClick={aprovarComprovante}
-            variant="contained"
-            color="success"
-          >
-            Sim
-          </Button>
+        <DialogActions sx={{ "& .MuiButton-root": { color: theme.palette.mode === "dark" ? "#fff" : "inherit" } }}>
+          <Button onClick={() => setModalAprovarAberto(false)}>Não</Button>
+          <Button onClick={aprovarComprovante} variant="contained" color="success">Sim</Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={modalReprovarAberto} onClose={() => setModalReprovarAberto(false)}>
-        <DialogTitle
-          sx={{
-            color: theme.palette.mode === "dark" ? "#fff" : "inherit"
-          }}
-        >
+        <DialogTitle sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
           Motivo da reprovação
         </DialogTitle>
 
@@ -466,67 +449,29 @@ export default function ListaMulta() {
             value={motivoReprovacao}
             onChange={(e) => setMotivoReprovacao(e.target.value)}
             sx={{
-              "& .MuiInputBase-input": {
-                color: theme.palette.mode === "dark" ? "#fff" : "inherit"
-              },
-              "& .MuiInputLabel-root": {
-                color: theme.palette.mode === "dark" ? "#fff" : "inherit"
-              }
+              "& .MuiInputBase-input": { color: theme.palette.mode === "dark" ? "#fff" : "inherit" },
+              "& .MuiInputLabel-root": { color: theme.palette.mode === "dark" ? "#fff" : "inherit" }
             }}
           />
         </DialogContent>
-
-        <DialogActions
-          sx={{
-            "& .MuiButton-root": {
-              color: theme.palette.mode === "dark" ? "#fff" : "inherit"
-            }
-          }}
-        >
-          <Button onClick={() => setModalReprovarAberto(false)}>
-            Cancelar
-          </Button>
-
-          <Button
-            onClick={reprovarComprovante}
-            variant="contained"
-            color="error"
-          >
-            Reprovar
-          </Button>
+        <DialogActions sx={{ "& .MuiButton-root": { color: theme.palette.mode === "dark" ? "#fff" : "inherit" } }}>
+          <Button onClick={() => setModalReprovarAberto(false)}>Cancelar</Button>
+          <Button onClick={reprovarComprovante} variant="contained" color="error">Reprovar</Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={modalExcluirAberto} onClose={() => setModalExcluirAberto(false)}>
-        <DialogTitle
-          sx={{
-            color: theme.palette.mode === "dark" ? "#fff" : "inherit"
-          }}
-        >
+        <DialogTitle sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
           Excluir Multa
         </DialogTitle>
 
         <DialogContent>
-          <Typography
-            sx={{
-              color: theme.palette.mode === "dark" ? "#fff" : "inherit"
-            }}
-          >
+          <Typography sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
             Você tem certeza que deseja excluir esta multa?
           </Typography>
         </DialogContent>
-
-        <DialogActions
-          sx={{
-            "& .MuiButton-root": {
-              color: theme.palette.mode === "dark" ? "#fff" : "inherit"
-            }
-          }}
-        >
-          <Button onClick={() => setModalExcluirAberto(false)}>
-            Cancelar
-          </Button>
-
+        <DialogActions sx={{ "& .MuiButton-root": { color: theme.palette.mode === "dark" ? "#fff" : "inherit" } }}>
+          <Button onClick={() => setModalExcluirAberto(false)}>Cancelar</Button>
           <Button
             onClick={async () => {
               if (multaSelecionada) {
