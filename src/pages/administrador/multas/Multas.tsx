@@ -67,13 +67,10 @@ export default function ListaMulta() {
 
     try {
       await MultaService.aprovarComprovante(multaSelecionada.idMulta!);
-
       setMensagem("Comprovante aprovado com sucesso!");
       setTipoMensagem("success");
       setSnackbarAberto(true);
-
       setModalAprovarAberto(false);
-
       await carregarMultas();
     } catch (error) {
       setMensagem("Erro ao aprovar comprovante.");
@@ -90,14 +87,11 @@ export default function ListaMulta() {
         multaSelecionada.idMulta!,
         motivoReprovacao
       );
-
       setMensagem("Comprovante reprovado com sucesso!");
       setTipoMensagem("success");
       setSnackbarAberto(true);
-
       setModalReprovarAberto(false);
       setMotivoReprovacao("");
-
       await carregarMultas();
     } catch (error) {
       setMensagem("Erro ao reprovar comprovante.");
@@ -177,21 +171,16 @@ export default function ListaMulta() {
       headerName: 'Classificação',
       flex: 1.5,
       renderCell: (params) => {
-        const classificacao = params.value || '';
-        let color;
-
-        switch (classificacao) {
-          case 'LEVE': color = 'success'; break;
-          case 'MEDIA': color = 'warning'; break;
-          case 'GRAVE': color = 'error'; break;
-          case 'GRAVISSIMA': color = 'error'; break;
-          default: color = 'default';
-        }
-
+        const map: any = {
+          LEVE: 'success',
+          MEDIA: 'warning',
+          GRAVE: 'error',
+          GRAVISSIMA: 'error'
+        };
         return (
           <Chip
-            label={classificacao}
-            color={color as any}
+            label={params.value}
+            color={map[params.value] || 'default'}
             size="small"
             variant="outlined"
           />
@@ -203,117 +192,81 @@ export default function ListaMulta() {
       headerName: 'Situação',
       width: 180,
       renderCell: (params) => {
-        const situacao = params.value || '';
-
-        const getColor = () => {
-          switch (situacao) {
-            case "PAGA": return "#2e7d32";
-            case "ANALISE PENDENTE": return "#1976d2";
-            case "AGUARDANDO COMPROVANTE": return "#6a1b9a";
-            case "PENDENTE DE ACAO": return "#ed6c02";
-            case "ATRIBUIDA": return "#f9a825";
-            case "MOTORISTA NAO IDENTIFICADO": return "#616161";
-            default: return "#d32f2f";
-          }
+        const cores: any = {
+          "PAGA": "#2e7d32",
+          "ANALISE PENDENTE": "#1976d2",
+          "AGUARDANDO COMPROVANTE": "#6a1b9a",
+          "PENDENTE DE ACAO": "#ed6c02",
+          "ATRIBUIDA": "#f9a825",
+          "MOTORISTA NAO IDENTIFICADO": "#616161"
         };
-
-        const color = getColor();
-
+        const color = cores[params.value] || "#d32f2f";
         return (
           <Chip
-            label={situacao}
+            label={params.value}
             size="small"
             variant="outlined"
             sx={{
-              color: color,
+              color,
               borderColor: color,
               fontWeight: 600,
               backgroundColor: "transparent"
             }}
           />
         );
-      },
+      }
     },
     { field: 'autoInfracao', headerName: 'Número do auto', flex: 1 },
     {
       field: 'comprovantePagamento',
       headerName: 'Comprovante',
-      flex: 1,
+      flex: 1.5,
       sortable: false,
       renderCell: (params) => {
         const url = params.row.urlComprovantePagamento;
-
-        return (
-          <Tooltip title="Visualizar comprovante">
-            <Button
-              variant="contained"
-              size="small"
-              disabled={!url}
-              onClick={async () => {
-                if (!url) return;
-
-                const fileName = url.split('/').pop()!;
-                const blob = await MultaService.downloadArquivo(fileName);
-                const fileURL = window.URL.createObjectURL(blob);
-
-                window.open(fileURL, '_blank');
-              }}
-              sx={{
-                width: 42,
-                height: 42,
-                minWidth: 42,
-                padding: 0,
-                borderRadius: 1,
-                "& .MuiButton-startIcon": { margin: 0 },
-              }}
-            >
-              <VisibilityIcon />
-            </Button>
-          </Tooltip>
-        );
-      }
-    },
-    {
-      field: 'acoes',
-      headerName: 'Ações',
-      width: 220,
-      sortable: false,
-      filterable: false,
-      renderCell: (params) => {
-        const possuiComprovante = Boolean(params.row.urlComprovantePagamento);
-
+        const possuiComprovante = Boolean(url);
         const jaAnalisado =
           params.row.situacao === "PAGA" ||
           params.row.situacao === "PENDENTE DE ACAO";
 
         return (
           <Box sx={{ display: "flex", gap: 1 }}>
-            <Tooltip title="Aprovar comprovante">
+            <Tooltip title="Visualizar comprovante">
               <Button
                 variant="contained"
+                size="small"
+                disabled={!url}
+                onClick={async () => {
+                  const fileName = url.split('/').pop()!;
+                  const blob = await MultaService.downloadArquivo(fileName);
+                  window.open(URL.createObjectURL(blob));
+                }}
+                sx={{ width: 42, height: 42, minWidth: 42 }}
+              >
+                <VisibilityIcon />
+              </Button>
+            </Tooltip>
+
+            <Tooltip title="Aprovar">
+              <Button
                 color="success"
+                variant="contained"
                 size="small"
                 disabled={!possuiComprovante || jaAnalisado}
                 onClick={() => {
                   setMultaSelecionada(params.row);
                   setModalAprovarAberto(true);
                 }}
-                sx={{
-                  width: 42,
-                  height: 42,
-                  minWidth: 42,
-                  padding: 0,
-                  borderRadius: 1,
-                }}
+                sx={{ width: 42, height: 42, minWidth: 42 }}
               >
                 ✓
               </Button>
             </Tooltip>
 
-            <Tooltip title="Reprovar comprovante">
+            <Tooltip title="Reprovar">
               <Button
-                variant="contained"
                 color="error"
+                variant="contained"
                 size="small"
                 disabled={!possuiComprovante || jaAnalisado}
                 onClick={() => {
@@ -324,66 +277,59 @@ export default function ListaMulta() {
                   width: 42,
                   height: 42,
                   minWidth: 42,
-                  padding: 0,
-                  borderRadius: 1,
-                  color:
-                    theme.palette.mode === "dark"
-                      ? "rgba(0,0,0,0.87)"
-                      : undefined,
+                  color: theme.palette.mode === "dark" ? "rgba(0,0,0,0.87)" : undefined
                 }}
               >
                 ✕
               </Button>
             </Tooltip>
-
-            <Tooltip title="Editar multa">
-              <Button
-                variant="contained"
-                color="warning"
-                size="small"
-                onClick={() => {
-                  setMultaSelecionada(params.row);
-                  setModalEditarAberto(true);
-                }}
-                startIcon={<CreateIcon />}
-                sx={{
-                  width: 42,
-                  height: 42,
-                  minWidth: 42,
-                  padding: 0,
-                  borderRadius: 1,
-                  "& .MuiButton-startIcon": { margin: 0 },
-                }}
-              />
-            </Tooltip>
-
-            <Tooltip title="Excluir multa">
-              <Button
-                variant="contained"
-                color="error"
-                size="small"
-                onClick={() => {
-                  setMultaSelecionada(params.row);
-                  setModalExcluirAberto(true);
-                }}
-                startIcon={<CancelIcon />}
-                sx={{
-                  width: 42,
-                  height: 42,
-                  minWidth: 42,
-                  padding: 0,
-                  borderRadius: 1,
-                  "& .MuiButton-startIcon": { margin: 0 },
-                  color:
-                    theme.palette.mode === "dark"
-                      ? "rgba(0, 0, 0, 0.87)"
-                      : undefined,
-                }}
-              />
-            </Tooltip>
           </Box>
         );
       }
+    },
+    {
+      field: 'acoes',
+      headerName: 'Ações',
+      width: 140,
+      sortable: false,
+      renderCell: (params) => (
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <Tooltip title="Editar">
+            <Button
+              color="warning"
+              variant="contained"
+              size="small"
+              onClick={() => {
+                setMultaSelecionada(params.row);
+                setModalEditarAberto(true);
+              }}
+              sx={{ width: 42, height: 42, minWidth: 42 }}
+            >
+              <CreateIcon />
+            </Button>
+          </Tooltip>
+
+          <Tooltip title="Excluir">
+            <Button
+              color="error"
+              variant="contained"
+              size="small"
+              onClick={() => {
+                setMultaSelecionada(params.row);
+                setModalExcluirAberto(true);
+              }}
+              sx={{
+                width: 42,
+                height: 42,
+                minWidth: 42,
+                color: theme.palette.mode === "dark" ? "rgba(0,0,0,0.87)" : undefined
+              }}
+            >
+              <CancelIcon />
+            </Button>
+          </Tooltip>
+        </Box>
+      )
     }
   ];
 
