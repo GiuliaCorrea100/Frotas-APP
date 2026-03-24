@@ -1,6 +1,7 @@
 import { Add } from '@mui/icons-material';
 import CreateIcon from "@mui/icons-material/Create";
 import CancelIcon from "@mui/icons-material/Cancel";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import {
   Box,
   Button,
@@ -206,20 +207,13 @@ export default function ListaMulta() {
 
         const getColor = () => {
           switch (situacao) {
-            case "PAGA":
-              return "#2e7d32";
-            case "ANALISE PENDENTE":
-              return "#1976d2";
-            case "AGUARDANDO COMPROVANTE":
-              return "#6a1b9a";
-            case "PENDENTE DE ACAO":
-              return "#ed6c02";
-            case "ATRIBUIDA":
-              return "#f9a825";
-            case "MOTORISTA NAO IDENTIFICADO":
-              return "#616161";
-            default:
-              return "#d32f2f";
+            case "PAGA": return "#2e7d32";
+            case "ANALISE PENDENTE": return "#1976d2";
+            case "AGUARDANDO COMPROVANTE": return "#6a1b9a";
+            case "PENDENTE DE ACAO": return "#ed6c02";
+            case "ATRIBUIDA": return "#f9a825";
+            case "MOTORISTA NAO IDENTIFICADO": return "#616161";
+            default: return "#d32f2f";
           }
         };
 
@@ -243,29 +237,39 @@ export default function ListaMulta() {
     { field: 'autoInfracao', headerName: 'Número do auto', flex: 1 },
     {
       field: 'comprovantePagamento',
-      headerName: 'Comprovante Pagamento',
-      flex: 1.5,
+      headerName: 'Comprovante',
+      flex: 1,
       sortable: false,
       renderCell: (params) => {
         const url = params.row.urlComprovantePagamento;
 
         return (
-          <Button
-            size="small"
-            variant="outlined"
-            disabled={!url}
-            onClick={async () => {
-              if (!url) return;
+          <Tooltip title="Visualizar comprovante">
+            <Button
+              variant="contained"
+              size="small"
+              disabled={!url}
+              onClick={async () => {
+                if (!url) return;
 
-              const fileName = url.split('/').pop()!;
-              const blob = await MultaService.downloadArquivo(fileName);
-              const fileURL = window.URL.createObjectURL(blob);
+                const fileName = url.split('/').pop()!;
+                const blob = await MultaService.downloadArquivo(fileName);
+                const fileURL = window.URL.createObjectURL(blob);
 
-              window.open(fileURL, '_blank');
-            }}
-          >
-            Visualizar Comprovante
-          </Button>
+                window.open(fileURL, '_blank');
+              }}
+              sx={{
+                width: 42,
+                height: 42,
+                minWidth: 42,
+                padding: 0,
+                borderRadius: 1,
+                "& .MuiButton-startIcon": { margin: 0 },
+              }}
+            >
+              <VisibilityIcon />
+            </Button>
+          </Tooltip>
         );
       }
     },
