@@ -22,8 +22,10 @@ import { useEffect, useMemo, useState } from 'react';
 import React from 'react';
 import Menu from '../../../components/Menu';
 import { MultaDto, MultaService } from '../../../services/MultaService';
+import { RecursoService } from '../../../services/RecursoService';
 import CadastroMultaModal from './ModalCadastroMulta';
 import EditarMultaModal from './ModalEdicaoMulta';
+import ModalVisualizarRecurso from '../../motorista/modais/ModalVisualizarRecurso';
 
 export default function ListaMulta() {
   const theme = useTheme();
@@ -45,6 +47,9 @@ export default function ListaMulta() {
   const [tipoMensagem, setTipoMensagem] = useState<"success" | "error" | "warning" | "info">("success");
   const [snackbarAberto, setSnackbarAberto] = useState(false);
 
+  const [modalRecursoAberto, setModalRecursoAberto] = useState(false);
+  const [recursoSelecionado, setRecursoSelecionado] = useState<any>(null);
+
   useEffect(() => {
     carregarMultas();
   }, []);
@@ -59,6 +64,28 @@ export default function ListaMulta() {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleVisualizarRecurso = async (multa: MultaDto) => {
+    if (!multa.idMulta) return;
+
+    try {
+      const recurso = await RecursoService.buscarPorMulta(multa.idMulta);
+
+      if (!recurso) {
+        setMensagem("Nenhum recurso encontrado.");
+        setTipoMensagem("warning");
+        setSnackbarAberto(true);
+        return;
+      }
+
+      setRecursoSelecionado(recurso);
+      setModalRecursoAberto(true);
+    } catch (error) {
+      setMensagem("Erro ao buscar recurso.");
+      setTipoMensagem("error");
+      setSnackbarAberto(true);
     }
   };
 
@@ -288,6 +315,24 @@ export default function ListaMulta() {
       }
     },
     {
+      field: 'recurso',
+      headerName: 'Recurso',
+      width: 100,
+      sortable: false,
+      renderCell: (params) => (
+        <Tooltip title="Visualizar recurso">
+          <Button
+            variant="contained"
+            size="small"
+            onClick={() => handleVisualizarRecurso(params.row)}
+            sx={{ width: 42, height: 42, minWidth: 42 }}
+          >
+            <VisibilityIcon />
+          </Button>
+        </Tooltip>
+      )
+    },
+    {
       field: 'acoes',
       headerName: 'Ações',
       width: 140,
@@ -457,6 +502,15 @@ export default function ListaMulta() {
           setModalEditarAberto(false);
         }}
         onError={() => {}}
+      />
+
+      <ModalVisualizarRecurso
+        open={modalRecursoAberto}
+        onClose={() => {
+          setModalRecursoAberto(false);
+          setRecursoSelecionado(null);
+        }}
+        recurso={recursoSelecionado}
       />
 
       <Snackbar
