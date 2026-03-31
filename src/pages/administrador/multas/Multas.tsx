@@ -319,18 +319,25 @@ export default function ListaMulta() {
       headerName: 'Recurso',
       width: 100,
       sortable: false,
-      renderCell: (params) => (
-        <Tooltip title="Visualizar recurso">
-          <Button
-            variant="contained"
-            size="small"
-            onClick={() => handleVisualizarRecurso(params.row)}
-            sx={{ width: 42, height: 42, minWidth: 42 }}
-          >
-            <VisibilityIcon />
-          </Button>
-        </Tooltip>
-      )
+      renderCell: (params) => {
+        const temRecurso = !!params.row.possuiRecurso;
+        return (
+          <Tooltip title={temRecurso ? "Visualizar recurso" : "Sem recurso solicitado"}>
+            <span>
+              <Button
+                variant="contained"
+                size="small"
+                color="primary"
+                disabled={!temRecurso}
+                onClick={() => handleVisualizarRecurso(params.row)}
+                sx={{ width: 42, height: 42, minWidth: 42 }}
+              >
+                <VisibilityIcon />
+              </Button>
+            </span>
+          </Tooltip>
+        );
+      }
     },
     {
       field: 'acoes',

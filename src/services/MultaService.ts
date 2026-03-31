@@ -14,6 +14,7 @@ export interface MultaDto {
   urlComprovantePagamento?: string | null;
   idMotorista?: number;
   nomeMotorista?: string;
+  possuiRecurso?: boolean;
   motorista?: {
     idUsuario?: number;
     nome?: string;
@@ -212,6 +213,4 @@ export class MultaService {
       throw error;
     }
   }
-
- 
 }
