@@ -352,7 +352,7 @@ export default function ListaCorrida() {
               <span>
                 <Button
                   variant="contained"
-                  color="success"
+                  color="primary"
                   size="small"
                   onClick={() =>
                     navigate(`/DetalhesCorrida/${corrida.idCorrida}`)
