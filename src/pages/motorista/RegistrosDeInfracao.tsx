@@ -9,8 +9,6 @@ import {
   TextField,
   Tooltip,
   Chip,
-  Snackbar,
-  Alert as MuiAlert,
 } from "@mui/material";
 import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -20,7 +18,6 @@ import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from '@mui/icons-material/Close';
 import ClearIcon from "@mui/icons-material/Clear";
 import { jwtDecode } from "jwt-decode";
-import Menu from "../../components/Menu";
 import { MultaDto, MultaService } from "../../services/MultaService";
 import { useAuth } from "../../context/AuthContext";
 import { decodeToken } from "../../utils/jwtDecodeHelper";
@@ -65,9 +62,8 @@ export default function RegistrosDeInfracao() {
   const [busca, setBusca] = useState("");
   const [openRecursoModal, setOpenRecursoModal] = useState(false);
   const [selectedMulta, setSelectedMulta] = useState<MultaDto | null>(null);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [removeSuccess, setRemoveSuccess] = useState(false);
+  
+  const [mensagemSucesso, setMensagemSucesso] = useState("");
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -131,7 +127,7 @@ export default function RegistrosDeInfracao() {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `boleto_${multa.placaVeiculo}.pdf`;
+    link.download = `boleto_${multa.placaVeiculo}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -149,22 +145,23 @@ export default function RegistrosDeInfracao() {
 
   const handleRecursoError = (error: any) => {
     console.error("Erro ao solicitar recurso:", error);
-    setUploadError("Erro ao solicitar recurso. Tente novamente.");
+    setMensagemSucesso("Erro ao solicitar recurso. Tente novamente.");
+    setTimeout(() => setMensagemSucesso(""), 6000);
   };
 
   const handleUploadSuccess = () => {
-    setUploadSuccess(true);
-    setTimeout(() => setUploadSuccess(false), 6000);
+    setMensagemSucesso("Comprovante de pagamento enviado com sucesso!");
+    setTimeout(() => setMensagemSucesso(""), 6000);
   };
 
   const handleRemoveSuccess = () => {
-    setRemoveSuccess(true);
-    setTimeout(() => setRemoveSuccess(false), 6000);
+    setMensagemSucesso("Comprovante de pagamento removido com sucesso!");
+    setTimeout(() => setMensagemSucesso(""), 6000);
   };
 
   const handleError = (message: string) => {
-    setUploadError(message);
-    setTimeout(() => setUploadError(null), 6000);
+    setMensagemSucesso(message);
+    setTimeout(() => setMensagemSucesso(""), 6000);
   };
 
   const columns: GridColDef<MultaDto>[] = [
@@ -368,92 +365,102 @@ export default function RegistrosDeInfracao() {
           </Typography>
         </Box>
 
-        <Box sx={{ mb: 3 }}>
-          <TextField
-            placeholder="Buscar infrações..."
-            variant="outlined"
-            size="small"
-            value={busca}
-            onChange={(e) => buscar(e.target.value)}
-            fullWidth
-            InputProps={{
-              startAdornment: (
-                <SearchIcon color="action" style={{ marginRight: 8 }} />
-              ),
-              endAdornment: busca && (
-                <ClearIcon
-                  color="action"
-                  style={{ cursor: "pointer" }}
-                  onClick={limparBusca}
-                />
-              ),
-            }}
+        
+        {mensagemSucesso && (
+          <Alert
+            severity="success"
             sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 2,
-                backgroundColor: theme.palette.background.paper,
+              mb: 3,
+              fontSize: "1.1rem",
+              border: "1px solid",
+              borderColor: "success.main",
+              borderRadius: 1.5,
+            }}
+            onClose={() => setMensagemSucesso("")}
+          >
+            {mensagemSucesso}
+          </Alert>
+        )}
+
+        <Box
+          sx={{
+            bgcolor: theme.palette.mode === "light" ? "#FFF" : theme.palette.background.paper,
+            borderRadius: 2,
+            py: 2,
+            mb: 0,
+            boxShadow: theme.palette.mode === "dark"
+              ? "0px 4px 20px rgba(0, 0, 0, 0.3)"
+              : "0px 8px 24px rgba(0, 0, 0, 0.08)",
+            border: theme.palette.mode === "dark"
+              ? "1px solid transparent"
+              : "1px solid #E7E9EE",
+          }}
+        >
+          <Box sx={{ mb: 3, mx: 3 }}>
+            <TextField
+              placeholder="Buscar infrações..."
+              variant="outlined"
+              size="small"
+              value={busca}
+              onChange={(e) => buscar(e.target.value)}
+              fullWidth
+              InputProps={{
+                startAdornment: (
+                  <SearchIcon color="action" style={{ marginRight: 8 }} />
+                ),
+                endAdornment: busca && (
+                  <ClearIcon
+                    color="action"
+                    style={{ cursor: "pointer" }}
+                    onClick={limparBusca}
+                  />
+                ),
+              }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                  backgroundColor: theme.palette.background.paper,
+                },
+              }}
+            />
+          </Box>
+
+          <DataGrid
+            rows={multasFiltradas}
+            columns={columns}
+            loading={loading}
+            getRowId={(row) =>
+              row.idMulta ?? `${row.placaVeiculo}-${row.dataInfracao}`
+            }
+            initialState={{
+              pagination: { paginationModel: { pageSize: 8, page: 0 } },
+            }}
+            pageSizeOptions={[8, 16, 24]}
+            localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+            rowSelection={false}
+            rowHeight={50}
+            columnHeaderHeight={60}
+            autoHeight
+            sx={{
+              "& .MuiDataGrid-columnHeaders": {
+                "& .MuiDataGrid-columnHeader:first-child": {
+                  pl: 4,
+                },
+                "& .MuiDataGrid-columnHeader:last-child": {
+                  pr: 4,
+                },
+              },
+              "& .MuiDataGrid-row": {
+                "& .MuiDataGrid-cell:first-child": {
+                  pl: 4,
+                },
+                "& .MuiDataGrid-cell:last-child": {
+                  pr: 4,
+                },
               },
             }}
           />
         </Box>
-
-        <Box sx={{ mb: 2 }}>
-          {uploadSuccess && (
-            <Alert 
-              severity="success" 
-              sx={{ mb: 1 }}
-              onClose={() => setUploadSuccess(false)}
-            >
-              Comprovante de pagamento enviado com sucesso!
-            </Alert>
-          )}
-
-          {removeSuccess && (
-            <Alert 
-              severity="success" 
-              sx={{ mb: 1 }}
-              onClose={() => setRemoveSuccess(false)}
-            >
-              Comprovante de pagamento removido com sucesso!
-            </Alert>
-          )}
-
-          {uploadError && (
-            <Alert 
-              severity="error" 
-              sx={{ mb: 1 }}
-              onClose={() => setUploadError(null)}
-            >
-              {uploadError}
-            </Alert>
-          )}
-
-          {error && (
-            <Alert 
-              severity="error" 
-              sx={{ mb: 1 }}
-              onClose={() => setError(null)}
-            >
-              {error}
-            </Alert>
-          )}
-        </Box>
-
-        <DataGrid
-          rows={multasFiltradas}
-          columns={columns}
-          loading={loading}
-          getRowId={(row) =>
-            row.idMulta ?? `${row.placaVeiculo}-${row.dataInfracao}`
-          }
-          initialState={{
-            pagination: { paginationModel: { pageSize: 8, page: 0 } },
-          }}
-          pageSizeOptions={[8, 16, 24]}
-          localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
-          rowSelection={false}
-          sx={{ height: "calc(100vh - 320px)" }}
-        />
       </Box>
 
       <SolicitarRecursoModal
@@ -462,12 +469,13 @@ export default function RegistrosDeInfracao() {
           setOpenRecursoModal(false);
           setSelectedMulta(null);
         }}
-        onSuccess={handleRecursoSuccess}
+        onSuccess={(message) => {
+          setMensagemSucesso(message);
+        }}
         onError={handleRecursoError}
         multaId={selectedMulta?.idMulta}
       />
 
-      
     </AppLayout>
   );
 }

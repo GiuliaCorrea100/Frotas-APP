@@ -28,7 +28,7 @@ interface AbastecimentoModalProps {
   open: boolean;
   onClose: () => void;
   corrida?: CorridaFrontend;
-  onSuccess?: () => void;
+  onSuccess: (message: string) => void;
 }
 
 const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
@@ -211,7 +211,8 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
     try {
       setLoading(true);
       await AbastecimentoService.cadastrarAbastecimento(dadosParaCadastro);
-      setSuccessMessage("Abastecimento cadastrado com sucesso!");
+      
+      const mensagem = "Abastecimento cadastrado com sucesso!";
 
       setTimeout(() => {
         setSuccessMessage("");
@@ -226,7 +227,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
           idCorrida: corrida?.idCorrida ? corrida?.idCorrida.toString() : "",
         });
 
-        if (onSuccess) onSuccess();
+        if (onSuccess) onSuccess(mensagem);
         onClose();
       }, 1500);
     } catch (error: any) {
