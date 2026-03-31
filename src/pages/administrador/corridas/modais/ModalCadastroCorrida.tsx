@@ -271,11 +271,11 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
 
       await createCorrida(corridaParaEnviar);
 
-      setSuccessMessage("Corrida cadastrada com sucesso!");
+      const mensagem = "Corrida registrada com sucesso!";
+  
 
       setTimeout(() => {
-        setSuccessMessage("");
-        onSuccess("Corrida cadastrada com sucesso!");
+        onSuccess(mensagem);
         onClose();
       }, 1500);
     } catch (error: unknown) {

@@ -190,7 +190,7 @@ export default function HistoricoIndividual() {
           <span>
             <Button
               variant="contained"
-              color="success"
+              color="primary"
               size="small"
               onClick={() => handleOpenDetails(params.row)}
               startIcon={<Visibility />}

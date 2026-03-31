@@ -73,11 +73,11 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
 
       await inserirPercursoCompleto(corrida, dadosPercurso);
 
-      setSuccessMessage("Percurso cadastrado com sucesso!");
+      const mensagem = "Percurso cadastrado com sucesso!";
 
       setTimeout(() => {
         setSuccessMessage("");
-        onSuccess("Percurso cadastrado com sucesso!");
+        onSuccess(mensagem);
         onClose();
       }, 1500);
     } catch (error) {

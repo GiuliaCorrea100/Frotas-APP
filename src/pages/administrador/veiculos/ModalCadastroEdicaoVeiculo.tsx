@@ -52,7 +52,6 @@ const ModalCadastroEdicaoVeiculo: React.FC<ModalCadastroEdicaoVeiculoProps> = ({
     useState<TipoCombustivel[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState<boolean>(false);
-  const [successMessage, setSuccessMessage] = useState("");
   const [modoEdicao, setModoEdicao] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -81,7 +80,6 @@ const ModalCadastroEdicaoVeiculo: React.FC<ModalCadastroEdicaoVeiculoProps> = ({
     const carregarDadosFormulario = async () => {
       setLoading(true);
       setErrors({});
-      setSuccessMessage("");
 
       try {
         // 1. Carrega tipos de combustível primeiro
@@ -224,13 +222,8 @@ const ModalCadastroEdicaoVeiculo: React.FC<ModalCadastroEdicaoVeiculoProps> = ({
         ? "Veículo atualizado com sucesso!"
         : "Veículo cadastrado com sucesso!";
 
-      setSuccessMessage(mensagem);
-
-      setTimeout(() => {
-        setSuccessMessage("");
-        onSuccess(mensagem);
-        onClose();
-      }, 1500);
+      onSuccess(mensagem);
+      onClose();
     } catch (error: any) {
       const mensagemErro =
         error.response?.data?.message ||
@@ -281,11 +274,6 @@ const ModalCadastroEdicaoVeiculo: React.FC<ModalCadastroEdicaoVeiculoProps> = ({
           </IconButton>
         </Box>
 
-        {successMessage && (
-          <Alert severity="success" sx={{ mb: 3 }}>
-            {successMessage}
-          </Alert>
-        )}
         {errors.geral && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {errors.geral}
@@ -430,14 +418,14 @@ const ModalCadastroEdicaoVeiculo: React.FC<ModalCadastroEdicaoVeiculoProps> = ({
           <Button
             onClick={onClose}
             variant="outlined"
-            disabled={loading || isSubmitting || !!successMessage}
+            disabled={loading || isSubmitting}
           >
             Cancelar
           </Button>
           <Button
             onClick={handleSubmit}
             variant="contained"
-            disabled={loading || isSubmitting || !!successMessage}
+            disabled={loading || isSubmitting}
           >
             {isSubmitting ? (
               <>

@@ -269,8 +269,8 @@ const Menu: React.FC = () => {
               ml: 3,
               fontSize: isMobile ? "1rem" : "1.25rem",
             }}
-            component={Link}
-            to={isAuthenticated ? "/menu" : "/"}
+            // component={Link}
+            // to={isAuthenticated ? "/menu" : "/"}
           >
             SISTEMA FROTAS
           </Typography>

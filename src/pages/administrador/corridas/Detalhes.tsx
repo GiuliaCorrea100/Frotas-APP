@@ -14,6 +14,7 @@ import {
   DialogTitle,
   Dialog,
   Tooltip,
+  Alert,
 } from "@mui/material";
 import CreateIcon from "@mui/icons-material/Create";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -53,6 +54,8 @@ const DetalhesRequisicao: React.FC = () => {
   const [ocorrencias, setOcorrencias] = useState<OcorrenciaDto[]>([]);
   const [abastecimentos, setAbastecimento] = useState<Abastecimento[]>([]);
   const [percursos, setPercursos] = useState<PercursoDto[]>([]);
+
+  const [mensagemSucesso, setMensagemSucesso] = useState("");
 
   const [modalEditarOcorrenciaAberto, setModalEditarOcorrenciaAberto] =
     useState(false);
@@ -582,6 +585,22 @@ const DetalhesRequisicao: React.FC = () => {
 
   return (
     <AppLayout>
+      {mensagemSucesso && (
+                <Alert
+                  severity="success"
+                  sx={{
+                    mb: 3,
+                    fontSize: "1.1rem",
+                    border: "1px solid",
+                    borderColor: "success.main",
+                    borderRadius: 1.5,
+                  }}
+                  onClose={() => setMensagemSucesso("")}
+                >
+                  {mensagemSucesso}
+                </Alert>
+              )}
+              
       <Box mt={1.5}>
         {/* Card de Informações Básicas */}
         <Card
@@ -1171,8 +1190,13 @@ const DetalhesRequisicao: React.FC = () => {
           open={modalCadastroOcorrenciaAberto}
           onClose={handleFecharModalCadastroOcorrencia}
           corrida={idcorridaNumber}
-          onSuccess={async () => {
-            await carregarDados();
+          onSuccess={async (message) => {
+            setMensagemSucesso(message);
+            try {
+              await carregarDados();
+            } catch (error) {
+              console.error(error);
+            }
           }}
           onError={(erro) => {
             console.error("Erro ao salvar ocorrência:", erro);
@@ -1186,8 +1210,13 @@ const DetalhesRequisicao: React.FC = () => {
           open={modalEditarOcorrenciaAberto}
           ocorrencia={ocorrenciaSelecionada}
           onClose={handleFecharModalEditarOcorrencia}
-          onSuccess={async (msg) => {
-            await carregarDados();
+          onSuccess={async (message) => {
+            setMensagemSucesso(message);
+            try {
+              await carregarDados();
+            } catch (error) {
+              console.error(error);
+            }
           }}
           onError={(err) => {
             console.error(err);
@@ -1200,9 +1229,15 @@ const DetalhesRequisicao: React.FC = () => {
           open={modalCadastroAbertoAbastecimento}
           corrida={corrida}
           onClose={handleFecharModalCadastroAbastecimento}
-          onSuccess={async () => {
-            await carregarDados();
+           onSuccess={async (message) => {
+            setMensagemSucesso(message);
+            try {
+              await carregarDados();
+            } catch (error) {
+              console.error(error);
+            }
           }}
+
         />
       )}
 
@@ -1212,8 +1247,13 @@ const DetalhesRequisicao: React.FC = () => {
           abastecimento={abastecimentoSelecionado}
           corrida={corrida}
           onClose={handleFecharModalEditarAbastecimento}
-          onSuccess={async () => {
-            await carregarDados();
+          onSuccess={async (message) => {
+            setMensagemSucesso(message);
+            try {
+              await carregarDados();
+            } catch (error) {
+              console.error(error);
+            }
           }}
           onError={(err) => {
             console.error(err);
@@ -1225,8 +1265,13 @@ const DetalhesRequisicao: React.FC = () => {
         <CadastrarPercursosModal
           open={modalCadastrarPercursoAberto}
           onClose={handleFecharModalCadastroPercurso}
-          onSuccess={async (msg) => {
-            await carregarDados();
+          onSuccess={async (message) => {
+            setMensagemSucesso(message);
+            try {
+              await carregarDados();
+            } catch (error) {
+              console.error(error);
+            }
           }}
           onError={(err) => {
             console.error(err);
@@ -1240,8 +1285,13 @@ const DetalhesRequisicao: React.FC = () => {
           open={modalEditarPercursoAberto}
           percurso={percursoSelecionado}
           onClose={handleFecharModalEditarPercurso}
-          onSuccess={async (msg) => {
-            await carregarDados();
+          onSuccess={async (message) => {
+            setMensagemSucesso(message);
+            try {
+              await carregarDados();
+            } catch (error) {
+              console.error(error);
+            }
           }}
           onError={(err) => {
             console.error(err);

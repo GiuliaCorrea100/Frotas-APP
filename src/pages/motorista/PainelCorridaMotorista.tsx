@@ -2,7 +2,7 @@ import { useAuth } from '../../context/AuthContext';
 import { decodeToken } from "../../utils/jwtDecodeHelper";
 import axiosConnect from '../../services/axios/axiosConnect'; 
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Paper, ButtonBase, Tooltip, CircularProgress } from "@mui/material";
+import { Box, Typography, Paper, ButtonBase, Tooltip, CircularProgress, Alert } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 
 import {
@@ -83,6 +83,8 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
   const [isUltimoPercurso, setIsUltimoPercurso] = useState(false);
 
   const [chaveEmprestada, setChaveEmprestada] = useState(false);
+
+  const [mensagemSucesso, setMensagemSucesso] = useState("");
 
   useEffect(() => {
     if (!corridaLocal && idCorrida) {
@@ -217,7 +219,8 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
 
   if (corridaLocal?.situacao === "FINALIZADA") {
     return (
-      <Box sx={{ p: 4, maxWidth: 800, mx: "auto", textAlign: "center" }}>
+      <AppLayout>
+        <Box sx={{ p: 4, maxWidth: 800, mx: "auto", textAlign: "center" }}>
         <Typography variant="h5" fontWeight="bold" gutterBottom>
           Corrida Finalizada
         </Typography>
@@ -229,6 +232,8 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
           Nenhuma ação disponível para corridas finalizadas.
         </Typography>
       </Box>
+      </AppLayout>
+      
     );
   }
 
@@ -392,6 +397,23 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
 
   return (
     <AppLayout>
+
+      {mensagemSucesso && (
+        <Alert
+          severity="success"
+          sx={{
+            mb: 3,
+            fontSize: "1.1rem",
+            border: "1px solid",
+            borderColor: "success.main",
+            borderRadius: 1.5,
+          }}
+          onClose={() => setMensagemSucesso("")}
+          >
+            {mensagemSucesso}
+          </Alert>
+        )}
+
       <BemVindo />
       <Box sx={{ p: 4, maxWidth: 800, mx: "auto" }}>
         <Box sx={{ mb: 4 }}>
@@ -523,9 +545,14 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
             chaveEmprestada={chaveEmprestada}
             onClose={fecharModalOcorrencia}
             corrida={corridaLocal?.idCorrida}
-            onSuccess={() => {
-              fecharModalOcorrencia();
-            }}
+            onSuccess={async (message) => {
+            setMensagemSucesso(message);
+            try {
+              await fecharModalOcorrencia();
+            } catch (error) {
+              console.error(error);
+            }
+          }}
             onError={(erro) => {
               console.error("Erro ao salvar ocorrência:", erro);
             }}
@@ -537,8 +564,13 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
             open={modalAbastecimentoAberto}
             onClose={fecharModalAbastecimento}
             corrida={corridaLocal}
-            onSuccess={() => {
-              fecharModalAbastecimento();
+            onSuccess={async (message) => {
+              setMensagemSucesso(message);
+              try {
+                await fecharModalAbastecimento();
+              } catch (error) {
+                console.error(error);
+              }
             }}
           />
         )}
@@ -556,6 +588,7 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
           <ModalIniciarPercurso
             open={modalIniciarOpen}
             onClose={handleCloseIniciarModal}
+            onSuccess={async (message) => {setMensagemSucesso(message);}}
             onConfirm={handleIniciarPercurso}
             destino={destino}
             setDestino={setDestino}
@@ -574,6 +607,7 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
           <ModalFinalizarPercurso
             open={modalFinalizarOpen}
             onClose={handleCloseFinalizarModal}
+            onSuccess={async (message) => {setMensagemSucesso(message);}}
             onConfirm={handleFinalizarPercurso}
             odometroFinal={odometroFinal}
             setOdometroFinal={setOdometroFinal}
@@ -581,21 +615,21 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
           />
         )}
 
-        {successModalOpen && (
+        {/* {successModalOpen && (
           <ModalSucesso
             open={successModalOpen}
             onClose={handleSuccessClose}
             title="Percurso iniciado com sucesso"
           />
-        )}
+        )} */}
 
-        {finalizeSuccessModalOpen && (
+        {/* {finalizeSuccessModalOpen && (
           <ModalSucesso
             open={finalizeSuccessModalOpen}
             onClose={handleFinalizeSuccessClose}
             title="Percurso finalizado com sucesso"
           />
-        )}
+        )} */}
       </Box>
     </AppLayout>
   );

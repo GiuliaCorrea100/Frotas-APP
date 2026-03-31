@@ -60,9 +60,9 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
 
       await OcorrenciaService.criar(dadosOcorrencia);
 
-      setSuccessMessage("Ocorrência cadastrada com sucesso!");
+      const mensagem = "Ocorrência cadastrada com sucesso!";
 
-      onSuccess("Ocorrência cadastrada com sucesso!");
+      onSuccess(mensagem);
 
       setTimeout(() => {
         onClose();
