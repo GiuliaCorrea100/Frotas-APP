@@ -22,5 +22,15 @@ export class RecursoService {
         }
     }
 
+    static async buscarPorMulta(idMulta: number): Promise<recursoDto | null> {
+        try {
+            const response = await axiosConnect.get(`/recurso/multa/${idMulta}`);
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao buscar recurso:", error);
+            return null;
+        }
+        }
+
 
 }
