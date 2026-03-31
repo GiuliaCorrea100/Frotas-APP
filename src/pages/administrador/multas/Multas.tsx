@@ -1,6 +1,7 @@
 import { Add } from '@mui/icons-material';
 import CreateIcon from "@mui/icons-material/Create";
 import CancelIcon from "@mui/icons-material/Cancel";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import {
   Box,
   Button,
@@ -21,8 +22,10 @@ import { useEffect, useMemo, useState } from 'react';
 import React from 'react';
 import Menu from '../../../components/Menu';
 import { MultaDto, MultaService } from '../../../services/MultaService';
+import { RecursoService } from '../../../services/RecursoService';
 import CadastroMultaModal from './ModalCadastroMulta';
 import EditarMultaModal from './ModalEdicaoMulta';
+import ModalVisualizarRecurso from '../../motorista/modais/ModalVisualizarRecurso';
 
 export default function ListaMulta() {
   const theme = useTheme();
@@ -44,6 +47,9 @@ export default function ListaMulta() {
   const [tipoMensagem, setTipoMensagem] = useState<"success" | "error" | "warning" | "info">("success");
   const [snackbarAberto, setSnackbarAberto] = useState(false);
 
+  const [modalRecursoAberto, setModalRecursoAberto] = useState(false);
+  const [recursoSelecionado, setRecursoSelecionado] = useState<any>(null);
+
   useEffect(() => {
     carregarMultas();
   }, []);
@@ -61,18 +67,37 @@ export default function ListaMulta() {
     }
   };
 
+  const handleVisualizarRecurso = async (multa: MultaDto) => {
+    if (!multa.idMulta) return;
+
+    try {
+      const recurso = await RecursoService.buscarPorMulta(multa.idMulta);
+
+      if (!recurso) {
+        setMensagem("Nenhum recurso encontrado.");
+        setTipoMensagem("warning");
+        setSnackbarAberto(true);
+        return;
+      }
+
+      setRecursoSelecionado(recurso);
+      setModalRecursoAberto(true);
+    } catch (error) {
+      setMensagem("Erro ao buscar recurso.");
+      setTipoMensagem("error");
+      setSnackbarAberto(true);
+    }
+  };
+
   const aprovarComprovante = async () => {
     if (!multaSelecionada) return;
 
     try {
       await MultaService.aprovarComprovante(multaSelecionada.idMulta!);
-
       setMensagem("Comprovante aprovado com sucesso!");
       setTipoMensagem("success");
       setSnackbarAberto(true);
-
       setModalAprovarAberto(false);
-
       await carregarMultas();
     } catch (error) {
       setMensagem("Erro ao aprovar comprovante.");
@@ -89,14 +114,11 @@ export default function ListaMulta() {
         multaSelecionada.idMulta!,
         motivoReprovacao
       );
-
       setMensagem("Comprovante reprovado com sucesso!");
       setTipoMensagem("success");
       setSnackbarAberto(true);
-
       setModalReprovarAberto(false);
       setMotivoReprovacao("");
-
       await carregarMultas();
     } catch (error) {
       setMensagem("Erro ao reprovar comprovante.");
@@ -176,21 +198,16 @@ export default function ListaMulta() {
       headerName: 'Classificação',
       flex: 1.5,
       renderCell: (params) => {
-        const classificacao = params.value || '';
-        let color;
-
-        switch (classificacao) {
-          case 'LEVE': color = 'success'; break;
-          case 'MEDIA': color = 'warning'; break;
-          case 'GRAVE': color = 'error'; break;
-          case 'GRAVISSIMA': color = 'error'; break;
-          default: color = 'default';
-        }
-
+        const map: any = {
+          LEVE: 'success',
+          MEDIA: 'warning',
+          GRAVE: 'error',
+          GRAVISSIMA: 'error'
+        };
         return (
           <Chip
-            label={classificacao}
-            color={color as any}
+            label={params.value}
+            color={map[params.value] || 'default'}
             size="small"
             variant="outlined"
           />
@@ -200,105 +217,83 @@ export default function ListaMulta() {
     {
       field: 'situacao',
       headerName: 'Situação',
-      width: 150,
+      width: 180,
       renderCell: (params) => {
-        const situacao = params.value || '';
-        let color;
-
-        switch (situacao) {
-          case "AGUARDANDO COMPROVANTE":
-            color = 'info';
-            break;
-          case "PENDENTE DE ACAO":
-            color = 'warning';
-            break;
-          case "QUITADA/PAGA":
-            color = 'success';
-            break;
-          default:
-            color = 'error';
-        }
-
+        const cores: any = {
+          "PAGA": "#2e7d32",
+          "ANALISE PENDENTE": "#1976d2",
+          "AGUARDANDO COMPROVANTE": "#6a1b9a",
+          "PENDENTE DE ACAO": "#ed6c02",
+          "ATRIBUIDA": "#f9a825",
+          "MOTORISTA NAO IDENTIFICADO": "#616161"
+        };
+        const color = cores[params.value] || "#d32f2f";
         return (
           <Chip
-            label={situacao}
-            color={color as any}
+            label={params.value}
             size="small"
             variant="outlined"
+            sx={{
+              color,
+              borderColor: color,
+              fontWeight: 600,
+              backgroundColor: "transparent"
+            }}
           />
         );
-      },
+      }
     },
     { field: 'autoInfracao', headerName: 'Número do auto', flex: 1 },
     {
       field: 'comprovantePagamento',
-      headerName: 'Comprovante Pagamento',
+      headerName: 'Comprovante',
       flex: 1.5,
       sortable: false,
       renderCell: (params) => {
         const url = params.row.urlComprovantePagamento;
-
-        return (
-          <Button
-            size="small"
-            variant="outlined"
-            disabled={!url}
-            onClick={async () => {
-              if (!url) return;
-
-              const fileName = url.split('/').pop()!;
-              const blob = await MultaService.downloadArquivo(fileName);
-              const fileURL = window.URL.createObjectURL(blob);
-
-              window.open(fileURL, '_blank');
-            }}
-          >
-            Visualizar Comprovante
-          </Button>
-        );
-      }
-    },
-    {
-      field: 'acoes',
-      headerName: 'Ações',
-      width: 220,
-      sortable: false,
-      filterable: false,
-      renderCell: (params) => {
-        const possuiComprovante = Boolean(params.row.urlComprovantePagamento);
-
+        const possuiComprovante = Boolean(url);
         const jaAnalisado =
           params.row.situacao === "PAGA" ||
           params.row.situacao === "PENDENTE DE ACAO";
 
         return (
           <Box sx={{ display: "flex", gap: 1 }}>
-            <Tooltip title="Aprovar comprovante">
+            <Tooltip title="Visualizar comprovante">
               <Button
                 variant="contained"
+                size="small"
+                disabled={!url}
+                onClick={async () => {
+                  const fileName = url.split('/').pop()!;
+                  const blob = await MultaService.downloadArquivo(fileName);
+                  window.open(URL.createObjectURL(blob));
+                }}
+                sx={{ width: 42, height: 42, minWidth: 42 }}
+              >
+                <VisibilityIcon />
+              </Button>
+            </Tooltip>
+
+            <Tooltip title="Aprovar">
+              <Button
                 color="success"
+                variant="contained"
                 size="small"
                 disabled={!possuiComprovante || jaAnalisado}
                 onClick={() => {
                   setMultaSelecionada(params.row);
                   setModalAprovarAberto(true);
                 }}
-                sx={{
-                  width: 42,
-                  height: 42,
-                  minWidth: 42,
-                  padding: 0,
-                  borderRadius: 1,
-                }}
+                sx={{ width: 42, height: 42, minWidth: 42 }}
               >
                 ✓
               </Button>
             </Tooltip>
 
-            <Tooltip title="Reprovar comprovante">
+            <Tooltip title="Reprovar">
               <Button
-                variant="contained"
                 color="error"
+                variant="contained"
                 size="small"
                 disabled={!possuiComprovante || jaAnalisado}
                 onClick={() => {
@@ -309,66 +304,115 @@ export default function ListaMulta() {
                   width: 42,
                   height: 42,
                   minWidth: 42,
-                  padding: 0,
-                  borderRadius: 1,
-                  color:
-                    theme.palette.mode === "dark"
-                      ? "rgba(0,0,0,0.87)"
-                      : undefined,
+                  color: theme.palette.mode === "dark" ? "rgba(0,0,0,0.87)" : undefined
                 }}
               >
                 ✕
               </Button>
             </Tooltip>
+          </Box>
+        );
+      }
+    },
+    {
+      field: 'recurso',
+      headerName: 'Recurso',
+      width: 140,
+      sortable: false,
+      renderCell: (params) => {
+        const temRecurso = !!params.row.possuiRecurso;
+        const jaAnalisado =
+          params.row.situacao === "RECURSO ACEITO - MULTA ANULADA";
 
-            <Tooltip title="Editar multa">
-              <Button
-                variant="contained"
-                color="warning"
-                size="small"
-                onClick={() => {
-                  setMultaSelecionada(params.row);
-                  setModalEditarAberto(true);
-                }}
-                startIcon={<CreateIcon />}
-                sx={{
-                  width: 42,
-                  height: 42,
-                  minWidth: 42,
-                  padding: 0,
-                  borderRadius: 1,
-                  "& .MuiButton-startIcon": { margin: 0 },
-                }}
-              />
+        return (
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Tooltip title={temRecurso ? "Visualizar recurso" : "Sem recurso"}>
+              <span>
+                <Button
+                  variant="contained"
+                  size="small"
+                  disabled={!temRecurso}
+                  onClick={() => handleVisualizarRecurso(params.row)}
+                  sx={{ width: 42, height: 42, minWidth: 42 }}
+                >
+                  <VisibilityIcon />
+                </Button>
+              </span>
             </Tooltip>
 
-            <Tooltip title="Excluir multa">
-              <Button
-                variant="contained"
-                color="error"
-                size="small"
-                onClick={() => {
-                  setMultaSelecionada(params.row);
-                  setModalExcluirAberto(true);
-                }}
-                startIcon={<CancelIcon />}
-                sx={{
-                  width: 42,
-                  height: 42,
-                  minWidth: 42,
-                  padding: 0,
-                  borderRadius: 1,
-                  "& .MuiButton-startIcon": { margin: 0 },
-                  color:
-                    theme.palette.mode === "dark"
-                      ? "rgba(0, 0, 0, 0.87)"
-                      : undefined,
-                }}
-              />
+            <Tooltip title="Aceitar recurso">
+              <span>
+                <Button
+                  color="success"
+                  variant="contained"
+                  size="small"
+                  disabled={!temRecurso || jaAnalisado}
+                  onClick={async () => {
+                    try {
+                      await MultaService.aceitarRecurso(params.row.idMulta);
+                      setMensagem("Recurso aceito! Multa anulada.");
+                      setTipoMensagem("success");
+                      setSnackbarAberto(true);
+                      await carregarMultas();
+                    } catch (error) {
+                      setMensagem("Erro ao aceitar recurso.");
+                      setTipoMensagem("error");
+                      setSnackbarAberto(true);
+                    }
+                  }}
+                  sx={{ width: 42, height: 42, minWidth: 42 }}
+                >
+                  ✓
+                </Button>
+              </span>
             </Tooltip>
           </Box>
         );
       }
+    },
+    {
+      field: 'acoes',
+      headerName: 'Ações',
+      width: 140,
+      sortable: false,
+      renderCell: (params) => (
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <Tooltip title="Editar">
+            <Button
+              color="warning"
+              variant="contained"
+              size="small"
+              onClick={() => {
+                setMultaSelecionada(params.row);
+                setModalEditarAberto(true);
+              }}
+              sx={{ width: 42, height: 42, minWidth: 42 }}
+            >
+              <CreateIcon />
+            </Button>
+          </Tooltip>
+
+          <Tooltip title="Excluir">
+            <Button
+              color="error"
+              variant="contained"
+              size="small"
+              onClick={() => {
+                setMultaSelecionada(params.row);
+                setModalExcluirAberto(true);
+              }}
+              sx={{
+                width: 42,
+                height: 42,
+                minWidth: 42,
+                color: theme.palette.mode === "dark" ? "rgba(0,0,0,0.87)" : undefined
+              }}
+            >
+              <CancelIcon />
+            </Button>
+          </Tooltip>
+        </Box>
+      )
     }
   ];
 
@@ -410,51 +454,23 @@ export default function ListaMulta() {
       </Box>
 
       <Dialog open={modalAprovarAberto} onClose={() => setModalAprovarAberto(false)}>
-        <DialogTitle
-          sx={{
-            color: theme.palette.mode === "dark" ? "#fff" : "inherit"
-          }}
-        >
+        <DialogTitle sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
           Aprovar comprovante
         </DialogTitle>
 
         <DialogContent>
-          <Typography
-            sx={{
-              color: theme.palette.mode === "dark" ? "#fff" : "inherit"
-            }}
-          >
+          <Typography sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
             Deseja aprovar esse comprovante de pagamento?
           </Typography>
         </DialogContent>
-
-        <DialogActions
-          sx={{
-            "& .MuiButton-root": {
-              color: theme.palette.mode === "dark" ? "#fff" : "inherit"
-            }
-          }}
-        >
-          <Button onClick={() => setModalAprovarAberto(false)}>
-            Não
-          </Button>
-
-          <Button
-            onClick={aprovarComprovante}
-            variant="contained"
-            color="success"
-          >
-            Sim
-          </Button>
+        <DialogActions sx={{ "& .MuiButton-root": { color: theme.palette.mode === "dark" ? "#fff" : "inherit" } }}>
+          <Button onClick={() => setModalAprovarAberto(false)}>Não</Button>
+          <Button onClick={aprovarComprovante} variant="contained" color="success">Sim</Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={modalReprovarAberto} onClose={() => setModalReprovarAberto(false)}>
-        <DialogTitle
-          sx={{
-            color: theme.palette.mode === "dark" ? "#fff" : "inherit"
-          }}
-        >
+        <DialogTitle sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
           Motivo da reprovação
         </DialogTitle>
 
@@ -466,67 +482,29 @@ export default function ListaMulta() {
             value={motivoReprovacao}
             onChange={(e) => setMotivoReprovacao(e.target.value)}
             sx={{
-              "& .MuiInputBase-input": {
-                color: theme.palette.mode === "dark" ? "#fff" : "inherit"
-              },
-              "& .MuiInputLabel-root": {
-                color: theme.palette.mode === "dark" ? "#fff" : "inherit"
-              }
+              "& .MuiInputBase-input": { color: theme.palette.mode === "dark" ? "#fff" : "inherit" },
+              "& .MuiInputLabel-root": { color: theme.palette.mode === "dark" ? "#fff" : "inherit" }
             }}
           />
         </DialogContent>
-
-        <DialogActions
-          sx={{
-            "& .MuiButton-root": {
-              color: theme.palette.mode === "dark" ? "#fff" : "inherit"
-            }
-          }}
-        >
-          <Button onClick={() => setModalReprovarAberto(false)}>
-            Cancelar
-          </Button>
-
-          <Button
-            onClick={reprovarComprovante}
-            variant="contained"
-            color="error"
-          >
-            Reprovar
-          </Button>
+        <DialogActions sx={{ "& .MuiButton-root": { color: theme.palette.mode === "dark" ? "#fff" : "inherit" } }}>
+          <Button onClick={() => setModalReprovarAberto(false)}>Cancelar</Button>
+          <Button onClick={reprovarComprovante} variant="contained" color="error">Reprovar</Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={modalExcluirAberto} onClose={() => setModalExcluirAberto(false)}>
-        <DialogTitle
-          sx={{
-            color: theme.palette.mode === "dark" ? "#fff" : "inherit"
-          }}
-        >
+        <DialogTitle sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
           Excluir Multa
         </DialogTitle>
 
         <DialogContent>
-          <Typography
-            sx={{
-              color: theme.palette.mode === "dark" ? "#fff" : "inherit"
-            }}
-          >
+          <Typography sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
             Você tem certeza que deseja excluir esta multa?
           </Typography>
         </DialogContent>
-
-        <DialogActions
-          sx={{
-            "& .MuiButton-root": {
-              color: theme.palette.mode === "dark" ? "#fff" : "inherit"
-            }
-          }}
-        >
-          <Button onClick={() => setModalExcluirAberto(false)}>
-            Cancelar
-          </Button>
-
+        <DialogActions sx={{ "& .MuiButton-root": { color: theme.palette.mode === "dark" ? "#fff" : "inherit" } }}>
+          <Button onClick={() => setModalExcluirAberto(false)}>Cancelar</Button>
           <Button
             onClick={async () => {
               if (multaSelecionada) {
@@ -562,6 +540,15 @@ export default function ListaMulta() {
           setModalEditarAberto(false);
         }}
         onError={() => {}}
+      />
+
+      <ModalVisualizarRecurso
+        open={modalRecursoAberto}
+        onClose={() => {
+          setModalRecursoAberto(false);
+          setRecursoSelecionado(null);
+        }}
+        recurso={recursoSelecionado}
       />
 
       <Snackbar
