@@ -32,8 +32,6 @@ export interface MultaBackend {
   situacao?: string;
 }
 
-
-
 export class MultaService {
   static async listarMultas(params?: any): Promise<MultaDto[]> {
     try {
@@ -41,8 +39,7 @@ export class MultaService {
         params,
       });
       const multasAtivas = response.data.filter(multa => multa.ativa === true);
-      
-      return multasAtivas;    
+      return multasAtivas;
     } catch (error) {
       console.error("Erro ao listar multas:", error);
       return [];
@@ -73,10 +70,7 @@ export class MultaService {
     }
   }
 
-  static async atualizarMulta(
-    idMulta: number,
-    dados: MultaBackend
-  ): Promise<void> {
+  static async atualizarMulta(idMulta: number, dados: MultaBackend): Promise<void> {
     try {
       await axiosConnect.put(`/multa/${idMulta}`, dados);
     } catch (error) {
@@ -85,10 +79,7 @@ export class MultaService {
     }
   }
 
-  static async atualizarArquivoMulta(
-    idMulta: number,
-    formData: FormData
-  ): Promise<void> {
+  static async atualizarArquivoMulta(idMulta: number, formData: FormData): Promise<void> {
     try {
       await axiosConnect.put(`/multa/${idMulta}/arquivo`, formData, {
         headers: {
@@ -101,28 +92,18 @@ export class MultaService {
     }
   }
 
-  static async uploadComprovante(
-    idMulta: number,
-    arquivo: File
-  ): Promise<void> {
+  static async uploadComprovante(idMulta: number, arquivo: File): Promise<void> {
     try {
       const formData = new FormData();
       formData.append("arquivo", arquivo);
 
-      await axiosConnect.put(
-        `/multa/${idMulta}/comprovante`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      await axiosConnect.put(`/multa/${idMulta}/comprovante`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
     } catch (error) {
-      console.error(
-        `Erro ao enviar comprovante da multa ${idMulta}:`,
-        error
-      );
+      console.error(`Erro ao enviar comprovante da multa ${idMulta}:`, error);
       throw error;
     }
   }
@@ -137,10 +118,7 @@ export class MultaService {
     }
   }
 
-  static async reprovarComprovante(
-    idMulta: number,
-    motivo: string
-  ): Promise<any> {
+  static async reprovarComprovante(idMulta: number, motivo: string): Promise<any> {
     try {
       const response = await axiosConnect.patch(
         `/multa/${idMulta}/reprovar-comprovante`,
@@ -149,6 +127,16 @@ export class MultaService {
       return response.data;
     } catch (error) {
       console.error(`Erro ao reprovar comprovante ${idMulta}:`, error);
+      throw error;
+    }
+  }
+
+  static async aceitarRecurso(idMulta: number): Promise<any> {
+    try {
+      const response = await axiosConnect.patch(`/multa/${idMulta}/aceitar-recurso`);
+      return response.data;
+    } catch (error) {
+      console.error(`Erro ao aceitar recurso da multa ${idMulta}:`, error);
       throw error;
     }
   }

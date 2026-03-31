@@ -8,6 +8,7 @@ import {
   Button
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { MultaService } from "../../../services/MultaService";
 
 interface Props {
   open: boolean;
@@ -26,9 +27,24 @@ export default function ModalVisualizarRecurso({
 
   const fileUrl = recurso.urlArquivo;
 
-  const handleVisualizarDocumento = () => {
+  const handleVisualizarDocumento = async () => {
     if (fileUrl) {
-      window.open(`http://localhost:3000/${fileUrl}`, "_blank");
+      try {
+        const fileName = fileUrl.split("/").pop();
+        
+        if (!fileName) return;
+
+        const blob = await MultaService.downloadArquivo(fileName);
+        
+        const blobUrl = window.URL.createObjectURL(blob);
+        
+        window.open(blobUrl, "_blank");
+
+        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+      } catch (error) {
+        console.error("Erro ao abrir o documento:", error);
+        alert("Não foi possível carregar o arquivo.");
+      }
     }
   };
 
@@ -36,7 +52,7 @@ export default function ModalVisualizarRecurso({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="sm" // 👈 menor agora
+      maxWidth="sm"
       fullWidth
       PaperProps={{
         sx: {
@@ -89,7 +105,7 @@ export default function ModalVisualizarRecurso({
           )}
 
           {!fileUrl && (
-            <Typography color="error">
+            <Typography color="error" sx={{ mt: 1 }}>
               Nenhum documento disponível.
             </Typography>
           )}

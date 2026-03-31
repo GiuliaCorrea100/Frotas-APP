@@ -317,25 +317,56 @@ export default function ListaMulta() {
     {
       field: 'recurso',
       headerName: 'Recurso',
-      width: 100,
+      width: 140,
       sortable: false,
       renderCell: (params) => {
         const temRecurso = !!params.row.possuiRecurso;
+        const jaAnalisado =
+          params.row.situacao === "RECURSO ACEITO - MULTA ANULADA";
+
         return (
-          <Tooltip title={temRecurso ? "Visualizar recurso" : "Sem recurso solicitado"}>
-            <span>
-              <Button
-                variant="contained"
-                size="small"
-                color="primary"
-                disabled={!temRecurso}
-                onClick={() => handleVisualizarRecurso(params.row)}
-                sx={{ width: 42, height: 42, minWidth: 42 }}
-              >
-                <VisibilityIcon />
-              </Button>
-            </span>
-          </Tooltip>
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Tooltip title={temRecurso ? "Visualizar recurso" : "Sem recurso"}>
+              <span>
+                <Button
+                  variant="contained"
+                  size="small"
+                  disabled={!temRecurso}
+                  onClick={() => handleVisualizarRecurso(params.row)}
+                  sx={{ width: 42, height: 42, minWidth: 42 }}
+                >
+                  <VisibilityIcon />
+                </Button>
+              </span>
+            </Tooltip>
+
+            <Tooltip title="Aceitar recurso">
+              <span>
+                <Button
+                  color="success"
+                  variant="contained"
+                  size="small"
+                  disabled={!temRecurso || jaAnalisado}
+                  onClick={async () => {
+                    try {
+                      await MultaService.aceitarRecurso(params.row.idMulta);
+                      setMensagem("Recurso aceito! Multa anulada.");
+                      setTipoMensagem("success");
+                      setSnackbarAberto(true);
+                      await carregarMultas();
+                    } catch (error) {
+                      setMensagem("Erro ao aceitar recurso.");
+                      setTipoMensagem("error");
+                      setSnackbarAberto(true);
+                    }
+                  }}
+                  sx={{ width: 42, height: 42, minWidth: 42 }}
+                >
+                  ✓
+                </Button>
+              </span>
+            </Tooltip>
+          </Box>
         );
       }
     },
