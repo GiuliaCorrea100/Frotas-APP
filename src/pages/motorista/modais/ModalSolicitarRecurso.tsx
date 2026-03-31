@@ -5,11 +5,9 @@ import {
   Typography,
   Button,
   TextField,
-  InputAdornment,
   CircularProgress,
   Paper,
   IconButton,
-  MenuItem,
   Alert,
 } from "@mui/material";
 import {
@@ -142,20 +140,11 @@ const SolicitarRecursoModal: React.FC<SolcitarRecursoProps> = ({
 
       response = await RecursoService.solicitarRecurso(formData);
 
-      if (response?.mensagem) {
-        setMensagemMotorista(response.mensagem);
-        setTimeout(() => {
-          setMensagemMotorista(null);
-          onClose();
-        }, 3000);
-      } else {
-    
-        setSuccessMessage("Recurso solicitado com sucesso!"); // Mova para cá
-        setTimeout(() => {
-          setSuccessMessage('');
-          onClose();
-        }, 3000);
-      }
+      const mensagem = "Recurso solicitado com sucesso!";
+        
+
+      onSuccess(mensagem);
+      onClose();
     } catch (error) {
       onError(error);
     } finally {

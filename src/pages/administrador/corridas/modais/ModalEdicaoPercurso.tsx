@@ -99,11 +99,12 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
       };
 
       await atualizarPercurso(percurso.idPercurso!, dadosAtualizados);
-      setSuccessMessage("Percurso cadastrado com sucesso!");
+
+      const mensagem = "Percurso atualizado com sucesso!";
 
       setTimeout(() => {
         setSuccessMessage("");
-        onSuccess("Percurso cadastrado com sucesso!");
+        onSuccess(mensagem);
         onClose();
       }, 1500);
     } catch (error) {

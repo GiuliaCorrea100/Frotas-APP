@@ -259,11 +259,10 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
         dadosAtualizados,
       );
 
-      setSuccessMessage("Abastecimento atualizado com sucesso!");
+      const mensagem = "Abastecimento atualizado com sucesso!";
 
       setTimeout(() => {
-        setSuccessMessage("");
-        onSuccess("Abastecimento atualizado com sucesso!");
+        onSuccess(mensagem);
         onClose();
       }, 1500);
     } catch (error) {

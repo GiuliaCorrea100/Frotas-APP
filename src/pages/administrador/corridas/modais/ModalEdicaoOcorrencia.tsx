@@ -87,8 +87,8 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
         dadosAtualizados,
       );
 
-      setSuccessMessage("Ocorrência editada com sucesso!");
-      onSuccess("Ocorrência editada com sucesso!");
+      const mensagem = "Ocorrência atualizada com sucesso!";
+      onSuccess(mensagem);
 
       setTimeout(() => {
         onClose();

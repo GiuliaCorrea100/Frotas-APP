@@ -14,6 +14,7 @@ import { PercursoBackend } from '../../../services/PercursoService';
 interface ModalFinalizarPercursoProps {
   open: boolean;
   onClose: () => void;
+  onSuccess: (message: string) => void;
   onConfirm: () => void;
   odometroFinal: string;
   setOdometroFinal: (value: string) => void;
@@ -23,6 +24,7 @@ interface ModalFinalizarPercursoProps {
 const ModalFinalizarPercurso: React.FC<ModalFinalizarPercursoProps> = ({
   open,
   onClose,
+  onSuccess,
   onConfirm,
   odometroFinal,
   setOdometroFinal,
@@ -41,7 +43,9 @@ const ModalFinalizarPercurso: React.FC<ModalFinalizarPercursoProps> = ({
       return; 
     }
     
-   
+    const mensagem = "Percurso finalizado com sucesso!";
+  
+    onSuccess(mensagem);
     setMostrarAlertaOdometro(false);
     onConfirm();
   };

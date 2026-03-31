@@ -271,11 +271,10 @@ export default function EditarInfoCorrida({
         dadosAtualizados,
       );
 
-      setSuccessMessage("Corrida editada com sucesso!");
+      const mensagem = "Corrida editada com sucesso!";
 
       setTimeout(() => {
-        setSuccessMessage("");
-        onSuccess("Corrida editada com sucesso!");
+        onSuccess(mensagem);
         onClose();
       }, 1500);
     } catch (error: any) {
@@ -317,12 +316,6 @@ export default function EditarInfoCorrida({
             <Close />
           </IconButton>
         </Box>
-
-        {successMessage && (
-          <Alert severity="success" sx={{ mb: 3 }}>
-            {successMessage}
-          </Alert>
-        )}
 
         <form onSubmit={handleSubmit}>
           {error && (

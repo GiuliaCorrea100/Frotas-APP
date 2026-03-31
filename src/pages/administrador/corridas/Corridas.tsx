@@ -12,6 +12,7 @@ import {
   useTheme,
   Tooltip,
   Chip,
+  Alert,
 } from "@mui/material";
 import CreateIcon from "@mui/icons-material/Create";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -64,10 +65,16 @@ export default function ListaCorrida() {
   const [senhaError, setSenhaError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const [filtroSituacao, setFiltroSituacao] = useState<string>("AGENDADA");
+  const [filtroSituacao, setFiltroSituacao] = useState<string>("TODOS");
   const [authMode, setAuthMode] = useState<string>("SIGAA");
 
+  const [mensagemSucesso, setMensagemSucesso] = useState("");
+
   const navigate = useNavigate();
+
+  // Estados para controle dos subfiltros
+  const [mostrarSubFiltros, setMostrarSubFiltros] = useState(false);
+  const [filtroAtivoInterno, setFiltroAtivoInterno] = useState<string | null>(null);
 
   // Buscar o modo de autenticação na inicialização
   useEffect(() => {
@@ -115,7 +122,9 @@ export default function ListaCorrida() {
     );
 
     const matchesSituacao =
-      filtroSituacao === "TODOS" || corrida.situacao === filtroSituacao;
+      filtroSituacao === "TODOS" || 
+      filtroSituacao === "" || 
+      corrida.situacao === filtroSituacao;
 
     return matchesSearch && matchesSituacao;
   });
@@ -508,6 +517,21 @@ export default function ListaCorrida() {
           + Nova Corrida
         </Button>
       </Box>
+        
+      {mensagemSucesso && (
+        <Alert
+          severity="success"
+          sx={{
+            mb: 3,
+            fontSize: "1.1rem",
+            border: "1px solid",
+            borderColor: "success.main",
+            borderRadius: 1.5,
+          }}
+        >
+          {mensagemSucesso}
+        </Alert>
+      )}
 
       {/* Filtros por situação + campo de busca + datagrid */}
       <Box
@@ -541,16 +565,11 @@ export default function ListaCorrida() {
         >
           {[
             {
-              label: "AGENDADAS",
-              value: "AGENDADA",
-              count: qtdAgendadas,
+              label: "ATIVAS",
+              value: "ATIVAS",
+              count: qtdAgendadas + qtdEmAndamento,
               color: theme.palette.info.main,
-            },
-            {
-              label: "EM ANDAMENTO",
-              value: "ANDAMENTO",
-              count: qtdEmAndamento,
-              color: theme.palette.warning.main,
+              temSubmenu: true,
             },
             {
               label: "FINALIZADAS",
@@ -573,19 +592,57 @@ export default function ListaCorrida() {
           ].map((tab) => (
             <Button
               key={tab.value}
-              variant={filtroSituacao === tab.value ? "contained" : "outlined"}
-              onClick={() => setFiltroSituacao(tab.value)}
+              variant={
+                (tab.temSubmenu && mostrarSubFiltros) || // ATIVAS fica ativo apenas quando submenu está aberto
+                (!tab.temSubmenu && filtroSituacao === tab.value) // Outros botões seguem a lógica normal
+                  ? "contained"
+                  : "outlined"
+              }
+              onClick={() => {
+                if (tab.temSubmenu) {
+                  // Se clicar no botão ATIVAS, mostra/esconde os subfiltros
+                  setMostrarSubFiltros(!mostrarSubFiltros);
+                  
+                  // Quando abrir ou fechar os subfiltros, não altera o filtroSituacao para TODOS
+                  if (!mostrarSubFiltros) {
+                    // Abrindo os subfiltros - remove qualquer filtro ativo
+                    setFiltroSituacao("");
+                    setFiltroAtivoInterno(null);
+                  } else {
+                    // Fechando os subfiltros - limpa o filtro interno
+                    setFiltroAtivoInterno(null);
+                    setFiltroSituacao("");
+                  }
+                } else {
+                  setFiltroSituacao(tab.value);
+                  // Se clicar em outro filtro, esconde os subfiltros
+                  setMostrarSubFiltros(false);
+                  setFiltroAtivoInterno(null);
+                }
+              }}
               sx={{
                 textTransform: "none",
                 borderRadius: 2,
                 px: 2,
-                fontWeight: filtroSituacao === tab.value ? 600 : 500,
-                color: filtroSituacao === tab.value ? "white" : "text.primary",
+                fontWeight:
+                  (tab.temSubmenu && mostrarSubFiltros) ||
+                  (!tab.temSubmenu && filtroSituacao === tab.value)
+                    ? 600
+                    : 500,
+                color:
+                  (tab.temSubmenu && mostrarSubFiltros) ||
+                  (!tab.temSubmenu && filtroSituacao === tab.value)
+                    ? "white"
+                    : "text.primary",
                 bgcolor:
-                  filtroSituacao === tab.value ? tab.color : "background.paper",
+                  (tab.temSubmenu && mostrarSubFiltros) ||
+                  (!tab.temSubmenu && filtroSituacao === tab.value)
+                    ? tab.color
+                    : "background.paper",
                 "&:hover": {
                   bgcolor:
-                    filtroSituacao === tab.value
+                    (tab.temSubmenu && mostrarSubFiltros) ||
+                    (!tab.temSubmenu && filtroSituacao === tab.value)
                       ? theme.palette.primary.dark
                       : theme.palette.action.hover,
                 },
@@ -597,13 +654,15 @@ export default function ListaCorrida() {
                   ml: 1,
                   fontWeight: 600,
                   backgroundColor:
-                    filtroSituacao === tab.value
+                    (tab.temSubmenu && mostrarSubFiltros) ||
+                    (!tab.temSubmenu && filtroSituacao === tab.value)
                       ? "rgba(255,255,255,0.2)"
                       : theme.palette.mode === "dark"
                         ? theme.palette.grey[700]
                         : theme.palette.grey[200],
                   color:
-                    filtroSituacao === tab.value
+                    (tab.temSubmenu && mostrarSubFiltros) ||
+                    (!tab.temSubmenu && filtroSituacao === tab.value)
                       ? "white"
                       : theme.palette.mode === "dark"
                         ? theme.palette.grey[100]
@@ -617,6 +676,87 @@ export default function ListaCorrida() {
             </Button>
           ))}
         </Box>
+
+        {/* Submenu com os filtros AGENDADAS e EM ANDAMENTO */}
+        {mostrarSubFiltros && (
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              mt: 0,
+              mb: 3,
+              ml: 3,
+              flexWrap: "wrap",
+              pl: 2,
+              borderLeft: `2px solid ${theme.palette.divider}`,
+            }}
+          >
+            {[
+              {
+                label: "AGENDADAS",
+                value: "AGENDADA",
+                count: qtdAgendadas,
+                color: theme.palette.info.main,
+              },
+              {
+                label: "EM ANDAMENTO",
+                value: "ANDAMENTO",
+                count: qtdEmAndamento,
+                color: theme.palette.warning.main,
+              },
+            ].map((tab) => (
+              <Button
+                key={tab.value}
+                variant={filtroAtivoInterno === tab.value ? "contained" : "outlined"}
+                onClick={() => {
+                  setFiltroAtivoInterno(tab.value);
+                  setFiltroSituacao(tab.value);
+                }}
+                sx={{
+                  textTransform: "none",
+                  borderRadius: 2,
+                  px: 2,
+                  fontWeight: filtroAtivoInterno === tab.value ? 600 : 500,
+                  color: filtroAtivoInterno === tab.value ? "white" : "text.primary",
+                  bgcolor:
+                    filtroAtivoInterno === tab.value
+                      ? tab.color
+                      : "background.paper",
+                  "&:hover": {
+                    bgcolor:
+                      filtroAtivoInterno === tab.value
+                        ? theme.palette.primary.dark
+                        : theme.palette.action.hover,
+                  },
+                }}
+              >
+                {tab.label}
+                <Box
+                  sx={{
+                    ml: 1,
+                    fontWeight: 600,
+                    backgroundColor:
+                      filtroAtivoInterno === tab.value
+                        ? "rgba(255,255,255,0.2)"
+                        : theme.palette.mode === "dark"
+                          ? theme.palette.grey[700]
+                          : theme.palette.grey[200],
+                    color:
+                      filtroAtivoInterno === tab.value
+                        ? "white"
+                        : theme.palette.mode === "dark"
+                          ? theme.palette.grey[100]
+                          : theme.palette.text.primary,
+                    px: 1,
+                    borderRadius: 12,
+                  }}
+                >
+                  {tab.count}
+                </Box>
+              </Button>
+            ))}
+          </Box>
+        )}
 
         <Box sx={{ mb: 3, mx: 3 }}>
           <TextField
@@ -886,8 +1026,8 @@ export default function ListaCorrida() {
                 }
               : null
           }
-          onSuccess={async (msg) => {
-            console.log(msg);
+          onSuccess={async (message) => {
+            setMensagemSucesso(message);
             const dadosAtualizados = await getCorridas();
             setCorridas(dadosAtualizados);
           }}
@@ -901,14 +1041,16 @@ export default function ListaCorrida() {
         <CadastrarCorrida
           open={showModalCadastrarCorrida}
           onClose={() => setShowModalCadastrarCorrida(false)}
-          onSuccess={async (msg) => {
-            await carregarCorridas();
+          onSuccess={async (message) => {
+            setMensagemSucesso(message);
+            try {
+              await carregarCorridas();
+            } catch (error) {
+              console.error(error);
+            }
           }}
           onError={(error) => {
             console.error("Erro ao cadastrar corrida:", error);
-            if (error.response?.status === 401) {
-              navigate("/");
-            }
           }}
         />
       )}
