@@ -39,6 +39,7 @@ export default function ListaMulta() {
   const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
   const [modalAprovarAberto, setModalAprovarAberto] = useState(false);
   const [modalReprovarAberto, setModalReprovarAberto] = useState(false);
+  const [modalAceitarRecursoAberto, setModalAceitarRecursoAberto] = useState(false);
   const [motivoReprovacao, setMotivoReprovacao] = useState("");
 
   const [multaSelecionada, setMultaSelecionada] = useState<MultaDto | null>(null);
@@ -122,6 +123,23 @@ export default function ListaMulta() {
       await carregarMultas();
     } catch (error) {
       setMensagem("Erro ao reprovar comprovante.");
+      setTipoMensagem("error");
+      setSnackbarAberto(true);
+    }
+  };
+
+  const aceitarRecurso = async () => {
+    if (!multaSelecionada) return;
+
+    try {
+      await MultaService.aceitarRecurso(multaSelecionada.idMulta!);
+      setMensagem("Recurso aceito com sucesso! Multa anulada.");
+      setTipoMensagem("success");
+      setSnackbarAberto(true);
+      setModalAceitarRecursoAberto(false);
+      await carregarMultas();
+    } catch (error) {
+      setMensagem("Erro ao aceitar recurso.");
       setTipoMensagem("error");
       setSnackbarAberto(true);
     }
@@ -347,18 +365,9 @@ export default function ListaMulta() {
                   variant="contained"
                   size="small"
                   disabled={!temRecurso || jaAnalisado}
-                  onClick={async () => {
-                    try {
-                      await MultaService.aceitarRecurso(params.row.idMulta);
-                      setMensagem("Recurso aceito! Multa anulada.");
-                      setTipoMensagem("success");
-                      setSnackbarAberto(true);
-                      await carregarMultas();
-                    } catch (error) {
-                      setMensagem("Erro ao aceitar recurso.");
-                      setTipoMensagem("error");
-                      setSnackbarAberto(true);
-                    }
+                  onClick={() => {
+                    setMultaSelecionada(params.row);
+                    setModalAceitarRecursoAberto(true);
                   }}
                   sx={{ width: 42, height: 42, minWidth: 42 }}
                 >
@@ -490,6 +499,21 @@ export default function ListaMulta() {
         <DialogActions sx={{ "& .MuiButton-root": { color: theme.palette.mode === "dark" ? "#fff" : "inherit" } }}>
           <Button onClick={() => setModalReprovarAberto(false)}>Cancelar</Button>
           <Button onClick={reprovarComprovante} variant="contained" color="error">Reprovar</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={modalAceitarRecursoAberto} onClose={() => setModalAceitarRecursoAberto(false)}>
+        <DialogTitle sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
+          Aceitar Recurso
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
+            Deseja realmente aceitar este recurso? Esta ação anulará a multa permanentemente.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ "& .MuiButton-root": { color: theme.palette.mode === "dark" ? "#fff" : "inherit" } }}>
+          <Button onClick={() => setModalAceitarRecursoAberto(false)}>Não</Button>
+          <Button onClick={aceitarRecurso} variant="contained" color="success">Sim</Button>
         </DialogActions>
       </Dialog>
 

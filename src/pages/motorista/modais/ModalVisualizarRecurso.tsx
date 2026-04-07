@@ -1,13 +1,16 @@
 import React from "react";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  Typography,
+  Modal,
   Box,
-  Button
+  Typography,
+  Button,
+  Paper,
+  IconButton,
+  Divider,
+  Alert
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { Description, Close } from "@mui/icons-material";
 import { MultaService } from "../../../services/MultaService";
 
 interface Props {
@@ -15,6 +18,21 @@ interface Props {
   onClose: () => void;
   recurso: any;
 }
+
+const modalStyle = {
+  position: "absolute" as const,
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "90%",
+  maxWidth: 600,
+  maxHeight: "90vh",
+  overflow: "auto",
+  bgcolor: "background.paper",
+  boxShadow: 24,
+  p: 4,
+  borderRadius: 2,
+};
 
 export default function ModalVisualizarRecurso({
   open,
@@ -28,54 +46,50 @@ export default function ModalVisualizarRecurso({
   const fileUrl = recurso.urlArquivo;
 
   const handleVisualizarDocumento = async () => {
-    if (fileUrl) {
-      try {
-        const fileName = fileUrl.split("/").pop();
-        
-        if (!fileName) return;
+    if (!fileUrl) return;
 
-        const blob = await MultaService.downloadArquivo(fileName);
-        
-        const blobUrl = window.URL.createObjectURL(blob);
-        
-        window.open(blobUrl, "_blank");
+    try {
+      const fileName = fileUrl.split("/").pop();
+      if (!fileName) return;
 
-        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
-      } catch (error) {
-        console.error("Erro ao abrir o documento:", error);
-        alert("Não foi possível carregar o arquivo.");
-      }
+      const blob = await MultaService.downloadArquivo(fileName);
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      window.open(blobUrl, "_blank");
+      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+    } catch (error) {
+      console.error("Erro ao abrir o documento:", error);
+      alert("Não foi possível carregar o arquivo.");
     }
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="sm"
-      fullWidth
-      PaperProps={{
-        sx: {
-          backgroundColor: theme.palette.background.paper,
-          color: theme.palette.text.primary
-        }
-      }}
-    >
-      <DialogTitle sx={{ color: theme.palette.text.primary }}>
-        Visualizar Recurso
-      </DialogTitle>
+    <Modal open={open} onClose={onClose}>
+      <Paper sx={modalStyle} onClick={(e) => e.stopPropagation()}>
 
-      <DialogContent>
+        {/* HEADER */}
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+          <Box display="flex" alignItems="center">
+            <Description color="primary" sx={{ mr: 1 }} />
+            <Typography variant="h6" fontWeight="bold" color="text.primary">
+              Visualizar Recurso
+            </Typography>
+          </Box>
+
+          <IconButton onClick={onClose}>
+            <Close />
+          </IconButton>
+        </Box>
+
+        <Divider sx={{ mb: 3 }} />
+
+        {/* CONTEÚDO */}
         <Box mb={3}>
           <Typography
-            sx={{
-              color: theme.palette.text.primary,
-              fontWeight: 600,
-              fontSize: "0.9rem",
-              textTransform: "uppercase",
-              letterSpacing: "0.5px",
-              mb: 0.5
-            }}
+            variant="subtitle2"
+            fontWeight="bold"
+            color="text.primary"
+            mb={1}
           >
             Justificativa
           </Typography>
@@ -83,19 +97,25 @@ export default function ModalVisualizarRecurso({
           <Box
             sx={{
               backgroundColor: theme.palette.background.default,
-              padding: 2,
-              borderRadius: 2,
+              p: 2,
+              borderRadius: 1,
               border: `1px solid ${theme.palette.divider}`
             }}
           >
-            <Typography sx={{ color: theme.palette.text.secondary }}>
+            <Typography color="text.secondary">
               {recurso.justificativa}
             </Typography>
           </Box>
         </Box>
 
-        <Box display="flex" gap={2} justifyContent="flex-end">
-          {fileUrl && (
+        {/* AÇÕES */}
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+
+          {!fileUrl ? (
+            <Alert severity="info">
+              Nenhum documento disponível.
+            </Alert>
+          ) : (
             <Button
               variant="contained"
               onClick={handleVisualizarDocumento}
@@ -104,17 +124,12 @@ export default function ModalVisualizarRecurso({
             </Button>
           )}
 
-          {!fileUrl && (
-            <Typography color="error" sx={{ mt: 1 }}>
-              Nenhum documento disponível.
-            </Typography>
-          )}
-
-          <Button onClick={onClose}>
+          <Button onClick={onClose} color="inherit">
             Fechar
           </Button>
         </Box>
-      </DialogContent>
-    </Dialog>
+
+      </Paper>
+    </Modal>
   );
 }
