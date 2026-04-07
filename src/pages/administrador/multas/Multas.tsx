@@ -13,7 +13,6 @@ import {
   Tooltip,
   Typography,
   useTheme,
-  Snackbar,
   Alert,
   TextField
 } from "@mui/material";
@@ -47,7 +46,6 @@ export default function ListaMulta() {
 
   const [mensagem, setMensagem] = useState("");
   const [tipoMensagem, setTipoMensagem] = useState<"success" | "error" | "warning" | "info">("success");
-  const [snackbarAberto, setSnackbarAberto] = useState(false);
 
   const [modalRecursoAberto, setModalRecursoAberto] = useState(false);
   const [recursoSelecionado, setRecursoSelecionado] = useState<any>(null);
@@ -78,7 +76,7 @@ export default function ListaMulta() {
       if (!recurso) {
         setMensagem("Nenhum recurso encontrado.");
         setTipoMensagem("warning");
-        setSnackbarAberto(true);
+        setTimeout(() => setMensagem(""), 6000);
         return;
       }
 
@@ -87,7 +85,7 @@ export default function ListaMulta() {
     } catch (error) {
       setMensagem("Erro ao buscar recurso.");
       setTipoMensagem("error");
-      setSnackbarAberto(true);
+      setTimeout(() => setMensagem(""), 6000);
     }
   };
 
@@ -98,13 +96,13 @@ export default function ListaMulta() {
       await MultaService.aprovarComprovante(multaSelecionada.idMulta!);
       setMensagem("Comprovante aprovado com sucesso!");
       setTipoMensagem("success");
-      setSnackbarAberto(true);
       setModalAprovarAberto(false);
+      setTimeout(() => setMensagem(""), 6000);
       await carregarMultas();
     } catch (error) {
       setMensagem("Erro ao aprovar comprovante.");
       setTipoMensagem("error");
-      setSnackbarAberto(true);
+      setTimeout(() => setMensagem(""), 6000);
     }
   };
 
@@ -118,14 +116,14 @@ export default function ListaMulta() {
       );
       setMensagem("Comprovante reprovado com sucesso!");
       setTipoMensagem("success");
-      setSnackbarAberto(true);
       setModalReprovarAberto(false);
       setMotivoReprovacao("");
+      setTimeout(() => setMensagem(""), 6000);
       await carregarMultas();
     } catch (error) {
       setMensagem("Erro ao reprovar comprovante.");
       setTipoMensagem("error");
-      setSnackbarAberto(true);
+      setTimeout(() => setMensagem(""), 6000);
     }
   };
 
@@ -136,13 +134,13 @@ export default function ListaMulta() {
       await MultaService.aceitarRecurso(multaSelecionada.idMulta!);
       setMensagem("Recurso aceito com sucesso! Multa anulada.");
       setTipoMensagem("success");
-      setSnackbarAberto(true);
       setModalAceitarRecursoAberto(false);
+      setTimeout(() => setMensagem(""), 6000);
       await carregarMultas();
     } catch (error) {
       setMensagem("Erro ao aceitar recurso.");
       setTipoMensagem("error");
-      setSnackbarAberto(true);
+      setTimeout(() => setMensagem(""), 6000);
     }
   };
 
@@ -153,13 +151,13 @@ export default function ListaMulta() {
       await MultaService.rejeitarRecurso(multaSelecionada.idMulta!);
       setMensagem("RECURSO REJEITADO. SITUAÇÃO ATUALIZADA.");
       setTipoMensagem("success");
-      setSnackbarAberto(true);
       setModalRejeitarRecursoAberto(false);
+      setTimeout(() => setMensagem(""), 6000);
       await carregarMultas();
     } catch (error) {
       setMensagem("Erro ao rejeitar recurso.");
       setTipoMensagem("error");
-      setSnackbarAberto(true);
+      setTimeout(() => setMensagem(""), 6000);
     }
   };
 
@@ -263,7 +261,7 @@ export default function ListaMulta() {
           "ATRIBUIDA": "#f9a825",
           "MOTORISTA NAO IDENTIFICADO": "#616161",
           "RECURSO ACEITO - MULTA ANULADA": "#2e7d32",
-          "RECURSO NEGADO - AGUARDANDO PAGAMENTO": "#d32f2f"
+          "Recurso Negado - Aguardando pagamento": "#d32f2f"
         };
         const color = cores[params.value] || "#d32f2f";
         return (
@@ -361,7 +359,7 @@ export default function ListaMulta() {
         const temRecurso = !!params.row.possuiRecurso;
         const jaAnalisado =
           params.row.situacao === "RECURSO ACEITO - MULTA ANULADA" ||
-          params.row.situacao === "RECURSO NEGADO - AGUARDANDO PAGAMENTO";
+          params.row.situacao === "Recurso Negado - Aguardando pagamento";
 
         return (
           <Box sx={{ display: "flex", gap: 1 }}>
@@ -486,6 +484,23 @@ export default function ListaMulta() {
             Nova Multa
           </Button>
         </Box>
+
+        {mensagem && (
+          <Alert
+            severity={tipoMensagem}
+            onClose={() => setMensagem("")}
+            sx={{
+              mb: 3,
+              fontSize: "1.1rem",
+              border: "1px solid",
+              borderColor: `${tipoMensagem}.main`,
+              borderRadius: 1.5,
+              backgroundColor: theme.palette.mode === 'dark' ? 'background.paper' : undefined
+            }}
+          >
+            {mensagem}
+          </Alert>
+        )}
 
         <DataGrid
           rows={dadosFiltrados}
@@ -634,21 +649,6 @@ export default function ListaMulta() {
         recurso={recursoSelecionado}
       />
 
-      <Snackbar
-        open={snackbarAberto}
-        autoHideDuration={4000}
-        onClose={() => setSnackbarAberto(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          onClose={() => setSnackbarAberto(false)}
-          severity={tipoMensagem}
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {mensagem}
-        </Alert>
-      </Snackbar>
     </>
   );
 }
