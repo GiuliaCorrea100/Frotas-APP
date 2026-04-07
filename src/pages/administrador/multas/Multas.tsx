@@ -40,6 +40,7 @@ export default function ListaMulta() {
   const [modalAprovarAberto, setModalAprovarAberto] = useState(false);
   const [modalReprovarAberto, setModalReprovarAberto] = useState(false);
   const [modalAceitarRecursoAberto, setModalAceitarRecursoAberto] = useState(false);
+  const [modalRejeitarRecursoAberto, setModalRejeitarRecursoAberto] = useState(false);
   const [motivoReprovacao, setMotivoReprovacao] = useState("");
 
   const [multaSelecionada, setMultaSelecionada] = useState<MultaDto | null>(null);
@@ -145,6 +146,23 @@ export default function ListaMulta() {
     }
   };
 
+  const rejeitarRecurso = async () => {
+    if (!multaSelecionada) return;
+
+    try {
+      await MultaService.rejeitarRecurso(multaSelecionada.idMulta!);
+      setMensagem("RECURSO REJEITADO. SITUAÇÃO ATUALIZADA.");
+      setTipoMensagem("success");
+      setSnackbarAberto(true);
+      setModalRejeitarRecursoAberto(false);
+      await carregarMultas();
+    } catch (error) {
+      setMensagem("Erro ao rejeitar recurso.");
+      setTipoMensagem("error");
+      setSnackbarAberto(true);
+    }
+  };
+
   const estatisticas = useMemo(() => ({
     LEVE: multas.filter(m => m.classificacao === 'LEVE').length,
     MEDIA: multas.filter(m => m.classificacao === 'MEDIA').length,
@@ -243,7 +261,9 @@ export default function ListaMulta() {
           "AGUARDANDO COMPROVANTE": "#6a1b9a",
           "PENDENTE DE ACAO": "#ed6c02",
           "ATRIBUIDA": "#f9a825",
-          "MOTORISTA NAO IDENTIFICADO": "#616161"
+          "MOTORISTA NAO IDENTIFICADO": "#616161",
+          "RECURSO ACEITO - MULTA ANULADA": "#2e7d32",
+          "RECURSO NEGADO - AGUARDANDO PAGAMENTO": "#d32f2f"
         };
         const color = cores[params.value] || "#d32f2f";
         return (
@@ -335,12 +355,13 @@ export default function ListaMulta() {
     {
       field: 'recurso',
       headerName: 'Recurso',
-      width: 140,
+      width: 180,
       sortable: false,
       renderCell: (params) => {
         const temRecurso = !!params.row.possuiRecurso;
         const jaAnalisado =
-          params.row.situacao === "RECURSO ACEITO - MULTA ANULADA";
+          params.row.situacao === "RECURSO ACEITO - MULTA ANULADA" ||
+          params.row.situacao === "RECURSO NEGADO - AGUARDANDO PAGAMENTO";
 
         return (
           <Box sx={{ display: "flex", gap: 1 }}>
@@ -372,6 +393,29 @@ export default function ListaMulta() {
                   sx={{ width: 42, height: 42, minWidth: 42 }}
                 >
                   ✓
+                </Button>
+              </span>
+            </Tooltip>
+
+            <Tooltip title="Rejeitar recurso">
+              <span>
+                <Button
+                  color="error"
+                  variant="contained"
+                  size="small"
+                  disabled={!temRecurso || jaAnalisado}
+                  onClick={() => {
+                    setMultaSelecionada(params.row);
+                    setModalRejeitarRecursoAberto(true);
+                  }}
+                  sx={{
+                    width: 42,
+                    height: 42,
+                    minWidth: 42,
+                    color: theme.palette.mode === "dark" ? "rgba(0,0,0,0.87)" : undefined
+                  }}
+                >
+                  ✕
                 </Button>
               </span>
             </Tooltip>
@@ -508,12 +552,27 @@ export default function ListaMulta() {
         </DialogTitle>
         <DialogContent>
           <Typography sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
-            Deseja realmente aceitar este recurso? Esta ação anulará a multa permanentemente.
+            Deseja realmente aceitar este recurso?
           </Typography>
         </DialogContent>
         <DialogActions sx={{ "& .MuiButton-root": { color: theme.palette.mode === "dark" ? "#fff" : "inherit" } }}>
           <Button onClick={() => setModalAceitarRecursoAberto(false)}>Não</Button>
           <Button onClick={aceitarRecurso} variant="contained" color="success">Sim</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={modalRejeitarRecursoAberto} onClose={() => setModalRejeitarRecursoAberto(false)}>
+        <DialogTitle sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
+          Rejeitar Recurso
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
+            Deseja realmente rejeitar este recurso?
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ "& .MuiButton-root": { color: theme.palette.mode === "dark" ? "#fff" : "inherit" } }}>
+          <Button onClick={() => setModalRejeitarRecursoAberto(false)}>Não</Button>
+          <Button onClick={rejeitarRecurso} variant="contained" color="error">Sim, Rejeitar</Button>
         </DialogActions>
       </Dialog>
 
