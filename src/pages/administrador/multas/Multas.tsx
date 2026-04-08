@@ -261,7 +261,7 @@ export default function ListaMulta() {
           "ATRIBUIDA": "#f9a825",
           "MOTORISTA NAO IDENTIFICADO": "#616161",
           "RECURSO ACEITO - MULTA ANULADA": "#2e7d32",
-          "Recurso Negado - Aguardando pagamento": "#d32f2f"
+          "RECURSO NEGADO - AGUARDANDO PAGAMENTO": "#d32f2f"
         };
         const color = cores[params.value] || "#d32f2f";
         return (
@@ -359,7 +359,7 @@ export default function ListaMulta() {
         const temRecurso = !!params.row.possuiRecurso;
         const jaAnalisado =
           params.row.situacao === "RECURSO ACEITO - MULTA ANULADA" ||
-          params.row.situacao === "Recurso Negado - Aguardando pagamento";
+          params.row.situacao === "RECURSO NEGADO - AGUARDANDO PAGAMENTO";
 
         return (
           <Box sx={{ display: "flex", gap: 1 }}>
