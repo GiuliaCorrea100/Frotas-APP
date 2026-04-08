@@ -191,6 +191,20 @@ export default function ListaMulta() {
       });
   }, [multas, busca, filtroClassificacao]);
 
+  const buttonStyle = {
+    width: 42,
+    height: 42,
+    minWidth: 42,
+    padding: 0,
+    borderRadius: 1,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    "& .MuiButton-startIcon": {
+      margin: 0,
+    },
+  };
+
   const columns: GridColDef[] = [
     { field: 'idMulta', headerName: 'N°', flex: 0.5 },
     { field: 'codigoInfracao', headerName: 'Código Infração', flex: 1 },
@@ -304,7 +318,7 @@ export default function ListaMulta() {
                   const blob = await MultaService.downloadArquivo(fileName);
                   window.open(URL.createObjectURL(blob));
                 }}
-                sx={{ width: 42, height: 42, minWidth: 42 }}
+                sx={buttonStyle}
               >
                 <VisibilityIcon />
               </Button>
@@ -320,7 +334,7 @@ export default function ListaMulta() {
                   setMultaSelecionada(params.row);
                   setModalAprovarAberto(true);
                 }}
-                sx={{ width: 42, height: 42, minWidth: 42 }}
+                sx={buttonStyle}
               >
                 ✓
               </Button>
@@ -337,9 +351,7 @@ export default function ListaMulta() {
                   setModalReprovarAberto(true);
                 }}
                 sx={{
-                  width: 42,
-                  height: 42,
-                  minWidth: 42,
+                  ...buttonStyle,
                   color: theme.palette.mode === "dark" ? "rgba(0,0,0,0.87)" : undefined
                 }}
               >
@@ -370,7 +382,7 @@ export default function ListaMulta() {
                   size="small"
                   disabled={!temRecurso}
                   onClick={() => handleVisualizarRecurso(params.row)}
-                  sx={{ width: 42, height: 42, minWidth: 42 }}
+                  sx={buttonStyle}
                 >
                   <VisibilityIcon />
                 </Button>
@@ -388,7 +400,7 @@ export default function ListaMulta() {
                     setMultaSelecionada(params.row);
                     setModalAceitarRecursoAberto(true);
                   }}
-                  sx={{ width: 42, height: 42, minWidth: 42 }}
+                  sx={buttonStyle}
                 >
                   ✓
                 </Button>
@@ -407,9 +419,7 @@ export default function ListaMulta() {
                     setModalRejeitarRecursoAberto(true);
                   }}
                   sx={{
-                    width: 42,
-                    height: 42,
-                    minWidth: 42,
+                    ...buttonStyle,
                     color: theme.palette.mode === "dark" ? "rgba(0,0,0,0.87)" : undefined
                   }}
                 >
@@ -437,7 +447,7 @@ export default function ListaMulta() {
                 setMultaSelecionada(params.row);
                 setModalEditarAberto(true);
               }}
-              sx={{ width: 42, height: 42, minWidth: 42 }}
+              sx={buttonStyle}
             >
               <CreateIcon />
             </Button>
@@ -453,9 +463,7 @@ export default function ListaMulta() {
                 setModalExcluirAberto(true);
               }}
               sx={{
-                width: 42,
-                height: 42,
-                minWidth: 42,
+                ...buttonStyle,
                 color: theme.palette.mode === "dark" ? "rgba(0,0,0,0.87)" : undefined
               }}
             >
@@ -470,8 +478,9 @@ export default function ListaMulta() {
   return (
     <>
       <Menu />
-      <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', flex: 1 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+
+      <Box sx={{ p: 3 }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5} mx={3.5} height={56}>
           <Typography variant="h5" fontWeight="bold" color="text.primary">
             Listagem de Multas
           </Typography>
@@ -479,7 +488,13 @@ export default function ListaMulta() {
             variant="contained"
             startIcon={<Add />}
             onClick={() => setModalCadastroAberto(true)}
-            sx={{ textTransform: 'none', fontWeight: 600 }}
+            sx={{
+              textTransform: "none",
+              fontWeight: 600,
+              boxShadow: theme.shadows[2],
+              mb: 1,
+              mt: 1,
+            }}
           >
             Nova Multa
           </Button>
@@ -495,53 +510,145 @@ export default function ListaMulta() {
               border: "1px solid",
               borderColor: `${tipoMensagem}.main`,
               borderRadius: 1.5,
-              backgroundColor: theme.palette.mode === 'dark' ? 'background.paper' : undefined
             }}
           >
             {mensagem}
           </Alert>
         )}
 
-        <DataGrid
-          rows={dadosFiltrados}
-          columns={columns}
-          loading={loading}
-          getRowId={(row) => row.idMulta}
-          initialState={{ pagination: { paginationModel: { pageSize: 8, page: 0 } } }}
-          pageSizeOptions={[8, 16, 24]}
-          localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+        <Box
           sx={{
-            boxShadow: theme.shadows[1],
+            bgcolor:
+              theme.palette.mode === "light"
+                ? "#FFF"
+                : theme.palette.background.paper,
             borderRadius: 2,
-            border: 'none',
-            backgroundColor: theme.palette.background.paper,
-            height: 'calc(100vh - 350px)',
+            py: 2,
+            boxShadow:
+              theme.palette.mode === "dark"
+                ? "0px 4px 20px rgba(0, 0, 0, 0.3)"
+                : "0px 8px 24px rgba(0, 0, 0, 0.08)",
+            border:
+              theme.palette.mode === "dark"
+                ? "1px solid transparent"
+                : "1px solid #E7E9EE",
           }}
-          rowSelection={false}
-        />
+        >
+          <Box sx={{ display: "flex", gap: 1, mt: 1, mb: 3, ml: 3, flexWrap: "wrap" }}>
+            {[
+              { label: "LEVE", value: "LEVE", count: estatisticas.LEVE, color: theme.palette.success.main },
+              { label: "MÉDIA", value: "MEDIA", count: estatisticas.MEDIA, color: theme.palette.warning.main },
+              { label: "GRAVE", value: "GRAVE", count: estatisticas.GRAVE, color: theme.palette.error.main },
+              { label: "GRAVÍSSIMA", value: "GRAVISSIMA", count: estatisticas.GRAVISSIMA, color: theme.palette.error.dark },
+              { label: "TODAS", value: "TODOS", count: estatisticas.TODOS, color: theme.palette.primary.main },
+            ].map((tab) => (
+              <Button
+                key={tab.value}
+                variant={filtroClassificacao === tab.value ? "contained" : "outlined"}
+                onClick={() => setFiltroClassificacao(tab.value)}
+                sx={{
+                  textTransform: "none",
+                  borderRadius: 2,
+                  px: 2,
+                  fontWeight: filtroClassificacao === tab.value ? 600 : 500,
+                  color: filtroClassificacao === tab.value ? "white" : "text.primary",
+                  bgcolor:
+                    filtroClassificacao === tab.value
+                      ? tab.color
+                      : "background.paper",
+                }}
+              >
+                {tab.label}
+                <Box
+                sx={{
+                  ml: 1,
+                  fontWeight: 600,
+                  px: 1,
+                  borderRadius: 12,
+                  backgroundColor:
+                    filtroClassificacao === tab.value
+                      ? "rgba(255,255,255,0.2)"
+                      : theme.palette.mode === "dark"
+                      ? "rgba(255,255,255,0.15)"
+                      : theme.palette.grey[200],
+                  color:
+                    filtroClassificacao === tab.value
+                      ? "#fff"
+                      : theme.palette.mode === "dark"
+                      ? "#fff"
+                      : "inherit",
+                }}
+              >
+                {tab.count}
+              </Box>
+              </Button>
+            ))}
+          </Box>
+
+          <Box sx={{ mb: 3, mx: 3 }}>
+            <TextField
+              placeholder="Buscar multa"
+              variant="outlined"
+              size="small"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              fullWidth
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                  backgroundColor: theme.palette.background.paper,
+                },
+              }}
+            />
+          </Box>
+
+          <DataGrid
+            rows={dadosFiltrados}
+            columns={columns}
+            loading={loading}
+            getRowId={(row) => row.idMulta}
+            pageSizeOptions={[8, 16, 24]}
+            initialState={{ pagination: { paginationModel: { pageSize: 8, page: 0 } } }}
+            localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+            rowSelection={false}
+            rowHeight={50}
+            columnHeaderHeight={60}
+            autoHeight
+            sx={{
+              "& .MuiDataGrid-columnHeaders": {
+                "& .MuiDataGrid-columnHeader:first-child": {
+                  pl: 4,
+                },
+                "& .MuiDataGrid-columnHeader:last-child": {
+                  pr: 4,
+                },
+              },
+              "& .MuiDataGrid-row": {
+                "& .MuiDataGrid-cell:first-child": {
+                  pl: 4,
+                },
+                "& .MuiDataGrid-cell:last-child": {
+                  pr: 4,
+                },
+              },
+            }}
+          />
+        </Box>
       </Box>
 
       <Dialog open={modalAprovarAberto} onClose={() => setModalAprovarAberto(false)}>
-        <DialogTitle sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
-          Aprovar comprovante
-        </DialogTitle>
-
+        <DialogTitle>Aprovar comprovante</DialogTitle>
         <DialogContent>
-          <Typography sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
-            Deseja aprovar esse comprovante de pagamento?
-          </Typography>
+          <Typography>Deseja aprovar esse comprovante de pagamento?</Typography>
         </DialogContent>
-        <DialogActions sx={{ "& .MuiButton-root": { color: theme.palette.mode === "dark" ? "#fff" : "inherit" } }}>
+        <DialogActions>
           <Button onClick={() => setModalAprovarAberto(false)}>Não</Button>
           <Button onClick={aprovarComprovante} variant="contained" color="success">Sim</Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={modalReprovarAberto} onClose={() => setModalReprovarAberto(false)}>
-        <DialogTitle sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
-          Motivo da reprovação
-        </DialogTitle>
-
+        <DialogTitle>Motivo da reprovação</DialogTitle>
         <DialogContent>
           <TextField
             fullWidth
@@ -549,59 +656,42 @@ export default function ListaMulta() {
             minRows={3}
             value={motivoReprovacao}
             onChange={(e) => setMotivoReprovacao(e.target.value)}
-            sx={{
-              "& .MuiInputBase-input": { color: theme.palette.mode === "dark" ? "#fff" : "inherit" },
-              "& .MuiInputLabel-root": { color: theme.palette.mode === "dark" ? "#fff" : "inherit" }
-            }}
           />
         </DialogContent>
-        <DialogActions sx={{ "& .MuiButton-root": { color: theme.palette.mode === "dark" ? "#fff" : "inherit" } }}>
+        <DialogActions>
           <Button onClick={() => setModalReprovarAberto(false)}>Cancelar</Button>
           <Button onClick={reprovarComprovante} variant="contained" color="error">Reprovar</Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={modalAceitarRecursoAberto} onClose={() => setModalAceitarRecursoAberto(false)}>
-        <DialogTitle sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
-          Aceitar Recurso
-        </DialogTitle>
+        <DialogTitle>Aceitar Recurso</DialogTitle>
         <DialogContent>
-          <Typography sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
-            Deseja realmente aceitar este recurso?
-          </Typography>
+          <Typography>Deseja realmente aceitar este recurso?</Typography>
         </DialogContent>
-        <DialogActions sx={{ "& .MuiButton-root": { color: theme.palette.mode === "dark" ? "#fff" : "inherit" } }}>
+        <DialogActions>
           <Button onClick={() => setModalAceitarRecursoAberto(false)}>Não</Button>
           <Button onClick={aceitarRecurso} variant="contained" color="success">Sim</Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={modalRejeitarRecursoAberto} onClose={() => setModalRejeitarRecursoAberto(false)}>
-        <DialogTitle sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
-          Rejeitar Recurso
-        </DialogTitle>
+        <DialogTitle>Rejeitar Recurso</DialogTitle>
         <DialogContent>
-          <Typography sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
-            Deseja realmente rejeitar este recurso?
-          </Typography>
+          <Typography>Deseja realmente rejeitar este recurso?</Typography>
         </DialogContent>
-        <DialogActions sx={{ "& .MuiButton-root": { color: theme.palette.mode === "dark" ? "#fff" : "inherit" } }}>
+        <DialogActions>
           <Button onClick={() => setModalRejeitarRecursoAberto(false)}>Não</Button>
           <Button onClick={rejeitarRecurso} variant="contained" color="error">Sim, Rejeitar</Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={modalExcluirAberto} onClose={() => setModalExcluirAberto(false)}>
-        <DialogTitle sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
-          Excluir Multa
-        </DialogTitle>
-
+        <DialogTitle>Excluir Multa</DialogTitle>
         <DialogContent>
-          <Typography sx={{ color: theme.palette.mode === "dark" ? "#fff" : "inherit" }}>
-            Você tem certeza que deseja excluir esta multa?
-          </Typography>
+          <Typography>Você tem certeza que deseja excluir esta multa?</Typography>
         </DialogContent>
-        <DialogActions sx={{ "& .MuiButton-root": { color: theme.palette.mode === "dark" ? "#fff" : "inherit" } }}>
+        <DialogActions>
           <Button onClick={() => setModalExcluirAberto(false)}>Cancelar</Button>
           <Button
             onClick={async () => {
