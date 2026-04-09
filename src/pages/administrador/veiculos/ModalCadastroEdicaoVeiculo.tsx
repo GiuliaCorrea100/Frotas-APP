@@ -162,7 +162,7 @@ const ModalCadastroEdicaoVeiculo: React.FC<ModalCadastroEdicaoVeiculoProps> = ({
         setTombo(value);
         break;
       case "localidadeFisica":
-        setLocalidadeFisica(value);
+        setLocalidadeFisica(value.toUpperCase());
         break;
     }
   };

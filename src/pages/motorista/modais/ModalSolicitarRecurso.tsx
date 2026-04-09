@@ -228,7 +228,7 @@ const SolicitarRecursoModal: React.FC<SolcitarRecursoProps> = ({
 
             {arquivoSelecionado && (
               <Box sx={{ mt: 2 }}>
-                <Typography variant="subtitle2" gutterBottom>
+                <Typography variant="subtitle2" gutterBottom color="textPrimary">
                   Arquivo selecionado:
                 </Typography>
                 <Box

@@ -19,7 +19,6 @@ import {
   buscarPercursosDaCorrida,
 } from "../../services/PercursoService";
 import ModalIniciarPercurso from "./modais/ModalIniciarPercurso";
-import ModalSucesso from "./modais/ModalSucesso";
 import ModalConfirmacaoUltimoPercurso from "./modais/ModalConfirmacaoUltimoPercurso";
 import ModalPercursos from "./modais/ModalPercursos";
 import AbastecimentoModal from "../administrador/corridas/modais/ModalCadastroAbastecimento";
@@ -46,6 +45,11 @@ const formatDate = (dateString: string | null) => {
   } catch {
     return "Data inválida";
   }
+};
+
+const getHorarioAtualLocal = () => {
+  const agora = new Date();
+  return agora.toLocaleString("pt-BR"); 
 };
 
 const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props) => {
@@ -81,6 +85,8 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
   const [odometroFinal, setOdometroFinal] = useState("");
   const [ultimoDestino, setUltimoDestino] = useState("");
   const [isUltimoPercurso, setIsUltimoPercurso] = useState(false);
+
+  const [dataFinal, setDataFinal] = useState<string>("");
 
   const [chaveEmprestada, setChaveEmprestada] = useState(false);
 
@@ -221,12 +227,11 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
     return (
       <AppLayout>
         <Box sx={{ p: 4, maxWidth: 800, mx: "auto", textAlign: "center" }}>
-        <Typography variant="h5" fontWeight="bold" gutterBottom>
+        <Typography variant="h5" fontWeight="bold" gutterBottom color="textPrimary">
           Corrida Finalizada
         </Typography>
         <Typography variant="body1" color="success.main" sx={{ mb: 2 }}>
-          Esta corrida foi finalizada em{" "}
-          {formatDate(corridaLocal.dataTermino ?? null)}
+          Esta corrida foi finalizada em {dataFinal}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Nenhuma ação disponível para corridas finalizadas.
@@ -368,6 +373,8 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
 
         const corridaAtualizada = { ...corridaLocal, situacao: "FINALIZADA" };
         setCorridaLocal(corridaAtualizada);
+
+        setDataFinal(getHorarioAtualLocal());
 
         if (onCorridaUpdate) {
           onCorridaUpdate(corridaAtualizada);
