@@ -73,6 +73,9 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
   const [arquivoAtual, setArquivoAtual] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
+  const [mensagem, setMensagem] = useState("");
+  const [tipoMensagem, setTipoMensagem] = useState<"success" | "error" | "warning" | "info">("success");
+
   const formatDateForInput = (date: any): string => {
     if (!date) return "";
     try {
@@ -104,7 +107,9 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch {
-      onError("Erro ao baixar arquivo");
+      setMensagem("Erro ao baixar arquivo");
+      setTipoMensagem("error");
+      setTimeout(() => setMensagem(""), 6000);
     }
   };
 
@@ -120,9 +125,13 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
         (multa as any).urlArquivo = null;
       }
 
-      onSuccess("Arquivo removido com sucesso");
+      setMensagem("Boleto removido com sucesso!");
+      setTipoMensagem("success");
+      setTimeout(() => setMensagem(""), 6000);
     } catch {
-      onError("Erro ao remover arquivo");
+      setMensagem("Erro ao remover boleto.");
+      setTipoMensagem("error");
+      setTimeout(() => setMensagem(""), 6000);
     } finally {
       setLoading(false);
     }
@@ -144,6 +153,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
       setDataInfracao(formatDateForInput(multa.dataInfracao));
       setArquivoAtual((multa as any).urlArquivo || null);
       setArquivo(null);
+      setMensagem("");
     }
   }, [multa]);
 
@@ -318,6 +328,22 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
               Boleto Anexado
             </Typography>
 
+            {mensagem && (
+              <Alert
+                severity={tipoMensagem}
+                onClose={() => setMensagem("")}
+                sx={{
+                  mb: 2,
+                  fontSize: "0.95rem",
+                  border: "1px solid",
+                  borderColor: `${tipoMensagem}.main`,
+                  borderRadius: 1.5,
+                }}
+              >
+                {mensagem}
+              </Alert>
+            )}
+
             {arquivoAtual ? (
               <Box display="flex" alignItems="center" gap={1} mb={2}>
                 <Chip
@@ -329,7 +355,12 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
                 <IconButton size="small" onClick={handleDownloadArquivo}>
                   <Download />
                 </IconButton>
-                <IconButton size="small" onClick={handleRemoverArquivoAtual} color="error">
+                <IconButton
+                  size="small"
+                  onClick={handleRemoverArquivoAtual}
+                  color="error"
+                  disabled={loading}
+                >
                   <Delete />
                 </IconButton>
               </Box>
