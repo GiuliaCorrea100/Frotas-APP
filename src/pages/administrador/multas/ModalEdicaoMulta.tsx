@@ -10,7 +10,6 @@ import {
   Paper,
   IconButton,
   MenuItem,
-  Chip,
   Alert,
   Divider,
 } from "@mui/material";
@@ -18,8 +17,6 @@ import {
   LocalGasStation,
   CalendarToday,
   Close,
-  AttachFile,
-  Download,
   Delete,
   Person,
 } from "@mui/icons-material";
@@ -73,6 +70,9 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
   const [arquivoAtual, setArquivoAtual] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
+  const [mensagem, setMensagem] = useState("");
+  const [tipoMensagem, setTipoMensagem] = useState<"success" | "error" | "warning" | "info">("success");
+
   const formatDateForInput = (date: any): string => {
     if (!date) return "";
     try {
@@ -104,7 +104,9 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch {
-      onError("Erro ao baixar arquivo");
+      setMensagem("Erro ao baixar arquivo");
+      setTipoMensagem("error");
+      setTimeout(() => setMensagem(""), 6000);
     }
   };
 
@@ -120,9 +122,13 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
         (multa as any).urlArquivo = null;
       }
 
-      onSuccess("Arquivo removido com sucesso");
+      setMensagem("Boleto removido com sucesso!");
+      setTipoMensagem("success");
+      setTimeout(() => setMensagem(""), 6000);
     } catch {
-      onError("Erro ao remover arquivo");
+      setMensagem("Erro ao remover boleto.");
+      setTipoMensagem("error");
+      setTimeout(() => setMensagem(""), 6000);
     } finally {
       setLoading(false);
     }
@@ -144,6 +150,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
       setDataInfracao(formatDateForInput(multa.dataInfracao));
       setArquivoAtual((multa as any).urlArquivo || null);
       setArquivo(null);
+      setMensagem("");
     }
   }, [multa]);
 
@@ -208,6 +215,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
           </IconButton>
         </Box>
 
+        {/* Informações do Motorista */}
         <Box sx={{ mb: 3, p: 2, backgroundColor: 'grey.50', borderRadius: 1 }}>
           <Box display="flex" alignItems="center" mb={1}>
             <Person color="primary" sx={{ mr: 1, fontSize: 20 }} />
@@ -238,23 +246,23 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
         <Divider sx={{ mb: 3 }} />
 
         <Box component="form" onSubmit={handleSubmit} display="flex" flexWrap="wrap" gap={2}>
-          <TextField
-            label="Código da Infração"
-            type="number"
-            value={codigoInfracao}
-            onChange={(e) => setCodigoInfracao(Number(e.target.value))}
-            required
-            fullWidth
-            sx={{ flex: "1 1 calc(50% - 8px)" }}
+          <TextField 
+            label="Código da Infração" 
+            type="number" 
+            value={codigoInfracao} 
+            onChange={(e) => setCodigoInfracao(Number(e.target.value))} 
+            required 
+            fullWidth 
+            sx={{ flex: "1 1 calc(50% - 8px)" }} 
           />
 
-          <TextField
-            select
-            label="Classificação"
-            value={classificacao}
-            onChange={(e) => setClassificacao(e.target.value)}
-            required
-            fullWidth
+          <TextField 
+            select 
+            label="Classificação" 
+            value={classificacao} 
+            onChange={(e) => setClassificacao(e.target.value)} 
+            required 
+            fullWidth 
             sx={{ flex: "1 1 calc(50% - 8px)" }}
           >
             {opcoesClassificacao.map((opcao) => (
@@ -264,72 +272,81 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
             ))}
           </TextField>
 
-          <TextField
-            label="Valor da multa (R$)"
-            type="number"
-            value={valorInfracao}
-            onChange={(e) => setValorInfracao(Number(e.target.value))}
-            required
-            fullWidth
-            sx={{ flex: "1 1 calc(50% - 8px)" }}
-            InputProps={{
-              startAdornment: <InputAdornment position="start">R$</InputAdornment>,
-            }}
+          <TextField 
+            label="Valor da multa (R$)" 
+            type="number" 
+            value={valorInfracao} 
+            onChange={(e) => setValorInfracao(Number(e.target.value))} 
+            required 
+            fullWidth 
+            sx={{ flex: "1 1 calc(50% - 8px)" }} 
+            InputProps={{ startAdornment: <InputAdornment position="start">R$</InputAdornment> }} 
           />
 
-          <TextField
-            label="Placa do Veículo"
-            value={placaVeiculo}
-            onChange={(e) => setPlacaVeiculo(e.target.value)}
-            required
-            fullWidth
-            sx={{ flex: "1 1 calc(50% - 8px)" }}
+          <TextField 
+            label="Placa do Veículo" 
+            value={placaVeiculo} 
+            onChange={(e) => setPlacaVeiculo(e.target.value)} 
+            required 
+            fullWidth 
+            sx={{ flex: "1 1 calc(50% - 8px)" }} 
           />
 
-          <TextField
-            label="Auto da Infração"
-            type="number"
-            value={autoInfracao}
-            onChange={(e) => setAutoInfracao(Number(e.target.value))}
-            required
-            fullWidth
-            sx={{ flex: "1 1 calc(50% - 8px)" }}
+          <TextField 
+            label="Auto da Infração" 
+            type="number" 
+            value={autoInfracao} 
+            onChange={(e) => setAutoInfracao(Number(e.target.value))} 
+            required 
+            fullWidth 
+            sx={{ flex: "1 1 calc(50% - 8px)" }} 
           />
 
-          <TextField
-            label="Data da Infração"
-            type="date"
-            fullWidth
-            value={dataInfracao}
-            onChange={(e) => setDataInfracao(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            InputProps={{
+          <TextField 
+            label="Data da Infração" 
+            type="date" 
+            fullWidth 
+            value={dataInfracao} 
+            onChange={(e) => setDataInfracao(e.target.value)} 
+            InputLabelProps={{ shrink: true }} 
+            InputProps={{ 
               startAdornment: (
                 <InputAdornment position="start">
                   <CalendarToday fontSize="small" />
                 </InputAdornment>
-              ),
-            }}
-            sx={{ flex: "1 1 100%", mt: 1 }}
+              ) 
+            }} 
+            sx={{ flex: "1 1 100%", mt: 1 }} 
           />
 
+          {/* Seção do Boleto */}
           <Box sx={{ flex: "1 1 100%", mt: 2 }}>
             <Typography variant="subtitle1" fontWeight="bold" mb={1} color="text.primary">
-              Boleto Anexado
+              BOLETO
             </Typography>
 
+            {mensagem && (
+              <Alert severity={tipoMensagem} onClose={() => setMensagem("")} sx={{ mb: 2 }}>
+                {mensagem}
+              </Alert>
+            )}
+
             {arquivoAtual ? (
-              <Box display="flex" alignItems="center" gap={1} mb={2}>
-                <Chip
-                  icon={<AttachFile />}
-                  label={extrairNomeArquivo(arquivoAtual)}
-                  variant="outlined"
-                  color="primary"
-                />
-                <IconButton size="small" onClick={handleDownloadArquivo}>
-                  <Download />
-                </IconButton>
-                <IconButton size="small" onClick={handleRemoverArquivoAtual} color="error">
+              <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+                <Typography
+                  variant="body2"
+                  sx={{ 
+                    cursor: "pointer", 
+                    textDecoration: "underline",
+                    color: "primary.main",
+                    "&:hover": { color: "primary.light" }
+                  }}
+                  onClick={handleDownloadArquivo}
+                >
+                  {extrairNomeArquivo(arquivoAtual)}
+                </Typography>
+
+                <IconButton size="small" onClick={handleRemoverArquivoAtual} color="error" disabled={loading}>
                   <Delete />
                 </IconButton>
               </Box>
@@ -339,23 +356,13 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
               </Alert>
             )}
 
-            <Typography variant="body2" fontWeight="medium" mb={1} color="text.primary">
+            <Typography variant="body2" fontWeight="medium" mb={1} color="text.secondary">
               {arquivoAtual ? "Substituir boleto" : "Anexar boleto"}
             </Typography>
 
-            <Button
-              variant="outlined"
-              component="label"
-              startIcon={<AttachFile />}
-              size="small"
-            >
+            <Button variant="outlined" component="label" size="small">
               Selecionar boleto
-              <input
-                type="file"
-                hidden
-                onChange={handleFileChange}
-                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-              />
+              <input type="file" hidden onChange={handleFileChange} accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
             </Button>
 
             {arquivo && (
@@ -370,11 +377,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
               Cancelar
             </Button>
             <Button type="submit" variant="contained" disabled={loading || uploading}>
-              {loading || uploading ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                "Atualizar"
-              )}
+              {loading || uploading ? <CircularProgress size={24} color="inherit" /> : "Atualizar"}
             </Button>
           </Box>
         </Box>

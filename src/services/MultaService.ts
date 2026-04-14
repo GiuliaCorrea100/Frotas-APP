@@ -141,6 +141,16 @@ export class MultaService {
     }
   }
 
+  static async rejeitarRecurso(idMulta: number): Promise<any> {
+    try {
+      const response = await axiosConnect.patch(`/multa/${idMulta}/rejeitar-recurso`);
+      return response.data;
+    } catch (error) {
+      console.error(`Erro ao rejeitar recurso da multa ${idMulta}:`, error);
+      throw error;
+    }
+  }
+
   static async removerMulta(idMulta: number): Promise<void> {
     try {
       await axiosConnect.patch(`/multa/deletar-multa/${idMulta}`);
