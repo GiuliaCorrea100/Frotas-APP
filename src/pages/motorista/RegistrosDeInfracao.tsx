@@ -84,8 +84,9 @@ export default function RegistrosDeInfracao() {
       const dados = await MultaService.listarMultas(params);
 
       const multasDoUsuario = dados.filter(
-        (multa) => multa.idMotorista === idUsuarioLogado,
+        (multa) => ((multa.idMotorista === idUsuarioLogado) && (multa.situacao != 'ANULADA')),
       );
+
 
       setMultas(multasDoUsuario);
       setMultasFiltradas(multasDoUsuario);
@@ -146,22 +147,18 @@ export default function RegistrosDeInfracao() {
   const handleRecursoError = (error: any) => {
     console.error("Erro ao solicitar recurso:", error);
     setMensagemSucesso("Erro ao solicitar recurso. Tente novamente.");
-    setTimeout(() => setMensagemSucesso(""), 6000);
   };
 
   const handleUploadSuccess = () => {
     setMensagemSucesso("Comprovante de pagamento enviado com sucesso!");
-    setTimeout(() => setMensagemSucesso(""), 6000);
   };
 
   const handleRemoveSuccess = () => {
     setMensagemSucesso("Comprovante de pagamento removido com sucesso!");
-    setTimeout(() => setMensagemSucesso(""), 6000);
   };
 
   const handleError = (message: string) => {
     setMensagemSucesso(message);
-    setTimeout(() => setMensagemSucesso(""), 6000);
   };
 
   const columns: GridColDef<MultaDto>[] = [
@@ -355,18 +352,29 @@ export default function RegistrosDeInfracao() {
 
   return (
     <AppLayout>
-
       <BemVindo />
 
-      <Box sx={{ p: 3, display: "flex", flexDirection: "column", flex: 1 }}>
-        <Box mb={2} display="flex" alignItems="center" gap={1}>
-          <Typography variant="h5" fontWeight="bold" color="textPrimary">
-            Registros de Infrações
-          </Typography>
-        </Box>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={1.5}
+        mx={3.5}
+        height={56}
+      >
+        <Typography
+          variant="h5"
+          fontWeight="bold"
+          color="text.primary"
+          display="flex"
+          pb={0}
+        >
+          Registros de Infrações
+        </Typography> 
+      </Box>
 
-        
-        {mensagemSucesso && (
+  
+      {mensagemSucesso && (
           <Alert
             severity="success"
             sx={{
@@ -380,9 +388,9 @@ export default function RegistrosDeInfracao() {
           >
             {mensagemSucesso}
           </Alert>
-        )}
+      )}
 
-        <Box
+      <Box
           sx={{
             bgcolor: theme.palette.mode === "light" ? "#FFF" : theme.palette.background.paper,
             borderRadius: 2,
@@ -404,10 +412,7 @@ export default function RegistrosDeInfracao() {
               value={busca}
               onChange={(e) => buscar(e.target.value)}
               fullWidth
-              InputProps={{
-                startAdornment: (
-                  <SearchIcon color="action" style={{ marginRight: 8 }} />
-                ),
+              InputProps={{  
                 endAdornment: busca && (
                   <ClearIcon
                     color="action"
@@ -460,8 +465,8 @@ export default function RegistrosDeInfracao() {
               },
             }}
           />
-        </Box>
       </Box>
+      
 
       <SolicitarRecursoModal
         open={openRecursoModal}
