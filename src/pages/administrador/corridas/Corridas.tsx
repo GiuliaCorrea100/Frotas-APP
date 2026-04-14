@@ -198,6 +198,8 @@ export default function ListaCorrida() {
       setShowModalLiberarChave(false);
       setSenhaLiberarChave("");
       setSenhaError(null);
+      setMensagemSucesso("Chave liberada com sucesso!");
+      setTimeout(() => setMensagemSucesso(""), 6000);
     } catch (error: any) {
       console.error("Erro ao processar liberação da chave:", error);
 
@@ -600,16 +602,12 @@ export default function ListaCorrida() {
               }
               onClick={() => {
                 if (tab.temSubmenu) {
-                  // Se clicar no botão ATIVAS, mostra/esconde os subfiltros
                   setMostrarSubFiltros(!mostrarSubFiltros);
                   
-                  // Quando abrir ou fechar os subfiltros, não altera o filtroSituacao para TODOS
                   if (!mostrarSubFiltros) {
-                    // Abrindo os subfiltros - remove qualquer filtro ativo
                     setFiltroSituacao("");
                     setFiltroAtivoInterno(null);
                   } else {
-                    // Fechando os subfiltros - limpa o filtro interno
                     setFiltroAtivoInterno(null);
                     setFiltroSituacao("");
                   }
@@ -778,12 +776,16 @@ export default function ListaCorrida() {
         <DataGrid
           rows={dadosFiltrados}
           columns={columns}
+          
           loading={loading}
           getRowId={(row) => row.idCorrida}
           pageSizeOptions={[5, 10, 15, 20, 25, 50, 100]}
           initialState={{
             pagination: {
               paginationModel: { pageSize: 5, page: 0 },
+            },
+            sorting: {
+              sortModel: [{ field: 'idCorrida', sort: 'desc' }],
             },
           }}
           localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
@@ -938,6 +940,8 @@ export default function ListaCorrida() {
                   const dadosAtualizados = await getCorridas();
                   setCorridas(dadosAtualizados);
                   setShowModalCancelar(false);
+                  setMensagemSucesso("Corrida cancelada sucesso!");
+                  setTimeout(() => setMensagemSucesso(""), 6000);
                 } catch (error) {
                   console.error("Erro ao cancelar corrida:", error);
                 }
@@ -997,6 +1001,8 @@ export default function ListaCorrida() {
                   const dadosAtualizados = await getCorridas();
                   setCorridas(dadosAtualizados);
                   setShowModalReceberChave(false);
+                  setMensagemSucesso("Chave Recebida com sucesso!");
+                  setTimeout(() => setMensagemSucesso(""), 6000);
                 } catch (error) {
                   console.error(
                     "Erro ao processar recebimento da chave:",

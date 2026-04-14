@@ -8,7 +8,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Modal,
   TextField,
   Tooltip,
   Typography,
@@ -57,6 +56,7 @@ export default function ListaVeiculos() {
     setModoFormulario("criar");
     setSelectedCarroForEdit(null);
     setopenModalCadastroEdicao(true);
+    
   };
 
   // Abrir modal de edição
@@ -507,6 +507,7 @@ export default function ListaVeiculos() {
           onSuccess={(message) => {
             handleCloseFormulario();
             setMensagemSucesso(message);
+            carregarCarros();
           }}
           onError={handleErrorFormulario}
         />
