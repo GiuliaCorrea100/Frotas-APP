@@ -2,19 +2,25 @@ import { Add } from '@mui/icons-material';
 import CreateIcon from "@mui/icons-material/Create";
 import CancelIcon from "@mui/icons-material/Cancel";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import CloseIcon from "@mui/icons-material/Close";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ErrorIcon from "@mui/icons-material/Error";
+import ThumbUpIcon from "@mui/icons-material/ThumbUp";
+import ThumbDownIcon from "@mui/icons-material/ThumbDown";
 import {
   Box,
   Button,
   Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
+  Modal,
+  IconButton,
   Tooltip,
   Typography,
   useTheme,
   Alert,
-  TextField
+  TextField,
+  Paper,
+  Divider,
+  CircularProgress
 } from "@mui/material";
 import { DataGrid, GridColDef, ptBR } from '@mui/x-data-grid';
 import { useEffect, useMemo, useState } from 'react';
@@ -26,12 +32,29 @@ import CadastroMultaModal from './ModalCadastroMulta';
 import EditarMultaModal from './ModalEdicaoMulta';
 import ModalVisualizarRecurso from '../../motorista/modais/ModalVisualizarRecurso';
 
+const modalStyle = {
+  position: "absolute" as const,
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "90%",
+  maxWidth: 500,
+  maxHeight: "90vh",
+  overflow: "auto",
+  bgcolor: "background.paper",
+  color: "text.primary",
+  boxShadow: 24,
+  p: 4,
+  borderRadius: 2,
+};
+
 export default function ListaMulta() {
   const theme = useTheme();
   const [busca, setBusca] = useState("");
   const [multas, setMultas] = useState<MultaDto[]>([]);
   const [filtroClassificacao, setFiltroClassificacao] = useState<string>('TODOS');
   const [loading, setLoading] = useState(false);
+  const [loadingAction, setLoadingAction] = useState(false);
 
   const [modalCadastrarAberto, setModalCadastroAberto] = useState(false);
   const [modalEditarAberto, setModalEditarAberto] = useState(false);
@@ -91,7 +114,7 @@ export default function ListaMulta() {
 
   const aprovarComprovante = async () => {
     if (!multaSelecionada) return;
-
+    setLoadingAction(true);
     try {
       await MultaService.aprovarComprovante(multaSelecionada.idMulta!);
       setMensagem("Comprovante aprovado com sucesso!");
@@ -102,18 +125,16 @@ export default function ListaMulta() {
     } catch (error) {
       setMensagem("Erro ao aprovar comprovante.");
       setTipoMensagem("error");
-      setTimeout(() => setMensagem(""), 6000);
+    } finally {
+      setLoadingAction(false);
     }
   };
 
   const reprovarComprovante = async () => {
     if (!multaSelecionada) return;
-
+    setLoadingAction(true);
     try {
-      await MultaService.reprovarComprovante(
-        multaSelecionada.idMulta!,
-        motivoReprovacao
-      );
+      await MultaService.reprovarComprovante(multaSelecionada.idMulta!, motivoReprovacao);
       setMensagem("Comprovante reprovado com sucesso!");
       setTipoMensagem("success");
       setModalReprovarAberto(false);
@@ -123,13 +144,14 @@ export default function ListaMulta() {
     } catch (error) {
       setMensagem("Erro ao reprovar comprovante.");
       setTipoMensagem("error");
-      setTimeout(() => setMensagem(""), 6000);
+    } finally {
+      setLoadingAction(false);
     }
   };
 
   const aceitarRecurso = async () => {
     if (!multaSelecionada) return;
-
+    setLoadingAction(true);
     try {
       await MultaService.aceitarRecurso(multaSelecionada.idMulta!);
       setMensagem("Recurso aceito com sucesso! Multa anulada.");
@@ -140,13 +162,14 @@ export default function ListaMulta() {
     } catch (error) {
       setMensagem("Erro ao aceitar recurso.");
       setTipoMensagem("error");
-      setTimeout(() => setMensagem(""), 6000);
+    } finally {
+      setLoadingAction(false);
     }
   };
 
   const rejeitarRecurso = async () => {
     if (!multaSelecionada) return;
-
+    setLoadingAction(true);
     try {
       await MultaService.rejeitarRecurso(multaSelecionada.idMulta!);
       setMensagem("RECURSO REJEITADO. SITUAÇÃO ATUALIZADA.");
@@ -157,7 +180,8 @@ export default function ListaMulta() {
     } catch (error) {
       setMensagem("Erro ao rejeitar recurso.");
       setTipoMensagem("error");
-      setTimeout(() => setMensagem(""), 6000);
+    } finally {
+      setLoadingAction(false);
     }
   };
 
@@ -200,9 +224,7 @@ export default function ListaMulta() {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    "& .MuiButton-startIcon": {
-      margin: 0,
-    },
+    "& .MuiButton-startIcon": { margin: 0 },
   };
 
   const columns: GridColDef[] = [
@@ -246,12 +268,7 @@ export default function ListaMulta() {
       headerName: 'Classificação',
       flex: 1.5,
       renderCell: (params) => {
-        const map: any = {
-          LEVE: 'success',
-          MEDIA: 'warning',
-          GRAVE: 'error',
-          GRAVISSIMA: 'error'
-        };
+        const map: any = { LEVE: 'success', MEDIA: 'warning', GRAVE: 'error', GRAVISSIMA: 'error' };
         return (
           <Chip
             label={params.value}
@@ -302,9 +319,7 @@ export default function ListaMulta() {
       renderCell: (params) => {
         const url = params.row.urlComprovantePagamento;
         const possuiComprovante = Boolean(url);
-        const jaAnalisado =
-          params.row.situacao === "PAGA" ||
-          params.row.situacao === "PENDENTE DE ACAO";
+        const jaAnalisado = params.row.situacao === "PAGA" || params.row.situacao === "PENDENTE DE ACAO";
 
         return (
           <Box sx={{ display: "flex", gap: 1 }}>
@@ -518,20 +533,11 @@ export default function ListaMulta() {
 
         <Box
           sx={{
-            bgcolor:
-              theme.palette.mode === "light"
-                ? "#FFF"
-                : theme.palette.background.paper,
+            bgcolor: theme.palette.mode === "light" ? "#FFF" : theme.palette.background.paper,
             borderRadius: 2,
             py: 2,
-            boxShadow:
-              theme.palette.mode === "dark"
-                ? "0px 4px 20px rgba(0, 0, 0, 0.3)"
-                : "0px 8px 24px rgba(0, 0, 0, 0.08)",
-            border:
-              theme.palette.mode === "dark"
-                ? "1px solid transparent"
-                : "1px solid #E7E9EE",
+            boxShadow: theme.palette.mode === "dark" ? "0px 4px 20px rgba(0, 0, 0, 0.3)" : "0px 8px 24px rgba(0, 0, 0, 0.08)",
+            border: theme.palette.mode === "dark" ? "1px solid transparent" : "1px solid #E7E9EE",
           }}
         >
           <Box sx={{ display: "flex", gap: 1, mt: 1, mb: 3, ml: 3, flexWrap: "wrap" }}>
@@ -552,35 +558,22 @@ export default function ListaMulta() {
                   px: 2,
                   fontWeight: filtroClassificacao === tab.value ? 600 : 500,
                   color: filtroClassificacao === tab.value ? "white" : "text.primary",
-                  bgcolor:
-                    filtroClassificacao === tab.value
-                      ? tab.color
-                      : "background.paper",
+                  bgcolor: filtroClassificacao === tab.value ? tab.color : "background.paper",
                 }}
               >
                 {tab.label}
                 <Box
-                sx={{
-                  ml: 1,
-                  fontWeight: 600,
-                  px: 1,
-                  borderRadius: 12,
-                  backgroundColor:
-                    filtroClassificacao === tab.value
-                      ? "rgba(255,255,255,0.2)"
-                      : theme.palette.mode === "dark"
-                      ? "rgba(255,255,255,0.15)"
-                      : theme.palette.grey[200],
-                  color:
-                    filtroClassificacao === tab.value
-                      ? "#fff"
-                      : theme.palette.mode === "dark"
-                      ? "#fff"
-                      : "inherit",
-                }}
-              >
-                {tab.count}
-              </Box>
+                  sx={{
+                    ml: 1,
+                    fontWeight: 600,
+                    px: 1,
+                    borderRadius: 12,
+                    backgroundColor: filtroClassificacao === tab.value ? "rgba(255,255,255,0.2)" : theme.palette.mode === "dark" ? "rgba(255,255,255,0.15)" : theme.palette.grey[200],
+                    color: filtroClassificacao === tab.value ? "#fff" : theme.palette.mode === "dark" ? "#fff" : "inherit",
+                  }}
+                >
+                  {tab.count}
+                </Box>
               </Button>
             ))}
           </Box>
@@ -616,98 +609,156 @@ export default function ListaMulta() {
             autoHeight
             sx={{
               "& .MuiDataGrid-columnHeaders": {
-                "& .MuiDataGrid-columnHeader:first-child": {
-                  pl: 4,
-                },
-                "& .MuiDataGrid-columnHeader:last-child": {
-                  pr: 4,
-                },
+                "& .MuiDataGrid-columnHeader:first-child": { pl: 4 },
+                "& .MuiDataGrid-columnHeader:last-child": { pr: 4 },
               },
               "& .MuiDataGrid-row": {
-                "& .MuiDataGrid-cell:first-child": {
-                  pl: 4,
-                },
-                "& .MuiDataGrid-cell:last-child": {
-                  pr: 4,
-                },
+                "& .MuiDataGrid-cell:first-child": { pl: 4 },
+                "& .MuiDataGrid-cell:last-child": { pr: 4 },
               },
             }}
           />
         </Box>
       </Box>
 
-      <Dialog open={modalAprovarAberto} onClose={() => setModalAprovarAberto(false)}>
-        <DialogTitle>Aprovar comprovante</DialogTitle>
-        <DialogContent>
-          <Typography>Deseja aprovar esse comprovante de pagamento?</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setModalAprovarAberto(false)}>Não</Button>
-          <Button onClick={aprovarComprovante} variant="contained" color="success">Sim</Button>
-        </DialogActions>
-      </Dialog>
+      {/* --- MODAIS PADRONIZADOS --- */}
 
-      <Dialog open={modalReprovarAberto} onClose={() => setModalReprovarAberto(false)}>
-        <DialogTitle>Motivo da reprovação</DialogTitle>
-        <DialogContent>
+      {/* Modal Aprovar Comprovante */}
+      <Modal open={modalAprovarAberto} onClose={() => !loadingAction && setModalAprovarAberto(false)}>
+        <Paper sx={modalStyle}>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Box display="flex" alignItems="center">
+              <CheckCircleIcon color="success" sx={{ mr: 1 }} />
+              <Typography variant="h6" fontWeight="bold" color="inherit">Aprovar Comprovante</Typography>
+            </Box>
+            <IconButton onClick={() => setModalAprovarAberto(false)} disabled={loadingAction} color="inherit"><CloseIcon /></IconButton>
+          </Box>
+          <Divider sx={{ mb: 3 }} />
+          <Typography variant="body1" mb={4} color="inherit">
+            Deseja confirmar a aprovação deste comprovante de pagamento para a multa <strong>#{multaSelecionada?.idMulta}</strong>?
+          </Typography>
+          <Box display="flex" justifyContent="flex-end" gap={1}>
+            <Button onClick={() => setModalAprovarAberto(false)} color="inherit" disabled={loadingAction}>Cancelar</Button>
+            <Button onClick={aprovarComprovante} variant="contained" color="success" disabled={loadingAction}>
+              {loadingAction ? <CircularProgress size={24} color="inherit" /> : "Confirmar Aprovação"}
+            </Button>
+          </Box>
+        </Paper>
+      </Modal>
+
+      {/* Modal Reprovar Comprovante */}
+      <Modal open={modalReprovarAberto} onClose={() => !loadingAction && setModalReprovarAberto(false)}>
+        <Paper sx={modalStyle}>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Box display="flex" alignItems="center">
+              <ErrorIcon color="error" sx={{ mr: 1 }} />
+              <Typography variant="h6" fontWeight="bold" color="inherit">Reprovar Comprovante</Typography>
+            </Box>
+            <IconButton onClick={() => setModalReprovarAberto(false)} disabled={loadingAction} color="inherit"><CloseIcon /></IconButton>
+          </Box>
+          <Divider sx={{ mb: 3 }} />
+          <Typography variant="subtitle2" mb={1} color="text.secondary">Motivo da Reprovação:</Typography>
           <TextField
             fullWidth
             multiline
-            minRows={3}
+            rows={4}
+            placeholder="Descreva o motivo para o motorista..."
             value={motivoReprovacao}
             onChange={(e) => setMotivoReprovacao(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setModalReprovarAberto(false)}>Cancelar</Button>
-          <Button onClick={reprovarComprovante} variant="contained" color="error">Reprovar</Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={modalAceitarRecursoAberto} onClose={() => setModalAceitarRecursoAberto(false)}>
-        <DialogTitle>Aceitar Recurso</DialogTitle>
-        <DialogContent>
-          <Typography>Deseja realmente aceitar este recurso?</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setModalAceitarRecursoAberto(false)}>Não</Button>
-          <Button onClick={aceitarRecurso} variant="contained" color="success">Sim</Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={modalRejeitarRecursoAberto} onClose={() => setModalRejeitarRecursoAberto(false)}>
-        <DialogTitle>Rejeitar Recurso</DialogTitle>
-        <DialogContent>
-          <Typography>Deseja realmente rejeitar este recurso?</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setModalRejeitarRecursoAberto(false)}>Não</Button>
-          <Button onClick={rejeitarRecurso} variant="contained" color="error">Sim, Rejeitar</Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={modalExcluirAberto} onClose={() => setModalExcluirAberto(false)}>
-        <DialogTitle>Excluir Multa</DialogTitle>
-        <DialogContent>
-          <Typography>Você tem certeza que deseja excluir esta multa?</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setModalExcluirAberto(false)}>Cancelar</Button>
-          <Button
-            onClick={async () => {
-              if (multaSelecionada) {
-                await MultaService.removerMulta(multaSelecionada.idMulta!);
-                await carregarMultas();
-                setModalExcluirAberto(false);
+            sx={{ 
+              mb: 3,
+              "& .MuiInputBase-input": { color: "text.primary" },
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": { borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.23)' : 'rgba(0, 0, 0, 0.23)' }
               }
             }}
-            variant="contained"
-            color="error"
-          >
-            Confirmar
-          </Button>
-        </DialogActions>
-      </Dialog>
+          />
+          <Box display="flex" justifyContent="flex-end" gap={1}>
+            <Button onClick={() => setModalReprovarAberto(false)} color="inherit" disabled={loadingAction}>Voltar</Button>
+            <Button onClick={reprovarComprovante} variant="contained" color="error" disabled={loadingAction || !motivoReprovacao.trim()}>
+              {loadingAction ? <CircularProgress size={24} color="inherit" /> : "Reprovar Agora"}
+            </Button>
+          </Box>
+        </Paper>
+      </Modal>
+
+      {/* Modal Aceitar Recurso */}
+      <Modal open={modalAceitarRecursoAberto} onClose={() => !loadingAction && setModalAceitarRecursoAberto(false)}>
+        <Paper sx={modalStyle}>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Box display="flex" alignItems="center">
+              <ThumbUpIcon color="success" sx={{ mr: 1 }} />
+              <Typography variant="h6" fontWeight="bold" color="inherit">Aceitar Recurso</Typography>
+            </Box>
+            <IconButton onClick={() => setModalAceitarRecursoAberto(false)} disabled={loadingAction} color="inherit"><CloseIcon /></IconButton>
+          </Box>
+          <Divider sx={{ mb: 3 }} />
+          <Typography variant="body1" mb={1} color="inherit">
+            Ao aceitar este recurso, a multa será <strong>ANULADA</strong> permanentemente.
+          </Typography>
+          <Typography variant="body2" color="text.secondary" mb={4}>Esta ação não pode ser desfeita.</Typography>
+          <Box display="flex" justifyContent="flex-end" gap={1}>
+            <Button onClick={() => setModalAceitarRecursoAberto(false)} color="inherit" disabled={loadingAction}>Cancelar</Button>
+            <Button onClick={aceitarRecurso} variant="contained" color="success" disabled={loadingAction}>
+              {loadingAction ? <CircularProgress size={24} color="inherit" /> : "Aceitar e Anular Multa"}
+            </Button>
+          </Box>
+        </Paper>
+      </Modal>
+
+      {/* Modal Rejeitar Recurso */}
+      <Modal open={modalRejeitarRecursoAberto} onClose={() => !loadingAction && setModalRejeitarRecursoAberto(false)}>
+        <Paper sx={modalStyle}>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Box display="flex" alignItems="center">
+              <ThumbDownIcon color="error" sx={{ mr: 1 }} />
+              <Typography variant="h6" fontWeight="bold" color="inherit">Rejeitar Recurso</Typography>
+            </Box>
+            <IconButton onClick={() => setModalRejeitarRecursoAberto(false)} disabled={loadingAction} color="inherit"><CloseIcon /></IconButton>
+          </Box>
+          <Divider sx={{ mb: 3 }} />
+          <Typography variant="body1" mb={4} color="inherit">
+            Deseja rejeitar o recurso da multa <strong>#{multaSelecionada?.idMulta}</strong>? O status retornará para "Aguardando Pagamento".
+          </Typography>
+          <Box display="flex" justifyContent="flex-end" gap={1}>
+            <Button onClick={() => setModalRejeitarRecursoAberto(false)} color="inherit" disabled={loadingAction}>Cancelar</Button>
+            <Button onClick={rejeitarRecurso} variant="contained" color="error" disabled={loadingAction}>
+              {loadingAction ? <CircularProgress size={24} color="inherit" /> : "Confirmar Rejeição"}
+            </Button>
+          </Box>
+        </Paper>
+      </Modal>
+
+      {/* Modal Excluir (Padronizado) */}
+      <Modal open={modalExcluirAberto} onClose={() => setModalExcluirAberto(false)}>
+        <Paper sx={modalStyle}>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Box display="flex" alignItems="center">
+              <CancelIcon color="error" sx={{ mr: 1 }} />
+              <Typography variant="h6" fontWeight="bold" color="inherit">Excluir Multa</Typography>
+            </Box>
+            <IconButton onClick={() => setModalExcluirAberto(false)} color="inherit"><CloseIcon /></IconButton>
+          </Box>
+          <Divider sx={{ mb: 3 }} />
+          <Typography variant="body1" mb={4} color="inherit">Você tem certeza que deseja excluir esta multa? Esta operação é irreversível.</Typography>
+          <Box display="flex" justifyContent="flex-end" gap={1}>
+            <Button onClick={() => setModalExcluirAberto(false)} color="inherit">Cancelar</Button>
+            <Button
+              onClick={async () => {
+                if (multaSelecionada) {
+                  await MultaService.removerMulta(multaSelecionada.idMulta!);
+                  await carregarMultas();
+                  setModalExcluirAberto(false);
+                }
+              }}
+              variant="contained"
+              color="error"
+            >
+              Confirmar Exclusão
+            </Button>
+          </Box>
+        </Paper>
+      </Modal>
 
       <CadastroMultaModal
         open={modalCadastrarAberto}
@@ -716,7 +767,7 @@ export default function ListaMulta() {
           await carregarMultas();
           setModalCadastroAberto(false);
         }}
-        onError={() => {}}
+        onError={() => { }}
       />
 
       <EditarMultaModal
@@ -727,7 +778,7 @@ export default function ListaMulta() {
           await carregarMultas();
           setModalEditarAberto(false);
         }}
-        onError={() => {}}
+        onError={() => { }}
       />
 
       <ModalVisualizarRecurso
