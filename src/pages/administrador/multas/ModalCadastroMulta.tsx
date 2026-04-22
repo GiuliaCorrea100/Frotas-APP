@@ -17,7 +17,7 @@ import {
   Close,
   AttachFile as AttachFileIcon,
 } from "@mui/icons-material";
-import { MultaService } from '../../../services/MultaService';
+import { MultaService } from "../../../services/MultaService";
 
 interface CadastrarModalProps {
   open: boolean;
@@ -70,7 +70,9 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
   );
   const [fileError, setFileError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [mensagemMotorista, setMensagemMotorista] = useState<string | null>(null);
+  const [mensagemMotorista, setMensagemMotorista] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     if (open) {
@@ -97,6 +99,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
 
   const validateFileExtension = (file: File): boolean => {
     const extension = file.name.split(".").pop()?.toLowerCase();
+
     if (!extension || !allowedExtensions.includes(extension)) {
       setFileError(
         `Formato de arquivo não permitido. Extensões permitidas: ${allowedExtensions.join(
@@ -107,7 +110,9 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      setFileError(`Arquivo muito grande. Tamanho máximo: ${MAX_FILE_SIZE_MB}MB`);
+      setFileError(
+        `Arquivo muito grande. Tamanho máximo: ${MAX_FILE_SIZE_MB}MB`
+      );
       return false;
     }
 
@@ -167,6 +172,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
           dataInfracao: dataHoraInfracaoISO,
           autoInfracao: autoInfracaoNum,
         };
+
         response = await MultaService.criarMulta(dadosMultas);
       }
 
@@ -192,6 +198,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
     setter: React.Dispatch<React.SetStateAction<string>>
   ) => {
     const value = e.target.value;
+
     if (value === "" || /^\d*\.?\d*$/.test(value)) {
       setter(value);
     }
@@ -209,9 +216,10 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
           <Box display="flex" alignItems="center">
             <LocalGasStation color="primary" sx={{ mr: 1 }} />
             <Typography variant="h6" fontWeight="bold" color="text.primary">
-              Cadastro de Multa
+              CADASTRAR MULTA
             </Typography>
           </Box>
+
           <IconButton onClick={onClose}>
             <Close />
           </IconButton>
@@ -233,7 +241,6 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
             required
             fullWidth
             sx={{ flex: "1 1 calc(50% - 8px)" }}
-            placeholder=""
           />
 
           <TextField
@@ -266,7 +273,6 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
                 <InputAdornment position="start">R$</InputAdornment>
               ),
             }}
-            placeholder=""
           />
 
           <TextField
@@ -277,9 +283,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
             fullWidth
             sx={{ flex: "1 1 calc(50% - 8px)" }}
             placeholder="AAA-0000 ou AAA0A00"
-            inputProps={{
-              maxLength: 8,
-            }}
+            inputProps={{ maxLength: 8 }}
           />
 
           <TextField
@@ -291,7 +295,6 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
             required
             fullWidth
             sx={{ flex: "1 1 calc(50% - 8px)" }}
-            placeholder=""
           />
 
           <TextField
@@ -350,9 +353,14 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
 
             {arquivoSelecionado && (
               <Box sx={{ mt: 2 }}>
-                <Typography variant="subtitle2" gutterBottom>
+                <Typography
+                  variant="subtitle2"
+                  gutterBottom
+                  sx={{ color: "text.primary" }}
+                >
                   Arquivo selecionado:
                 </Typography>
+
                 <Box
                   sx={{
                     display: "flex",
@@ -367,13 +375,19 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
                   }}
                 >
                   <Box>
-                    <Typography variant="body2" fontWeight="medium">
+                    <Typography
+                      variant="body2"
+                      fontWeight="medium"
+                      sx={{ color: "text.primary" }}
+                    >
                       {arquivoSelecionado.name}
                     </Typography>
+
                     <Typography variant="caption" color="text.secondary">
                       {formatFileSize(arquivoSelecionado.size)}
                     </Typography>
                   </Box>
+
                   <IconButton
                     size="small"
                     onClick={handleRemoveFile}
@@ -397,7 +411,8 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
               color="text.secondary"
               sx={{ display: "block", mt: 1 }}
             >
-              Formatos permitidos: PDF, JPG, JPEG, PNG, DOC, DOCX (Máx: {MAX_FILE_SIZE_MB}MB)
+              Formatos permitidos: PDF, JPG, JPEG, PNG, DOC, DOCX (Máx:{" "}
+              {MAX_FILE_SIZE_MB}MB)
             </Typography>
           </Box>
 
@@ -428,6 +443,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
             <Button onClick={onClose} color="inherit" disabled={loading}>
               Cancelar
             </Button>
+
             <Button type="submit" variant="contained" disabled={loading}>
               {loading ? (
                 <CircularProgress size={24} color="inherit" />
