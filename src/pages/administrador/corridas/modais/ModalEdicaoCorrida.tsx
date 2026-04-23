@@ -29,11 +29,6 @@ interface CorridaDto {
   situacao?: string;
 }
 
-const toLocalDateTimeInputValue = (date: Date) => {
-  const offset = date.getTimezoneOffset() * 60000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
-};
-
 interface EditarInfoCorridaProps {
   open: boolean;
   onClose: () => void;
@@ -53,6 +48,11 @@ interface Veiculo {
   modelo: string;
   placa: string;
 }
+
+const toLocalDateTimeInputValue = (date: Date) => {
+  const offset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+};
 
 export default function EditarInfoCorrida({
   open,
@@ -147,10 +147,10 @@ export default function EditarInfoCorrida({
         // Configurar datas
         setFormData({
           dataInicio: corrida.dataInicio
-            ? new Date(corrida.dataInicio).toISOString().split("T")[0]
+            ? toLocalDateTimeInputValue(new Date(corrida.dataInicio))
             : "",
           dataFim: corrida.dataTermino
-            ? new Date(corrida.dataTermino).toISOString().split("T")[0]
+            ? toLocalDateTimeInputValue(new Date(corrida.dataTermino))
             : "",
         });
       } catch (error) {
@@ -426,7 +426,7 @@ export default function EditarInfoCorrida({
             <TextField
               fullWidth
               label="Data Início"
-              type="date"
+              type="datetime-local"
               value={formData.dataInicio}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, dataInicio: e.target.value }))
@@ -438,7 +438,7 @@ export default function EditarInfoCorrida({
             <TextField
               fullWidth
               label="Data Fim"
-              type="date"
+              type="datetime-local"
               value={formData.dataFim}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, dataFim: e.target.value }))

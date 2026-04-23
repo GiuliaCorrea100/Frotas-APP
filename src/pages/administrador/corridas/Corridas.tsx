@@ -251,7 +251,7 @@ export default function ListaCorrida() {
     },
     {
       field: "dataInicio",
-      headerName: "Data/Hora Início",
+      headerName: "Data Início",
       width: 200,
       renderCell: (params) => (
         <Typography variant="body2">
@@ -261,7 +261,7 @@ export default function ListaCorrida() {
     },
     {
       field: "dataTermino",
-      headerName: "Data/Hora Término",
+      headerName: "Data Término",
       width: 200,
       renderCell: (params) => (
         <Typography variant="body2">
