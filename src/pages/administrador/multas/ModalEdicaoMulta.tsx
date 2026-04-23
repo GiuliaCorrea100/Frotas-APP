@@ -7,11 +7,13 @@ import {
   TextField,
   InputAdornment,
   CircularProgress,
-  Paper,  
+  Paper,
   IconButton,
   MenuItem,
   Alert,
   Divider,
+  Chip,
+  Tooltip,
 } from "@mui/material";
 import {
   LocalGasStation,
@@ -19,6 +21,8 @@ import {
   Close,
   Delete,
   Person,
+  Description,
+  CloudUpload,
 } from "@mui/icons-material";
 import { MultaDto, MultaService } from "../../../services/MultaService";
 
@@ -73,69 +77,6 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
   const [mensagem, setMensagem] = useState("");
   const [tipoMensagem, setTipoMensagem] = useState<"success" | "error" | "warning" | "info">("success");
 
-  const formatDateForInput = (date: any): string => {
-    if (!date) return "";
-    try {
-      const dateObj = date instanceof Date ? date : new Date(date);
-      return !isNaN(dateObj.getTime()) ? dateObj.toISOString().split("T")[0] : "";
-    } catch {
-      return "";
-    }
-  };
-
-  const extrairNomeArquivo = (url: string): string => {
-    if (!url) return "";
-    return url.split("/").pop() || "arquivo_anexo";
-  };
-
-  const handleDownloadArquivo = async () => {
-    if (!arquivoAtual) return;
-
-    try {
-      const nomeArquivo = extrairNomeArquivo(arquivoAtual);
-      const blob = await MultaService.downloadArquivo(nomeArquivo);
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = nomeArquivo;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch {
-      setMensagem("Erro ao baixar arquivo");
-      setTipoMensagem("error");
-    }
-  };
-
-  const handleRemoverArquivoAtual = async () => {
-    if (!multa?.idMulta || !arquivoAtual) return;
-
-    try {
-      setLoading(true);
-      await MultaService.removerArquivoMulta(multa.idMulta);
-      setArquivoAtual(null);
-
-      if (multa) {
-        (multa as any).urlArquivo = null;
-      }
-
-      setMensagem("Boleto removido com sucesso!");
-      setTipoMensagem("success");
-    } catch {
-      setMensagem("Erro ao remover boleto.");
-      setTipoMensagem("error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setArquivo(event.target.files[0]);
-    }
-  };
-
   useEffect(() => {
     if (multa) {
       setCodigoInfracao(multa.codigoInfracao);
@@ -150,10 +91,40 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
     }
   }, [multa]);
 
+  const formatDateForInput = (date: any): string => {
+    if (!date) return "";
+    const dateObj = date instanceof Date ? date : new Date(date);
+    return !isNaN(dateObj.getTime()) ? dateObj.toISOString().split("T")[0] : "";
+  };
+
+  const extrairNomeArquivo = (url: string): string => {
+    if (!url) return "";
+    return url.split("/").pop() || "boleto_multa.pdf";
+  };
+
+  const handleRemoverArquivoAtual = async () => {
+    if (!multa?.idMulta || !arquivoAtual) return;
+
+    try {
+      setLoading(true);
+      await MultaService.removerArquivoMulta(multa.idMulta);
+      setArquivoAtual(null);
+
+
+      setMensagem("Boleto removido com sucesso!");
+      setTipoMensagem("success");
+    } catch {
+      setMensagem("Erro ao remover boleto.");
+      setTipoMensagem("error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
-    setMensagem("");
 
     try {
       const dataInfracaoUTC = new Date(dataInfracao + "T04:00:00.000Z");
@@ -173,15 +144,9 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
         setUploading(true);
         const formData = new FormData();
         formData.append("arquivo", arquivo);
-
-        try {
-          await MultaService.atualizarArquivoMulta(multa?.idMulta!, formData);
-        } finally {
-          setUploading(false);
-        }
+        await MultaService.atualizarArquivoMulta(multa?.idMulta!, formData);
       }
-
-      onSuccess("Multa atualizada com sucesso");
+      onSuccess("Multa atualizada com sucesso!");
       onClose();
     } catch (error) {
       setMensagem("Erro ao atualizar multa");
@@ -189,26 +154,17 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
       onError(error);
     } finally {
       setLoading(false);
+      setUploading(false);
     }
-  };
-
-  const getNomeMotorista = () => {
-    if (!multa) return "Não identificado";
-
-    return (
-      multa.nomeMotorista ||
-      multa.motorista?.nome ||
-      (multa.idMotorista ? `Motorista #${multa.idMotorista}` : "Não identificado")
-    );
   };
 
   return (
     <Modal open={open} onClose={onClose}>
-      <Paper sx={modalStyle} onClick={(e) => e.stopPropagation()}>
+      <Paper sx={modalStyle}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Box display="flex" alignItems="center">
-            <LocalGasStation color="primary" sx={{ fontSize: 24, mr: 1 }} />
-            <Typography variant="h6" fontWeight="bold" color="text.primary">
+          <Box display="flex" alignItems="center" gap={1.5}>
+            <LocalGasStation color="primary" sx={{ fontSize: 28 }} />
+            <Typography variant="h6" fontWeight="bold" sx={{ lineHeight: 1 }} color="text.primary">
               Editar Multa
             </Typography>
           </Box>
@@ -219,29 +175,30 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
 
         <Divider sx={{ mb: 3 }} />
 
-        <Box sx={{ mb: 3, p: 2, backgroundColor: "grey.50", borderRadius: 1 }}>
-          <Box display="flex" alignItems="center" mb={1}>
-            <Person color="primary" sx={{ mr: 1, fontSize: 20 }} />
-            <Typography variant="subtitle2" fontWeight="bold" color="text.primary">
+        <Box sx={{ 
+          mb: 3, 
+          p: 2, 
+          bgcolor: "action.hover", 
+          borderRadius: 2, 
+          border: "1px solid",
+          borderColor: "divider" 
+        }}>
+          <Box display="flex" alignItems="center" gap={1} mb={1}>
+            <Person color="action" fontSize="small" />
+            <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ textTransform: "uppercase" }}>
               Motorista Responsável
             </Typography>
           </Box>
-
-          <Typography variant="body1" fontWeight="medium" color="text.primary">
-            {getNomeMotorista()}
+          <Typography variant="body1" fontWeight="bold" color="primary.main">
+            {multa?.nomeMotorista || multa?.motorista?.nome || "Não identificado"}
           </Typography>
 
           {multa?.motorista?.email && (
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              Email: {multa.motorista.email}
+            <Typography variant="body2" color="text.secondary">
+              {multa.motorista.email}
             </Typography>
           )}
 
-          {!multa?.idMotorista && (
-            <Alert severity="warning" sx={{ mt: 1 }}>
-              Não foi possível identificar o motorista responsável.
-            </Alert>
-          )}
         </Box>
 
 
@@ -252,134 +209,77 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
         )}
 
         <Box component="form" onSubmit={handleSubmit} display="flex" flexWrap="wrap" gap={2}>
-          <TextField
-            label="Código da Infração"
-            type="number"
-            value={codigoInfracao}
-            onChange={(e) => setCodigoInfracao(Number(e.target.value))}
-            required
-            fullWidth
-            sx={{ flex: "1 1 calc(50% - 8px)" }}
-          />
-
-          <TextField
-            select
-            label="Classificação"
-            value={classificacao}
-            onChange={(e) => setClassificacao(e.target.value)}
-            required
-            fullWidth
-            sx={{ flex: "1 1 calc(50% - 8px)" }}
-          >
+          <TextField label="Código da Infração" type="number" value={codigoInfracao} onChange={(e) => setCodigoInfracao(Number(e.target.value))} required sx={{ flex: "1 1 calc(50% - 8px)" }} />
+          <TextField select label="Classificação" value={classificacao} onChange={(e) => setClassificacao(e.target.value)} required sx={{ flex: "1 1 calc(50% - 8px)" }}>
             {opcoesClassificacao.map((opcao) => (
-              <MenuItem key={opcao.value} value={opcao.value}>
-                {opcao.label}
-              </MenuItem>
+              <MenuItem key={opcao.value} value={opcao.value}>{opcao.label}</MenuItem>
             ))}
           </TextField>
+          <TextField label="Valor (R$)" type="number" value={valorInfracao} onChange={(e) => setValorInfracao(Number(e.target.value))} required sx={{ flex: "1 1 calc(50% - 8px)" }} InputProps={{ startAdornment: <InputAdornment position="start">R$</InputAdornment> }} />
+          <TextField label="Placa" value={placaVeiculo} onChange={(e) => setPlacaVeiculo(e.target.value.toUpperCase())} required sx={{ flex: "1 1 calc(50% - 8px)" }} />
+          <TextField label="Auto da Infração" type="number" value={autoInfracao} onChange={(e) => setAutoInfracao(Number(e.target.value))} required sx={{ flex: "1 1 calc(50% - 8px)" }} />
+          <TextField label="Data" type="date" value={dataInfracao} onChange={(e) => setDataInfracao(e.target.value)} required fullWidth InputLabelProps={{ shrink: true }} sx={{ flex: "1 1 calc(50% - 8px)" }} />
 
-          <TextField
-            label="Valor da multa (R$)"
-            type="number"
-            value={valorInfracao}
-            onChange={(e) => setValorInfracao(Number(e.target.value))}
-            required
-            fullWidth
-            sx={{ flex: "1 1 calc(50% - 8px)" }}
-            InputProps={{
-              startAdornment: <InputAdornment position="start">R$</InputAdornment>,
-            }}
-          />
-
-          <TextField
-            label="Placa do Veículo"
-            value={placaVeiculo}
-            onChange={(e) => setPlacaVeiculo(e.target.value.toUpperCase())}
-            required
-            fullWidth
-            sx={{ flex: "1 1 calc(50% - 8px)" }}
-          />
-
-          <TextField
-            label="Auto da Infração"
-            type="number"
-            value={autoInfracao}
-            onChange={(e) => setAutoInfracao(Number(e.target.value))}
-            required
-            fullWidth
-            sx={{ flex: "1 1 calc(50% - 8px)" }}
-          />
-
-          <TextField
-            label="Data da Infração"
-            type="date"
-            fullWidth
-            value={dataInfracao}
-            onChange={(e) => setDataInfracao(e.target.value)}
-            required
-            InputLabelProps={{ shrink: true }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <CalendarToday fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
-            sx={{ flex: "1 1 100%", mt: 1 }}
-          />
-
-          <Box sx={{ flex: "1 1 100%", mt: 2 }}>
-            <Typography variant="subtitle1" fontWeight="bold" mb={1} color="text.primary">
+          <Box sx={{ 
+            flex: "1 1 100%", 
+            mt: 2, 
+            p: 2, 
+            border: "1px dashed", 
+            borderColor: "divider",
+            borderRadius: 2 
+          }}>
+            <Typography variant="subtitle2" fontWeight="bold" gutterBottom color="text.primary">
               BOLETO
             </Typography>
 
+            <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
+              {arquivoAtual ? (
+                <Tooltip title="Clique para remover o arquivo atual">
+                  <Chip
+                    icon={<Description />}
+                    label={extrairNomeArquivo(arquivoAtual)}
+                    onDelete={handleRemoverArquivoAtual}
+                    color="primary"
+                    variant="outlined"
+                    sx={{ maxWidth: "100%" }}
+                  />
+                </Tooltip>
+              ) : (
+                <Typography variant="body2" color="text.secondary">Nenhum boleto anexado.</Typography>
+              )}
 
-            {arquivoAtual ? (
-              <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    cursor: "pointer",
-                    textDecoration: "underline",
-                    color: "primary.main",
-                    "&:hover": { color: "primary.light" },
-                  }}
-                  onClick={handleDownloadArquivo}
-                >
-                  {extrairNomeArquivo(arquivoAtual)}
-                </Typography>
-                <IconButton size="small" onClick={handleRemoverArquivoAtual} color="error" disabled={loading}>
-                  <Delete />
-                </IconButton>
-              </Box>
-            ) : (
-              <Alert severity="info" sx={{ mb: 2 }}>
-                Nenhum boleto anexado a esta multa.
-              </Alert>
-            )}
+              <Button
+                variant="contained"
+                component="label"
+                size="small"
+                startIcon={<CloudUpload />}
+                color={arquivo ? "success" : "inherit"}
+                sx={{ textTransform: "none" }}
+              >
+                {arquivo ? "Trocar Seleção" : "Selecionar Novo"}
+                <input type="file" hidden onChange={(e) => e.target.files && setArquivo(e.target.files[0])} accept=".pdf,.jpg,.jpeg,.png" />
+              </Button>
 
-            <Typography variant="body2" fontWeight="medium" mb={1} color="text.secondary">
-              {arquivoAtual ? "Substituir boleto" : "Anexar boleto"}
-            </Typography>
-
-            <Button variant="outlined" component="label" size="small" sx={{ textTransform: "none" }}>
-              Selecionar boleto
-              <input type="file" hidden onChange={handleFileChange} accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
-            </Button>
-
-            {arquivo && (
-              <Typography variant="body2" sx={{ mt: 1, color: "success.main" }}>
-                Novo boleto selecionado: {arquivo.name}
-              </Typography>
-            )}
+              {arquivo && (
+                <Chip 
+                  label={`Upload pendente: ${arquivo.name}`} 
+                  size="small" 
+                  color="success" 
+                  onDelete={() => setArquivo(null)} 
+                />
+              )}
+            </Box>
           </Box>
 
           <Box display="flex" justifyContent="flex-end" gap={1} mt={3} sx={{ flex: "1 1 100%" }}>
-            <Button onClick={onClose} color="inherit" disabled={loading || uploading} sx={{ textTransform: "none" }}>
-              Cancelar
-            </Button>
-            <Button type="submit" variant="contained" disabled={loading || uploading} sx={{ textTransform: "none", minWidth: 100 }}>
-              {loading || uploading ? <CircularProgress size={24} color="inherit" /> : "Atualizar"}
+            <Button onClick={onClose} color="inherit" sx={{ textTransform: "none" }}>Cancelar</Button>
+            <Button 
+              type="submit" 
+              variant="contained" 
+              disabled={loading || uploading} 
+              sx={{ textTransform: "none", minWidth: 120 }}
+            >
+              {loading || uploading ? <CircularProgress size={24} /> : "Salvar Alterações"}
             </Button>
           </Box>
         </Box>
