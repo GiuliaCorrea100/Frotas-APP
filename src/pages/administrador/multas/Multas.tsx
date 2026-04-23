@@ -547,7 +547,7 @@ export default function ListaMulta() {
               { label: "GRAVE", value: "GRAVE", count: estatisticas.GRAVE, color: theme.palette.error.main },
               { label: "GRAVÍSSIMA", value: "GRAVISSIMA", count: estatisticas.GRAVISSIMA, color: theme.palette.error.dark },
               { label: "TODAS", value: "TODOS", count: estatisticas.TODOS, color: theme.palette.primary.main },
-            ].map((tab) => (
+            ].map((tab) => ( 
               <Button
                 key={tab.value}
                 variant={filtroClassificacao === tab.value ? "contained" : "outlined"}
@@ -626,19 +626,27 @@ export default function ListaMulta() {
       {/* Modal Aprovar Comprovante */}
       <Modal open={modalAprovarAberto} onClose={() => !loadingAction && setModalAprovarAberto(false)}>
         <Paper sx={modalStyle}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Box display="flex" alignItems="center">
-              <CheckCircleIcon color="success" sx={{ mr: 1 }} />
-              <Typography variant="h6" fontWeight="bold" color="inherit">Aprovar Comprovante</Typography>
-            </Box>
-            <IconButton onClick={() => setModalAprovarAberto(false)} disabled={loadingAction} color="inherit"><CloseIcon /></IconButton>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+            <Typography
+              variant="h6"
+              color="text.primary"
+              sx={{ display: "flex", alignItems: "center", fontWeight: "bold", pt: 1 }}
+            >
+              <CheckCircleIcon color="success" sx={{ fontSize: 24, mr: 1 }} />
+              Aprovar Comprovante
+            </Typography>
+            <IconButton onClick={() => setModalAprovarAberto(false)} disabled={loadingAction}>
+              <CloseIcon />
+            </IconButton>
           </Box>
           <Divider sx={{ mb: 3 }} />
           <Typography variant="body1" mb={4} color="inherit">
             Deseja confirmar a aprovação deste comprovante de pagamento para a multa <strong>#{multaSelecionada?.idMulta}</strong>?
           </Typography>
           <Box display="flex" justifyContent="flex-end" gap={1}>
-            <Button onClick={() => setModalAprovarAberto(false)} color="inherit" disabled={loadingAction}>Cancelar</Button>
+            <Button onClick={() => setModalAprovarAberto(false)} color="inherit" disabled={loadingAction} sx={{ textTransform: "none" }}>
+              Cancelar
+            </Button>
             <Button onClick={aprovarComprovante} variant="contained" color="success" disabled={loadingAction}>
               {loadingAction ? <CircularProgress size={24} color="inherit" /> : "Confirmar Aprovação"}
             </Button>
@@ -649,12 +657,18 @@ export default function ListaMulta() {
       {/* Modal Reprovar Comprovante */}
       <Modal open={modalReprovarAberto} onClose={() => !loadingAction && setModalReprovarAberto(false)}>
         <Paper sx={modalStyle}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Box display="flex" alignItems="center">
-              <ErrorIcon color="error" sx={{ mr: 1 }} />
-              <Typography variant="h6" fontWeight="bold" color="inherit">Reprovar Comprovante</Typography>
-            </Box>
-            <IconButton onClick={() => setModalReprovarAberto(false)} disabled={loadingAction} color="inherit"><CloseIcon /></IconButton>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+            <Typography
+              variant="h6"
+              color="text.primary"
+              sx={{ display: "flex", alignItems: "center", fontWeight: "bold", pt: 1 }}
+            >
+              <ErrorIcon color="error" sx={{ fontSize: 24, mr: 1 }} />
+              Reprovar Comprovante
+            </Typography>
+            <IconButton onClick={() => setModalReprovarAberto(false)} disabled={loadingAction}>
+              <CloseIcon />
+            </IconButton>
           </Box>
           <Divider sx={{ mb: 3 }} />
           <Typography variant="subtitle2" mb={1} color="text.secondary">Motivo da Reprovação:</Typography>
@@ -667,14 +681,13 @@ export default function ListaMulta() {
             onChange={(e) => setMotivoReprovacao(e.target.value)}
             sx={{ 
               mb: 3,
-              "& .MuiInputBase-input": { color: "text.primary" },
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": { borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.23)' : 'rgba(0, 0, 0, 0.23)' }
-              }
+              "& .MuiInputBase-input": { color: "text.primary" }
             }}
           />
           <Box display="flex" justifyContent="flex-end" gap={1}>
-            <Button onClick={() => setModalReprovarAberto(false)} color="inherit" disabled={loadingAction}>Voltar</Button>
+            <Button onClick={() => setModalReprovarAberto(false)} color="inherit" disabled={loadingAction} sx={{ textTransform: "none" }}>
+              Voltar
+            </Button>
             <Button onClick={reprovarComprovante} variant="contained" color="error" disabled={loadingAction || !motivoReprovacao.trim()}>
               {loadingAction ? <CircularProgress size={24} color="inherit" /> : "Reprovar Agora"}
             </Button>
@@ -685,12 +698,18 @@ export default function ListaMulta() {
       {/* Modal Aceitar Recurso */}
       <Modal open={modalAceitarRecursoAberto} onClose={() => !loadingAction && setModalAceitarRecursoAberto(false)}>
         <Paper sx={modalStyle}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Box display="flex" alignItems="center">
-              <ThumbUpIcon color="success" sx={{ mr: 1 }} />
-              <Typography variant="h6" fontWeight="bold" color="inherit">Aceitar Recurso</Typography>
-            </Box>
-            <IconButton onClick={() => setModalAceitarRecursoAberto(false)} disabled={loadingAction} color="inherit"><CloseIcon /></IconButton>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+            <Typography
+              variant="h6"
+              color="text.primary"
+              sx={{ display: "flex", alignItems: "center", fontWeight: "bold", pt: 1 }}
+            >
+              <ThumbUpIcon color="success" sx={{ fontSize: 24, mr: 1 }} />
+              Aceitar Recurso
+            </Typography>
+            <IconButton onClick={() => setModalAceitarRecursoAberto(false)} disabled={loadingAction}>
+              <CloseIcon />
+            </IconButton>
           </Box>
           <Divider sx={{ mb: 3 }} />
           <Typography variant="body1" mb={1} color="inherit">
@@ -698,7 +717,9 @@ export default function ListaMulta() {
           </Typography>
           <Typography variant="body2" color="text.secondary" mb={4}>Esta ação não pode ser desfeita.</Typography>
           <Box display="flex" justifyContent="flex-end" gap={1}>
-            <Button onClick={() => setModalAceitarRecursoAberto(false)} color="inherit" disabled={loadingAction}>Cancelar</Button>
+            <Button onClick={() => setModalAceitarRecursoAberto(false)} color="inherit" disabled={loadingAction} sx={{ textTransform: "none" }}>
+              Cancelar
+            </Button>
             <Button onClick={aceitarRecurso} variant="contained" color="success" disabled={loadingAction}>
               {loadingAction ? <CircularProgress size={24} color="inherit" /> : "Aceitar e Anular Multa"}
             </Button>
@@ -709,19 +730,27 @@ export default function ListaMulta() {
       {/* Modal Rejeitar Recurso */}
       <Modal open={modalRejeitarRecursoAberto} onClose={() => !loadingAction && setModalRejeitarRecursoAberto(false)}>
         <Paper sx={modalStyle}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Box display="flex" alignItems="center">
-              <ThumbDownIcon color="error" sx={{ mr: 1 }} />
-              <Typography variant="h6" fontWeight="bold" color="inherit">Rejeitar Recurso</Typography>
-            </Box>
-            <IconButton onClick={() => setModalRejeitarRecursoAberto(false)} disabled={loadingAction} color="inherit"><CloseIcon /></IconButton>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+            <Typography
+              variant="h6"
+              color="text.primary"
+              sx={{ display: "flex", alignItems: "center", fontWeight: "bold", pt: 1 }}
+            >
+              <ThumbDownIcon color="error" sx={{ fontSize: 24, mr: 1 }} />
+              Rejeitar Recurso
+            </Typography>
+            <IconButton onClick={() => setModalRejeitarRecursoAberto(false)} disabled={loadingAction}>
+              <CloseIcon />
+            </IconButton>
           </Box>
           <Divider sx={{ mb: 3 }} />
           <Typography variant="body1" mb={4} color="inherit">
             Deseja rejeitar o recurso da multa <strong>#{multaSelecionada?.idMulta}</strong>? O status retornará para "Aguardando Pagamento".
           </Typography>
           <Box display="flex" justifyContent="flex-end" gap={1}>
-            <Button onClick={() => setModalRejeitarRecursoAberto(false)} color="inherit" disabled={loadingAction}>Cancelar</Button>
+            <Button onClick={() => setModalRejeitarRecursoAberto(false)} color="inherit" disabled={loadingAction} sx={{ textTransform: "none" }}>
+              Cancelar
+            </Button>
             <Button onClick={rejeitarRecurso} variant="contained" color="error" disabled={loadingAction}>
               {loadingAction ? <CircularProgress size={24} color="inherit" /> : "Confirmar Rejeição"}
             </Button>
@@ -729,20 +758,28 @@ export default function ListaMulta() {
         </Paper>
       </Modal>
 
-      {/* Modal Excluir (Padronizado) */}
+      {/* Modal Excluir */}
       <Modal open={modalExcluirAberto} onClose={() => setModalExcluirAberto(false)}>
         <Paper sx={modalStyle}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Box display="flex" alignItems="center">
-              <CancelIcon color="error" sx={{ mr: 1 }} />
-              <Typography variant="h6" fontWeight="bold" color="inherit">Excluir Multa</Typography>
-            </Box>
-            <IconButton onClick={() => setModalExcluirAberto(false)} color="inherit"><CloseIcon /></IconButton>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+            <Typography
+              variant="h6"
+              color="text.primary"
+              sx={{ display: "flex", alignItems: "center", fontWeight: "bold", pt: 1 }}
+            >
+              <CancelIcon color="error" sx={{ fontSize: 24, mr: 1 }} />
+              Excluir Multa
+            </Typography>
+            <IconButton onClick={() => setModalExcluirAberto(false)}>
+              <CloseIcon />
+            </IconButton>
           </Box>
           <Divider sx={{ mb: 3 }} />
           <Typography variant="body1" mb={4} color="inherit">Você tem certeza que deseja excluir esta multa? Esta operação é irreversível.</Typography>
           <Box display="flex" justifyContent="flex-end" gap={1}>
-            <Button onClick={() => setModalExcluirAberto(false)} color="inherit">Cancelar</Button>
+            <Button onClick={() => setModalExcluirAberto(false)} color="inherit" sx={{ textTransform: "none" }}>
+              Cancelar
+            </Button>
             <Button
               onClick={async () => {
                 if (multaSelecionada) {

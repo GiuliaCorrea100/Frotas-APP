@@ -7,9 +7,10 @@ import {
   TextField,
   InputAdornment,
   CircularProgress,
-  Paper,
   IconButton,
   MenuItem,
+  Divider,
+  Paper,
 } from "@mui/material";
 import {
   LocalGasStation,
@@ -65,14 +66,10 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
   const [dataInfracao, setDataInfracao] = useState<string>("");
   const [horaInfracao, setHoraInfracao] = useState<string>("");
   const [autoInfracao, setAutoInfracao] = useState<string>("");
-  const [arquivoSelecionado, setArquivoSelecionado] = useState<File | null>(
-    null
-  );
+  const [arquivoSelecionado, setArquivoSelecionado] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [mensagemMotorista, setMensagemMotorista] = useState<string | null>(
-    null
-  );
+  const [mensagemMotorista, setMensagemMotorista] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -101,18 +98,12 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
     const extension = file.name.split(".").pop()?.toLowerCase();
 
     if (!extension || !allowedExtensions.includes(extension)) {
-      setFileError(
-        `Formato de arquivo não permitido. Extensões permitidas: ${allowedExtensions.join(
-          ", "
-        )}`
-      );
+      setFileError(`Formato de arquivo não permitido. Extensões permitidas: ${allowedExtensions.join(", ")}`);
       return false;
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      setFileError(
-        `Arquivo muito grande. Tamanho máximo: ${MAX_FILE_SIZE_MB}MB`
-      );
+      setFileError(`Arquivo muito grande. Tamanho máximo: ${MAX_FILE_SIZE_MB}MB`);
       return false;
     }
 
@@ -138,6 +129,16 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
     setFileError(null);
   };
 
+  const handleNumberInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    setter: React.Dispatch<React.SetStateAction<string>>
+  ) => {
+    const value = e.target.value;
+    if (value === "" || /^\d*\.?\d*$/.test(value)) {
+      setter(value);
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
@@ -145,10 +146,9 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
     try {
       const dataHoraObj = new Date(`${dataInfracao}T${horaInfracao}`);
       const dataHoraInfracaoISO = dataHoraObj.toISOString();
-
-      const codigoInfracaoNum = codigoInfracao ? Number(codigoInfracao) : 0;
-      const valorInfracaoNum = valorInfracao ? Number(valorInfracao) : 0;
-      const autoInfracaoNum = autoInfracao ? Number(autoInfracao) : 0;
+      const codigoInfracaoNum = Number(codigoInfracao);
+      const valorInfracaoNum = Number(valorInfracao);
+      const autoInfracaoNum = Number(autoInfracao);
 
       let response;
 
@@ -183,7 +183,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
           onClose();
         }, 3000);
       } else {
-        onSuccess("Multa cadastrada com sucesso");
+        onSuccess("Multa cadastrada com sucesso!");
         onClose();
       }
     } catch (error) {
@@ -193,45 +193,27 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
     }
   };
 
-  const handleNumberInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    setter: React.Dispatch<React.SetStateAction<string>>
-  ) => {
-    const value = e.target.value;
-
-    if (value === "" || /^\d*\.?\d*$/.test(value)) {
-      setter(value);
-    }
-  };
 
   return (
     <Modal open={open} onClose={onClose}>
       <Paper sx={modalStyle}>
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={3}
-        >
-          <Box display="flex" alignItems="center">
-            <LocalGasStation color="primary" sx={{ mr: 1 }} />
-            <Typography variant="h6" fontWeight="bold" color="text.primary">
-              CADASTRAR MULTA
-            </Typography>
-          </Box>
-
-          <IconButton onClick={onClose}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+          <Typography
+            variant="h6"
+            color="text.primary"
+            sx={{ display: "flex", alignItems: "center", fontWeight: "bold", pt: 1 }}
+          >
+            <LocalGasStation color="primary" sx={{ fontSize: 24, mr: 1 }} />
+            CADASTRAR MULTA
+          </Typography>
+          <IconButton onClick={onClose} disabled={loading}>
             <Close />
           </IconButton>
         </Box>
 
-        <Box
-          component="form"
-          onSubmit={handleSubmit}
-          display="flex"
-          flexWrap="wrap"
-          gap={2}
-        >
+        <Divider sx={{ mb: 3 }} />
+
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
           <TextField
             label="Código da Infração"
             type="text"
@@ -252,9 +234,9 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
             fullWidth
             sx={{ flex: "1 1 calc(50% - 8px)" }}
           >
-            {opcoesClassificacao.map((opcao) => (
-              <MenuItem key={opcao.value} value={opcao.value}>
-                {opcao.label}
+            {opcoesClassificacao.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
               </MenuItem>
             ))}
           </TextField>
@@ -269,9 +251,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
             fullWidth
             sx={{ flex: "1 1 calc(50% - 8px)" }}
             InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">R$</InputAdornment>
-              ),
+              startAdornment: <InputAdornment position="start">R$</InputAdornment>,
             }}
           />
 
@@ -287,7 +267,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
           />
 
           <TextField
-            label="Auto da Infração"
+            label="Auto de Infração"
             type="text"
             inputMode="numeric"
             value={autoInfracao}
@@ -312,7 +292,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
                 </InputAdornment>
               ),
             }}
-            sx={{ flex: "1 1 calc(50% - 8px)", mt: 1 }}
+            sx={{ flex: "1 1 calc(50% - 8px)" }}
           />
 
           <TextField
@@ -323,133 +303,61 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
             onChange={(e) => setHoraInfracao(e.target.value)}
             required
             InputLabelProps={{ shrink: true }}
-            sx={{ flex: "1 1 calc(50% - 8px)", mt: 1 }}
+            sx={{ flex: "1 1 calc(50% - 8px)" }}
           />
 
-          <Box sx={{ flex: "1 1 100%", mt: 2 }}>
+          <Box sx={{ flex: "1 1 100%", mt: 1 }}>
             <Button
               component="label"
               variant="outlined"
               startIcon={<AttachFileIcon />}
               disabled={loading}
               sx={{
-                mr: 2,
+                textTransform: "none",
                 color: "text.primary",
                 borderColor: "divider",
-                "&:hover": {
-                  borderColor: "text.secondary",
-                  backgroundColor: "action.hover",
-                },
+                "&:hover": { borderColor: "text.secondary", backgroundColor: "action.hover" },
               }}
             >
               Anexar Boleto
-              <input
-                type="file"
-                hidden
-                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                onChange={handleFileSelection}
-              />
+              <input type="file" hidden accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" onChange={handleFileSelection} />
             </Button>
 
             {arquivoSelecionado && (
-              <Box sx={{ mt: 2 }}>
-                <Typography
-                  variant="subtitle2"
-                  gutterBottom
-                  sx={{ color: "text.primary" }}
-                >
-                  Arquivo selecionado:
-                </Typography>
-
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    mb: 1,
-                    p: 2,
-                    backgroundColor: "action.hover",
-                    borderRadius: 1,
-                    border: "1px solid",
-                    borderColor: "divider",
-                  }}
-                >
-                  <Box>
-                    <Typography
-                      variant="body2"
-                      fontWeight="medium"
-                      sx={{ color: "text.primary" }}
-                    >
-                      {arquivoSelecionado.name}
-                    </Typography>
-
-                    <Typography variant="caption" color="text.secondary">
-                      {formatFileSize(arquivoSelecionado.size)}
-                    </Typography>
-                  </Box>
-
-                  <IconButton
-                    size="small"
-                    onClick={handleRemoveFile}
-                    color="error"
-                    disabled={loading}
-                  >
-                    <Close fontSize="small" />
-                  </IconButton>
+              <Box sx={{ mt: 2, p: 2, backgroundColor: "action.hover", borderRadius: 1, border: "1px solid", borderColor: "divider", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <Box>
+                  <Typography variant="body2" fontWeight="medium" sx={{ color: "text.primary" }}>
+                    {arquivoSelecionado.name}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {formatFileSize(arquivoSelecionado.size)}
+                  </Typography>
                 </Box>
+                <IconButton size="small" onClick={handleRemoveFile} color="error" disabled={loading}>
+                  <Close fontSize="small" />
+                </IconButton>
               </Box>
             )}
 
-            {fileError && (
-              <Typography variant="body2" color="error" sx={{ mt: 1 }}>
-                {fileError}
-              </Typography>
-            )}
-
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ display: "block", mt: 1 }}
-            >
-              Formatos permitidos: PDF, JPG, JPEG, PNG, DOC, DOCX (Máx:{" "}
-              {MAX_FILE_SIZE_MB}MB)
+            {fileError && <Typography variant="body2" color="error" sx={{ mt: 1 }}>{fileError}</Typography>}
+            
+            <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
+              Formatos permitidos: PDF, JPG, JPEG, PNG, DOC, DOCX (Máx: {MAX_FILE_SIZE_MB}MB)
             </Typography>
           </Box>
 
           {mensagemMotorista && (
-            <Box
-              sx={{
-                width: "100%",
-                p: 2,
-                mt: 2,
-                borderRadius: 1,
-                backgroundColor: "#FFF4E5",
-                border: "1px solid #FFA726",
-              }}
-            >
-              <Typography color="warning.main" fontWeight="bold">
-                {mensagemMotorista}
-              </Typography>
+            <Box sx={{ width: "100%", p: 2, mt: 1, borderRadius: 1, backgroundColor: "#FFF4E5", border: "1px solid #FFA726" }}>
+              <Typography color="warning.main" fontWeight="bold">{mensagemMotorista}</Typography>
             </Box>
           )}
 
-          <Box
-            display="flex"
-            justifyContent="flex-end"
-            gap={1}
-            mt={3}
-            sx={{ flex: "1 1 100%" }}
-          >
-            <Button onClick={onClose} color="inherit" disabled={loading}>
+          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2, width: "100%" }}>
+            <Button variant="outlined" onClick={onClose} sx={{ textTransform: "none" }} disabled={loading}>
               Cancelar
             </Button>
-
-            <Button type="submit" variant="contained" disabled={loading}>
-              {loading ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                "Cadastrar"
-              )}
+            <Button variant="contained" type="submit" disabled={loading} sx={{ textTransform: "none", minWidth: 100 }}>
+              {loading ? <CircularProgress size={24} color="inherit" /> : "Cadastrar"}
             </Button>
           </Box>
         </Box>

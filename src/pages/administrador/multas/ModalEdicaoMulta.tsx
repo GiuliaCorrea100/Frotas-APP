@@ -7,7 +7,7 @@ import {
   TextField,
   InputAdornment,
   CircularProgress,
-  Paper,
+  Paper,  
   IconButton,
   MenuItem,
   Alert,
@@ -71,17 +71,13 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
   const [uploading, setUploading] = useState(false);
 
   const [mensagem, setMensagem] = useState("");
-  const [tipoMensagem, setTipoMensagem] = useState<
-    "success" | "error" | "warning" | "info"
-  >("success");
+  const [tipoMensagem, setTipoMensagem] = useState<"success" | "error" | "warning" | "info">("success");
 
   const formatDateForInput = (date: any): string => {
     if (!date) return "";
     try {
       const dateObj = date instanceof Date ? date : new Date(date);
-      return !isNaN(dateObj.getTime())
-        ? dateObj.toISOString().split("T")[0]
-        : "";
+      return !isNaN(dateObj.getTime()) ? dateObj.toISOString().split("T")[0] : "";
     } catch {
       return "";
     }
@@ -185,9 +181,8 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
         }
       }
 
-      setMensagem("Multa atualizada com sucesso");
-      setTipoMensagem("success");
       onSuccess("Multa atualizada com sucesso");
+      onClose();
     } catch (error) {
       setMensagem("Erro ao atualizar multa");
       setTipoMensagem("error");
@@ -203,48 +198,31 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
     return (
       multa.nomeMotorista ||
       multa.motorista?.nome ||
-      (multa.idMotorista
-        ? `Motorista #${multa.idMotorista}`
-        : "Não identificado")
+      (multa.idMotorista ? `Motorista #${multa.idMotorista}` : "Não identificado")
     );
   };
 
   return (
     <Modal open={open} onClose={onClose}>
       <Paper sx={modalStyle} onClick={(e) => e.stopPropagation()}>
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={3}
-        >
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Box display="flex" alignItems="center">
-            <LocalGasStation color="primary" sx={{ mr: 1 }} />
+            <LocalGasStation color="primary" sx={{ fontSize: 24, mr: 1 }} />
             <Typography variant="h6" fontWeight="bold" color="text.primary">
               Editar Multa
             </Typography>
           </Box>
-
-          <IconButton onClick={onClose}>
+          <IconButton onClick={onClose} disabled={loading}>
             <Close />
           </IconButton>
         </Box>
 
-        <Box
-          sx={{
-            mb: 3,
-            p: 2,
-            backgroundColor: "grey.50",
-            borderRadius: 1,
-          }}
-        >
+        <Divider sx={{ mb: 3 }} />
+
+        <Box sx={{ mb: 3, p: 2, backgroundColor: "grey.50", borderRadius: 1 }}>
           <Box display="flex" alignItems="center" mb={1}>
             <Person color="primary" sx={{ mr: 1, fontSize: 20 }} />
-            <Typography
-              variant="subtitle2"
-              fontWeight="bold"
-              color="text.primary"
-            >
+            <Typography variant="subtitle2" fontWeight="bold" color="text.primary">
               Motorista Responsável
             </Typography>
           </Box>
@@ -254,42 +232,26 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
           </Typography>
 
           {multa?.motorista?.email && (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ mt: 0.5 }}
-            >
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               Email: {multa.motorista.email}
             </Typography>
           )}
 
           {!multa?.idMotorista && (
             <Alert severity="warning" sx={{ mt: 1 }}>
-              Não foi possível identificar o motorista responsável para esta
-              infração.
+              Não foi possível identificar o motorista responsável.
             </Alert>
           )}
         </Box>
 
-        <Divider sx={{ mb: 3 }} />
 
         {mensagem && (
-          <Alert
-            severity={tipoMensagem}
-            onClose={() => setMensagem("")}
-            sx={{ mb: 2 }}
-          >
+          <Alert severity={tipoMensagem} onClose={() => setMensagem("")} sx={{ mb: 2 }}>
             {mensagem}
           </Alert>
         )}
 
-        <Box
-          component="form"
-          onSubmit={handleSubmit}
-          display="flex"
-          flexWrap="wrap"
-          gap={2}
-        >
+        <Box component="form" onSubmit={handleSubmit} display="flex" flexWrap="wrap" gap={2}>
           <TextField
             label="Código da Infração"
             type="number"
@@ -325,16 +287,14 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
             fullWidth
             sx={{ flex: "1 1 calc(50% - 8px)" }}
             InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">R$</InputAdornment>
-              ),
+              startAdornment: <InputAdornment position="start">R$</InputAdornment>,
             }}
           />
 
           <TextField
             label="Placa do Veículo"
             value={placaVeiculo}
-            onChange={(e) => setPlacaVeiculo(e.target.value)}
+            onChange={(e) => setPlacaVeiculo(e.target.value.toUpperCase())}
             required
             fullWidth
             sx={{ flex: "1 1 calc(50% - 8px)" }}
@@ -356,6 +316,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
             fullWidth
             value={dataInfracao}
             onChange={(e) => setDataInfracao(e.target.value)}
+            required
             InputLabelProps={{ shrink: true }}
             InputProps={{
               startAdornment: (
@@ -368,23 +329,13 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
           />
 
           <Box sx={{ flex: "1 1 100%", mt: 2 }}>
-            <Typography
-              variant="subtitle1"
-              fontWeight="bold"
-              mb={1}
-              color="text.primary"
-            >
+            <Typography variant="subtitle1" fontWeight="bold" mb={1} color="text.primary">
               BOLETO
             </Typography>
 
 
             {arquivoAtual ? (
-              <Box
-                display="flex"
-                alignItems="center"
-                justifyContent="space-between"
-                mb={2}
-              >
+              <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
                 <Typography
                   variant="body2"
                   sx={{
@@ -397,13 +348,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
                 >
                   {extrairNomeArquivo(arquivoAtual)}
                 </Typography>
-
-                <IconButton
-                  size="small"
-                  onClick={handleRemoverArquivoAtual}
-                  color="error"
-                  disabled={loading}
-                >
+                <IconButton size="small" onClick={handleRemoverArquivoAtual} color="error" disabled={loading}>
                   <Delete />
                 </IconButton>
               </Box>
@@ -413,60 +358,28 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
               </Alert>
             )}
 
-            <Typography
-              variant="body2"
-              fontWeight="medium"
-              mb={1}
-              color="text.secondary"
-            >
+            <Typography variant="body2" fontWeight="medium" mb={1} color="text.secondary">
               {arquivoAtual ? "Substituir boleto" : "Anexar boleto"}
             </Typography>
 
-            <Button variant="outlined" component="label" size="small">
+            <Button variant="outlined" component="label" size="small" sx={{ textTransform: "none" }}>
               Selecionar boleto
-              <input
-                type="file"
-                hidden
-                onChange={handleFileChange}
-                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-              />
+              <input type="file" hidden onChange={handleFileChange} accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
             </Button>
 
             {arquivo && (
-              <Typography
-                variant="body2"
-                sx={{ mt: 1, color: "success.main" }}
-              >
+              <Typography variant="body2" sx={{ mt: 1, color: "success.main" }}>
                 Novo boleto selecionado: {arquivo.name}
               </Typography>
             )}
           </Box>
 
-          <Box
-            display="flex"
-            justifyContent="flex-end"
-            gap={1}
-            mt={3}
-            sx={{ flex: "1 1 100%" }}
-          >
-            <Button
-              onClick={onClose}
-              color="inherit"
-              disabled={loading || uploading}
-            >
+          <Box display="flex" justifyContent="flex-end" gap={1} mt={3} sx={{ flex: "1 1 100%" }}>
+            <Button onClick={onClose} color="inherit" disabled={loading || uploading} sx={{ textTransform: "none" }}>
               Cancelar
             </Button>
-
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={loading || uploading}
-            >
-              {loading || uploading ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                "Atualizar"
-              )}
+            <Button type="submit" variant="contained" disabled={loading || uploading} sx={{ textTransform: "none", minWidth: 100 }}>
+              {loading || uploading ? <CircularProgress size={24} color="inherit" /> : "Atualizar"}
             </Button>
           </Box>
         </Box>
