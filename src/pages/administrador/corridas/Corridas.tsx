@@ -199,7 +199,6 @@ export default function ListaCorrida() {
       setSenhaLiberarChave("");
       setSenhaError(null);
       setMensagemSucesso("Chave liberada com sucesso!");
-      setTimeout(() => setMensagemSucesso(""), 6000);
     } catch (error: any) {
       console.error("Erro ao processar liberação da chave:", error);
 
@@ -941,7 +940,6 @@ export default function ListaCorrida() {
                   setCorridas(dadosAtualizados);
                   setShowModalCancelar(false);
                   setMensagemSucesso("Corrida cancelada sucesso!");
-                  setTimeout(() => setMensagemSucesso(""), 6000);
                 } catch (error) {
                   console.error("Erro ao cancelar corrida:", error);
                 }
@@ -1002,7 +1000,6 @@ export default function ListaCorrida() {
                   setCorridas(dadosAtualizados);
                   setShowModalReceberChave(false);
                   setMensagemSucesso("Chave Recebida com sucesso!");
-                  setTimeout(() => setMensagemSucesso(""), 6000);
                 } catch (error) {
                   console.error(
                     "Erro ao processar recebimento da chave:",

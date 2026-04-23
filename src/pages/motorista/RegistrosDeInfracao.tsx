@@ -64,6 +64,7 @@ export default function RegistrosDeInfracao() {
   const [selectedMulta, setSelectedMulta] = useState<MultaDto | null>(null);
   
   const [mensagemSucesso, setMensagemSucesso] = useState("");
+  const [mensagemErro, setMensagemErro] = useState("");
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -84,7 +85,7 @@ export default function RegistrosDeInfracao() {
       const dados = await MultaService.listarMultas(params);
 
       const multasDoUsuario = dados.filter(
-        (multa) => ((multa.idMotorista === idUsuarioLogado) && (multa.situacao != 'ANULADA')),
+        (multa) => ((multa.idMotorista === idUsuarioLogado) && (multa.situacao != 'RECURSO ACEITO - MULTA ANULADA')),
       );
 
 
@@ -146,7 +147,7 @@ export default function RegistrosDeInfracao() {
 
   const handleRecursoError = (error: any) => {
     console.error("Erro ao solicitar recurso:", error);
-    setMensagemSucesso("Erro ao solicitar recurso. Tente novamente.");
+    setMensagemErro("Erro ao solicitar recurso. Tente novamente.");
   };
 
   const handleUploadSuccess = () => {
@@ -158,7 +159,7 @@ export default function RegistrosDeInfracao() {
   };
 
   const handleError = (message: string) => {
-    setMensagemSucesso(message);
+    setMensagemErro(message);
   };
 
   const columns: GridColDef<MultaDto>[] = [
@@ -228,6 +229,37 @@ export default function RegistrosDeInfracao() {
       ),
     },
     { field: "autoInfracao", headerName: "Auto", flex: 0.6 },
+    {
+      field: 'situacao',
+      headerName: 'Situação',
+      width: 280,
+      renderCell: (params) => {
+      const cores: any = {
+        "PAGA": "#2e7d32",
+        "ANALISE PENDENTE": "#1976d2",
+        "AGUARDANDO COMPROVANTE": "#6a1b9a",
+        "PENDENTE DE ACAO": "#ed6c02",
+        "ATRIBUIDA": "#f9a825",
+        "MOTORISTA NAO IDENTIFICADO": "#616161",
+        "RECURSO ACEITO - MULTA ANULADA": "#2e7d32",
+        "RECURSO NEGADO - AGUARDANDO PAGAMENTO": "#d32f2f"
+      };
+      const color = cores[params.value] || "#d32f2f";
+      return (
+        <Chip
+            label={params.value}
+            size="small"
+            variant="outlined"
+            sx={{
+              color,
+              borderColor: color,
+              fontWeight: 600,
+              backgroundColor: "transparent"
+            }}
+        />
+      );
+      }
+    },
     {
       field: "acoes",
       headerName: "Ações",
@@ -387,6 +419,22 @@ export default function RegistrosDeInfracao() {
             onClose={() => setMensagemSucesso("")}
           >
             {mensagemSucesso}
+          </Alert>
+      )}
+
+      {mensagemErro && (
+          <Alert
+            severity = "error"
+            sx={{
+              mb: 3,
+              fontSize: "1.1rem",
+              border: "1px solid",
+              borderColor: "success.main",
+              borderRadius: 1.5,
+            }}
+            onClose={() => setMensagemErro("")}
+          >
+            {mensagemErro}
           </Alert>
       )}
 

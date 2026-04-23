@@ -514,7 +514,6 @@ const DetalhesRequisicao: React.FC = () => {
     setModalExcluirPercursoAberto(false);
     setPercursoSelecionado(null);
     setMensagemSucesso("Percuso removido com sucesso!");
-    setTimeout(() => setMensagemSucesso(""), 6000);
   };
 
   const handleConfirmarExclusaoPercurso = async () => {
@@ -543,8 +542,6 @@ const DetalhesRequisicao: React.FC = () => {
     setModalExcluirOcorrenciaAberto(false);
     setOcorrenciaSelecionada(null);
     setMensagemSucesso("Ocorrência removida com sucesso!");
-    setTimeout(() => setMensagemSucesso(""), 6000);
-    
   };
 
   const handleConfirmarExclusaoOcorrencia = async () => {
@@ -573,7 +570,6 @@ const DetalhesRequisicao: React.FC = () => {
     setModalExcluirAbastecimentoAberto(false);
     setAbastecimentoSelecionado(null);
     setMensagemSucesso("Abastecimento removido com sucesso!");
-    setTimeout(() => setMensagemSucesso(""), 6000);
   };
 
   const handleConfirmarExclusaoAbastecimento = async () => {
