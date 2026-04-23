@@ -40,11 +40,6 @@ interface CadastrarCorridaProps {
   onError: (error: any) => void;
 }
 
-const toLocalDateTimeInputValue = (date: Date) => {
-  const offset = date.getTimezoneOffset() * 60000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
-};
-
 const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
   open,
   onClose,
@@ -262,8 +257,8 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
       };
 
       const corridaParaEnviar: Omit<CorridaBackend, "idCorrida"> = {
-        dataInicio: new Date(corrida.dataInicio),
-        dataTermino: new Date(corrida.dataTermino),
+        dataInicio: toLocalDate(corrida.dataInicio),
+        dataTermino: toLocalDate(corrida.dataTermino),
         localDeSaida: corrida.localDeSaida,
         distanciaKm: "",
         idMotorista: idUsuarioMotorista,
@@ -454,7 +449,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
           <TextField
             name="dataInicio"
             label="Data Início"
-            type="datetime-local"
+            type="date"
             InputLabelProps={{ shrink: true }}
             value={corrida.dataInicio}
             onChange={handleChange}
@@ -463,14 +458,14 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
             error={errors.dataInicio}
             helperText={errors.dataInicio ? "Informe a data de início" : ""}
             inputProps={{
-              min: toLocalDateTimeInputValue(new Date())
+              min: new Date().toISOString().split("T")[0],
             }}
           />
 
           <TextField
             name="dataTermino"
             label="Data Término"
-            type="datetime-local"
+            type="date"
             InputLabelProps={{ shrink: true }}
             value={corrida.dataTermino}
             onChange={handleChange}
@@ -479,7 +474,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
             error={errors.dataTermino}
             helperText={errors.dataTermino ? "Informe a data de término" : ""}
             inputProps={{
-              min: corrida.dataInicio || toLocalDateTimeInputValue(new Date())
+              min: corrida.dataInicio || new Date().toISOString().split("T")[0],
             }}
           />
         </Box>
