@@ -99,7 +99,6 @@ export default function ListaMulta() {
       if (!recurso) {
         setMensagem("Nenhum recurso encontrado.");
         setTipoMensagem("warning");
-        setTimeout(() => setMensagem(""), 6000);
         return;
       }
 
@@ -108,7 +107,6 @@ export default function ListaMulta() {
     } catch (error) {
       setMensagem("Erro ao buscar recurso.");
       setTipoMensagem("error");
-      setTimeout(() => setMensagem(""), 6000);
     }
   };
 
@@ -120,7 +118,7 @@ export default function ListaMulta() {
       setMensagem("Comprovante aprovado com sucesso!");
       setTipoMensagem("success");
       setModalAprovarAberto(false);
-      setTimeout(() => setMensagem(""), 6000);
+
       await carregarMultas();
     } catch (error) {
       setMensagem("Erro ao aprovar comprovante.");
@@ -139,7 +137,6 @@ export default function ListaMulta() {
       setTipoMensagem("success");
       setModalReprovarAberto(false);
       setMotivoReprovacao("");
-      setTimeout(() => setMensagem(""), 6000);
       await carregarMultas();
     } catch (error) {
       setMensagem("Erro ao reprovar comprovante.");
@@ -157,7 +154,6 @@ export default function ListaMulta() {
       setMensagem("Recurso aceito com sucesso! Multa anulada.");
       setTipoMensagem("success");
       setModalAceitarRecursoAberto(false);
-      setTimeout(() => setMensagem(""), 6000);
       await carregarMultas();
     } catch (error) {
       setMensagem("Erro ao aceitar recurso.");
@@ -175,7 +171,6 @@ export default function ListaMulta() {
       setMensagem("RECURSO REJEITADO. SITUAÇÃO ATUALIZADA.");
       setTipoMensagem("success");
       setModalRejeitarRecursoAberto(false);
-      setTimeout(() => setMensagem(""), 6000);
       await carregarMultas();
     } catch (error) {
       setMensagem("Erro ao rejeitar recurso.");
@@ -621,9 +616,6 @@ export default function ListaMulta() {
         </Box>
       </Box>
 
-      {/* --- MODAIS PADRONIZADOS --- */}
-
-      {/* Modal Aprovar Comprovante */}
       <Modal open={modalAprovarAberto} onClose={() => !loadingAction && setModalAprovarAberto(false)}>
         <Paper sx={modalStyle}>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
@@ -654,7 +646,6 @@ export default function ListaMulta() {
         </Paper>
       </Modal>
 
-      {/* Modal Reprovar Comprovante */}
       <Modal open={modalReprovarAberto} onClose={() => !loadingAction && setModalReprovarAberto(false)}>
         <Paper sx={modalStyle}>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
@@ -686,16 +677,15 @@ export default function ListaMulta() {
           />
           <Box display="flex" justifyContent="flex-end" gap={1}>
             <Button onClick={() => setModalReprovarAberto(false)} color="inherit" disabled={loadingAction} sx={{ textTransform: "none" }}>
-              Voltar
+              Cancelar
             </Button>
             <Button onClick={reprovarComprovante} variant="contained" color="error" disabled={loadingAction || !motivoReprovacao.trim()}>
-              {loadingAction ? <CircularProgress size={24} color="inherit" /> : "Reprovar Agora"}
+              {loadingAction ? <CircularProgress size={24} color="inherit" /> : "Reprovar"}
             </Button>
           </Box>
         </Paper>
       </Modal>
 
-      {/* Modal Aceitar Recurso */}
       <Modal open={modalAceitarRecursoAberto} onClose={() => !loadingAction && setModalAceitarRecursoAberto(false)}>
         <Paper sx={modalStyle}>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
@@ -727,7 +717,6 @@ export default function ListaMulta() {
         </Paper>
       </Modal>
 
-      {/* Modal Rejeitar Recurso */}
       <Modal open={modalRejeitarRecursoAberto} onClose={() => !loadingAction && setModalRejeitarRecursoAberto(false)}>
         <Paper sx={modalStyle}>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
@@ -758,7 +747,6 @@ export default function ListaMulta() {
         </Paper>
       </Modal>
 
-      {/* Modal Excluir */}
       <Modal open={modalExcluirAberto} onClose={() => setModalExcluirAberto(false)}>
         <Paper sx={modalStyle}>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
