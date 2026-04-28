@@ -141,9 +141,12 @@ export class MultaService {
     }
   }
 
-  static async rejeitarRecurso(idMulta: number): Promise<any> {
+  static async rejeitarRecurso(idMulta: number, motivo: string): Promise<any> {
     try {
-      const response = await axiosConnect.patch(`/multa/${idMulta}/rejeitar-recurso`);
+      const response = await axiosConnect.patch(
+        `/multa/${idMulta}/rejeitar-recurso`,
+        { motivo }
+      );
       return response.data;
     } catch (error) {
       console.error(`Erro ao rejeitar recurso da multa ${idMulta}:`, error);

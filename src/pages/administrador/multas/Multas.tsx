@@ -64,6 +64,7 @@ export default function ListaMulta() {
   const [modalAceitarRecursoAberto, setModalAceitarRecursoAberto] = useState(false);
   const [modalRejeitarRecursoAberto, setModalRejeitarRecursoAberto] = useState(false);
   const [motivoReprovacao, setMotivoReprovacao] = useState("");
+  const [motivoRejeicaoRecurso, setMotivoRejeicaoRecurso] = useState("");
 
   const [multaSelecionada, setMultaSelecionada] = useState<MultaDto | null>(null);
 
@@ -167,10 +168,14 @@ export default function ListaMulta() {
     if (!multaSelecionada) return;
     setLoadingAction(true);
     try {
-      await MultaService.rejeitarRecurso(multaSelecionada.idMulta!);
-      setMensagem("RECURSO REJEITADO. SITUAÇÃO ATUALIZADA.");
+      await MultaService.rejeitarRecurso(
+        multaSelecionada.idMulta!,
+        motivoRejeicaoRecurso
+      );
+      setMensagem("Recurso rejeitado com sucesso!");
       setTipoMensagem("success");
       setModalRejeitarRecursoAberto(false);
+      setMotivoRejeicaoRecurso("");
       await carregarMultas();
     } catch (error) {
       setMensagem("Erro ao rejeitar recurso.");
@@ -286,7 +291,7 @@ export default function ListaMulta() {
           "PENDENTE DE ACAO": "#ed6c02",
           "ATRIBUIDA": "#f9a825",
           "MOTORISTA NAO IDENTIFICADO": "#616161",
-          "RECURSO ACEITO - MULTA ANULADA": "#2e7d32",
+          "MULTA ANULADA": "#2e7d32",
           "RECURSO NEGADO - AGUARDANDO PAGAMENTO": "#d32f2f"
         };
         const color = cores[params.value] || "#d32f2f";
@@ -380,7 +385,7 @@ export default function ListaMulta() {
       renderCell: (params) => {
         const temRecurso = !!params.row.possuiRecurso;
         const jaAnalisado =
-          params.row.situacao === "RECURSO ACEITO - MULTA ANULADA" ||
+          params.row.situacao === "MULTA ANULADA" ||
           params.row.situacao === "RECURSO NEGADO - AGUARDANDO PAGAMENTO";
 
         return (
@@ -728,20 +733,54 @@ export default function ListaMulta() {
               <ThumbDownIcon color="error" sx={{ fontSize: 24, mr: 1 }} />
               Rejeitar Recurso
             </Typography>
-            <IconButton onClick={() => setModalRejeitarRecursoAberto(false)} disabled={loadingAction}>
+            <IconButton
+              onClick={() => setModalRejeitarRecursoAberto(false)}
+              disabled={loadingAction}
+            >
               <CloseIcon />
             </IconButton>
           </Box>
+
           <Divider sx={{ mb: 3 }} />
-          <Typography variant="body1" mb={4} color="inherit">
-            Deseja rejeitar o recurso da multa <strong>#{multaSelecionada?.idMulta}</strong>? O status retornará para "Aguardando Pagamento".
+
+          <Typography variant="subtitle2" mb={1} color="text.secondary">
+            Motivo da Rejeição:
           </Typography>
+
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            placeholder="Descreva o motivo para o motorista..."
+            value={motivoRejeicaoRecurso}
+            onChange={(e) => setMotivoRejeicaoRecurso(e.target.value)}
+            sx={{
+              mb: 3,
+              "& .MuiInputBase-input": { color: "text.primary" }
+            }}
+          />
+
           <Box display="flex" justifyContent="flex-end" gap={1}>
-            <Button onClick={() => setModalRejeitarRecursoAberto(false)} color="inherit" disabled={loadingAction} sx={{ textTransform: "none" }}>
+            <Button
+              onClick={() => setModalRejeitarRecursoAberto(false)}
+              color="inherit"
+              disabled={loadingAction}
+              sx={{ textTransform: "none" }}
+            >
               Cancelar
             </Button>
-            <Button onClick={rejeitarRecurso} variant="contained" color="error" disabled={loadingAction}>
-              {loadingAction ? <CircularProgress size={24} color="inherit" /> : "Confirmar Rejeição"}
+
+            <Button
+              onClick={rejeitarRecurso}
+              variant="contained"
+              color="error"
+              disabled={loadingAction || !motivoRejeicaoRecurso.trim()}
+            >
+              {loadingAction ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                "Confirmar Rejeição"
+              )}
             </Button>
           </Box>
         </Paper>
