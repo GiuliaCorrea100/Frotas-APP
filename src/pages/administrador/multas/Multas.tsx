@@ -291,7 +291,7 @@ export default function ListaMulta() {
           "PENDENTE DE ACAO": "#ed6c02",
           "ATRIBUIDA": "#f9a825",
           "MOTORISTA NAO IDENTIFICADO": "#616161",
-          "MULTA ANULADA": "#2e7d32",
+          "RECURSO ACEITO - MULTA ANULADA": "#2e7d32",
           "RECURSO NEGADO - AGUARDANDO PAGAMENTO": "#d32f2f"
         };
         const color = cores[params.value] || "#d32f2f";
@@ -385,7 +385,7 @@ export default function ListaMulta() {
       renderCell: (params) => {
         const temRecurso = !!params.row.possuiRecurso;
         const jaAnalisado =
-          params.row.situacao === "MULTA ANULADA" ||
+          params.row.situacao === "RECURSO ACEITO - MULTA ANULADA" ||
           params.row.situacao === "RECURSO NEGADO - AGUARDANDO PAGAMENTO";
 
         return (
