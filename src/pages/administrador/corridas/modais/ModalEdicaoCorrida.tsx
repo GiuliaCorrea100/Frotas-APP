@@ -49,16 +49,18 @@ interface Veiculo {
   placa: string;
 }
 
+const toLocalDateInputValue = (date: Date) => {
+  return date.toISOString().split("T")[0];
+};
+
 export default function EditarInfoCorrida({
   open,
   onClose,
   onSuccess,
   corrida,
 }: EditarInfoCorridaProps) {
-  const [formData, setFormData] = useState({
-    dataInicio: "",
-    dataFim: "",
-  });
+  const [dataInicio, setDataInicio] = useState<Date | null>(null);
+  const [dataTermino, setDataTermino] = useState<Date | null>(null);
   const [selectedMotorista, setSelectedMotorista] = useState<Usuario | null>(
     null,
   );
@@ -81,7 +83,7 @@ export default function EditarInfoCorrida({
         setAuthMode(response.data.mode);
       } catch (error) {
         console.error("Erro ao buscar modo de autenticação:", error);
-        setAuthMode("SIGAA"); // Fallback para SIGAA
+        setAuthMode("SIGAA");
       }
     };
     fetchAuthMode();
@@ -96,7 +98,6 @@ export default function EditarInfoCorrida({
         if (corrida.idMotorista) {
           setLoadingMotorista(true);
           if (authMode === "MOCK") {
-            // No modo MOCK, buscar na lista estática
             const motoristasTeste: Usuario[] = [
               {
                 idUsuario: 1,
@@ -120,7 +121,6 @@ export default function EditarInfoCorrida({
               setError("Motorista não encontrado na lista de teste.");
             }
           } else {
-            // No modo SIGAA, buscar no endpoint
             const response = await axiosConnect.get(
               `/usuario/buscar-usuario/${corrida.idMotorista}`,
             );
@@ -139,15 +139,32 @@ export default function EditarInfoCorrida({
           }
         }
 
-        // Configurar datas
-        setFormData({
-          dataInicio: corrida.dataInicio
-            ? new Date(corrida.dataInicio).toISOString().split("T")[0]
-            : "",
-          dataFim: corrida.dataTermino
-            ? new Date(corrida.dataTermino).toISOString().split("T")[0]
-            : "",
-        });
+        // Configurar datas - mesma lógica do segundo exemplo
+        if (corrida.dataInicio) {
+          if (typeof corrida.dataInicio === "string") {
+            const dateString = corrida.dataInicio.includes("T")
+              ? corrida.dataInicio.split("T")[0] + "T00:00:00"
+              : corrida.dataInicio + "T00:00:00";
+            setDataInicio(new Date(dateString));
+          } else {
+            setDataInicio(corrida.dataInicio);
+          }
+        } else {
+          setDataInicio(null);
+        }
+
+        if (corrida.dataTermino) {
+          if (typeof corrida.dataTermino === "string") {
+            const dateString = corrida.dataTermino.includes("T")
+              ? corrida.dataTermino.split("T")[0] + "T00:00:00"
+              : corrida.dataTermino + "T00:00:00";
+            setDataTermino(new Date(dateString));
+          } else {
+            setDataTermino(corrida.dataTermino);
+          }
+        } else {
+          setDataTermino(null);
+        }
       } catch (error) {
         console.error("Erro ao carregar dados iniciais:", error);
       } finally {
@@ -157,7 +174,12 @@ export default function EditarInfoCorrida({
     };
 
     carregarDadosIniciais();
-  }, [open, corrida]);
+  }, [open, corrida, authMode]);
+
+  const formatarDataParaEnvio = (date: Date | null): string | null => {
+    if (!date) return null;
+    return date.toISOString();
+  };
 
   const buscarUsuario = async (nome: string) => {
     if (nome.length < 3) {
@@ -168,7 +190,6 @@ export default function EditarInfoCorrida({
     try {
       setLoadingMotorista(true);
       if (authMode === "MOCK") {
-        // Lista estática de motoristas no modo MOCK
         const motoristasTeste: Usuario[] = [
           {
             idUsuario: 1,
@@ -188,7 +209,6 @@ export default function EditarInfoCorrida({
         );
         setMotoristasDisponiveis(filteredMotoristas);
       } else {
-        // Busca no endpoint /usuarioSigaa no modo SIGAA
         const response = await axiosConnect.get(`/usuarioSigaa?nome=${nome}`);
         const usuariosRetornados = response.data;
         const uniqueUsuariosMap = new Map<number, Usuario>();
@@ -229,7 +249,7 @@ export default function EditarInfoCorrida({
     event.preventDefault();
     if (!corrida?.idCorrida) return;
 
-    if (!selectedMotorista || !selectedVeiculo || !formData.dataInicio) {
+    if (!selectedMotorista || !selectedVeiculo || !dataInicio) {
       setError(
         "Por favor, preencha todos os campos obrigatórios: Motorista, Veículo e Data de Início.",
       );
@@ -259,10 +279,8 @@ export default function EditarInfoCorrida({
       const dadosAtualizados = {
         idMotorista: idUsuarioMotorista,
         idCarro: selectedVeiculo.idCarro,
-        dataInicio: new Date(formData.dataInicio),
-        dataTermino: formData.dataFim
-          ? new Date(formData.dataFim)
-          : corrida.dataTermino,
+        dataInicio: formatarDataParaEnvio(dataInicio),
+        dataTermino: dataTermino ? formatarDataParaEnvio(dataTermino) : corrida.dataTermino,
         chaveEmprestada: corrida.chaveEmprestada,
       };
 
@@ -272,9 +290,9 @@ export default function EditarInfoCorrida({
       );
 
       const mensagem = "Corrida editada com sucesso!";
+      onSuccess(mensagem);
 
       setTimeout(() => {
-        onSuccess(mensagem);
         onClose();
       }, 1500);
     } catch (error: any) {
@@ -324,6 +342,12 @@ export default function EditarInfoCorrida({
             </Alert>
           )}
 
+          {successMessage && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              {successMessage}
+            </Alert>
+          )}
+
           {/* Veículo */}
           <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
             <Autocomplete
@@ -343,6 +367,7 @@ export default function EditarInfoCorrida({
               }}
               loading={loadingVeiculo}
               noOptionsText="Digite pelo menos 3 caracteres para buscar (placa ou modelo do veículo)"
+              disabled={!!successMessage || loading}
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -363,6 +388,7 @@ export default function EditarInfoCorrida({
                   helperText={
                     "Informe o veículo a ser reservado para essa corrida"
                   }
+                  disabled={!!successMessage || loading}
                 />
               )}
               fullWidth
@@ -390,6 +416,7 @@ export default function EditarInfoCorrida({
                 setSelectedMotorista(novoValor);
               }}
               loading={loadingMotorista}
+              disabled={!!successMessage || loading}
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -410,6 +437,7 @@ export default function EditarInfoCorrida({
                   helperText={
                     "Informe o motorista que será responsável por essa corrida"
                   }
+                  disabled={!!successMessage || loading}
                 />
               )}
               fullWidth
@@ -422,23 +450,37 @@ export default function EditarInfoCorrida({
               fullWidth
               label="Data Início"
               type="date"
-              value={formData.dataInicio}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, dataInicio: e.target.value }))
-              }
+              value={dataInicio ? toLocalDateInputValue(dataInicio) : ""}
+              onChange={(e) => {
+                const selectedDate = e.target.value;
+                if (selectedDate) {
+                  const date = new Date(selectedDate + "T00:00:00");
+                  setDataInicio(date);
+                } else {
+                  setDataInicio(null);
+                }
+              }}
               required
               InputLabelProps={{ shrink: true }}
+              disabled={!!successMessage || loading}
             />
 
             <TextField
               fullWidth
               label="Data Fim"
               type="date"
-              value={formData.dataFim}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, dataFim: e.target.value }))
-              }
+              value={dataTermino ? toLocalDateInputValue(dataTermino) : ""}
+              onChange={(e) => {
+                const selectedDate = e.target.value;
+                if (selectedDate) {
+                  const date = new Date(selectedDate + "T00:00:00");
+                  setDataTermino(date);
+                } else {
+                  setDataTermino(null);
+                }
+              }}
               InputLabelProps={{ shrink: true }}
+              disabled={!!successMessage || loading}
             />
           </Box>
 
@@ -458,7 +500,13 @@ export default function EditarInfoCorrida({
             <Button
               type="submit"
               variant="contained"
-              disabled={loading || !!successMessage}
+              disabled={
+                loading || 
+                !!successMessage || 
+                !selectedMotorista || 
+                !selectedVeiculo || 
+                !dataInicio
+              }
             >
               {loading ? <CircularProgress size={24} /> : "Confirmar"}
             </Button>

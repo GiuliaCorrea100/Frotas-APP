@@ -241,12 +241,7 @@ const Menu: React.FC = () => {
   return (
     <>
       <AppBar position="static">
-        <Toolbar
-          sx={{
-            flexWrap: "wrap",
-            gap: 1,
-          }}
-        >
+        <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
           {isMobile && (
             <IconButton
               color="inherit"
