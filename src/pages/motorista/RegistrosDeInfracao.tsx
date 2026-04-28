@@ -85,7 +85,7 @@ export default function RegistrosDeInfracao() {
       const dados = await MultaService.listarMultas(params);
 
       const multasDoUsuario = dados.filter(
-        (multa) => ((multa.idMotorista === idUsuarioLogado) && (multa.situacao != 'RECURSO ACEITO - MULTA ANULADA')),
+        (multa) => ((multa.idMotorista === idUsuarioLogado)),
       );
 
 
