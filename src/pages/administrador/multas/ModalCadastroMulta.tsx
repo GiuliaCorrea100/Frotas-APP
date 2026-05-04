@@ -23,7 +23,7 @@ import { MultaService } from "../../../services/MultaService";
 interface CadastrarModalProps {
   open: boolean;
   onClose: () => void;
-  onSuccess: (message: string) => void;
+  onSuccess: (msgSucesso: string, msgAlerta?: string) => void;
   onError: (error: any) => void;
 }
 
@@ -69,7 +69,6 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
   const [arquivoSelecionado, setArquivoSelecionado] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [mensagemMotorista, setMensagemMotorista] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -82,7 +81,6 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
       setValorInfracao("");
       setArquivoSelecionado(null);
       setFileError(null);
-      setMensagemMotorista(null);
     }
   }, [open]);
 
@@ -177,15 +175,15 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
       }
 
       if (response?.mensagem) {
-        setMensagemMotorista(response.mensagem);
-        setTimeout(() => {
-          setMensagemMotorista(null);
-          onClose();
-        }, 3000);
+        onSuccess(
+          "Multa cadastrada com sucesso!",
+          response.mensagem
+        );
       } else {
         onSuccess("Multa cadastrada com sucesso!");
-        onClose();
       }
+
+      onClose();
     } catch (error) {
       onError(error);
     } finally {
@@ -345,12 +343,6 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
               Formatos permitidos: PDF, JPG, JPEG, PNG, DOC, DOCX (Máx: {MAX_FILE_SIZE_MB}MB)
             </Typography>
           </Box>
-
-          {mensagemMotorista && (
-            <Box sx={{ width: "100%", p: 2, mt: 1, borderRadius: 1, backgroundColor: "#FFF4E5", border: "1px solid #FFA726" }}>
-              <Typography color="warning.main" fontWeight="bold">{mensagemMotorista}</Typography>
-            </Box>
-          )}
 
           <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2, width: "100%" }}>
             <Button variant="outlined" onClick={onClose} sx={{ textTransform: "none" }} disabled={loading}>

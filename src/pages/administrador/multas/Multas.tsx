@@ -68,8 +68,9 @@ export default function ListaMulta() {
 
   const [multaSelecionada, setMultaSelecionada] = useState<MultaDto | null>(null);
 
-  const [mensagem, setMensagem] = useState("");
-  const [tipoMensagem, setTipoMensagem] = useState<"success" | "error" | "warning" | "info">("success");
+  const [mensagemSucesso, setMensagemSucesso] = useState("");
+  const [mensagemAlerta, setMensagemAlerta] = useState("");
+  const [mensagemErro, setMensagemErro] = useState("");
 
   const [modalRecursoAberto, setModalRecursoAberto] = useState(false);
   const [recursoSelecionado, setRecursoSelecionado] = useState<any>(null);
@@ -85,7 +86,7 @@ export default function ListaMulta() {
       const multasAtivas = dados.filter((m) => m.ativa);
       setMultas(multasAtivas);
     } catch (error) {
-      console.error(error);
+      setMensagemErro("Erro ao carregar multas.");
     } finally {
       setLoading(false);
     }
@@ -98,16 +99,14 @@ export default function ListaMulta() {
       const recurso = await RecursoService.buscarPorMulta(multa.idMulta);
 
       if (!recurso) {
-        setMensagem("Nenhum recurso encontrado.");
-        setTipoMensagem("warning");
+        setMensagemAlerta("Nenhum recurso encontrado.");
         return;
       }
 
       setRecursoSelecionado(recurso);
       setModalRecursoAberto(true);
     } catch (error) {
-      setMensagem("Erro ao buscar recurso.");
-      setTipoMensagem("error");
+      setMensagemErro("Erro ao buscar recurso.");
     }
   };
 
@@ -116,14 +115,12 @@ export default function ListaMulta() {
     setLoadingAction(true);
     try {
       await MultaService.aprovarComprovante(multaSelecionada.idMulta!);
-      setMensagem("Comprovante aprovado com sucesso!");
-      setTipoMensagem("success");
+      setMensagemSucesso("Comprovante aprovado com sucesso!");
       setModalAprovarAberto(false);
 
       await carregarMultas();
-    } catch (error) {
-      setMensagem("Erro ao aprovar comprovante.");
-      setTipoMensagem("error");
+    } catch {
+      setMensagemErro("Erro ao aprovar comprovante.");
     } finally {
       setLoadingAction(false);
     }
@@ -134,14 +131,12 @@ export default function ListaMulta() {
     setLoadingAction(true);
     try {
       await MultaService.reprovarComprovante(multaSelecionada.idMulta!, motivoReprovacao);
-      setMensagem("Comprovante reprovado com sucesso!");
-      setTipoMensagem("success");
+      setMensagemSucesso("Comprovante reprovado com sucesso!");
       setModalReprovarAberto(false);
       setMotivoReprovacao("");
       await carregarMultas();
-    } catch (error) {
-      setMensagem("Erro ao reprovar comprovante.");
-      setTipoMensagem("error");
+    } catch {
+      setMensagemErro("Erro ao reprovar comprovante.");
     } finally {
       setLoadingAction(false);
     }
@@ -152,13 +147,11 @@ export default function ListaMulta() {
     setLoadingAction(true);
     try {
       await MultaService.aceitarRecurso(multaSelecionada.idMulta!);
-      setMensagem("Recurso aceito com sucesso! Multa anulada.");
-      setTipoMensagem("success");
+      setMensagemSucesso("Recurso aceito com sucesso! Multa anulada.");
       setModalAceitarRecursoAberto(false);
       await carregarMultas();
-    } catch (error) {
-      setMensagem("Erro ao aceitar recurso.");
-      setTipoMensagem("error");
+    } catch {
+      setMensagemErro("Erro ao aceitar recurso.");
     } finally {
       setLoadingAction(false);
     }
@@ -172,14 +165,12 @@ export default function ListaMulta() {
         multaSelecionada.idMulta!,
         motivoRejeicaoRecurso
       );
-      setMensagem("Recurso rejeitado com sucesso!");
-      setTipoMensagem("success");
+      setMensagemSucesso("Recurso rejeitado com sucesso!");
       setModalRejeitarRecursoAberto(false);
       setMotivoRejeicaoRecurso("");
       await carregarMultas();
-    } catch (error) {
-      setMensagem("Erro ao rejeitar recurso.");
-      setTipoMensagem("error");
+    } catch {
+      setMensagemErro("Erro ao rejeitar recurso.");
     } finally {
       setLoadingAction(false);
     }
@@ -515,19 +506,21 @@ export default function ListaMulta() {
           </Button>
         </Box>
 
-        {mensagem && (
-          <Alert
-            severity={tipoMensagem}
-            onClose={() => setMensagem("")}
-            sx={{
-              mb: 3,
-              fontSize: "1.1rem",
-              border: "1px solid",
-              borderColor: `${tipoMensagem}.main`,
-              borderRadius: 1.5,
-            }}
-          >
-            {mensagem}
+        {mensagemSucesso && (
+          <Alert severity="success" onClose={() => setMensagemSucesso("")} sx={{ mb: 2 }}>
+            {mensagemSucesso}
+          </Alert>
+        )}
+
+        {mensagemAlerta && (
+          <Alert severity="warning" onClose={() => setMensagemAlerta("")} sx={{ mb: 3 }}>
+            {mensagemAlerta}
+          </Alert>
+        )}
+
+        {mensagemErro && (
+          <Alert severity="error" onClose={() => setMensagemErro("")} sx={{ mb: 2 }}>
+            {mensagemErro}
           </Alert>
         )}
 
@@ -827,9 +820,13 @@ export default function ListaMulta() {
       <CadastroMultaModal
         open={modalCadastrarAberto}
         onClose={() => setModalCadastroAberto(false)}
-        onSuccess={async () => {
+        onSuccess={async (msgSucesso: string, msgAlerta?: string) => {
           await carregarMultas();
           setModalCadastroAberto(false);
+          setMensagemSucesso(msgSucesso);
+          if (msgAlerta) {
+            setMensagemAlerta(msgAlerta);
+          }
         }}
         onError={() => { }}
       />
@@ -839,6 +836,7 @@ export default function ListaMulta() {
         multa={multaSelecionada}
         onClose={() => setModalEditarAberto(false)}
         onSuccess={async () => {
+          setMensagemSucesso("Multa atualizada com sucesso!");
           await carregarMultas();
           setModalEditarAberto(false);
         }}
