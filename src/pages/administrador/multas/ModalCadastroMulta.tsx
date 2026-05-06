@@ -129,10 +129,12 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
 
   const handleNumberInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    setter: React.Dispatch<React.SetStateAction<string>>
+    setter: React.Dispatch<React.SetStateAction<string>>,
+    maxLength?: number
   ) => {
     const value = e.target.value;
     if (value === "" || /^\d*\.?\d*$/.test(value)) {
+      if (maxLength && value.length > maxLength) return;
       setter(value);
     }
   };
@@ -217,10 +219,11 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
             type="text"
             inputMode="numeric"
             value={codigoInfracao}
-            onChange={(e) => handleNumberInputChange(e, setCodigoInfracao)}
+            onChange={(e) => handleNumberInputChange(e, setCodigoInfracao, 8)}
             required
             fullWidth
             sx={{ flex: "1 1 calc(50% - 8px)" }}
+            inputProps={{ maxLength: 8 }}
           />
 
           <TextField

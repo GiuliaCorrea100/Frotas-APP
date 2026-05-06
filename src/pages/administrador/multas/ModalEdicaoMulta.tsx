@@ -63,7 +63,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
   onSuccess,
   onError,
 }) => {
-  const [codigoInfracao, setCodigoInfracao] = useState<number>(0);
+  const [codigoInfracao, setCodigoInfracao] = useState<string>("0");
   const [classificacao, setClassificacao] = useState("");
   const [valorInfracao, setValorInfracao] = useState<number>(0);
   const [placaVeiculo, setPlacaVeiculo] = useState("");
@@ -79,7 +79,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
 
   useEffect(() => {
     if (multa) {
-      setCodigoInfracao(multa.codigoInfracao);
+      setCodigoInfracao(multa.codigoInfracao.toString());
       setValorInfracao(multa.valorInfracao);
       setAutoInfracao(multa.autoInfracao);
       setClassificacao(multa.classificacao);
@@ -121,6 +121,14 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
     }
   };
 
+  const handleCodigoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === "" || /^\d*$/.test(value)) {
+      if (value.length <= 8) {
+        setCodigoInfracao(value);
+      }
+    }
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -130,7 +138,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
       const dataInfracaoUTC = new Date(dataInfracao + "T04:00:00.000Z");
 
       const dadosMultas = {
-        codigoInfracao,
+        codigoInfracao: Number(codigoInfracao),
         classificacao,
         valorInfracao,
         placaVeiculo,
@@ -209,7 +217,16 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
         )}
 
         <Box component="form" onSubmit={handleSubmit} display="flex" flexWrap="wrap" gap={2}>
-          <TextField label="Código da Infração" type="number" value={codigoInfracao} onChange={(e) => setCodigoInfracao(Number(e.target.value))} required sx={{ flex: "1 1 calc(50% - 8px)" }} />
+          <TextField 
+            label="Código da Infração" 
+            type="text" 
+            inputMode="numeric"
+            value={codigoInfracao} 
+            onChange={handleCodigoChange} 
+            required 
+            sx={{ flex: "1 1 calc(50% - 8px)" }} 
+            inputProps={{ maxLength: 8 }}
+          />
           <TextField select label="Classificação" value={classificacao} onChange={(e) => setClassificacao(e.target.value)} required sx={{ flex: "1 1 calc(50% - 8px)" }}>
             {opcoesClassificacao.map((opcao) => (
               <MenuItem key={opcao.value} value={opcao.value}>{opcao.label}</MenuItem>
