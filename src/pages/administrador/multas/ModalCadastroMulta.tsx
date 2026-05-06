@@ -139,6 +139,13 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
     }
   };
 
+  const handleAutoInfracaoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toUpperCase();
+    if (value.length <= 20) {
+      setAutoInfracao(value);
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
@@ -148,7 +155,6 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
       const dataHoraInfracaoISO = dataHoraObj.toISOString();
       const codigoInfracaoNum = Number(codigoInfracao);
       const valorInfracaoNum = Number(valorInfracao);
-      const autoInfracaoNum = Number(autoInfracao);
 
       let response;
 
@@ -159,7 +165,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
         formData.append("valorInfracao", valorInfracaoNum.toString());
         formData.append("placaVeiculo", placaVeiculo);
         formData.append("dataInfracao", dataHoraInfracaoISO);
-        formData.append("autoInfracao", autoInfracaoNum.toString());
+        formData.append("autoInfracao", autoInfracao);
         formData.append("arquivo", arquivoSelecionado);
 
         response = await MultaService.criarMultaComArquivo(formData);
@@ -170,7 +176,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
           valorInfracao: valorInfracaoNum,
           placaVeiculo,
           dataInfracao: dataHoraInfracaoISO,
-          autoInfracao: autoInfracaoNum,
+          autoInfracao: autoInfracao as any,
         };
 
         response = await MultaService.criarMulta(dadosMultas);
@@ -270,12 +276,12 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
           <TextField
             label="Auto de Infração"
             type="text"
-            inputMode="numeric"
             value={autoInfracao}
-            onChange={(e) => handleNumberInputChange(e, setAutoInfracao)}
+            onChange={handleAutoInfracaoChange}
             required
             fullWidth
             sx={{ flex: "1 1 calc(50% - 8px)" }}
+            inputProps={{ maxLength: 20 }}
           />
 
           <TextField

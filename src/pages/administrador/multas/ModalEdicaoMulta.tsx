@@ -67,8 +67,8 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
   const [classificacao, setClassificacao] = useState("");
   const [valorInfracao, setValorInfracao] = useState<number>(0);
   const [placaVeiculo, setPlacaVeiculo] = useState("");
-  const [dataInfracao, setDataInfracao] = useState<string>("");
-  const [autoInfracao, setAutoInfracao] = useState<number>(0);
+  const [dataInfracao, setInfracao] = useState<string>("");
+  const [autoInfracao, setAutoInfracao] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [arquivo, setArquivo] = useState<File | null>(null);
   const [arquivoAtual, setArquivoAtual] = useState<string | null>(null);
@@ -81,10 +81,10 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
     if (multa) {
       setCodigoInfracao(multa.codigoInfracao.toString());
       setValorInfracao(multa.valorInfracao);
-      setAutoInfracao(multa.autoInfracao);
+      setAutoInfracao(multa.autoInfracao ? multa.autoInfracao.toString() : "");
       setClassificacao(multa.classificacao);
       setPlacaVeiculo(multa.placaVeiculo);
-      setDataInfracao(formatDateForInput(multa.dataInfracao));
+      setInfracao(formatDateForInput(multa.dataInfracao));
       setArquivoAtual((multa as any).urlArquivo || null);
       setArquivo(null);
       setMensagem("");
@@ -130,6 +130,13 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
     }
   };
 
+  const handleAutoInfracaoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toUpperCase();
+    if (value.length <= 20) {
+      setAutoInfracao(value);
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
@@ -143,7 +150,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
         valorInfracao,
         placaVeiculo,
         dataInfracao: dataInfracaoUTC,
-        autoInfracao,
+        autoInfracao: autoInfracao as any,
       };
 
       await MultaService.atualizarMulta(multa?.idMulta!, dadosMultas);
@@ -234,8 +241,16 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
           </TextField>
           <TextField label="Valor (R$)" type="number" value={valorInfracao} onChange={(e) => setValorInfracao(Number(e.target.value))} required sx={{ flex: "1 1 calc(50% - 8px)" }} InputProps={{ startAdornment: <InputAdornment position="start">R$</InputAdornment> }} />
           <TextField label="Placa" value={placaVeiculo} onChange={(e) => setPlacaVeiculo(e.target.value.toUpperCase())} required sx={{ flex: "1 1 calc(50% - 8px)" }} />
-          <TextField label="Auto da Infração" type="number" value={autoInfracao} onChange={(e) => setAutoInfracao(Number(e.target.value))} required sx={{ flex: "1 1 calc(50% - 8px)" }} />
-          <TextField label="Data" type="date" value={dataInfracao} onChange={(e) => setDataInfracao(e.target.value)} required fullWidth InputLabelProps={{ shrink: true }} sx={{ flex: "1 1 calc(50% - 8px)" }} />
+          <TextField 
+            label="Auto da Infração" 
+            type="text" 
+            value={autoInfracao} 
+            onChange={handleAutoInfracaoChange} 
+            required 
+            sx={{ flex: "1 1 calc(50% - 8px)" }} 
+            inputProps={{ maxLength: 20 }}
+          />
+          <TextField label="Data" type="date" value={dataInfracao} onChange={(e) => setInfracao(e.target.value)} required fullWidth InputLabelProps={{ shrink: true }} sx={{ flex: "1 1 calc(50% - 8px)" }} />
 
           <Box sx={{ 
             flex: "1 1 100%", 
