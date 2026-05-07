@@ -7,11 +7,9 @@ import {
   Paper,
   IconButton,
   Divider,
-  Alert
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { Description, Close } from "@mui/icons-material";
-import { MultaService } from "../../../services/MultaService";
+import { Close } from "@mui/icons-material";
 
 interface Props {
   open: boolean;
@@ -46,15 +44,10 @@ export default function ModalRecursoRejeitado({
   return (
     <Modal open={open} onClose={onClose}>
       <Paper sx={modalStyle} onClick={(e) => e.stopPropagation()}>
-
-        {/* HEADER */}
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Box display="flex" alignItems="center">
-            <Description color="primary" sx={{ mr: 1 }} />
-            <Typography variant="h6" fontWeight="bold" color="text.primary">
-              Recurso Rejeitado
-            </Typography>
-          </Box>
+          <Typography variant="h6" fontWeight="bold" color="text.primary">
+            Recurso Rejeitado
+          </Typography>
 
           <IconButton onClick={onClose}>
             <Close />
@@ -63,15 +56,14 @@ export default function ModalRecursoRejeitado({
 
         <Divider sx={{ mb: 3 }} />
 
-        {/* CONTEÚDO */}
-        <Box mb={3}>
+        <Box mb={4}>
           <Typography
             variant="subtitle2"
             fontWeight="bold"
             color="text.primary"
             mb={1}
           >
-            Justificativa
+            Justificativa do Recurso
           </Typography>
 
           <Box
@@ -83,10 +75,43 @@ export default function ModalRecursoRejeitado({
             }}
           >
             <Typography color="text.secondary">
-              {recurso.justificativaRejeicao}
+              {recurso.justificativa || "Não informada"}
             </Typography>
           </Box>
         </Box>
+
+        <Box mb={4}>
+          <Typography
+            variant="subtitle2"
+            fontWeight="bold"
+            color="error"
+            mb={1}
+          >
+            Motivo da Rejeição
+          </Typography>
+
+          <Box
+            sx={{
+              backgroundColor: theme.palette.error.light + "20",
+              p: 2,
+              borderRadius: 1,
+              border: `1px solid ${theme.palette.error.main}`
+            }}
+          >
+            <Typography color="error.main">
+              {recurso.justificativaRejeicao || "Não informado"}
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* <Divider sx={{ my: 2 }} /> */}
+
+        
+        {/* <Box display="flex" justifyContent="flex-end">
+          <Button onClick={onClose} variant="contained" color="primary">
+            Fechar
+          </Button>
+        </Box> */}
       </Paper>
     </Modal>
   );

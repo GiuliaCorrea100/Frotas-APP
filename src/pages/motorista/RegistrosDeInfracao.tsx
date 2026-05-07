@@ -14,7 +14,7 @@ import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
 import DownloadIcon from "@mui/icons-material/Download";
 import UploadIcon from "@mui/icons-material/Upload";
 import GavelIcon from "@mui/icons-material/Gavel";
-import SearchIcon from "@mui/icons-material/Search";
+import ThumbDownOffAltIcon from '@mui/icons-material/ThumbDownOffAlt';
 import CloseIcon from '@mui/icons-material/Close';
 import ClearIcon from "@mui/icons-material/Clear";
 import { jwtDecode } from "jwt-decode";
@@ -165,17 +165,27 @@ export default function RegistrosDeInfracao() {
     setMensagemErro(message);
   };
 
-  // const handleBuscarRecurso = (idMulta: number) => {
-  //   const recursoEncontrado = RecursoService.buscarPorMulta(idMulta);
-  //   setRecursoSelecionado(recursoEncontrado);
-    
-  // };
+  const handleVisualizarRecurso = async (idMulta: number | undefined) => {
+    if (!idMulta) {
+      console.error("ID da multa não encontrado");
+      setMensagemErro("Não foi possível carregar os detalhes do recurso");
+      return;
+    }
 
-  const handleVisualizarRecurso = (idMulta: number)  => {
-    const recursoEncontrado = RecursoService.buscarPorMulta(idMulta);
-    setRecursoSelecionado(recursoEncontrado);
-    setModalRecursoAberto(true);
-    
+    try {
+      const recursoEncontrado = await RecursoService.buscarPorMulta(idMulta);
+      console.log("Recurso encontrado:", recursoEncontrado);
+      
+      if (recursoEncontrado) {
+        setRecursoSelecionado(recursoEncontrado);
+        setModalRecursoAberto(true);
+      } else {
+        setMensagemErro("Recurso não encontrado");
+      }
+    } catch (error) {
+      console.error("Erro ao buscar recurso:", error);
+      setMensagemErro("Erro ao carregar detalhes do recurso");
+    }
   };
 
   const columns: GridColDef<MultaDto>[] = [
@@ -248,7 +258,7 @@ export default function RegistrosDeInfracao() {
     {
       field: 'situacao',
       headerName: 'Situação',
-      width: 280,
+      width: 380,
       renderCell: (params) => {
       const cores: any = {
         "PAGA": "#2e7d32",
@@ -279,8 +289,8 @@ export default function RegistrosDeInfracao() {
     {
       field: "acoes",
       headerName: "Pagamento",
-      width: 550,
-      minWidth: 350,
+      width: 250,
+      minWidth: 150,
       maxWidth: 700,
       flex: 1,
       sortable: false,
@@ -291,7 +301,7 @@ export default function RegistrosDeInfracao() {
         const nomeArquivo = params.row.urlComprovantePagamento 
           ? params.row.urlComprovantePagamento.split('/').pop() || 'comprovante.pdf'
           : '';
-        const multaAnulada = params.row.situacao == "MULTA ANULADA";
+        const multaAnulada = params.row.situacao == "RECURSO ACEITO - MULTA ANULADA";
         const podeEnviarComprovante = possuiBoleto && !possuiComprovante && !multaAnulada;
         
         return(
@@ -301,7 +311,7 @@ export default function RegistrosDeInfracao() {
                 variant="contained"
                 size="small"
                 startIcon={<DownloadIcon />}
-                disabled={!params.row.urlArquivo}
+                disabled={!params.row.urlArquivo || multaAnulada}
                 onClick={() => handleDownload(params.row)}
               >
                 Boleto
@@ -382,61 +392,6 @@ export default function RegistrosDeInfracao() {
         );
       },
     },
-    // {
-    //   field: "recursos",
-    //   headerName: "Recurso",
-    //   width: 500,
-    //   minWidth: 450,
-    //   maxWidth: 500,
-    //   flex: 1,
-    //   sortable: false,
-    //   filterable: false,
-    //   renderCell: (params) => {
-    //     const possuiBoleto = !!params.row.urlArquivo;
-    //     const possuiComprovante = !!params.row.urlComprovantePagamento;
-    //     const recursoSolicitado = params.row.situacao == "RECURSO SOLICITADO";
-    //     // const multaAnulada = params.row.situacao == "MULTA ANULADA";
-    //     const podePedirRecurso = possuiBoleto && !possuiComprovante && (!recursoSolicitado);
-
-    //     const recursoRejeitado = params.row.situacao == "RECURSO NEGADO - AGUARDANDO PAGAMENTO";
-        
-    //     return(
-    //       <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-    //         <Tooltip title="Solicitar recurso de multa">
-    //           <Button
-    //             size="small"
-    //             variant="contained"
-    //             color="warning"
-    //             startIcon={<GavelIcon />}
-    //             disabled={!podePedirRecurso}
-    //             onClick={() => handleSolicitarRecurso(params.row)}
-    //           >
-    //             Solicitar Recurso
-    //           </Button>
-    //         </Tooltip>
-
-    //         {recursoRejeitado && (
-    //           <Tooltip title="Visualizar recurso rejeitado">
-    //             <Button
-    //               size="small"
-    //               variant="contained"
-    //               sx={{
-    //                 backgroundColor: "#d32f2f",
-    //                 color: "#fff",
-    //                 '&:hover': {
-    //                   backgroundColor: "#b71c1c",
-    //                 }
-    //               }}
-    //               onClick={() => handleVisualizarRecurso(params.row.idMulta)}
-    //             >
-    //               Recurso Rejeitado
-    //             </Button>
-    //           </Tooltip>
-    //         )}
-    //       </Box>
-    //     );
-    //   },
-    // },
     {
       field: "recursos",
       headerName: "Recurso",
@@ -451,9 +406,9 @@ export default function RegistrosDeInfracao() {
         const possuiComprovante = !!params.row.urlComprovantePagamento;
         const recursoSolicitado = params.row.situacao == "RECURSO SOLICITADO";
         const recursoRejeitado = params.row.situacao == "RECURSO NEGADO - AGUARDANDO PAGAMENTO";
-        const podePedirRecurso = possuiBoleto && !possuiComprovante && (!recursoSolicitado);
+        const multaAnulada = params.row.situacao == "RECURSO ACEITO - MULTA ANULADA";
+        const podePedirRecurso = possuiBoleto && !possuiComprovante && !recursoSolicitado && !multaAnulada;
         
-        // Se o recurso foi rejeitado, mostra apenas o botão vermelho
         if (recursoRejeitado) {
           return (
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
@@ -468,6 +423,7 @@ export default function RegistrosDeInfracao() {
                       backgroundColor: "#b71c1c",
                     }
                   }}
+                  startIcon={<ThumbDownOffAltIcon />}
                   onClick={() => handleVisualizarRecurso(params.row.idMulta)}
                 >
                   Recurso Rejeitado
@@ -477,7 +433,6 @@ export default function RegistrosDeInfracao() {
           );
         }
         
-        // Caso contrário, mostra o botão de solicitar recurso normalmente
         return(
           <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
             <Tooltip title="Solicitar recurso de multa">
@@ -639,8 +594,11 @@ export default function RegistrosDeInfracao() {
           setOpenRecursoModal(false);
           setSelectedMulta(null);
         }}
-        onSuccess={(message) => {
+        onSuccess={async (message) => {
           setMensagemSucesso(message);
+          await carregarMultas();
+          setOpenRecursoModal(false);
+          setSelectedMulta(null);
         }}
         onError={handleRecursoError}
         multaId={selectedMulta?.idMulta}
