@@ -24,6 +24,8 @@ import { decodeToken } from "../../utils/jwtDecodeHelper";
 import SolicitarRecursoModal from "./modais/ModalSolicitarRecurso";
 import AppLayout from "../../components/Layout";
 import BemVindo from "../BemVindo";
+import ModalRecursoRejeitado from "./modais/ModalRecursoRejeitado";
+import { RecursoService } from "../../services/RecursoService";
 
 interface JwtPayload {
   sub: number;
@@ -62,6 +64,9 @@ export default function RegistrosDeInfracao() {
   const [busca, setBusca] = useState("");
   const [openRecursoModal, setOpenRecursoModal] = useState(false);
   const [selectedMulta, setSelectedMulta] = useState<MultaDto | null>(null);
+
+  const [modalRecursoAberto, setModalRecursoAberto] = useState(false);
+  const [recursoSelecionado, setRecursoSelecionado] = useState<any>(null);
   
   const [mensagemSucesso, setMensagemSucesso] = useState("");
   const [mensagemErro, setMensagemErro] = useState("");
@@ -88,9 +93,11 @@ export default function RegistrosDeInfracao() {
         (multa) => ((multa.idMotorista === idUsuarioLogado)),
       );
 
+      const multasOrdenadas = [...multasDoUsuario].sort((a, b) => b.idMulta - a.idMulta);
 
-      setMultas(multasDoUsuario);
-      setMultasFiltradas(multasDoUsuario);
+
+      setMultas(multasOrdenadas);
+      setMultasFiltradas(multasOrdenadas);
     } catch {
       setError("Erro ao carregar registros de infração.");
     } finally {
@@ -141,10 +148,6 @@ export default function RegistrosDeInfracao() {
     setOpenRecursoModal(true);
   };
 
-  const handleRecursoSuccess = () => {
-    carregarMultas();
-  };
-
   const handleRecursoError = (error: any) => {
     console.error("Erro ao solicitar recurso:", error);
     setMensagemErro("Erro ao solicitar recurso. Tente novamente.");
@@ -160,6 +163,19 @@ export default function RegistrosDeInfracao() {
 
   const handleError = (message: string) => {
     setMensagemErro(message);
+  };
+
+  // const handleBuscarRecurso = (idMulta: number) => {
+  //   const recursoEncontrado = RecursoService.buscarPorMulta(idMulta);
+  //   setRecursoSelecionado(recursoEncontrado);
+    
+  // };
+
+  const handleVisualizarRecurso = (idMulta: number)  => {
+    const recursoEncontrado = RecursoService.buscarPorMulta(idMulta);
+    setRecursoSelecionado(recursoEncontrado);
+    setModalRecursoAberto(true);
+    
   };
 
   const columns: GridColDef<MultaDto>[] = [
@@ -262,9 +278,9 @@ export default function RegistrosDeInfracao() {
     },
     {
       field: "acoes",
-      headerName: "Ações",
+      headerName: "Pagamento",
       width: 550,
-      minWidth: 550,
+      minWidth: 350,
       maxWidth: 700,
       flex: 1,
       sortable: false,
@@ -275,9 +291,8 @@ export default function RegistrosDeInfracao() {
         const nomeArquivo = params.row.urlComprovantePagamento 
           ? params.row.urlComprovantePagamento.split('/').pop() || 'comprovante.pdf'
           : '';
-
-        const podeEnviarComprovante = possuiBoleto && !possuiComprovante;
-        const podePedirRecurso = possuiBoleto && !possuiComprovante;
+        const multaAnulada = params.row.situacao == "MULTA ANULADA";
+        const podeEnviarComprovante = possuiBoleto && !possuiComprovante && !multaAnulada;
         
         return(
           <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
@@ -363,7 +378,108 @@ export default function RegistrosDeInfracao() {
                 </Button>
               </Tooltip>
             )}
+          </Box>
+        );
+      },
+    },
+    // {
+    //   field: "recursos",
+    //   headerName: "Recurso",
+    //   width: 500,
+    //   minWidth: 450,
+    //   maxWidth: 500,
+    //   flex: 1,
+    //   sortable: false,
+    //   filterable: false,
+    //   renderCell: (params) => {
+    //     const possuiBoleto = !!params.row.urlArquivo;
+    //     const possuiComprovante = !!params.row.urlComprovantePagamento;
+    //     const recursoSolicitado = params.row.situacao == "RECURSO SOLICITADO";
+    //     // const multaAnulada = params.row.situacao == "MULTA ANULADA";
+    //     const podePedirRecurso = possuiBoleto && !possuiComprovante && (!recursoSolicitado);
 
+    //     const recursoRejeitado = params.row.situacao == "RECURSO NEGADO - AGUARDANDO PAGAMENTO";
+        
+    //     return(
+    //       <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+    //         <Tooltip title="Solicitar recurso de multa">
+    //           <Button
+    //             size="small"
+    //             variant="contained"
+    //             color="warning"
+    //             startIcon={<GavelIcon />}
+    //             disabled={!podePedirRecurso}
+    //             onClick={() => handleSolicitarRecurso(params.row)}
+    //           >
+    //             Solicitar Recurso
+    //           </Button>
+    //         </Tooltip>
+
+    //         {recursoRejeitado && (
+    //           <Tooltip title="Visualizar recurso rejeitado">
+    //             <Button
+    //               size="small"
+    //               variant="contained"
+    //               sx={{
+    //                 backgroundColor: "#d32f2f",
+    //                 color: "#fff",
+    //                 '&:hover': {
+    //                   backgroundColor: "#b71c1c",
+    //                 }
+    //               }}
+    //               onClick={() => handleVisualizarRecurso(params.row.idMulta)}
+    //             >
+    //               Recurso Rejeitado
+    //             </Button>
+    //           </Tooltip>
+    //         )}
+    //       </Box>
+    //     );
+    //   },
+    // },
+    {
+      field: "recursos",
+      headerName: "Recurso",
+      width: 500,
+      minWidth: 450,
+      maxWidth: 500,
+      flex: 1,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => {
+        const possuiBoleto = !!params.row.urlArquivo;
+        const possuiComprovante = !!params.row.urlComprovantePagamento;
+        const recursoSolicitado = params.row.situacao == "RECURSO SOLICITADO";
+        const recursoRejeitado = params.row.situacao == "RECURSO NEGADO - AGUARDANDO PAGAMENTO";
+        const podePedirRecurso = possuiBoleto && !possuiComprovante && (!recursoSolicitado);
+        
+        // Se o recurso foi rejeitado, mostra apenas o botão vermelho
+        if (recursoRejeitado) {
+          return (
+            <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+              <Tooltip title="Visualizar recurso rejeitado">
+                <Button
+                  size="small"
+                  variant="contained"
+                  sx={{
+                    backgroundColor: "#d32f2f",
+                    color: "#fff",
+                    '&:hover': {
+                      backgroundColor: "#b71c1c",
+                    }
+                  }}
+                  onClick={() => handleVisualizarRecurso(params.row.idMulta)}
+                >
+                  Recurso Rejeitado
+                </Button>
+              </Tooltip>
+            </Box>
+          );
+        }
+        
+        // Caso contrário, mostra o botão de solicitar recurso normalmente
+        return(
+          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
             <Tooltip title="Solicitar recurso de multa">
               <Button
                 size="small"
@@ -380,6 +496,7 @@ export default function RegistrosDeInfracao() {
         );
       },
     },
+    
   ];
 
   return (
@@ -528,6 +645,15 @@ export default function RegistrosDeInfracao() {
         onError={handleRecursoError}
         multaId={selectedMulta?.idMulta}
       />
+
+      <ModalRecursoRejeitado 
+        open={modalRecursoAberto} 
+        onClose={() => {
+          setModalRecursoAberto(false);
+          setRecursoSelecionado(null);
+        }}
+        recurso={recursoSelecionado}/>
+        
 
     </AppLayout>
   );
