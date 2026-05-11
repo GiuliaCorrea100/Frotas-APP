@@ -151,6 +151,9 @@ export default function RegistrosDeInfracao() {
   const handleRecursoError = (error: any) => {
     console.error("Erro ao solicitar recurso:", error);
     setMensagemErro("Erro ao solicitar recurso. Tente novamente.");
+
+    setOpenRecursoModal(false);
+    setSelectedMulta(null);
   };
 
   const handleUploadSuccess = () => {
@@ -501,7 +504,7 @@ export default function RegistrosDeInfracao() {
               mb: 3,
               fontSize: "1.1rem",
               border: "1px solid",
-              borderColor: "success.main",
+              borderColor: "error.main",
               borderRadius: 1.5,
             }}
             onClose={() => setMensagemErro("")}

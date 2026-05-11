@@ -47,7 +47,7 @@ export default function HistoricoIndividual() {
 
   const [busca, setBusca] = useState("");
   const [corridas, setCorridas] = useState<CorridaFrontend[]>([]);
-  const [ocorrencias, setOcorrencias] = useState<Ocorrencia[]>([]);
+  const [ocorrencias, setOcorrencias] = useState<OcorrenciaDto[]>([]);
   const [percursos, setPercursos] = useState<PercursoBackend[]>([]);
   const [abastecimentos, setAbastecimentos] = useState<Abastecimento[]>([]);
   const [modalLoading, setModalLoading] = useState(false);
