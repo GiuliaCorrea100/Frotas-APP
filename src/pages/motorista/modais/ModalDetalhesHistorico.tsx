@@ -29,6 +29,7 @@ import {
   LocalGasStation,
   Warning,
 } from "@mui/icons-material";
+import { OcorrenciaDto } from "../../../services/OcorrenciaService";
 
 type ModalDetalhesHistoricoProps = {
   open: boolean;
@@ -36,7 +37,7 @@ type ModalDetalhesHistoricoProps = {
   corrida: CorridaFrontend | null;
   percursos: PercursoBackend[];
   abastecimentos: Abastecimento[];
-  ocorrencias: Record<number, string>;
+  ocorrencias: OcorrenciaDto[];
   modalLoading: boolean;
   getSituacaoChipProps: (s: string | undefined) => {
     label: string | undefined;
@@ -236,30 +237,46 @@ export function ModalDetalhesHistorico(props: ModalDetalhesHistoricoProps) {
           </Grid>
 
           <Divider />
-
           {/* OCORRÊNCIAS */}
           <Box sx={{ mb: 1 }}>
             <Typography variant="subtitle1" sx={{ color: "text.primary" }}>
               Ocorrências
             </Typography>
-            {ocorrencias[corrida.idCorrida] ? (
+
+            {ocorrencias.length > 0 ? (
               <List sx={{ p: 0 }}>
-                {ocorrencias[corrida.idCorrida]
-                  .split(", ")
-                  .map((ocorrencia: string, i: number) => (
-                    <ListItem key={i} sx={{ py: 0.5 }}>
-                      <ListItemIcon sx={{ minWidth: 28 }}>
-                        <Warning sx={{ fontSize: 18, color: "warning.main" }} />
-                      </ListItemIcon>
-                      <ListItemText primary={ocorrencia} />
-                    </ListItem>
-                  ))}
+                {ocorrencias.map((ocorrencia: OcorrenciaDto, i: number) => (
+                  <ListItem key={i} sx={{ py: 0.5 }}>
+                    <ListItemIcon sx={{ minWidth: 28 }}>
+                      <Warning
+                        sx={{
+                          fontSize: 18,
+                          color: "warning.main",
+                        }}
+                      />
+                    </ListItemIcon>
+
+                    <ListItemText
+                      primary={
+                        <Typography
+                          variant="body2"
+                          sx={{ color: "text.primary" }}
+                        >
+                          {ocorrencia.descricao}
+                        </Typography>
+                      }
+                    />
+                  </ListItem>
+                ))}
               </List>
             ) : (
               <Typography
                 variant="body2"
                 color="text.primary"
-                sx={{ fontStyle: "italic", mb: 0.5 }}
+                sx={{
+                  fontStyle: "italic",
+                  mb: 0.5,
+                }}
               >
                 Nenhuma ocorrência registrada
               </Typography>
