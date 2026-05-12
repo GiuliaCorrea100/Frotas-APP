@@ -195,7 +195,8 @@ export default function RegistrosDeInfracao() {
     {
       field: "placaVeiculo",
       headerName: "Veículo",
-      flex: 0.6,
+      width: 120,
+      minWidth: 100,
       renderCell: (params) => (
         <Typography fontWeight="bold">
           {params.value}
@@ -205,7 +206,8 @@ export default function RegistrosDeInfracao() {
     {
       field: "dataInfracao",
       headerName: "Data",
-      flex: 0.6,
+      width: 120,
+      minWidth: 100,
       renderCell: (params) => (
         <Typography variant="body2">
           {formatDate(params.value as any)}
@@ -215,7 +217,8 @@ export default function RegistrosDeInfracao() {
     {
       field: "classificacao",
       headerName: "Classificação",
-      flex: 0.6,
+      width: 150,
+      minWidth: 130,
       renderCell: (params) => {
         const classificacao = params.value || "";
         let color = "default";
@@ -250,18 +253,20 @@ export default function RegistrosDeInfracao() {
     {
       field: "valorInfracao",
       headerName: "Valor",
-      flex: 0.6,
+      width: 130,
+      minWidth: 120,
       renderCell: (params) => (
         <Typography color={theme.palette.error.main}>
           {formatValor(params.value as number)}
         </Typography>
       ),
     },
-    { field: "autoInfracao", headerName: "Auto", flex: 0.6 },
+    { field: "autoInfracao", headerName: "Auto", width: 130, minWidth: 110,},
     {
       field: 'situacao',
       headerName: 'Situação',
-      width: 380,
+      width: 300,
+      minWidth: 260,
       renderCell: (params) => {
       const cores: any = {
         "PAGA": "#2e7d32",
@@ -292,10 +297,9 @@ export default function RegistrosDeInfracao() {
     {
       field: "acoes",
       headerName: "Pagamento",
-      width: 250,
-      minWidth: 150,
-      maxWidth: 700,
-      flex: 1,
+      width: 320,
+      minWidth: 280,
+      maxWidth: 400,
       sortable: false,
       filterable: false,
       renderCell: (params) => {
@@ -398,10 +402,9 @@ export default function RegistrosDeInfracao() {
     {
       field: "recursos",
       headerName: "Recurso",
-      width: 500,
-      minWidth: 450,
-      maxWidth: 500,
-      flex: 1,
+      width: 320,
+      minWidth: 280,
+      maxWidth: 400,
       sortable: false,
       filterable: false,
       renderCell: (params) => {
