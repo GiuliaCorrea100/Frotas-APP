@@ -262,10 +262,10 @@ const Menu: React.FC = () => {
               fontFamily: "inherit",
               mr: 2,
               ml: 3,
+              pt: "2px",
+              pb: "0px",
               fontSize: isMobile ? "1rem" : "1.25rem",
             }}
-            // component={Link}
-            // to={isAuthenticated ? "/menu" : "/"}
           >
             SISTEMA FROTAS
           </Typography>

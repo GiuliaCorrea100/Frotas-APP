@@ -18,13 +18,14 @@ import {
 import AbastecimentoService, {
   Abastecimento,
 } from "../../services/AbastecimentoService";
-import { OcorrenciaService } from "../../services/OcorrenciaService";
+import { OcorrenciaDto, OcorrenciaService } from "../../services/OcorrenciaService";
 import { ModalDetalhesHistorico } from "./modais/ModalDetalhesHistorico";
 import { formatDate } from "../../utils/formatDate";
 import { decodeToken } from "../../utils/jwtDecodeHelper";
 import { useAuth } from "../../context/AuthContext";
 import AppLayout from "../../components/Layout";
 import BemVindo from "../BemVindo";
+import { MultaService } from "../../services/MultaService";
 
 const situacaoMap = {
   AGENDADA: "info",
@@ -46,7 +47,7 @@ export default function HistoricoIndividual() {
 
   const [busca, setBusca] = useState("");
   const [corridas, setCorridas] = useState<CorridaFrontend[]>([]);
-  const [ocorrencias, setOcorrencias] = useState<Record<number, string>>({});
+  const [ocorrencias, setOcorrencias] = useState<OcorrenciaDto[]>([]);
   const [percursos, setPercursos] = useState<PercursoBackend[]>([]);
   const [abastecimentos, setAbastecimentos] = useState<Abastecimento[]>([]);
   const [modalLoading, setModalLoading] = useState(false);
@@ -63,26 +64,6 @@ export default function HistoricoIndividual() {
         setError(null);
         const dadosCorridas = await getCorridas();
         setCorridas(dadosCorridas);
-
-        const ocorrenciasMap: Record<number, string> = {};
-        for (const corrida of dadosCorridas) {
-          try {
-            const ocorrenciasList = await OcorrenciaService.buscarPorCorrida(
-              corrida.idCorrida,
-            );
-            if (ocorrenciasList.length > 0) {
-              ocorrenciasMap[corrida.idCorrida] = ocorrenciasList
-                .map((occ) => occ.descricao)
-                .join(", ");
-            }
-          } catch (error) {
-            console.error(
-              `Erro ao buscar ocorrência para corrida ${corrida.idCorrida}:`,
-              error,
-            );
-          }
-        }
-        setOcorrencias(ocorrenciasMap);
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
         setError(
@@ -100,12 +81,15 @@ export default function HistoricoIndividual() {
     setModalLoading(true);
 
     try {
-      const [percursosCorrida, abastecimentosCorrida] = await Promise.all([
+      const [percursosCorrida, abastecimentosCorrida, ocorrenciasCorrida, ] = await Promise.all([
         buscarPercursosDaCorrida(corrida.idCorrida),
         AbastecimentoService.buscarPorCorrida(corrida.idCorrida),
+        OcorrenciaService.buscarPorCorrida(corrida.idCorrida),
+    
       ]);
       setPercursos(percursosCorrida);
       setAbastecimentos(abastecimentosCorrida);
+      setOcorrencias(ocorrenciasCorrida);
     } catch (error) {
       console.error("Erro ao carregar detalhes:", error);
     } finally {
@@ -123,13 +107,13 @@ export default function HistoricoIndividual() {
     {
       field: "placaVeiculo",
       headerName: "Veículo",
-      width: 200,
+      width: 250,
       renderCell: (params) => <Typography>{params.value}</Typography>,
     },
     {
       field: "dataHoraLiberacaoChave",
       headerName: "Data/Hora Início",
-      width: 200,
+      width: 250,
       renderCell: (params) => (
         <Typography>{formatDate(params.value as string)}</Typography>
       ),
@@ -137,36 +121,15 @@ export default function HistoricoIndividual() {
     {
       field: "dataHoraRecebimentoChave",
       headerName: "Data/Hora Término",
-      width: 200,
+      width: 250,
       renderCell: (params) => (
         <Typography>{formatDate(params.value as string)}</Typography>
       ),
     },
     {
-      field: "ocorrencia",
-      headerName: "Ocorrência",
-      width: 400,
-      renderCell: (params) => (
-        <Box
-          display="flex"
-          alignItems="center"
-          style={{ whiteSpace: "normal", wordWrap: "break-word" }}
-        >
-          {ocorrencias[params.row.idCorrida] ? (
-            <>
-              <Warning sx={{ mr: 1, color: "warning.main" }} />
-              {ocorrencias[params.row.idCorrida]}
-            </>
-          ) : (
-            "Nenhuma ocorrência registrada"
-          )}
-        </Box>
-      ),
-    },
-    {
       field: "situacao",
       headerName: "Situação",
-      width: 200,
+      width: 300,
       renderCell: (params) => {
         const { label, color } = getSituacaoChipProps(params.value);
         return (
@@ -220,11 +183,7 @@ export default function HistoricoIndividual() {
       (corrida) =>
         Object.values(corrida).some((valor) =>
           String(valor).toLowerCase().includes(busca.toLowerCase()),
-        ) ||
-        (ocorrencias[corrida.idCorrida] &&
-          ocorrencias[corrida.idCorrida]
-            .toLowerCase()
-            .includes(busca.toLowerCase())),
+        ),
     );
 
   return (

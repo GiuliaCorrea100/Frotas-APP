@@ -245,7 +245,7 @@ const SolicitarRecursoModal: React.FC<SolcitarRecursoProps> = ({
                   }}
                 >
                   <Box>
-                    <Typography variant="body2" fontWeight="medium">
+                    <Typography variant="body2" fontWeight="medium" color="text.primary">
                       {arquivoSelecionado.name}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">

@@ -27,6 +27,7 @@ import ModalFinalizarPercurso from "./modais/ModalFinalizarPercurso";
 import { CarroService } from "../../services/CarroService";
 import AppLayout from "../../components/Layout";
 import BemVindo from '../BemVindo';
+import { formatDateOnly } from '../../utils/formatDate';
 
 const menuItems = [
   { label: "Iniciar Percurso", path: "/IniciarPercurso" },
@@ -432,6 +433,12 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
           >
             Corrida:
           </Typography>
+          <Typography variant="subtitle2" color="text.secondary">
+            De {formatDateOnly(corridaLocal.dataInicio)} até{" "}
+            {corridaLocal.dataTermino
+              ? formatDateOnly(corridaLocal.dataTermino)
+              : "em andamento"}
+          </Typography>
           {!chaveEmprestada && (
             <Typography
               variant="body2"
@@ -461,12 +468,12 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
             situacaoCorrida={corridaLocal?.situacao || "AGENDADA"}
           />
 
-          <Typography variant="subtitle2" color="text.secondary">
-            De {formatDate(corridaLocal.dataInicio)} até{" "}
+          {/* <Typography variant="subtitle2" color="text.secondary">
+            De {formatDateOnly(corridaLocal.dataInicio)} até{" "}
             {corridaLocal.dataTermino
-              ? formatDate(corridaLocal.dataTermino)
+              ? formatDateOnly(corridaLocal.dataTermino)
               : "em andamento"}
-          </Typography>
+          </Typography> */}
         </Box>
 
         <Box

@@ -4,6 +4,7 @@ export interface recursoDto{
     justificativa: string;
     urlArquivo?: string;
     idMulta: number;
+    justificativaRejeicao: string;
 }
 
 export class RecursoService {
