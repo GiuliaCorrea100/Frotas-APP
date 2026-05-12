@@ -23,7 +23,7 @@ import { MultaService } from "../../../services/MultaService";
 interface CadastrarModalProps {
   open: boolean;
   onClose: () => void;
-  onSuccess: (message: string) => void;
+  onSuccess: (msgSucesso: string, msgAlerta?: string) => void;
   onError: (error: any) => void;
 }
 
@@ -69,7 +69,6 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
   const [arquivoSelecionado, setArquivoSelecionado] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [mensagemMotorista, setMensagemMotorista] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -82,7 +81,6 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
       setValorInfracao("");
       setArquivoSelecionado(null);
       setFileError(null);
-      setMensagemMotorista(null);
     }
   }, [open]);
 
@@ -131,11 +129,20 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
 
   const handleNumberInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    setter: React.Dispatch<React.SetStateAction<string>>
+    setter: React.Dispatch<React.SetStateAction<string>>,
+    maxLength?: number
   ) => {
     const value = e.target.value;
     if (value === "" || /^\d*\.?\d*$/.test(value)) {
+      if (maxLength && value.length > maxLength) return;
       setter(value);
+    }
+  };
+
+  const handleAutoInfracaoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toUpperCase();
+    if (value.length <= 20) {
+      setAutoInfracao(value);
     }
   };
 
@@ -148,7 +155,6 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
       const dataHoraInfracaoISO = dataHoraObj.toISOString();
       const codigoInfracaoNum = Number(codigoInfracao);
       const valorInfracaoNum = Number(valorInfracao);
-      const autoInfracaoNum = Number(autoInfracao);
 
       let response;
 
@@ -159,7 +165,7 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
         formData.append("valorInfracao", valorInfracaoNum.toString());
         formData.append("placaVeiculo", placaVeiculo);
         formData.append("dataInfracao", dataHoraInfracaoISO);
-        formData.append("autoInfracao", autoInfracaoNum.toString());
+        formData.append("autoInfracao", autoInfracao);
         formData.append("arquivo", arquivoSelecionado);
 
         response = await MultaService.criarMultaComArquivo(formData);
@@ -170,22 +176,22 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
           valorInfracao: valorInfracaoNum,
           placaVeiculo,
           dataInfracao: dataHoraInfracaoISO,
-          autoInfracao: autoInfracaoNum,
+          autoInfracao: autoInfracao as any,
         };
 
         response = await MultaService.criarMulta(dadosMultas);
       }
 
       if (response?.mensagem) {
-        setMensagemMotorista(response.mensagem);
-        setTimeout(() => {
-          setMensagemMotorista(null);
-          onClose();
-        }, 3000);
+        onSuccess(
+          "Multa cadastrada com sucesso!",
+          response.mensagem
+        );
       } else {
         onSuccess("Multa cadastrada com sucesso!");
-        onClose();
       }
+
+      onClose();
     } catch (error) {
       onError(error);
     } finally {
@@ -219,10 +225,11 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
             type="text"
             inputMode="numeric"
             value={codigoInfracao}
-            onChange={(e) => handleNumberInputChange(e, setCodigoInfracao)}
+            onChange={(e) => handleNumberInputChange(e, setCodigoInfracao, 8)}
             required
             fullWidth
             sx={{ flex: "1 1 calc(50% - 8px)" }}
+            inputProps={{ maxLength: 8 }}
           />
 
           <TextField
@@ -269,12 +276,12 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
           <TextField
             label="Auto de Infração"
             type="text"
-            inputMode="numeric"
             value={autoInfracao}
-            onChange={(e) => handleNumberInputChange(e, setAutoInfracao)}
+            onChange={handleAutoInfracaoChange}
             required
             fullWidth
             sx={{ flex: "1 1 calc(50% - 8px)" }}
+            inputProps={{ maxLength: 20 }}
           />
 
           <TextField
@@ -345,12 +352,6 @@ const CadastroMultaModal: React.FC<CadastrarModalProps> = ({
               Formatos permitidos: PDF, JPG, JPEG, PNG, DOC, DOCX (Máx: {MAX_FILE_SIZE_MB}MB)
             </Typography>
           </Box>
-
-          {mensagemMotorista && (
-            <Box sx={{ width: "100%", p: 2, mt: 1, borderRadius: 1, backgroundColor: "#FFF4E5", border: "1px solid #FFA726" }}>
-              <Typography color="warning.main" fontWeight="bold">{mensagemMotorista}</Typography>
-            </Box>
-          )}
 
           <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2, width: "100%" }}>
             <Button variant="outlined" onClick={onClose} sx={{ textTransform: "none" }} disabled={loading}>
