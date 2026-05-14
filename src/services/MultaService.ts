@@ -14,6 +14,7 @@ export interface MultaDto {
   urlComprovantePagamento?: string | null;
   idMotorista?: number;
   nomeMotorista?: string;
+  modeloVeiculo?: string;
   possuiRecurso?: boolean;
   motorista?: {
     idUsuario?: number;

@@ -92,7 +92,7 @@ export default function RegistrosDeInfracao() {
       const multasDoUsuario = dados.filter(
         (multa) => ((multa.idMotorista === idUsuarioLogado)),
       );
-
+      console.log(multasDoUsuario);
       const multasOrdenadas = [...multasDoUsuario].sort((a, b) => b.idMulta - a.idMulta);
 
 
@@ -192,6 +192,17 @@ export default function RegistrosDeInfracao() {
   };
 
   const columns: GridColDef<MultaDto>[] = [
+    {
+      field: "modeloVeiculo",
+      headerName: "Modelo Veículo",
+      width: 320,
+      minWidth: 300,
+      renderCell: (params) => (
+        <Typography fontWeight="bold">
+          {params.value}
+        </Typography>
+      )
+    },
     {
       field: "placaVeiculo",
       headerName: "Veículo",
@@ -310,7 +321,7 @@ export default function RegistrosDeInfracao() {
           : '';
         const multaAnulada = params.row.situacao == "RECURSO ACEITO - MULTA ANULADA";
         const podeEnviarComprovante = possuiBoleto && !possuiComprovante && !multaAnulada;
-        
+        const multaPaga = params.row.situacao == "PAGA";
         return(
           <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
             <Tooltip title="Baixar Boleto">
@@ -332,6 +343,7 @@ export default function RegistrosDeInfracao() {
                     size="small"
                     variant="outlined"
                     color="error"
+                    disabled = {multaPaga}
                     startIcon={<CloseIcon />}
                     onClick={async () => {
                       if (!params.row.urlComprovantePagamento) return;
