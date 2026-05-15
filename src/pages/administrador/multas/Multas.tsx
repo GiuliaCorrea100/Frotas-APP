@@ -259,13 +259,22 @@ export default function ListaMulta() {
       headerName: 'Classificação',
       flex: 1.5,
       renderCell: (params) => {
-        const map: any = { LEVE: 'success', MEDIA: 'warning', GRAVE: 'error', GRAVISSIMA: 'error' };
+        const map: any = {
+          LEVE: 'success',
+          MEDIA: 'warning',
+          GRAVE: 'error',
+          GRAVISSIMA: 'error'
+        };
+
         return (
           <Chip
             label={params.value}
             color={map[params.value] || 'default'}
             size="small"
             variant="outlined"
+            sx={{
+              fontWeight: 400
+            }}
           />
         );
       }
@@ -285,7 +294,9 @@ export default function ListaMulta() {
           "RECURSO ACEITO - MULTA ANULADA": "#2e7d32",
           "RECURSO NEGADO - AGUARDANDO PAGAMENTO": "#d32f2f"
         };
+
         const color = cores[params.value] || "#d32f2f";
+
         return (
           <Chip
             label={params.value}
@@ -294,7 +305,7 @@ export default function ListaMulta() {
             sx={{
               color,
               borderColor: color,
-              fontWeight: 600,
+              fontWeight: 400,
               backgroundColor: "transparent"
             }}
           />
