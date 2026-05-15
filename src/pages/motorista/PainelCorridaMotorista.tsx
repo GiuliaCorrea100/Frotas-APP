@@ -93,6 +93,9 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
 
   const [mensagemSucesso, setMensagemSucesso] = useState("");
 
+  const isCorridaEncerrada = corridaLocal?.situacao === "FINALIZADA" || corridaLocal?.situacao === "CONCLUIDA";
+
+
   useEffect(() => {
     if (!corridaLocal && idCorrida) {
       buscarCorridaPorId(Number(idCorrida)).then(setCorridaLocal);
@@ -139,7 +142,7 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
       }
     };
 
-    if (corridaLocal?.situacao !== "FINALIZADA") {
+    if (!isCorridaEncerrada) {
       fetchStatusChave();
     }
   }, [corridaLocal?.idCorrida, corridaLocal?.situacao]);
@@ -168,7 +171,7 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
       }
     };
 
-    if (corridaLocal?.situacao !== "FINALIZADA") {
+    if (!isCorridaEncerrada) {
       fetchPercursoStatus();
     }
   }, [corridaLocal?.idCorrida, corridaLocal?.situacao]);
@@ -224,7 +227,7 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
 
   if (!corridaLocal) return <CircularProgress />;
 
-  if (corridaLocal?.situacao === "FINALIZADA") {
+  if (isCorridaEncerrada) {
     return (
       <AppLayout>
         <Box sx={{ p: 4, maxWidth: 800, mx: "auto", textAlign: "center" }}>
@@ -370,9 +373,9 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
         isUltimoPercurso &&
         percursoAtual.localDestino === corridaLocal?.localDeSaida
       ) {
-        await atualizarSituacaoCorrida(corridaLocal?.idCorrida, "FINALIZADA");
-
-        const corridaAtualizada = { ...corridaLocal, situacao: "FINALIZADA" };
+        await atualizarSituacaoCorrida(corridaLocal?.idCorrida,"CONCLUIDA");
+        
+        const corridaAtualizada = {...corridaLocal,situacao: "CONCLUIDA",};
         setCorridaLocal(corridaAtualizada);
 
         setDataFinal(getHorarioAtualLocal());
