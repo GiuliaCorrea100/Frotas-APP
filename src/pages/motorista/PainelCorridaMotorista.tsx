@@ -467,13 +467,6 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
             corridaId={corridaLocal?.idCorrida}
             situacaoCorrida={corridaLocal?.situacao || "AGENDADA"}
           />
-
-          {/* <Typography variant="subtitle2" color="text.secondary">
-            De {formatDateOnly(corridaLocal.dataInicio)} até{" "}
-            {corridaLocal.dataTermino
-              ? formatDateOnly(corridaLocal.dataTermino)
-              : "em andamento"}
-          </Typography> */}
         </Box>
 
         <Box
@@ -628,22 +621,6 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
             percursoAtual={percursoAtual}
           />
         )}
-
-        {/* {successModalOpen && (
-          <ModalSucesso
-            open={successModalOpen}
-            onClose={handleSuccessClose}
-            title="Percurso iniciado com sucesso"
-          />
-        )} */}
-
-        {/* {finalizeSuccessModalOpen && (
-          <ModalSucesso
-            open={finalizeSuccessModalOpen}
-            onClose={handleFinalizeSuccessClose}
-            title="Percurso finalizado com sucesso"
-          />
-        )} */}
       </Box>
     </AppLayout>
   );
