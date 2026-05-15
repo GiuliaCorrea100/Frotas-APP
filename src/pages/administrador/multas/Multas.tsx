@@ -645,7 +645,15 @@ export default function ListaMulta() {
             Deseja confirmar a aprovação deste comprovante de pagamento para a multa <strong>#{multaSelecionada?.idMulta}</strong>?
           </Typography>
           <Box display="flex" justifyContent="flex-end" gap={1}>
-            <Button onClick={() => setModalAprovarAberto(false)} color="inherit" disabled={loadingAction} sx={{ textTransform: "none" }}>
+            <Button
+              onClick={() => setModalAprovarAberto(false)}
+              color="inherit"
+              disabled={loadingAction}
+              sx={{
+                textTransform: "none",
+                border: `1px solid ${theme.palette.divider}`
+              }}
+            >
               Cancelar
             </Button>
             <Button onClick={aprovarComprovante} variant="contained" color="success" disabled={loadingAction}>
@@ -685,7 +693,15 @@ export default function ListaMulta() {
             }}
           />
           <Box display="flex" justifyContent="flex-end" gap={1}>
-            <Button onClick={() => setModalReprovarAberto(false)} color="inherit" disabled={loadingAction} sx={{ textTransform: "none" }}>
+            <Button
+              onClick={() => setModalReprovarAberto(false)}
+              color="inherit"
+              disabled={loadingAction}
+              sx={{
+                textTransform: "none",
+                border: `1px solid ${theme.palette.divider}`
+              }}
+            >
               Cancelar
             </Button>
             <Button onClick={reprovarComprovante} variant="contained" color="error" disabled={loadingAction || !motivoReprovacao.trim()}>
@@ -716,7 +732,15 @@ export default function ListaMulta() {
           </Typography>
           <Typography variant="body2" color="text.secondary" mb={4}>Esta ação não pode ser desfeita.</Typography>
           <Box display="flex" justifyContent="flex-end" gap={1}>
-            <Button onClick={() => setModalAceitarRecursoAberto(false)} color="inherit" disabled={loadingAction} sx={{ textTransform: "none" }}>
+            <Button
+              onClick={() => setModalAceitarRecursoAberto(false)}
+              color="inherit"
+              disabled={loadingAction}
+              sx={{
+                textTransform: "none",
+                border: `1px solid ${theme.palette.divider}`
+              }}
+            >
               Cancelar
             </Button>
             <Button onClick={aceitarRecurso} variant="contained" color="success" disabled={loadingAction}>
@@ -769,7 +793,10 @@ export default function ListaMulta() {
               onClick={() => setModalRejeitarRecursoAberto(false)}
               color="inherit"
               disabled={loadingAction}
-              sx={{ textTransform: "none" }}
+              sx={{
+                textTransform: "none",
+                border: `1px solid ${theme.palette.divider}`
+              }}
             >
               Cancelar
             </Button>
@@ -808,7 +835,14 @@ export default function ListaMulta() {
           <Divider sx={{ mb: 3 }} />
           <Typography variant="body1" mb={4} color="inherit">Você tem certeza que deseja excluir esta multa? Esta operação é irreversível.</Typography>
           <Box display="flex" justifyContent="flex-end" gap={1}>
-            <Button onClick={() => setModalExcluirAberto(false)} color="inherit" sx={{ textTransform: "none" }}>
+            <Button
+              onClick={() => setModalExcluirAberto(false)}
+              color="inherit"
+              sx={{
+                textTransform: "none",
+                border: `1px solid ${theme.palette.divider}`
+              }}
+            >
               Cancelar
             </Button>
             <Button
