@@ -105,7 +105,7 @@ export default function ModalRecursoRejeitado({
             </Typography>
           </Box>
 
-          <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Box display="flex" justifyContent="space-between" alignItems="center" pt='10px'>
             {!fileUrl ? (
                       <Alert severity="info">
                         Nenhum documento disponível.

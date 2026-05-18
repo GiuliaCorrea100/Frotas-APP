@@ -469,7 +469,7 @@ export default function ListaAdministradores() {
           </Typography>
         </DialogTitle>
         <DialogContent>
-          <Typography>
+          <Typography color="text.primary">
             Você está prestes a revogar a permissão de Administrador de{" "}
             <strong>{SelectedUsuario?.nome}</strong>
           </Typography>

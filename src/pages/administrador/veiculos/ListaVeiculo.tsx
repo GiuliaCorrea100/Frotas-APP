@@ -539,7 +539,7 @@ export default function ListaVeiculos() {
           </Typography>
         </DialogTitle>
         <DialogContent>
-          <Typography>
+          <Typography color="text.primary">
             Você está prestes a{" "}
             <strong>{selectedCarro?.ativo ? "inativar" : "ativar"}</strong> o
             veículo <strong>{selectedCarro?.placa}</strong>.

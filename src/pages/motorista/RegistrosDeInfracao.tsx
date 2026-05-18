@@ -213,7 +213,18 @@ export default function RegistrosDeInfracao() {
       width: 120,
       minWidth: 100,
       renderCell: (params) => (
-        <Typography fontWeight="bold">
+        <Typography >
+          {params.value}
+        </Typography>
+      )
+    },
+    {
+      field: "modeloVeiculo",
+      headerName: "Modelo Veículo",
+      width: 320,
+      minWidth: 300,
+      renderCell: (params) => (
+        <Typography >
           {params.value}
         </Typography>
       )
@@ -418,9 +429,9 @@ export default function RegistrosDeInfracao() {
     {
       field: "recursos",
       headerName: "Recurso",
-      width: 320,
-      minWidth: 280,
-      maxWidth: 400,
+      width: 220,
+      minWidth: 180,
+      maxWidth: 200,
       sortable: false,
       filterable: false,
       renderCell: (params) => {
