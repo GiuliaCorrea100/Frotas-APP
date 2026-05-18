@@ -45,33 +45,48 @@ export default function ModalRecursoRejeitado({
 
   if (!recurso) return null;
 
-  const mostrarMotivoRejeicao = situacao === "RECURSO NEGADO - AGUARDANDO PAGAMENTO";
+  const mostrarMotivoRejeicao =
+    situacao === "RECURSO NEGADO - AGUARDANDO PAGAMENTO";
 
   const fileUrl = recurso.urlArquivo;
 
   const handleVisualizarDocumento = async () => {
-      if (!fileUrl) return;
-  
-      try {
-        const fileName = fileUrl.split("/").pop();
-        if (!fileName) return;
-  
-        const blob = await MultaService.downloadArquivo(fileName);
-        const blobUrl = window.URL.createObjectURL(blob);
-  
-        window.open(blobUrl, "_blank");
-        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
-      } catch (error) {
-        console.error("Erro ao abrir o documento:", error);
-        alert("Não foi possível carregar o arquivo.");
-      }
-    };
+    if (!fileUrl) return;
+
+    try {
+      const fileName = fileUrl.split("/").pop();
+      if (!fileName) return;
+
+      const blob = await MultaService.downloadArquivo(fileName);
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      window.open(blobUrl, "_blank");
+
+      setTimeout(() => {
+        window.URL.revokeObjectURL(blobUrl);
+      }, 100);
+    } catch (error) {
+      console.error("Erro ao abrir o documento:", error);
+      alert("Não foi possível carregar o arquivo.");
+    }
+  };
 
   return (
     <Modal open={open} onClose={onClose}>
       <Paper sx={modalStyle} onClick={(e) => e.stopPropagation()}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h6" fontWeight="bold" color="text.primary">
+        
+        {/* HEADER */}
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={3}
+        >
+          <Typography
+            variant="h6"
+            fontWeight="bold"
+            color="text.primary"
+          >
             Situação do recurso solicitado
           </Typography>
 
@@ -82,6 +97,7 @@ export default function ModalRecursoRejeitado({
 
         <Divider sx={{ mb: 3 }} />
 
+        {/* JUSTIFICATIVA */}
         <Box mb={4}>
           <Typography
             variant="subtitle2"
@@ -97,7 +113,7 @@ export default function ModalRecursoRejeitado({
               backgroundColor: theme.palette.background.default,
               p: 2,
               borderRadius: 1,
-              border: `1px solid ${theme.palette.divider}`
+              border: `1px solid ${theme.palette.divider}`,
             }}
           >
             <Typography color="text.secondary">
@@ -105,22 +121,31 @@ export default function ModalRecursoRejeitado({
             </Typography>
           </Box>
 
-          <Box display="flex" justifyContent="space-between" alignItems="center" pt='10px'>
+          {/* AÇÕES */}
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            gap={2}
+            mt={2}
+            flexWrap="wrap"
+          >
             {!fileUrl ? (
-                      <Alert severity="info">
-                        Nenhum documento disponível.
-                      </Alert>
-                    ) : (
-                      <Button
-                        variant="contained"
-                        onClick={handleVisualizarDocumento}
-                      >
-                        Visualizar Documento
-                      </Button>
-                    )}
-                  </Box>
+              <Alert severity="info">
+                Nenhum documento disponível.
+              </Alert>
+            ) : (
+              <Button
+                variant="contained"
+                onClick={handleVisualizarDocumento}
+              >
+                Visualizar Documento
+              </Button>
+            )}
+          </Box>
         </Box>
 
+        {/* MOTIVO REJEIÇÃO */}
         {mostrarMotivoRejeicao && (
           <Box mb={4}>
             <Typography
@@ -137,7 +162,7 @@ export default function ModalRecursoRejeitado({
                 backgroundColor: theme.palette.error.light + "20",
                 p: 2,
                 borderRadius: 1,
-                border: `1px solid ${theme.palette.error.main}`
+                border: `1px solid ${theme.palette.error.main}`,
               }}
             >
               <Typography color="error.main">
