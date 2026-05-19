@@ -647,11 +647,11 @@ export default function ListaMulta() {
           <Box display="flex" justifyContent="flex-end" gap={1}>
             <Button
               onClick={() => setModalAprovarAberto(false)}
-              color="inherit"
+              variant="outlined"
+              color="primary"
               disabled={loadingAction}
               sx={{
-                textTransform: "none",
-                border: `1px solid ${theme.palette.divider}`
+                textTransform: "none"
               }}
             >
               Cancelar
@@ -695,11 +695,11 @@ export default function ListaMulta() {
           <Box display="flex" justifyContent="flex-end" gap={1}>
             <Button
               onClick={() => setModalReprovarAberto(false)}
-              color="inherit"
+              variant="outlined"
+              color="primary"
               disabled={loadingAction}
               sx={{
-                textTransform: "none",
-                border: `1px solid ${theme.palette.divider}`
+                textTransform: "none"
               }}
             >
               Cancelar
@@ -734,11 +734,11 @@ export default function ListaMulta() {
           <Box display="flex" justifyContent="flex-end" gap={1}>
             <Button
               onClick={() => setModalAceitarRecursoAberto(false)}
-              color="inherit"
+              variant="outlined"
+              color="primary"
               disabled={loadingAction}
               sx={{
-                textTransform: "none",
-                border: `1px solid ${theme.palette.divider}`
+                textTransform: "none"
               }}
             >
               Cancelar
@@ -791,11 +791,11 @@ export default function ListaMulta() {
           <Box display="flex" justifyContent="flex-end" gap={1}>
             <Button
               onClick={() => setModalRejeitarRecursoAberto(false)}
-              color="inherit"
+              variant="outlined"
+              color="primary"
               disabled={loadingAction}
               sx={{
-                textTransform: "none",
-                border: `1px solid ${theme.palette.divider}`
+                textTransform: "none"
               }}
             >
               Cancelar
@@ -837,10 +837,10 @@ export default function ListaMulta() {
           <Box display="flex" justifyContent="flex-end" gap={1}>
             <Button
               onClick={() => setModalExcluirAberto(false)}
-              color="inherit"
+              variant="outlined"
+              color="primary"
               sx={{
-                textTransform: "none",
-                border: `1px solid ${theme.palette.divider}`
+                textTransform: "none"
               }}
             >
               Cancelar
