@@ -441,6 +441,7 @@ export default function RegistrosDeInfracao() {
         const recursoRejeitado = params.row.situacao == "RECURSO NEGADO - AGUARDANDO PAGAMENTO";
         const multaAnulada = params.row.situacao == "RECURSO ACEITO - MULTA ANULADA";
         const podePedirRecurso = possuiBoleto && !possuiComprovante && !recursoSolicitado && !multaAnulada;
+        const recurso = recursoSolicitado || recursoRejeitado;
         
         return(
           <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
@@ -461,7 +462,7 @@ export default function RegistrosDeInfracao() {
               <Button
                 variant="contained"
                 size="small"
-                disabled={!podePedirRecurso || params.row.situacao == "PAGA"}
+                disabled={!recurso}
                 onClick={() => handleVisualizarRecurso(params.row.idMulta, params.row.situacao)}
                 sx={buttonStyle}
               >

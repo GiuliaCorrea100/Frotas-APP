@@ -232,10 +232,10 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
       <AppLayout>
         <Box sx={{ p: 4, maxWidth: 800, mx: "auto", textAlign: "center" }}>
         <Typography variant="h5" fontWeight="bold" gutterBottom color="textPrimary">
-          Corrida Finalizada
+          Corrida Concluída
         </Typography>
         <Typography variant="body1" color="success.main" sx={{ mb: 2 }}>
-          Esta corrida foi finalizada em {dataFinal}
+          Esta corrida foi concluída em {dataFinal}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Nenhuma ação disponível para corridas finalizadas.
