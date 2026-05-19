@@ -339,7 +339,7 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
           <Alert
             severity={tipoMensagem}
             onClose={() => setMensagem("")}
-            sx={{ mb: 2 }}
+            sx={{ mb: 2, fontSize: "1.1rem", border: "1px solid", borderColor: `${tipoMensagem}.main`, borderRadius: 1.5 }}
           >
             {mensagem}
           </Alert>

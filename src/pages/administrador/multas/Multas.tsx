@@ -497,7 +497,6 @@ export default function ListaMulta() {
   return (
     <>
       <Menu />
-
       <Box sx={{ p: 3 }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5} mx={3.5} height={56}>
           <Typography variant="h5" fontWeight="bold" color="text.primary">
@@ -520,7 +519,7 @@ export default function ListaMulta() {
         </Box>
 
         {mensagemSucesso && (
-          <Alert severity="success" onClose={() => setMensagemSucesso("")} sx={{ mb: 2 }}>
+          <Alert severity="success" onClose={() => setMensagemSucesso("")} sx={{ mb: 2, border: "1px solid", borderColor: "success.main", borderRadius: 1.5 }}>
             {mensagemSucesso}
           </Alert>
         )}
