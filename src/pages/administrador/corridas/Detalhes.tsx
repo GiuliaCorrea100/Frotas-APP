@@ -5,7 +5,6 @@ import {
   useTheme,
   Card,
   CardContent,
-  CardHeader,
   Box,
   Stack,
   Button,
@@ -513,7 +512,6 @@ const DetalhesRequisicao: React.FC = () => {
   const handleFecharModalExcluirPercurso = () => {
     setModalExcluirPercursoAberto(false);
     setPercursoSelecionado(null);
-    setMensagemSucesso("Percuso removido com sucesso!");
   };
 
   const handleConfirmarExclusaoPercurso = async () => {
@@ -523,6 +521,7 @@ const DetalhesRequisicao: React.FC = () => {
       await removerPercurso(percursoSelecionado.idPercurso!);
       await carregarDados();
       handleFecharModalExcluirPercurso();
+      setMensagemSucesso("Percuso removido com sucesso!");
     } catch (error) {
       console.error("Erro ao excluir percurso:", error);
     }
@@ -541,7 +540,7 @@ const DetalhesRequisicao: React.FC = () => {
   const handleFecharModalExcluirOcorrencia = () => {
     setModalExcluirOcorrenciaAberto(false);
     setOcorrenciaSelecionada(null);
-    setMensagemSucesso("Ocorrência removida com sucesso!");
+    
   };
 
   const handleConfirmarExclusaoOcorrencia = async () => {
@@ -553,6 +552,7 @@ const DetalhesRequisicao: React.FC = () => {
       );
       await carregarDados();
       handleFecharModalExcluirOcorrencia();
+      setMensagemSucesso("Ocorrência removida com sucesso!");
     } catch (error) {
       console.error("Erro ao excluir ocorrência:", error);
     }
@@ -569,7 +569,6 @@ const DetalhesRequisicao: React.FC = () => {
   const handleFecharModalExcluirAbastecimento = () => {
     setModalExcluirAbastecimentoAberto(false);
     setAbastecimentoSelecionado(null);
-    setMensagemSucesso("Abastecimento removido com sucesso!");
   };
 
   const handleConfirmarExclusaoAbastecimento = async () => {
@@ -581,6 +580,7 @@ const DetalhesRequisicao: React.FC = () => {
       );
       await carregarDados();
       handleFecharModalExcluirAbastecimento();
+      setMensagemSucesso("Abastecimento removido com sucesso!");
     } catch (error) {
       console.error("Erro ao excluir abastecimento:", error);
     }
@@ -1083,7 +1083,7 @@ const DetalhesRequisicao: React.FC = () => {
       {/* Modal de Exclusão de Ocorrência */}
       <Dialog
         open={modalExcluirOcorrenciaAberto}
-        onClose={handleFecharModalExcluirOcorrencia}
+        onClose={handleFecharModalExcluirOcorrencia}      
         fullWidth
         maxWidth="sm"
         PaperProps={{

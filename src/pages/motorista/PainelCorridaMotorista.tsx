@@ -93,6 +93,9 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
 
   const [mensagemSucesso, setMensagemSucesso] = useState("");
 
+  const isCorridaEncerrada = corridaLocal?.situacao === "FINALIZADA" || corridaLocal?.situacao === "CONCLUIDA";
+
+
   useEffect(() => {
     if (!corridaLocal && idCorrida) {
       buscarCorridaPorId(Number(idCorrida)).then(setCorridaLocal);
@@ -139,7 +142,7 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
       }
     };
 
-    if (corridaLocal?.situacao !== "FINALIZADA") {
+    if (!isCorridaEncerrada) {
       fetchStatusChave();
     }
   }, [corridaLocal?.idCorrida, corridaLocal?.situacao]);
@@ -168,7 +171,7 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
       }
     };
 
-    if (corridaLocal?.situacao !== "FINALIZADA") {
+    if (!isCorridaEncerrada) {
       fetchPercursoStatus();
     }
   }, [corridaLocal?.idCorrida, corridaLocal?.situacao]);
@@ -224,15 +227,15 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
 
   if (!corridaLocal) return <CircularProgress />;
 
-  if (corridaLocal?.situacao === "FINALIZADA") {
+  if (isCorridaEncerrada) {
     return (
       <AppLayout>
         <Box sx={{ p: 4, maxWidth: 800, mx: "auto", textAlign: "center" }}>
         <Typography variant="h5" fontWeight="bold" gutterBottom color="textPrimary">
-          Corrida Finalizada
+          Corrida Concluída
         </Typography>
         <Typography variant="body1" color="success.main" sx={{ mb: 2 }}>
-          Esta corrida foi finalizada em {dataFinal}
+          Esta corrida foi concluída em {dataFinal}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Nenhuma ação disponível para corridas finalizadas.
@@ -370,9 +373,9 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
         isUltimoPercurso &&
         percursoAtual.localDestino === corridaLocal?.localDeSaida
       ) {
-        await atualizarSituacaoCorrida(corridaLocal?.idCorrida, "FINALIZADA");
-
-        const corridaAtualizada = { ...corridaLocal, situacao: "FINALIZADA" };
+        await atualizarSituacaoCorrida(corridaLocal?.idCorrida,"CONCLUIDA");
+        
+        const corridaAtualizada = {...corridaLocal,situacao: "CONCLUIDA",};
         setCorridaLocal(corridaAtualizada);
 
         setDataFinal(getHorarioAtualLocal());
@@ -467,13 +470,6 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
             corridaId={corridaLocal?.idCorrida}
             situacaoCorrida={corridaLocal?.situacao || "AGENDADA"}
           />
-
-          {/* <Typography variant="subtitle2" color="text.secondary">
-            De {formatDateOnly(corridaLocal.dataInicio)} até{" "}
-            {corridaLocal.dataTermino
-              ? formatDateOnly(corridaLocal.dataTermino)
-              : "em andamento"}
-          </Typography> */}
         </Box>
 
         <Box
@@ -628,22 +624,6 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
             percursoAtual={percursoAtual}
           />
         )}
-
-        {/* {successModalOpen && (
-          <ModalSucesso
-            open={successModalOpen}
-            onClose={handleSuccessClose}
-            title="Percurso iniciado com sucesso"
-          />
-        )} */}
-
-        {/* {finalizeSuccessModalOpen && (
-          <ModalSucesso
-            open={finalizeSuccessModalOpen}
-            onClose={handleFinalizeSuccessClose}
-            title="Percurso finalizado com sucesso"
-          />
-        )} */}
       </Box>
     </AppLayout>
   );

@@ -272,7 +272,7 @@ export default function ListaCorrida() {
     {
       field: "situacao",
       headerName: "Situação",
-      width: 150,
+      width: 250,
       renderCell: (params) => {
         const situacao = params.value || "";
         let color;
@@ -285,6 +285,9 @@ export default function ListaCorrida() {
             break;
           case "FINALIZADA":
             color = "success";
+            break;
+          case "CONCLUIDA":
+            color = "warning";
             break;
           default:
             color = "error";
@@ -325,7 +328,8 @@ export default function ListaCorrida() {
                       (corrida.situacao === "FINALIZADA" ||
                         corrida.situacao === "ANDAMENTO" ||
                         corrida.situacao === "AGENDADA" ||
-                        corrida.situacao === "CANCELADA")) ||
+                        corrida.situacao === "CANCELADA"||
+                        corrida.situacao === "CONCLUIDA")) ||
                     ((corrida.situacao === "FINALIZADA" ||
                       corrida.situacao === "CANCELADA") &&
                       corrida.chaveEmprestada === false)
@@ -390,7 +394,8 @@ export default function ListaCorrida() {
                       (corrida.situacao === "FINALIZADA" ||
                         corrida.situacao === "ANDAMENTO" ||
                         corrida.situacao === "AGENDADA" ||
-                        corrida.situacao === "CANCELADA")) ||
+                        corrida.situacao === "CANCELADA" ||
+                        corrida.situacao === "CONCLUIDA")) ||
                     ((corrida.situacao === "FINALIZADA" ||
                       corrida.situacao === "CANCELADA") &&
                       corrida.chaveEmprestada === false)
@@ -430,7 +435,8 @@ export default function ListaCorrida() {
                       (corrida.situacao === "FINALIZADA" ||
                         corrida.situacao === "ANDAMENTO" ||
                         corrida.situacao === "AGENDADA" ||
-                        corrida.situacao === "CANCELADA")) ||
+                        corrida.situacao === "CANCELADA" ||
+                        corrida.situacao === "CONCLUIDA")) ||
                     ((corrida.situacao === "FINALIZADA" ||
                       corrida.situacao === "CANCELADA") &&
                       corrida.chaveEmprestada === false)
@@ -461,7 +467,8 @@ export default function ListaCorrida() {
                       (corrida.situacao === "AGENDADA" ||
                         corrida.situacao === "ANDAMENTO" ||
                         corrida.situacao === "FINALIZADA" ||
-                        corrida.situacao === "CANCELADA")) ||
+                        corrida.situacao === "CANCELADA"  ||
+                        corrida.situacao === "CONCLUIDA")) ||
                     (corrida.chaveEmprestada === true &&
                       corrida.situacao === "CANCELADA")
                   }

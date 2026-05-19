@@ -24,8 +24,9 @@ import { decodeToken } from "../../utils/jwtDecodeHelper";
 import SolicitarRecursoModal from "./modais/ModalSolicitarRecurso";
 import AppLayout from "../../components/Layout";
 import BemVindo from "../BemVindo";
-import ModalRecursoRejeitado from "./modais/ModalRecursoRejeitado";
+import ModalRecursoRejeitado from "./modais/ModalDetalheRecurso";
 import { RecursoService } from "../../services/RecursoService";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 
 interface JwtPayload {
   sub: number;
@@ -67,6 +68,7 @@ export default function RegistrosDeInfracao() {
 
   const [modalRecursoAberto, setModalRecursoAberto] = useState(false);
   const [recursoSelecionado, setRecursoSelecionado] = useState<any>(null);
+  const [situacaoAtual, setSituacaoAtual] = useState<string | null>(null);
   
   const [mensagemSucesso, setMensagemSucesso] = useState("");
   const [mensagemErro, setMensagemErro] = useState("");
@@ -92,7 +94,7 @@ export default function RegistrosDeInfracao() {
       const multasDoUsuario = dados.filter(
         (multa) => ((multa.idMotorista === idUsuarioLogado)),
       );
-
+      console.log(multasDoUsuario);
       const multasOrdenadas = [...multasDoUsuario].sort((a, b) => b.idMulta - a.idMulta);
 
 
@@ -103,6 +105,18 @@ export default function RegistrosDeInfracao() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const buttonStyle = {
+    width: 42,
+    height: 42,
+    minWidth: 42,
+    padding: 0,
+    borderRadius: 1,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    "& .MuiButton-startIcon": { margin: 0 },
   };
 
   const buscar = (valor: string) => {
@@ -168,7 +182,7 @@ export default function RegistrosDeInfracao() {
     setMensagemErro(message);
   };
 
-  const handleVisualizarRecurso = async (idMulta: number | undefined) => {
+  const handleVisualizarRecurso = async (idMulta: number | undefined, situacao: string | undefined) => {
     if (!idMulta) {
       console.error("ID da multa não encontrado");
       setMensagemErro("Não foi possível carregar os detalhes do recurso");
@@ -181,6 +195,7 @@ export default function RegistrosDeInfracao() {
       
       if (recursoEncontrado) {
         setRecursoSelecionado(recursoEncontrado);
+        setSituacaoAtual(situacao);
         setModalRecursoAberto(true);
       } else {
         setMensagemErro("Recurso não encontrado");
@@ -198,7 +213,18 @@ export default function RegistrosDeInfracao() {
       width: 120,
       minWidth: 100,
       renderCell: (params) => (
-        <Typography fontWeight="bold">
+        <Typography >
+          {params.value}
+        </Typography>
+      )
+    },
+    {
+      field: "modeloVeiculo",
+      headerName: "Modelo Veículo",
+      width: 320,
+      minWidth: 300,
+      renderCell: (params) => (
+        <Typography >
           {params.value}
         </Typography>
       )
@@ -310,7 +336,7 @@ export default function RegistrosDeInfracao() {
           : '';
         const multaAnulada = params.row.situacao == "RECURSO ACEITO - MULTA ANULADA";
         const podeEnviarComprovante = possuiBoleto && !possuiComprovante && !multaAnulada;
-        
+        const multaPaga = params.row.situacao == "PAGA";
         return(
           <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
             <Tooltip title="Baixar Boleto">
@@ -332,6 +358,7 @@ export default function RegistrosDeInfracao() {
                     size="small"
                     variant="outlined"
                     color="error"
+                    disabled = {multaPaga}
                     startIcon={<CloseIcon />}
                     onClick={async () => {
                       if (!params.row.urlComprovantePagamento) return;
@@ -402,9 +429,9 @@ export default function RegistrosDeInfracao() {
     {
       field: "recursos",
       headerName: "Recurso",
-      width: 320,
-      minWidth: 280,
-      maxWidth: 400,
+      width: 220,
+      minWidth: 180,
+      maxWidth: 200,
       sortable: false,
       filterable: false,
       renderCell: (params) => {
@@ -414,30 +441,7 @@ export default function RegistrosDeInfracao() {
         const recursoRejeitado = params.row.situacao == "RECURSO NEGADO - AGUARDANDO PAGAMENTO";
         const multaAnulada = params.row.situacao == "RECURSO ACEITO - MULTA ANULADA";
         const podePedirRecurso = possuiBoleto && !possuiComprovante && !recursoSolicitado && !multaAnulada;
-        
-        if (recursoRejeitado) {
-          return (
-            <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-              <Tooltip title="Visualizar recurso rejeitado">
-                <Button
-                  size="small"
-                  variant="contained"
-                  sx={{
-                    backgroundColor: "#d32f2f",
-                    color: "#fff",
-                    '&:hover': {
-                      backgroundColor: "#b71c1c",
-                    }
-                  }}
-                  startIcon={<ThumbDownOffAltIcon />}
-                  onClick={() => handleVisualizarRecurso(params.row.idMulta)}
-                >
-                  Recurso Rejeitado
-                </Button>
-              </Tooltip>
-            </Box>
-          );
-        }
+        const recurso = recursoSolicitado || recursoRejeitado;
         
         return(
           <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
@@ -447,13 +451,26 @@ export default function RegistrosDeInfracao() {
                 variant="contained"
                 color="warning"
                 startIcon={<GavelIcon />}
-                disabled={!podePedirRecurso}
+                disabled={!podePedirRecurso || recursoRejeitado}
                 onClick={() => handleSolicitarRecurso(params.row)}
+                sx={buttonStyle}
               >
-                Solicitar Recurso
+              </Button>
+            </Tooltip>
+
+            <Tooltip title="Detalhes Recurso">
+              <Button
+                variant="contained"
+                size="small"
+                disabled={!recurso}
+                onClick={() => handleVisualizarRecurso(params.row.idMulta, params.row.situacao)}
+                sx={buttonStyle}
+              >
+                <VisibilityIcon />
               </Button>
             </Tooltip>
           </Box>
+
         );
       },
     },
@@ -611,14 +628,14 @@ export default function RegistrosDeInfracao() {
       />
 
       <ModalRecursoRejeitado 
-        open={modalRecursoAberto} 
+        open={modalRecursoAberto}
         onClose={() => {
           setModalRecursoAberto(false);
           setRecursoSelecionado(null);
-        }}
-        recurso={recursoSelecionado}/>
-        
-
+          setSituacaoAtual(null);
+        } }
+        recurso={recursoSelecionado} 
+        situacao={situacaoAtual}/>
     </AppLayout>
   );
 }
