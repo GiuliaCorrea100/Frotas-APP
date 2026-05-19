@@ -259,13 +259,22 @@ export default function ListaMulta() {
       headerName: 'Classificação',
       flex: 1.5,
       renderCell: (params) => {
-        const map: any = { LEVE: 'success', MEDIA: 'warning', GRAVE: 'error', GRAVISSIMA: 'error' };
+        const map: any = {
+          LEVE: 'success',
+          MEDIA: 'warning',
+          GRAVE: 'error',
+          GRAVISSIMA: 'error'
+        };
+
         return (
           <Chip
             label={params.value}
             color={map[params.value] || 'default'}
             size="small"
             variant="outlined"
+            sx={{
+              fontWeight: 400
+            }}
           />
         );
       }
@@ -285,7 +294,9 @@ export default function ListaMulta() {
           "RECURSO ACEITO - MULTA ANULADA": "#2e7d32",
           "RECURSO NEGADO - AGUARDANDO PAGAMENTO": "#d32f2f"
         };
+
         const color = cores[params.value] || "#d32f2f";
+
         return (
           <Chip
             label={params.value}
@@ -294,7 +305,7 @@ export default function ListaMulta() {
             sx={{
               color,
               borderColor: color,
-              fontWeight: 600,
+              fontWeight: 400,
               backgroundColor: "transparent"
             }}
           />
@@ -375,9 +386,11 @@ export default function ListaMulta() {
       sortable: false,
       renderCell: (params) => {
         const temRecurso = !!params.row.possuiRecurso;
+        const possuiJustificativaRejeicao = !!params.row.recurso?.justificativaRejeicao;
         const jaAnalisado =
           params.row.situacao === "RECURSO ACEITO - MULTA ANULADA" ||
-          params.row.situacao === "RECURSO NEGADO - AGUARDANDO PAGAMENTO";
+          params.row.situacao === "RECURSO NEGADO - AGUARDANDO PAGAMENTO" ||
+          possuiJustificativaRejeicao;
 
         return (
           <Box sx={{ display: "flex", gap: 1 }}>
@@ -484,7 +497,6 @@ export default function ListaMulta() {
   return (
     <>
       <Menu />
-
       <Box sx={{ p: 3 }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5} mx={3.5} height={56}>
           <Typography variant="h5" fontWeight="bold" color="text.primary">
@@ -507,7 +519,7 @@ export default function ListaMulta() {
         </Box>
 
         {mensagemSucesso && (
-          <Alert severity="success" onClose={() => setMensagemSucesso("")} sx={{ mb: 2 }}>
+          <Alert severity="success" onClose={() => setMensagemSucesso("")} sx={{ mb: 2, border: "1px solid", borderColor: "success.main", borderRadius: 1.5 }}>
             {mensagemSucesso}
           </Alert>
         )}
@@ -634,7 +646,15 @@ export default function ListaMulta() {
             Deseja confirmar a aprovação deste comprovante de pagamento para a multa <strong>#{multaSelecionada?.idMulta}</strong>?
           </Typography>
           <Box display="flex" justifyContent="flex-end" gap={1}>
-            <Button onClick={() => setModalAprovarAberto(false)} color="inherit" disabled={loadingAction} sx={{ textTransform: "none" }}>
+            <Button
+              onClick={() => setModalAprovarAberto(false)}
+              variant="outlined"
+              color="primary"
+              disabled={loadingAction}
+              sx={{
+                textTransform: "none"
+              }}
+            >
               Cancelar
             </Button>
             <Button onClick={aprovarComprovante} variant="contained" color="success" disabled={loadingAction}>
@@ -674,7 +694,15 @@ export default function ListaMulta() {
             }}
           />
           <Box display="flex" justifyContent="flex-end" gap={1}>
-            <Button onClick={() => setModalReprovarAberto(false)} color="inherit" disabled={loadingAction} sx={{ textTransform: "none" }}>
+            <Button
+              onClick={() => setModalReprovarAberto(false)}
+              variant="outlined"
+              color="primary"
+              disabled={loadingAction}
+              sx={{
+                textTransform: "none"
+              }}
+            >
               Cancelar
             </Button>
             <Button onClick={reprovarComprovante} variant="contained" color="error" disabled={loadingAction || !motivoReprovacao.trim()}>
@@ -705,7 +733,15 @@ export default function ListaMulta() {
           </Typography>
           <Typography variant="body2" color="text.secondary" mb={4}>Esta ação não pode ser desfeita.</Typography>
           <Box display="flex" justifyContent="flex-end" gap={1}>
-            <Button onClick={() => setModalAceitarRecursoAberto(false)} color="inherit" disabled={loadingAction} sx={{ textTransform: "none" }}>
+            <Button
+              onClick={() => setModalAceitarRecursoAberto(false)}
+              variant="outlined"
+              color="primary"
+              disabled={loadingAction}
+              sx={{
+                textTransform: "none"
+              }}
+            >
               Cancelar
             </Button>
             <Button onClick={aceitarRecurso} variant="contained" color="success" disabled={loadingAction}>
@@ -756,9 +792,12 @@ export default function ListaMulta() {
           <Box display="flex" justifyContent="flex-end" gap={1}>
             <Button
               onClick={() => setModalRejeitarRecursoAberto(false)}
-              color="inherit"
+              variant="outlined"
+              color="primary"
               disabled={loadingAction}
-              sx={{ textTransform: "none" }}
+              sx={{
+                textTransform: "none"
+              }}
             >
               Cancelar
             </Button>
@@ -797,7 +836,14 @@ export default function ListaMulta() {
           <Divider sx={{ mb: 3 }} />
           <Typography variant="body1" mb={4} color="inherit">Você tem certeza que deseja excluir esta multa? Esta operação é irreversível.</Typography>
           <Box display="flex" justifyContent="flex-end" gap={1}>
-            <Button onClick={() => setModalExcluirAberto(false)} color="inherit" sx={{ textTransform: "none" }}>
+            <Button
+              onClick={() => setModalExcluirAberto(false)}
+              variant="outlined"
+              color="primary"
+              sx={{
+                textTransform: "none"
+              }}
+            >
               Cancelar
             </Button>
             <Button

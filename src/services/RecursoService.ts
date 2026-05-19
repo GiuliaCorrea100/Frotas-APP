@@ -31,7 +31,17 @@ export class RecursoService {
             console.error("Erro ao buscar recurso:", error);
             return null;
         }
+    }
+
+    static async rejeitarRecurso(idMulta: number, justificativaRejeicao: string): Promise<any> {
+        try {
+            const response = await axiosConnect.put(`/recurso/rejeitar/${idMulta}`, {
+                justificativaRejeicao,
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao rejeitar recurso:", error);
+            throw error;
         }
-
-
+    }
 }
