@@ -386,9 +386,11 @@ export default function ListaMulta() {
       sortable: false,
       renderCell: (params) => {
         const temRecurso = !!params.row.possuiRecurso;
+        const possuiJustificativaRejeicao = !!params.row.recurso?.justificativaRejeicao;
         const jaAnalisado =
           params.row.situacao === "RECURSO ACEITO - MULTA ANULADA" ||
-          params.row.situacao === "RECURSO NEGADO - AGUARDANDO PAGAMENTO";
+          params.row.situacao === "RECURSO NEGADO - AGUARDANDO PAGAMENTO" ||
+          possuiJustificativaRejeicao;
 
         return (
           <Box sx={{ display: "flex", gap: 1 }}>
