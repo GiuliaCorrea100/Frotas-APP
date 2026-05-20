@@ -238,7 +238,7 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
           Esta corrida foi concluída em {dataFinal}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Nenhuma ação disponível para corridas finalizadas.
+          Nenhuma ação disponível para corridas concluídas.
         </Typography>
       </Box>
       </AppLayout>

@@ -386,11 +386,13 @@ export default function ListaMulta() {
       sortable: false,
       renderCell: (params) => {
         const temRecurso = !!params.row.possuiRecurso;
-        const possuiJustificativaRejeicao = !!params.row.recurso?.justificativaRejeicao;
+        //const possuiJustificativaRejeicao = !!params.row.recurso?.justificativaRejeicao;
         const jaAnalisado =
           params.row.situacao === "RECURSO ACEITO - MULTA ANULADA" ||
           params.row.situacao === "RECURSO NEGADO - AGUARDANDO PAGAMENTO" ||
-          possuiJustificativaRejeicao;
+          params.row.situacao === "ANALISE PENDENTE" || // situação quando o motorista envia o comprovante de pagamento
+          params.row.situacao === "PAGA"; // situação final          
+          //possuiJustificativaRejeicao;
 
         return (
           <Box sx={{ display: "flex", gap: 1 }}>

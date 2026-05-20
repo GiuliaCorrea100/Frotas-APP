@@ -134,7 +134,7 @@ export class MultaService {
 
   static async aceitarRecurso(idMulta: number): Promise<any> {
     try {
-      const response = await axiosConnect.patch(`/multa/${idMulta}/aceitar-recurso`);
+      const response = await axiosConnect.patch(`/recurso/aceitar/${idMulta}`);
       return response.data;
     } catch (error) {
       console.error(`Erro ao aceitar recurso da multa ${idMulta}:`, error);

@@ -206,6 +206,11 @@ const EditarMultaModal: React.FC<EdicaoModalProps> = ({
         autoInfracao: autoInfracao,
       };
 
+      console.log("Enviando para update:", {
+  ...dadosMultas,
+  dataInfracao: dataHoraISO
+});
+
       await MultaService.atualizarMulta(
         multa?.idMulta!,
         dadosMultas
