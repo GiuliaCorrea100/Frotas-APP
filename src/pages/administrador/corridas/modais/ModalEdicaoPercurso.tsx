@@ -8,16 +8,15 @@ import {
   Divider,
   InputAdornment,
   CircularProgress,
-  Paper,
   IconButton,
+  Alert,
 } from "@mui/material";
+import { Close, AddLocationAlt } from "@mui/icons-material";
 import {
-  LocalGasStation,
-  AttachMoney,
-  CalendarToday,
-  Close,
-} from "@mui/icons-material";
-import { atualizarPercurso, PercursoDto } from "../../../../services/PercursoService";
+  atualizarPercurso,
+  PercursoDto,
+} from "../../../../services/PercursoService";
+import { modalStyle } from "../../../../utils/modalStyle";
 
 interface EdicaoPercursosModalProps {
   open: boolean;
@@ -27,27 +26,9 @@ interface EdicaoPercursosModalProps {
   onError: (error: any) => void;
 }
 
-const modalStyle = {
-  position: "absolute" as const,
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "80%",
-  maxWidth: 800,
-  maxHeight: "90vh",
-  overflow: "auto",
-  bgcolor: "background.paper",
-  boxShadow: 24,
-  p: 4,
-  borderRadius: 2,
-};
-
-
 const toLocalDateTimeInputValue = (date: Date) => {
   const offset = date.getTimezoneOffset() * 60000;
-  return new Date(date.getTime() - offset)
-    .toISOString()
-    .slice(0, 16);
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 };
 
 const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
@@ -63,17 +44,14 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
   const [chegadaHora, setChegadaHora] = useState<Date | null>(null);
   const [chegadaOdometro, setChegadaOdometro] = useState<string>("");
   const [localOrigem, setLocalOrigem] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleNumericInput = (
     value: string,
-    setter: React.Dispatch<React.SetStateAction<string>>
+    setter: React.Dispatch<React.SetStateAction<string>>,
   ) => {
     setter(value.replace(/[^\d]/g, ""));
-  };
-
-  const getNumericValue = (value: string): number => {
-    return value ? parseInt(value, 10) : 0;
   };
 
   const utcToLocal = (utcDate: Date | null): Date | null => {
@@ -84,15 +62,13 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
   useEffect(() => {
     if (percurso) {
       setSaidaHora(
-        percurso.saidaHora
-          ? utcToLocal(new Date(percurso.saidaHora))
-          : null
+        percurso.saidaHora ? utcToLocal(new Date(percurso.saidaHora)) : null,
       );
 
       setChegadaHora(
         percurso.chegadaHora
           ? utcToLocal(new Date(percurso.chegadaHora))
-          : null
+          : null,
       );
 
       setSaidaOdometro(percurso.saidaOdometro?.toString() ?? "");
@@ -102,7 +78,7 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
     }
   }, [percurso]);
 
-  const handleSalvar = async (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!percurso) return;
 
@@ -115,63 +91,95 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
     try {
       const dadosAtualizados = {
         saidaHora,
-        saidaOdometro: getNumericValue(saidaOdometro),
+        saidaOdometro: Number(saidaOdometro),
         localDestino,
         chegadaHora,
-        chegadaOdometro: getNumericValue(chegadaOdometro),
+        chegadaOdometro: Number(chegadaOdometro),
         localOrigem,
       };
 
       await atualizarPercurso(percurso.idPercurso!, dadosAtualizados);
-      onSuccess("Percurso atualizado com sucesso!");
+
+      const mensagem = "Percurso atualizado com sucesso!";
+
+      setTimeout(() => {
+        setSuccessMessage("");
+        onSuccess(mensagem);
+        onClose();
+      }, 1500);
     } catch (error) {
       console.error("Erro ao salvar percurso:", error);
       onError(error);
     } finally {
       setLoading(false);
-      onClose();
     }
   };
 
   return (
     <Modal open={open} onClose={onClose}>
-      <Paper sx={modalStyle}>
-        {/* Cabeçalho */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Box display="flex" alignItems="center">
-            <LocalGasStation color="primary" sx={{ mr: 1 }} />
-            <Typography variant="h6">Edição de Percurso</Typography>
-          </Box>
-          <IconButton onClick={onClose}>
+      <Box sx={modalStyle}>
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+          }}
+        >
+          <Typography
+            variant="h6"
+            color="text.primary"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontWeight: "bold",
+              pt: 1,
+            }}
+          >
+            <AddLocationAlt color="primary" sx={{ mr: 1 }} />
+            Editar Percurso
+          </Typography>
+          <IconButton onClick={onClose} disabled={loading}>
             <Close />
           </IconButton>
         </Box>
 
-        <Box component="form" onSubmit={handleSalvar}>
-          <Typography variant="subtitle1" gutterBottom>
-            Informações de Saída
-          </Typography>
+        {successMessage && (
+          <Alert severity="success" sx={{ mb: 3 }}>
+            {successMessage}
+          </Alert>
+        )}
 
-          <Box display="flex" gap={2} flexWrap="wrap" mb={2}>
-            <TextField
-              label="Local de Origem"
-              value={localOrigem}
-              onChange={(e) => setLocalOrigem(e.target.value.toUpperCase())}
-              required
-              sx={{ flex: "1 1 200px" }}
-            />
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            mb: 2,
+            flexDirection: { xs: "column", md: "row" },
+          }}
+        >
+          <TextField
+            label="Local de Origem"
+            value={localOrigem}
+            onChange={(e) => setLocalOrigem(e.target.value.toUpperCase())}
+            required
+            sx={{ flex: 1 }}
+          />
 
-            <TextField
-              label="Odômetro de Saída"
-              value={saidaOdometro}
-              onChange={(e) => handleNumericInput(e.target.value, setSaidaOdometro)}
-              required
-              sx={{ flex: "1 1 200px" }}
-              InputProps={{
-                endAdornment: <InputAdornment position="end">km</InputAdornment>,
-              }}
-            />
-          </Box>
+          <TextField
+            label="Odômetro de Saída"
+            value={saidaOdometro}
+            onChange={(e) =>
+              handleNumericInput(e.target.value, setSaidaOdometro)
+            }
+            required
+            InputProps={{
+              endAdornment: <InputAdornment position="end">km</InputAdornment>,
+            }}
+            sx={{ flex: 1 }}
+          />
 
           <TextField
             label="Hora de Saída"
@@ -181,44 +189,38 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
             onChange={(e) => setSaidaHora(new Date(e.target.value))}
             InputLabelProps={{ shrink: true }}
             required
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <CalendarToday fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
-            sx={{ mb: 2 }}
+            sx={{ flex: 1 }}
+          />
+        </Box>
+
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            mb: 2,
+            flexDirection: { xs: "column", md: "row" },
+          }}
+        >
+          <TextField
+            label="Local de Destino"
+            value={localDestino}
+            onChange={(e) => setLocalDestino(e.target.value.toUpperCase())}
+            required
+            sx={{ flex: 1 }}
           />
 
-          <Divider sx={{ my: 2 }} />
-
-          <Typography variant="subtitle1" gutterBottom>
-            Informações de Chegada
-          </Typography>
-
-          <Box display="flex" gap={2} flexWrap="wrap" mb={2}>
-            <TextField
-              label="Local de Destino"
-              value={localDestino}
-              onChange={(e) => setLocalDestino(e.target.value.toUpperCase())}
-              required
-              sx={{ flex: "1 1 200px" }}
-            />
-
-            <TextField
-              label="Odômetro de Chegada"
-              value={chegadaOdometro}
-              onChange={(e) =>
-                handleNumericInput(e.target.value, setChegadaOdometro)
-              }
-              required
-              sx={{ flex: "1 1 200px" }}
-              InputProps={{
-                endAdornment: <InputAdornment position="end">km</InputAdornment>,
-              }}
-            />
-          </Box>
+          <TextField
+            label="Odômetro de Chegada"
+            value={chegadaOdometro}
+            onChange={(e) =>
+              handleNumericInput(e.target.value, setChegadaOdometro)
+            }
+            required
+            InputProps={{
+              endAdornment: <InputAdornment position="end">km</InputAdornment>,
+            }}
+            sx={{ flex: 1 }}
+          />
 
           <TextField
             label="Hora de Chegada"
@@ -228,31 +230,32 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
             onChange={(e) => setChegadaHora(new Date(e.target.value))}
             InputLabelProps={{ shrink: true }}
             required
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <CalendarToday fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
-            sx={{ mb: 2 }}
+            sx={{ flex: 1 }}
           />
-
-          <Box display="flex" justifyContent="flex-end" gap={1} mt={3}>
-            <Button onClick={onClose} color="inherit" disabled={loading}>
-              Cancelar
-            </Button>
-
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={loading}
-            >
-              {loading ? <CircularProgress size={24} /> : "Atualizar"}
-            </Button>
-          </Box>
         </Box>
-      </Paper>
+
+        <Divider sx={{ my: 2 }} />
+
+        <Box
+          sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}
+        >
+          <Button
+            onClick={onClose}
+            variant="outlined"
+            disabled={loading || !!successMessage}
+          >
+            Cancelar
+          </Button>
+
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            disabled={loading || !!successMessage}
+          >
+            {loading ? <CircularProgress size={24} /> : "Salvar"}
+          </Button>
+        </Box>
+      </Box>
     </Modal>
   );
 };

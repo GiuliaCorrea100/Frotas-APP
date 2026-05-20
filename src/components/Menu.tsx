@@ -2,128 +2,103 @@ import {
   AppBar,
   Box,
   Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Menu as DropdownMenu, 
+  Menu as DropdownMenu,
   MenuItem as DropdownItem,
-  Paper,
   Toolbar,
   Typography,
   IconButton,
   Badge,
   Chip,
 } from "@mui/material";
-import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
-import { jwtDecode } from 'jwt-decode';
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import PainelCorridaMotorista from "../pages/motorista/PainelCorridaMotorista";
-import { useMediaQuery } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import axiosConnect from "../services/axios/axiosConnect";
-import { Tooltip } from '@mui/material';
-import ContrastIcon from '@mui/icons-material/Contrast';
-import { useThemeContext } from '../context/ThemeContext';
-
-interface JwtPayload {
-  sub: number; 
-  login: string;
-  administrador: boolean;
-  iat: number;
-  exp: number;
-  nome: string;
-  email: string;
-  idUsuario: number;
-}
-
-interface Corrida {
-  idCorrida: number;
-  dataInicio: string; 
-  itinerario: string;
-  situacao: 'AGENDADA' | 'ANDAMENTO' | 'FINALIZADA' | 'CANCELADA';
-  placaVeiculo?: string;
-  nomeMotorista?: string;
-  dataTermino?: string | null;
-}
-
-interface MotoristaDashboard {
-  corridaDeHoje: Corrida | null;
-  proximasCorridas: Corrida[];
-}
+import { useMediaQuery } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import { Tooltip } from "@mui/material";
+import ContrastIcon from "@mui/icons-material/Contrast";
+import { useThemeContext } from "../context/ThemeContext";
+import DadosPerfil from "../pages/DadosPerfil";
 
 const Menu: React.FC = () => {
-  const { isAuthenticated, cpf, logout, administrador, nome, email } = useAuth();
+  const {
+    isAuthenticated,
+    logout,
+    administrador,
+    hasCorridaAtiva,
+    idCorridaAtiva,
+  } = useAuth();
   const { themeMode, toggleTheme } = useThemeContext();
   const navigate = useNavigate();
-  const location = useLocation(); 
+  const location = useLocation();
   const [showModalDadosPerfil, setShowModalDadosPerfil] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [dashboardData, setDashboardData] = useState<MotoristaDashboard | null>(null);
-  const isMobile = useMediaQuery('(max-width:768px)');
+  const isMobile = useMediaQuery("(max-width:768px)");
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  
+
   // Estados para o timer de inatividade
-  const [tempoRestante, setTempoRestante] = useState<string>('30:00');
-  const [corTimer, setCorTimer] = useState<string>('#4caf50');
+  const [tempoRestante, setTempoRestante] = useState<string>("30:00");
+  const [corTimer, setCorTimer] = useState<string>("#4caf50");
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Função para iniciar/atualizar o timer
-  const iniciarTimer = useCallback((expiresAt: number) => {
-    // Limpa timer anterior
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-
-    // Configura novo timer
-    timerRef.current = setInterval(() => {
-      const agora = Date.now();
-      const segundosRestantes = Math.max(0, Math.floor((expiresAt - agora) / 1000));
-      
-      // Atualiza display
-      const minutos = Math.floor(segundosRestantes / 60);
-      const segundos = segundosRestantes % 60;
-      setTempoRestante(`${minutos}:${segundos < 10 ? '0' : ''}${segundos}`);
-      
-      // Atualiza cor
-      if (minutos > 5) {
-        setCorTimer(themeMode === 'dark' ? '#4caf50' : '#2e7d32');
-      } else if (minutos > 1) {
-        setCorTimer(themeMode === 'dark' ? '#ff9800' : '#f57c00');
-      } else {
-        setCorTimer(themeMode === 'dark' ? '#f44336' : '#d32f2f');
-      }
-      
-      // Se expirou, para o timer e faz logout
-      if (segundosRestantes <= 0 && timerRef.current) {
+  const iniciarTimer = useCallback(
+    (expiresAt: number) => {
+      // Limpa timer anterior
+      if (timerRef.current) {
         clearInterval(timerRef.current);
-        handleAutoLogout();
       }
-    }, 1000);
-  }, [themeMode]);
+
+      // Configura novo timer
+      timerRef.current = setInterval(() => {
+        const agora = Date.now();
+        const segundosRestantes = Math.max(
+          0,
+          Math.floor((expiresAt - agora) / 1000),
+        );
+
+        // Atualiza display
+        const minutos = Math.floor(segundosRestantes / 60);
+        const segundos = segundosRestantes % 60;
+        setTempoRestante(`${minutos}:${segundos < 10 ? "0" : ""}${segundos}`);
+
+        // Atualiza cor
+        if (minutos > 5) {
+          setCorTimer(themeMode === "dark" ? "#4caf50" : "#2e7d32");
+        } else if (minutos > 1) {
+          setCorTimer(themeMode === "dark" ? "#ff9800" : "#f57c00");
+        } else {
+          setCorTimer(themeMode === "dark" ? "#f44336" : "#d32f2f");
+        }
+
+        // Se expirou, para o timer e faz logout
+        if (segundosRestantes <= 0 && timerRef.current) {
+          clearInterval(timerRef.current);
+          handleAutoLogout();
+        }
+      }, 1000);
+    },
+    [themeMode],
+  );
 
   // Função para logout automático
   const handleAutoLogout = useCallback(async () => {
     console.log("⏰ Sessão expirada por inatividade");
-    
+
     // Limpa timer
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-    
+
     // Limpa localStorage
     localStorage.removeItem("token");
     localStorage.removeItem("tokenExpiresAt");
-    
+
     // Faz logout via AuthContext
     await logout();
     navigate("/", { replace: true });
@@ -136,10 +111,83 @@ const Menu: React.FC = () => {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-    
+
     await logout();
     navigate("/", { replace: true });
   };
+
+  // Recursos para TODOS os usuários
+  const recursosPadrao = [
+    { label: "Registros de Infração", path: "/RegistrosDeInfracao" },
+    { label: "Histórico", path: "/HistoricoIndividual" },
+  ];
+
+  // Recursos EXCLUSIVOS para admin
+  const recursosAdmin = [
+    { label: "Corridas", path: "/Corridas" },
+    { label: "Veículos", path: "/Veiculos" },
+    { label: "Multas", path: "/Multas" },
+    { label: "Administradores", path: "/Administradores" },
+    { label: "Relatórios", path: "/Relatorios" },
+  ];
+
+  // Função para renderizar botões desktop
+  const renderBotoesDesktop = () => (
+    <>
+      {administrador &&
+        recursosAdmin.map((recurso) => (
+          <Button
+            key={recurso.label}
+            color="inherit"
+            component={Link}
+            to={recurso.path}
+            sx={{ fontFamily: "inherit", fontSize: "0.875rem" }}
+          >
+            {recurso.label}
+          </Button>
+        ))}
+      {recursosPadrao.map((recurso) => (
+        <Button
+          key={recurso.label}
+          color="inherit"
+          component={Link}
+          to={recurso.path}
+          sx={{ fontFamily: "inherit", fontSize: "0.875rem" }}
+        >
+          {recurso.label}
+        </Button>
+      ))}
+    </>
+  );
+
+  // Função para renderizar botões mobile
+  const renderItensMobile = () => (
+    <>
+      {administrador &&
+        recursosAdmin.map((recurso) => (
+          <DropdownItem
+            key={recurso.label}
+            component={Link}
+            to={recurso.path}
+            onClick={() => setShowMobileMenu(false)}
+            sx={{ fontSize: "0.9rem", py: 1 }}
+          >
+            {recurso.label}
+          </DropdownItem>
+        ))}
+      {recursosPadrao.map((recurso) => (
+        <DropdownItem
+          key={recurso.label}
+          component={Link}
+          to={recurso.path}
+          onClick={() => setShowMobileMenu(false)}
+          sx={{ fontSize: "0.9rem", py: 1 }}
+        >
+          {recurso.label}
+        </DropdownItem>
+      ))}
+    </>
+  );
 
   // Efeito para escutar renovação de token
   useEffect(() => {
@@ -150,7 +198,10 @@ const Menu: React.FC = () => {
       }
     };
 
-    window.addEventListener('tokenRenewed', handleTokenRenewed as EventListener);
+    window.addEventListener(
+      "tokenRenewed",
+      handleTokenRenewed as EventListener,
+    );
 
     // Inicializa com tempo atual do localStorage
     const storedExpiresAt = localStorage.getItem("tokenExpiresAt");
@@ -165,7 +216,10 @@ const Menu: React.FC = () => {
     }
 
     return () => {
-      window.removeEventListener('tokenRenewed', handleTokenRenewed as EventListener);
+      window.removeEventListener(
+        "tokenRenewed",
+        handleTokenRenewed as EventListener,
+      );
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
@@ -184,152 +238,13 @@ const Menu: React.FC = () => {
   const handleAbrirModalDadosPerfil = () => setShowModalDadosPerfil(true);
   const handleFecharModalDadosPerfil = () => setShowModalDadosPerfil(false);
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const carregarDadosDoDashboard = useCallback(async () => {
-    setLoading(true);
-    const token = localStorage.getItem('token');
-    if (!token || !isAuthenticated) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const decodedToken = jwtDecode<JwtPayload>(token);
-      const idUsuario = decodedToken?.sub;
-
-      if (idUsuario) {
-        const response = await axiosConnect.get<MotoristaDashboard>(`/corrida/motorista-dashboard/${idUsuario}`);
-        setDashboardData(response.data);
-      }
-    } catch (error) {
-      console.error("Erro ao carregar dados do dashboard:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [isAuthenticated]);
-
-  useEffect(() => {
-    carregarDadosDoDashboard();
-  }, [carregarDadosDoDashboard]);
-
-  const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return 'Em andamento'; 
-    try {
-      const date = new Date(dateString);
-      const userTimezoneOffset = date.getTimezoneOffset() * 60000;
-      return isNaN(date.getTime()) ? 'Data inválida' : new Date(date.getTime() + userTimezoneOffset).toLocaleString('pt-BR');
-    } catch {
-      return 'Data inválida';
-    }
-  };
-
-  const columns: GridColDef<Corrida>[] = [
-    { 
-      field: 'nomeMotorista',
-      headerName: 'Motorista', 
-      flex: 1,
-      renderCell: (params: GridRenderCellParams) => (
-        <Link to={`/corrida/${params.row.idCorrida}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-          {nome} 
-        </Link>
-      )
-    },
-    { 
-      field: 'placaVeiculo',
-      headerName: 'Veículo', 
-      flex: 1,
-      renderCell: (params: GridRenderCellParams) => (
-        <Link to={`/corrida/${params.row.idCorrida}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-          {params.value || 'Não especificado'}
-        </Link>
-      )
-    },
-    { 
-      field: 'dataInicio', 
-      headerName: 'Data/Hora Início',
-      flex: 1,
-      renderCell: (params) => formatDate(params.value as string)
-    },
-    { 
-      field: 'dataTermino', 
-      headerName: 'Data/Hora Término',
-      flex: 1,
-      renderCell: (params) => formatDate(params.value as string | null)
-    },
-  ];
-
-  const renderContent = () => {
-    if (loading) {
-      return <CircularProgress />;
-    }
-
-    if (!isAuthenticated || !dashboardData) {
-      return null;
-    }
-
-    if (dashboardData.corridaDeHoje && dashboardData.corridaDeHoje.situacao !== 'FINALIZADA') {
-      return <PainelCorridaMotorista corrida={dashboardData.corridaDeHoje} onCorridaUpdate={carregarDadosDoDashboard} />;
-    }
-    
-    if (dashboardData.proximasCorridas.length > 0) {
-      return (
-        <Box sx={{ p: { xs: 1, md: 3 }, width: '100%', maxWidth: '900px', mt: 2 }}>
-          <Typography variant="h5" gutterBottom align="center">
-            Suas Próximas Corridas Agendadas
-          </Typography>
-          <Paper sx={{ height: 450, width: '100%', mt: 2 }}>
-            <DataGrid
-              rows={dashboardData.proximasCorridas}
-              columns={columns}
-              getRowId={(row) => row.idCorrida}
-              initialState={{
-                pagination: { paginationModel: { pageSize: 5 } },
-              }}
-              pageSizeOptions={[5, 10, 25]}
-              disableRowSelectionOnClick
-              localeText={{ noRowsLabel: "Nenhuma corrida futura agendada." }}
-              sx={{
-                '& .MuiDataGrid-cell': {
-                  whiteSpace: 'normal !important',
-                  wordWrap: 'break-word !important',
-                  display: 'flex',
-                  alignItems: 'center',
-                },
-              }}
-            />
-          </Paper>
-        </Box>
-      );
-    }
-    
-    return (
-      <Typography variant="h6" sx={{ mt: 4 }}>
-        Nenhuma corrida agendada.
-      </Typography>
-    );
-  };
-
-  const hasActiveRide = dashboardData?.corridaDeHoje && 
-    (dashboardData.corridaDeHoje.situacao === 'ANDAMENTO' || 
-    dashboardData.corridaDeHoje.situacao === 'AGENDADA');
-
   return (
     <>
       <AppBar position="static">
-        <Toolbar sx={{ 
-          flexWrap: 'wrap', 
-          gap: 1,
-        }}>
+        <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
           {isMobile && (
-            <IconButton 
-              color="inherit" 
+            <IconButton
+              color="inherit"
               onClick={() => setShowMobileMenu(!showMobileMenu)}
               sx={{ px: 1 }}
               className="mobile-menu-button"
@@ -340,409 +255,201 @@ const Menu: React.FC = () => {
 
           <Typography
             variant="h6"
-            sx={{ 
-              flexGrow: isMobile ? 1 : 0, 
-              textDecoration: "none", 
+            sx={{
+              flexGrow: isMobile ? 1 : 0,
+              textDecoration: "none",
               color: "inherit",
               fontFamily: "inherit",
               mr: 2,
-              fontSize: isMobile ? '1rem' : '1.25rem',
+              ml: 3,
+              pt: "2px",
+              pb: "0px",
+              fontSize: isMobile ? "1rem" : "1.25rem",
             }}
-            component={Link}
-            to={isAuthenticated ? "/menu" : "/"}
           >
             SISTEMA FROTAS
           </Typography>
 
-          <Box sx={{ 
-            display: 'flex', 
-            gap: 1, 
-            flexWrap: 'wrap',
-            justifyContent: 'flex-end',
-            flex: 1,
-            alignItems: 'center'
-          }}>
-          {isAuthenticated && (
-            <>
-              {!isMobile && (
-                <>
-                  {hasActiveRide && (
-                    <Tooltip title={"Corrida em Andamento"}>
-                      <span>
-                        <IconButton 
-                          color="inherit" 
-                          component={Link} 
-                          to="/menu"
-                          sx={{ 
-                            position: 'relative',
-                            animation: hasActiveRide ? 'pulse 2s infinite' : 'none',
-                            '@keyframes pulse': {
-                              '0%': { opacity: 1 },
-                              '50%': { opacity: 0.6 },
-                              '100%': { opacity: 1 },
-                            }
-                          }}
-                        >
-                          <Badge color="error" variant="dot">
-                            <DirectionsCarIcon />
-                          </Badge>
-                        </IconButton>
-                      </span>
-                    </Tooltip>
-                  )}
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              flexWrap: "wrap",
+              justifyContent: "flex-end",
+              flex: 1,
+              alignItems: "center",
+            }}
+          >
+            {isAuthenticated && (
+              <>
+                {!isMobile && (
+                  <>
+                    {hasCorridaAtiva && (
+                      <Tooltip title={"Corrida em Andamento"}>
+                        <span>
+                          <IconButton
+                            color="inherit"
+                            component={Link}
+                            to={`/PainelCorridaMotorista/${idCorridaAtiva}`}
+                            sx={{
+                              position: "relative",
+                              animation: hasCorridaAtiva
+                                ? "pulse 2s infinite"
+                                : "none",
+                              "@keyframes pulse": {
+                                "0%": { opacity: 1 },
+                                "50%": { opacity: 0.6 },
+                                "100%": { opacity: 1 },
+                              },
+                            }}
+                          >
+                            <Badge color="error" variant="dot">
+                              <DirectionsCarIcon />
+                            </Badge>
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    )}
 
-                  {administrador === true && (
-                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                      <Button 
-                        color="inherit" 
-                        component={Link} 
-                        to="/Corridas"
-                        sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
-                      >
-                        Corridas
-                      </Button>
-                      <Button 
-                        color="inherit" 
-                        component={Link} 
-                        to="/Veiculos"
-                        sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
-                      >
-                        Veículos
-                      </Button>
-                      <Button 
-                        color="inherit" 
-                        component={Link} 
-                        to="/Multas"
-                        sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
-                      >
-                        Multas
-                      </Button>
-                      <Button 
-                        color="inherit" 
-                        component={Link} 
-                        to="/Administradores"
-                        sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
-                      >
-                        Administradores
-                      </Button>
+                    {isAuthenticated && !isMobile && renderBotoesDesktop()}
+                  </>
+                )}
 
-                      <Button 
-                        color="inherit" 
-                        component={Link} 
-                        to="/Relatorios"
-                        sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
-                      >
-                        Relatórios
-                      </Button>
-                    </Box>
-                  )}
-
-                  <Button 
-                    color="inherit" 
-                    component={Link} 
-                    to="/RegistrosDeInfracao"
-                    sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
-                  >
-                    Registros de Infração
-                  </Button>
-
-                  <Button 
-                    color="inherit" 
-                    component={Link} 
-                    to="/HistoricoIndividual"
-                    sx={{ fontFamily: "inherit", fontSize: '0.875rem' }}
-                  >
-                    Historico
-                  </Button>
-                </>
-              )}
-
-              <DropdownMenu
-                anchorEl={isMobile ? document.querySelector('.mobile-menu-button') : null}
-                open={isMobile && showMobileMenu}
-                onClose={() => setShowMobileMenu(false)}
-                PaperProps={{
-                  sx: {
-                    mt: 1,
-                    minWidth: 200,
-                    backgroundColor: 'background.paper',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                    borderRadius: 1,
+                <DropdownMenu
+                  anchorEl={
+                    isMobile
+                      ? document.querySelector(".mobile-menu-button")
+                      : null
                   }
-                }}
-              >
-                <>
-                  {hasActiveRide && (
-                    <DropdownItem 
-                      component={Link} 
-                      to="/corrida-andamento"
-                      onClick={() => setShowMobileMenu(false)}
-                      sx={{ 
-                        fontSize: '0.9rem', 
-                        py: 1,
-                        color: 'error.main',
-                        fontWeight: 'bold'
-                      }}
-                    >
-                      <DirectionsCarIcon sx={{ mr: 1, fontSize: '1.2rem' }} />
-                      Corrida em Andamento
-                    </DropdownItem>
-                  )}
-
-                  {administrador === true && (
-                    <>
-                      <DropdownItem 
-                        component={Link} 
-                        to="/Corridas"
-                        onClick={() => setShowMobileMenu(false)}
-                        sx={{ fontSize: '0.9rem', py: 1 }}
-                      >
-                        Painel Corrida
-                      </DropdownItem>
-                      <DropdownItem 
-                        component={Link} 
-                        to="/Veiculos"
-                        onClick={() => setShowMobileMenu(false)}
-                        sx={{ fontSize: '0.9rem', py: 1 }}
-                      >
-                        Veículos
-                      </DropdownItem>
-                      <DropdownItem 
-                        component={Link} 
-                        to="/Multas"
-                        onClick={() => setShowMobileMenu(false)}
-                        sx={{ fontSize: '0.9rem', py: 1 }}
-                      >
-                        Multas
-                      </DropdownItem>
-                      <DropdownItem 
-                        component={Link} 
-                        to="/Administradores"
-                        onClick={() => setShowMobileMenu(false)}
-                        sx={{ fontSize: '0.9rem', py: 1 }}
-                      >
-                        Administradores
-                      </DropdownItem>
-                    </>
-                  )}
-
-                  <DropdownItem 
-                    component={Link} 
-                    to="/Boletos"
-                    onClick={() => setShowMobileMenu(false)}
-                    sx={{ fontSize: '0.9rem', py: 1 }}
-                  >
-                    Boletos
-                  </DropdownItem>
-
-                  <DropdownItem 
-                    component={Link} 
-                    to="/HistoricoIndividual"
-                    onClick={() => setShowMobileMenu(false)}
-                    sx={{ fontSize: '0.9rem', py: 1 }}
-                  >
-                    Histórico Individual
-                  </DropdownItem>
-
-                  <DropdownItem 
-                    component={Link} 
-                    to="/Relatorios"
-                    onClick={() => setShowMobileMenu(false)}
-                    sx={{ fontSize: '0.9rem', py: 1 }}
-                  >
-                    Relatórios
-                  </DropdownItem>
-                </>
-              </DropdownMenu>
-
-              <Box sx={{ 
-                display: 'flex', 
-                gap: 1, 
-                flexWrap: 'nowrap',
-                alignItems: 'center'
-              }}>
-                <Tooltip title={"Perfil"}>
-                  <span>
-                    <IconButton 
-                      color="inherit" 
-                      onClick={handleAbrirModalDadosPerfil}
-                      sx={{ 
-                        p: 1
-                      }}
-                    >
-                      <AccountCircleIcon />
-                    </IconButton>
-                  </span>
-                </Tooltip>
-                <Tooltip title={`Modo ${themeMode === 'dark' ? 'claro' : 'escuro'}`}>
-                  <span>
-                    <IconButton 
-                      color="inherit" 
-                      onClick={toggleTheme}
-                      sx={{ 
-                        p: 1
-                      }}
-                    >
-                      <ContrastIcon />
-                    </IconButton>
-                  </span>
-                </Tooltip>
-                {/* Timer de Inatividade */}
-                <Tooltip title="Sessão expira em">
-                  <Chip
-                    icon={<AccessTimeIcon />}
-                    label={tempoRestante}
-                    sx={{
-                      backgroundColor: themeMode === 'dark' 
-                        ? 'rgba(255, 255, 255, 0.08)' 
-                        : 'rgba(255, 255, 255, 1)',
-                      border: `1px solid ${corTimer}30`,
-                      color: corTimer,
-                      fontWeight: 600,
-                      '& .MuiChip-icon': {
-                        color: corTimer,
-                      },
-                      display: { xs: 'none', sm: 'flex' } // Oculta em mobile
-                    }}
-                  />
-                </Tooltip>   
-                <Tooltip title={"Sair"}>   
-                  <span>             
-                    <IconButton 
-                      color="inherit" 
-                      onClick={handleLogout}
-                      sx={{ 
-                        p: 1
-                      }}
-                    >
-                      <ExitToAppIcon />
-                    </IconButton>
-                  </span>
-                </Tooltip>
-              </Box>
-
-              <Dialog
-                open={showModalDadosPerfil}
-                onClose={handleFecharModalDadosPerfil}
-                fullWidth
-                maxWidth="sm"
-                PaperProps={{
-                  sx: {
-                    borderRadius: 2,
-                    p: 2
-                  }
-                }}
-              >
-                <DialogTitle sx={{ 
-                  fontSize: '1.25rem', 
-                  p: 2,
-                  color: 'text.primary',
-                  fontWeight: 600 
-                }}>
-                  Seus Dados
-                </DialogTitle>
-                <DialogContent sx={{ p: 2 }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Typography 
-                        sx={{ 
-                          minWidth: 80,
-                          color: 'text.secondary',
-                          fontWeight: 500
-                        }}
-                      >
-                        Nome:
-                      </Typography>
-                      <Typography 
-                        fontWeight="medium" 
-                        sx={{ color: 'text.primary', ml: 1 }}
-                      >
-                        {nome}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Typography 
-                        sx={{ 
-                          minWidth: 80,
-                          color: 'text.secondary',
-                          fontWeight: 500
-                        }}
-                      >
-                        Email:
-                      </Typography>
-                      <Typography 
-                        fontWeight="medium" 
-                        sx={{ color: 'text.primary', ml: 1 }}
-                      >
-                        {email}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Typography 
-                        sx={{ 
-                          minWidth: 80,
-                          color: 'text.secondary',
-                          fontWeight: 500
-                        }}
-                      >
-                        CPF:
-                      </Typography>
-                      <Typography 
-                        fontWeight="medium" 
-                        sx={{ color: 'text.primary', ml: 1 }}
-                      >
-                        {cpf}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </DialogContent>
-                <DialogActions sx={{ p: 2 }}>
-                  <Button
-                    onClick={handleFecharModalDadosPerfil}
-                    variant="contained"
-                    sx={{
+                  open={isMobile && showMobileMenu}
+                  onClose={() => setShowMobileMenu(false)}
+                  PaperProps={{
+                    sx: {
+                      mt: 1,
+                      minWidth: 200,
+                      backgroundColor: "background.paper",
+                      boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                       borderRadius: 1,
-                      textTransform: 'none',
-                      px: 3,
-                      bgcolor: 'primary.main',
-                      '&:hover': {
-                        bgcolor: 'primary.dark'
-                      }
-                    }}
-                  >
-                    Fechar
-                  </Button>
-                </DialogActions>
-              </Dialog>
-            </>
-          )}
+                    },
+                  }}
+                >
+                  <>
+                    {hasCorridaAtiva && (
+                      <DropdownItem
+                        component={Link}
+                        to={`/PainelCorridaMotorista/${idCorridaAtiva}`}
+                        onClick={() => setShowMobileMenu(false)}
+                        sx={{
+                          fontSize: "0.9rem",
+                          py: 1,
+                          color: "error.main",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        <DirectionsCarIcon sx={{ mr: 1, fontSize: "1.2rem" }} />
+                        Corrida em Andamento
+                      </DropdownItem>
+                    )}
 
-          {!isAuthenticated && (
-            <Button 
-              color="inherit" 
-              component={Link} 
-              to="/"
-              sx={{ fontFamily: "inherit" }}
-            >
-              Login
-            </Button>
-          )}
+                    {renderItensMobile()}
+                  </>
+                </DropdownMenu>
+
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: 1,
+                    flexWrap: "nowrap",
+                    alignItems: "center",
+                  }}
+                >
+                  <Tooltip title={"Perfil"}>
+                    <span>
+                      <IconButton
+                        color="inherit"
+                        onClick={handleAbrirModalDadosPerfil}
+                        sx={{ p: 1 }}
+                      >
+                        <AccountCircleIcon />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                  <Tooltip
+                    title={`Modo ${themeMode === "dark" ? "claro" : "escuro"}`}
+                  >
+                    <span>
+                      <IconButton
+                        color="inherit"
+                        onClick={toggleTheme}
+                        sx={{ p: 1 }}
+                      >
+                        <ContrastIcon />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                  {/* Timer de Inatividade */}
+                  <Tooltip title="Sessão expira em">
+                    <Chip
+                      icon={<AccessTimeIcon />}
+                      label={tempoRestante}
+                      sx={{
+                        backgroundColor:
+                          themeMode === "dark"
+                            ? "rgba(255, 255, 255, 0.08)"
+                            : "rgba(255, 255, 255, 1)",
+                        border: `1px solid ${corTimer}30`,
+                        color: corTimer,
+                        fontWeight: 600,
+                        "& .MuiChip-icon": {
+                          color: corTimer,
+                        },
+                        display: { xs: "none", sm: "flex" }, // Oculta em mobile
+                      }}
+                    />
+                  </Tooltip>
+                  <Tooltip title={"Sair"}>
+                    <span>
+                      <IconButton
+                        color="inherit"
+                        onClick={handleLogout}
+                        sx={{ p: 1, mr: 3 }}
+                      >
+                        <ExitToAppIcon />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                </Box>
+              </>
+            )}
+
+            {!isAuthenticated && (
+              <Button
+                color="inherit"
+                component={Link}
+                to="/"
+                sx={{ fontFamily: "inherit" }}
+              >
+                Login
+              </Button>
+            )}
           </Box>
         </Toolbar>
       </AppBar>
 
-      {location.pathname === '/menu' && (
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'flex-start', 
-          width: '100%', 
-          mt: 4, 
-          p: 2,
-          flex: 1
-        }}>
-          {renderContent()}
-        </Box>
+      {showModalDadosPerfil && (
+        <DadosPerfil
+          open={showModalDadosPerfil}
+          onClose={() => setShowModalDadosPerfil(false)}
+          onSuccess={async (msg) => {
+            console.log(msg);
+          }}
+          onError={(error) => {
+            console.error("Erro ao exibir dados do perfil:", error);
+            if (error.response?.status === 401) {
+              navigate("/");
+            }
+          }}
+        />
       )}
     </>
   );

@@ -1,24 +1,25 @@
 import { Add, Cancel, CheckCircle } from "@mui/icons-material";
 import {
+  Alert,
   Box,
   Button,
   Chip,
-  IconButton,
-  Modal,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   TextField,
   Tooltip,
   Typography,
   useTheme,
 } from "@mui/material";
 import CreateIcon from "@mui/icons-material/Create";
-import CancelIcon from "@mui/icons-material/Cancel";
 import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 
-import FormularioVeiculos from "./ModalCadastroEdicaoVeiculo";
+import ModalCadastroEdicaoVeiculo from "./ModalCadastroEdicaoVeiculo";
 import { CarroDto, CarroService } from "../../../services/CarroService";
-import { TipoCombustivel } from "../../../services/TipoCombustivelService";
 import AppLayout from "../../../components/Layout";
 
 export default function ListaVeiculos() {
@@ -36,51 +37,43 @@ export default function ListaVeiculos() {
   const [qtdDisponivel, setQtdDisponivel] = useState<number>(0);
   const [qtdViagem, setQtdViagem] = useState<number>(0);
   const [qtdManutencao, setQtdManutencao] = useState<number>(0);
-
-  // Estado para armazenar os tipos de combustível
-  const [tiposCombustivel, setTiposCombustivel] = useState<TipoCombustivel[]>(
-    [],
-  );
+  const [mensagemSucesso, setMensagemSucesso] = useState("");
 
   // Estados para o modal de confirmação (Ativar/Inativar)
   const [showModalAtivacao, setShowModalAtivacao] = useState(false);
   const [selectedCarro, setSelectedCarro] = useState<CarroDto | null>(null);
 
   // Estados para o FormularioVeiculos
-  const [openFormulario, setOpenFormulario] = useState(false);
+  const [openModalCadastroEdicao, setopenModalCadastroEdicao] = useState(false);
   const [selectedCarroForEdit, setSelectedCarroForEdit] =
     useState<CarroDto | null>(null);
   const [modoFormulario, setModoFormulario] = useState<"criar" | "editar">(
     "criar",
   );
 
-  // Estados para situação de veiculo (Modal Editar Situação - mantido para compatibilidade)
-  const [openEditModal, setOpenEditModal] = useState(false);
-  const [novaSituacao, setNovaSituacao] = useState<string>("");
-
   // Abrir modal de criação
   const handleOpenCriar = () => {
     setModoFormulario("criar");
     setSelectedCarroForEdit(null);
-    setOpenFormulario(true);
+    setopenModalCadastroEdicao(true);
+    
   };
 
   // Abrir modal de edição
   const handleOpenEditar = (carro: CarroDto) => {
     setModoFormulario("editar");
     setSelectedCarroForEdit(carro);
-    setOpenFormulario(true);
+    setopenModalCadastroEdicao(true);
   };
 
   // Fechar modal do formulário
   const handleCloseFormulario = () => {
-    setOpenFormulario(false);
+    setopenModalCadastroEdicao(false);
     setSelectedCarroForEdit(null);
   };
 
   // Sucesso no formulário
   const handleSuccessFormulario = (message: string) => {
-    console.log(message);
     // Recarregar a lista de carros
     carregarCarros();
     handleCloseFormulario();
@@ -121,11 +114,6 @@ export default function ListaVeiculos() {
     carregarCarros();
   }, [carroCadastrado]);
 
-  const handleCloseEditModal = () => {
-    setOpenEditModal(false);
-    setSelectedCarroForEdit(null);
-  };
-
   // Função de filtro (mantida)
   const filteredCarros = carros.filter((carro) => {
     const matchesSearchTerm = Object.values(carro).some((valor) =>
@@ -163,43 +151,13 @@ export default function ListaVeiculos() {
     }
   };
 
-  // Lógica de salvamento da Situação
-  const handleSaveSituacao = async () => {
-    if (!selectedCarroForEdit || !selectedCarroForEdit.idCarro) return;
-    try {
-      await CarroService.atualizar(selectedCarroForEdit.idCarro, {
-        situacao: novaSituacao,
-        tombo: 0,
-        qrCode: "",
-        placa: "",
-        odometro: "",
-        modelo: "",
-        ano: 0,
-        localidadeFisica: "",
-        ativo: false,
-        idTipoCombustivel: 0,
-        //tipoCombustivel: 0
-      });
-      await carregarCarros();
-      handleCloseEditModal();
-    } catch (error: any) {
-      console.error("Erro ao atualizar situação:", error);
-      alert(
-        "Erro ao atualizar situação do veículo: " +
-        (error?.response?.data?.message || error.message),
-      );
-    }
-  };
-
   // Definição das colunas da DataGrid
   const colunas: GridColDef[] = [
     {
       field: "placa",
       headerName: "Placa",
       width: 150,
-      renderCell: (params) => (
-        <Typography fontWeight="bold">{params.value}</Typography>
-      ),
+      renderCell: (params) => <Typography>{params.value}</Typography>,
     },
     { field: "modelo", headerName: "Modelo", width: 350 },
     { field: "ano", headerName: "Ano", width: 150 },
@@ -229,8 +187,7 @@ export default function ListaVeiculos() {
               color={"error"}
               size="small"
               variant="outlined"
-            >
-            </Chip>
+            ></Chip>
           );
         }
 
@@ -293,8 +250,7 @@ export default function ListaVeiculos() {
                   margin: 0,
                 },
               }}
-            >
-            </Button>
+            ></Button>
           </Tooltip>
 
           {/* INATIVAR/ATIVAR */}
@@ -342,9 +298,17 @@ export default function ListaVeiculos() {
         display="flex"
         justifyContent="space-between"
         alignItems="center"
-        mb={3}
+        mb={1.5}
+        mx={3.5}
+        height={56}
       >
-        <Typography variant="h5" fontWeight="bold" color="textPrimary">
+        <Typography
+          variant="h5"
+          fontWeight="bold"
+          color="text.primary"
+          display="flex"
+          pb={0}
+        >
           Listagem de Veículos
         </Typography>
 
@@ -356,253 +320,247 @@ export default function ListaVeiculos() {
             textTransform: "none",
             fontWeight: 600,
             boxShadow: theme.shadows[2],
+            mb: 1,
+            mt: 1,
           }}
         >
           Novo Veículo
         </Button>
       </Box>
 
-      {/* Filtros por status (Ativos/Inativos) */}
-      <Box sx={{ display: "flex", gap: 1, mb: 3, flexWrap: "wrap" }}>
-        {[
-          {
-            label: "ATIVOS",
-            value: "ATIVOS",
-            count: qtdAtivos,
-            color: theme.palette.success.main,
-          },
-          {
-            label: "INATIVOS",
-            value: "INATIVOS",
-            count: qtdInativos,
-            color: theme.palette.error.main,
-          },
-          {
-            label: "TODOS",
-            value: "TODOS",
-            count: carros.length,
-            color: theme.palette.primary.dark,
-          },
-        ].map((tab) => (
-          <Button
-            key={tab.value}
-            variant={filtroStatus === tab.value ? "contained" : "outlined"}
-            onClick={() => setFiltroStatus(tab.value)}
-            sx={{
-              textTransform: "none",
-              borderRadius: 2,
-              px: 2,
-              fontWeight: filtroStatus === tab.value ? 600 : 500,
-              color: filtroStatus === tab.value ? "white" : "text.primary",
-              bgcolor:
-                filtroStatus === tab.value ? tab.color : "background.paper",
-              "&:hover": {
-                bgcolor:
-                  filtroStatus === tab.value
-                    ? theme.palette.primary.dark
-                    : theme.palette.action.hover,
-              },
-            }}
-          >
-            {tab.label}
-            <Box
+      {mensagemSucesso && (
+        <Alert
+          severity="success"
+          sx={{
+            mb: 3,
+            fontSize: "1.1rem",
+            border: "1px solid",
+            borderColor: "success.main",
+            borderRadius: 1.5,
+          }}
+        >
+          {mensagemSucesso}
+        </Alert>
+      )}
+
+      {/* Filtros por situação + campo de busca + datagrid */}
+      <Box
+        sx={{
+          bgcolor:
+            theme.palette.mode === "light"
+              ? "#FFF"
+              : theme.palette.background.paper,
+          borderRadius: 2,
+          py: 2,
+          mb: 0,
+          boxShadow:
+            theme.palette.mode === "dark"
+              ? "0px 4px 20px rgba(0, 0, 0, 0.3)"
+              : "0px 8px 24px rgba(0, 0, 0, 0.08)",
+          border:
+            theme.palette.mode === "dark"
+              ? "1px solid transparent"
+              : "1px solid #E7E9EE",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            mt: 1,
+            mb: 3,
+            ml: 3,
+            flexWrap: "wrap",
+          }}
+        >
+          {[
+            {
+              label: "ATIVOS",
+              value: "ATIVOS",
+              count: qtdAtivos,
+              color: theme.palette.success.main,
+            },
+            {
+              label: "INATIVOS",
+              value: "INATIVOS",
+              count: qtdInativos,
+              color: theme.palette.error.main,
+            },
+            {
+              label: "TODOS",
+              value: "TODOS",
+              count: carros.length,
+              color: theme.palette.primary.dark,
+            },
+          ].map((tab) => (
+            <Button
+              key={tab.value}
+              variant={filtroStatus === tab.value ? "contained" : "outlined"}
+              onClick={() => setFiltroStatus(tab.value)}
               sx={{
-                ml: 1,
-                fontWeight: 600,
-                backgroundColor:
-                  filtroStatus === tab.value
-                    ? "rgba(255,255,255,0.2)"
-                    : theme.palette.mode === "dark"
-                      ? theme.palette.grey[700]
-                      : theme.palette.grey[200],
-                color:
-                  filtroStatus === tab.value
-                    ? "white"
-                    : theme.palette.mode === "dark"
-                      ? theme.palette.grey[100]
-                      : theme.palette.text.primary,
-                px: 1,
-                borderRadius: 12,
+                textTransform: "none",
+                borderRadius: 2,
+                px: 2,
+                fontWeight: filtroStatus === tab.value ? 600 : 500,
+                color: filtroStatus === tab.value ? "white" : "text.primary",
+                bgcolor:
+                  filtroStatus === tab.value ? tab.color : "background.paper",
+                "&:hover": {
+                  bgcolor:
+                    filtroStatus === tab.value
+                      ? theme.palette.primary.dark
+                      : theme.palette.action.hover,
+                },
               }}
             >
-              {tab.count}
-            </Box>
-          </Button>
-        ))}
-      </Box>
+              {tab.label}
+              <Box
+                sx={{
+                  ml: 1,
+                  fontWeight: 600,
+                  backgroundColor:
+                    filtroStatus === tab.value
+                      ? "rgba(255,255,255,0.2)"
+                      : theme.palette.mode === "dark"
+                        ? theme.palette.grey[700]
+                        : theme.palette.grey[200],
+                  color:
+                    filtroStatus === tab.value
+                      ? "white"
+                      : theme.palette.mode === "dark"
+                        ? theme.palette.grey[100]
+                        : theme.palette.text.primary,
+                  px: 1,
+                  borderRadius: 12,
+                }}
+              >
+                {tab.count}
+              </Box>
+            </Button>
+          ))}
+        </Box>
 
-      {/* Busca */}
-      <Box sx={{ mb: 3 }}>
-        <TextField
-          placeholder="Buscar veículos..."
-          variant="outlined"
-          size="small"
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          fullWidth
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              borderRadius: 2,
-              backgroundColor: theme.palette.background.paper,
+        {/* Busca */}
+        <Box sx={{ mb: 3, mx: 3 }}>
+          <TextField
+            placeholder="Buscar veículo"
+            variant="outlined"
+            size="small"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            fullWidth
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 2,
+                backgroundColor: theme.palette.background.paper,
+              },
+            }}
+          />
+        </Box>
+
+        <DataGrid
+          rows={filteredCarros}
+          columns={colunas}
+          getRowId={(row) => row.idCarro}
+          initialState={{
+            pagination: {
+              paginationModel: { pageSize: 8, page: 0 },
             },
           }}
+          pageSizeOptions={[8, 16, 24]}
+          localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+          autoHeight
+          sx={{
+            "& .MuiDataGrid-columnHeaders": {
+              "& .MuiDataGrid-columnHeader:first-child": {
+                pl: 4,
+              },
+              "& .MuiDataGrid-columnHeader:last-child": {
+                pr: 4,
+              },
+            },
+            "& .MuiDataGrid-row": {
+              "& .MuiDataGrid-cell:first-child": {
+                pl: 4,
+              },
+              "& .MuiDataGrid-cell:last-child": {
+                pr: 4,
+              },
+            },
+          }}
+          rowSelection={false}
+          rowHeight={50}
+          columnHeaderHeight={60}
         />
       </Box>
 
-      <DataGrid
-        rows={filteredCarros}
-        columns={colunas}
-        getRowId={(row) => row.idCarro}
-        initialState={{
-          pagination: {
-            paginationModel: { pageSize: 8, page: 0 },
-          },
-        }}
-        pageSizeOptions={[8, 16, 24]}
-        localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
-        autoHeight
-        sx={{
-          "& .MuiDataGrid-cell": {
-            borderBottom: `1px solid ${theme.palette.divider}`,
-            py: 1.5,
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            backgroundColor:
-              theme.palette.mode === "dark"
-                ? theme.palette.grey[800]
-                : theme.palette.grey[100],
-            fontWeight: "bold",
-            borderRadius: 1,
-            borderBottom: `2px solid ${theme.palette.divider}`,
-          },
-          "& .MuiDataGrid-row": {
-            "&:hover": { backgroundColor: theme.palette.action.hover },
-            "&.Mui-selected": {
-              backgroundColor: theme.palette.action.selected,
-            },
-          },
-          "& .MuiDataGrid-footerContainer": {
-            borderTop: `1px solid ${theme.palette.divider}`,
-          },
-          "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-          {
-            marginBottom: 0,
-            alignSelf: "center",
-          },
-          "& .MuiTablePagination-toolbar": {
-            minHeight: "52px",
-            alignItems: "center",
-          },
-          boxShadow: theme.shadows[1],
-          borderRadius: 2,
-          border: "none",
-          backgroundColor: theme.palette.background.paper,
-          height: "calc(100vh - 350px)",
-        }}
-        rowSelection={false}
-      />
-
-      {/* FormularioVeiculos para criação e edição */}
-      <FormularioVeiculos
-        idVeiculo={
-          modoFormulario === "editar" && selectedCarroForEdit
-            ? selectedCarroForEdit.idCarro || null
-            : null
-        }
-        open={openFormulario}
-        onClose={handleCloseFormulario}
-        onSuccess={handleSuccessFormulario}
-        onError={handleErrorFormulario}
-      />
-
-      {/* Modal de Edição de Situação (mantido para compatibilidade) */}
-      <Modal
-        open={openEditModal}
-        onClose={handleCloseEditModal}
-        aria-labelledby="modal-situacao-title"
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 400,
-            bgcolor: "background.paper",
-            boxShadow: 24,
-            p: 4,
-            borderRadius: 2,
+      {/* Modal de cadastro e edição */}
+      {openModalCadastroEdicao && (
+        <ModalCadastroEdicaoVeiculo
+          idVeiculo={
+            modoFormulario === "editar" && selectedCarroForEdit
+              ? selectedCarroForEdit.idCarro || null
+              : null
+          }
+          open={openModalCadastroEdicao}
+          onClose={handleCloseFormulario}
+          onSuccess={(message) => {
+            handleCloseFormulario();
+            setMensagemSucesso(message);
+            carregarCarros();
           }}
-        >
-          <Typography variant="h6" gutterBottom>
-            Editar Situação
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            Veículo: {selectedCarroForEdit?.placa}
-          </Typography>
-          {/* Aqui você pode adicionar os controles para editar a situação se necessário */}
-          <Box display="flex" justifyContent="flex-end" gap={1} mt={2}>
-            <Button onClick={handleCloseEditModal} variant="outlined">
-              Cancelar
-            </Button>
-            <Button onClick={handleSaveSituacao} variant="contained">
-              Salvar
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
+          onError={handleErrorFormulario}
+        />
+      )}
 
       {/* Modal de Ativar/Inativar Veículo */}
-      <Modal
+      <Dialog
         open={showModalAtivacao}
         onClose={() => setShowModalAtivacao(false)}
-        aria-labelledby="modal-ativacao-title"
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 500,
-            bgcolor: "background.paper",
-            boxShadow: 24,
-            p: 4,
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
             borderRadius: 2,
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-          }}
-        >
+          },
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: "600" }}>
           <Typography
-            id="modal-ativacao-title"
             variant="h6"
-            component="h2"
-            gutterBottom
+            color="text.primary"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontWeight: "bold",
+            }}
           >
             Alterar Status do Veículo
           </Typography>
-          <Typography variant="body1" className="pb-4" gutterBottom>
-            Você está prestes a {selectedCarro?.ativo ? "inativar" : "ativar"} o
-            veículo {selectedCarro?.placa}.
+        </DialogTitle>
+        <DialogContent>
+          <Typography color="text.primary">
+            Você está prestes a{" "}
+            <strong>{selectedCarro?.ativo ? "inativar" : "ativar"}</strong> o
+            veículo <strong>{selectedCarro?.placa}</strong>.
           </Typography>
-          <Box display="flex" justifyContent="flex-end" gap={2}>
-            <Button
-              onClick={handleConfirmarToggleAtivo}
-              variant="contained"
-              color={selectedCarro?.ativo ? "error" : "success"}
-            >
-              {selectedCarro?.ativo ? "Inativar" : "Ativar"}
-            </Button>
-            <Button
-              onClick={() => setShowModalAtivacao(false)}
-              variant="outlined"
-            >
-              Cancelar
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Button
+            onClick={() => setShowModalAtivacao(false)}
+            variant="outlined"
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleConfirmarToggleAtivo}
+            variant="contained"
+            color={selectedCarro?.ativo ? "error" : "success"}
+          >
+            {selectedCarro?.ativo ? "Inativar" : "Ativar"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </AppLayout>
   );
 }

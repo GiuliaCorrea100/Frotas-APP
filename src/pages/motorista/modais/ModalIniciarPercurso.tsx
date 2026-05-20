@@ -14,6 +14,7 @@ import {
 interface ModalIniciarPercursoProps {
   open: boolean;
   onClose: () => void;
+  onSuccess: (message: string) => void;
   onConfirm: () => void;
   destino: string;
   setDestino: (value: string) => void;
@@ -31,6 +32,7 @@ interface ModalIniciarPercursoProps {
 const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
   open,
   onClose,
+  onSuccess,
   onConfirm,
   destino,
   setDestino,
@@ -59,6 +61,7 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
   }, [isUltimoPercurso, open, localOrigemCorrida, setDestino]);
 
   const handleConfirm = () => {
+
     if (!chaveEmprestada) {
       setMostrarAlertaChave(true);
       return;
@@ -74,6 +77,11 @@ const ModalIniciarPercurso: React.FC<ModalIniciarPercursoProps> = ({
     } else {
       onConfirm();
     }
+
+    const mensagem = "Percurso iniciado com sucesso!";
+        
+
+    onSuccess(mensagem);
   };
 
   const handleClose = () => {

@@ -44,9 +44,8 @@ export class CarroService {
     return resposta.data;
   }
 
-  static async buscarPorPlaca(placa: string): Promise<any> {
+  static async buscarPorPlaca(placa: string): Promise<CarroDto> {
     const resposta = await axiosConnect.get<CarroDto>(`/carro/buscar-placa/${placa}`);
-    console.log(resposta);
     return resposta.data;
   }
 
