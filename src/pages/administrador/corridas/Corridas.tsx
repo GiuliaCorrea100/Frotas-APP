@@ -253,21 +253,39 @@ export default function ListaCorrida() {
       field: "dataInicio",
       headerName: "Data Início",
       width: 200,
-      renderCell: (params) => (
-        <Typography variant="body2">
-          {formatDateOnly(params.value as string)}
-        </Typography>
-      ),
+      renderCell: (params) => {
+        const corrida = params.row;
+        const chaveEmprestada = !!corrida.dataHoraLiberacaoChave;
+        
+        const horaInicio = chaveEmprestada 
+          ? corrida.dataHoraLiberacaoChave 
+          : corrida.dataInicio;
+        
+        return (
+          <Typography variant="body2">
+            {formatDateOnly(horaInicio as string | null)}
+          </Typography>
+        );
+      },
     },
     {
       field: "dataTermino",
       headerName: "Data Término",
       width: 200,
-      renderCell: (params) => (
-        <Typography variant="body2">
-          {formatDateOnly(params.value as string | null)}
-        </Typography>
-      ),
+      renderCell: (params) => {
+        const corrida = params.row;
+        const chaveEntregue = !!corrida.dataHoraRecebimentoChave;
+        
+        const horaTermino = chaveEntregue 
+          ? corrida.dataHoraRecebimentoChave 
+          : corrida.dataTermino;
+        
+        return (
+          <Typography variant="body2">
+            {formatDateOnly(horaTermino as string | null)}
+          </Typography>
+        );
+      },
     },
     {
       field: "situacao",
