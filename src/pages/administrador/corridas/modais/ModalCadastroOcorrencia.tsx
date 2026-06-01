@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   Box,
@@ -13,6 +13,7 @@ import {
 import { OcorrenciaService } from "../../../../services/OcorrenciaService";
 import { Close, Warning } from "@mui/icons-material";
 import { modalStyle } from "../../../../utils/modalStyle";
+import { CorridaFrontend } from "../../../../services/CorridaService";
 
 interface CadastrarOcorrenciaProps {
   open: boolean;
@@ -20,7 +21,7 @@ interface CadastrarOcorrenciaProps {
   onSuccess: (message: string) => void;
   chaveEmprestada: boolean;
   onError: (error: any) => void;
-  corrida: number;
+  corrida: CorridaFrontend;
   dataRegistro?: Date;
 }
 
@@ -32,39 +33,92 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
   corrida,
 }) => {
   const [descricao, setDescricao] = useState("");
-  const [dataOcorrencia, setDataOcorrencia] = useState<Date | null>(null);
+  const [dataOcorrencia, setDataOcorrencia] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const dataMinima = corrida?.dataHoraLiberacaoChave
+    ? new Date(corrida.dataHoraLiberacaoChave)
+    : null;
+
+  if (dataMinima) {
+    dataMinima.setHours(0, 0, 0, 0);
+  }
+
+  const dataLimite = corrida?.dataHoraRecebimentoChave
+    ? new Date(corrida.dataHoraRecebimentoChave)
+    : new Date();
+  dataLimite.setHours(0, 0, 0, 0);
+
+  const minDate = dataMinima
+    ? dataMinima.toISOString().slice(0, 10)
+    : undefined;
+  const maxDate = dataLimite.toISOString().slice(0, 10);
+
+  useEffect(() => {
+    if (open) {
+      setDescricao("");
+      setDataOcorrencia("");
+      setErrors({});
+      setSuccessMessage("");
+    }
+  }, [open]);
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!descricao.trim()) {
+      newErrors.descricao = "Descrição é obrigatória";
+    }
+
+    if (!dataOcorrencia) {
+      newErrors.dataOcorrencia = "Data da ocorrência é obrigatória";
+    } else {
+      const [ano, mes, dia] = dataOcorrencia.split("-").map(Number);
+      const dataSelecionada = new Date(ano, mes - 1, dia);
+      dataSelecionada.setHours(0, 0, 0, 0);
+      
+      const apenasData = (d: Date) =>
+        new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+
+      if (dataMinima && apenasData(dataSelecionada) < apenasData(dataMinima)) {
+        newErrors.dataOcorrencia = `Data não pode ser anterior à liberação da chave (${minDate})`;
+      } else if (apenasData(dataSelecionada) > apenasData(dataLimite)) {
+        newErrors.dataOcorrencia = `Data não pode ser posterior ao encerramento da corrida (${maxDate})`;
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!descricao.trim()) {
-      onError("A descrição é obrigatória");
-      return;
-    }
-
-    if (!dataOcorrencia) {
-      onError("A data da ocorrência é obrigatória");
-      return;
-    }
+    if (!validateForm()) return;
 
     setLoading(true);
 
     try {
+      const [ano, mes, dia] = dataOcorrencia.split("-").map(Number);
+      const dataOcorrenciaFormatada = new Date(ano, mes - 1, dia);
+      dataOcorrenciaFormatada.setHours(0, 0, 0, 0);
+
       const dadosOcorrencia = {
         descricao: descricao.trim(),
-        idCorrida: corrida,
-        dataOcorrencia: dataOcorrencia,
+        idCorrida: corrida.idCorrida,
+        dataOcorrencia: dataOcorrenciaFormatada,
       };
 
       await OcorrenciaService.criar(dadosOcorrencia);
 
       const mensagem = "Ocorrência cadastrada com sucesso!";
 
-      onSuccess(mensagem);
+      setSuccessMessage(mensagem);
 
       setTimeout(() => {
+        onSuccess(mensagem);
         onClose();
       }, 1500);
     } catch (error: any) {
@@ -73,12 +127,36 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
       if (error.response?.status === 401) {
         onError("Sessão expirada. Faça login novamente.");
       } else {
-        onError(
-          error.response?.data?.message || "Erro ao cadastrar ocorrência",
-        );
+        setErrors({
+          submit: error.response?.data?.message || "Erro ao cadastrar ocorrência",
+        });
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDescricaoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDescricao(e.target.value);
+    if (errors.descricao) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.descricao;
+        return newErrors;
+      });
+    }
+  };
+
+  const handleDataChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = e.target.value;
+    setDataOcorrencia(selectedDate);
+    
+    if (errors.dataOcorrencia) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.dataOcorrencia;
+        return newErrors;
+      });
     }
   };
 
@@ -119,23 +197,25 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
           </Alert>
         )}
 
+        {errors.submit && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {errors.submit}
+          </Alert>
+        )}
+
         <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
           <TextField
             label="Descrição"
             value={descricao}
-            onChange={(e) => setDescricao(e.target.value)}
+            onChange={handleDescricaoChange}
             fullWidth
             required
             multiline
             rows={3}
             variant="outlined"
             margin="normal"
-            error={!descricao.trim() && descricao !== ""}
-            helperText={
-              !descricao.trim() && descricao !== ""
-                ? "Descrição não pode estar vazia"
-                : ""
-            }
+            error={!!errors.descricao}
+            helperText={errors.descricao}
             disabled={!!successMessage || loading}
           />
         </Box>
@@ -145,20 +225,17 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
             label="Data da ocorrência"
             type="date"
             fullWidth
-            value={
-              dataOcorrencia ? dataOcorrencia.toISOString().slice(0, 10) : ""
-            }
-            onChange={(e) => {
-              const selectedDate = e.target.value;
-              if (selectedDate) {
-                const date = new Date(selectedDate + "T00:00:00");
-                setDataOcorrencia(date);
-              } else {
-                setDataOcorrencia(null);
-              }
-            }}
+            value={dataOcorrencia}
+            onChange={handleDataChange}
             InputLabelProps={{ shrink: true }}
+            inputProps={{
+              min: minDate,
+              max: maxDate,
+            }}
             required
+            error={!!errors.dataOcorrencia}
+            helperText={errors.dataOcorrencia}
+            disabled={!!successMessage || loading}
           />
         </Box>
 

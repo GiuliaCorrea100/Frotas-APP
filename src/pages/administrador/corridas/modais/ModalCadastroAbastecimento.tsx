@@ -27,7 +27,7 @@ import { modalStyle } from "../../../../utils/modalStyle";
 interface AbastecimentoModalProps {
   open: boolean;
   onClose: () => void;
-  corrida?: CorridaFrontend;
+  corrida?: CorridaFrontend; 
   onSuccess: (message: string) => void;
 }
 

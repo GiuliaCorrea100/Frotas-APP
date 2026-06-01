@@ -14,10 +14,12 @@ import { Close, Warning } from "@mui/icons-material";
 import { OcorrenciaDto } from "../../../../services/OcorrenciaService";
 import axiosConnect from "../../../../services/axios/axiosConnect";
 import { modalStyle } from "../../../../utils/modalStyle";
+import { CorridaFrontend } from "../../../../services/CorridaService";
 
 interface ModalEditarOcorrenciaProps {
   open: boolean;
   ocorrencia: OcorrenciaDto | null;
+  corrida: CorridaFrontend;
   onClose: () => void;
   onSuccess: (message: string) => void;
   onError: (error: any) => void;
@@ -26,37 +28,94 @@ interface ModalEditarOcorrenciaProps {
 const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
   open,
   ocorrencia,
+  corrida,
   onClose,
   onSuccess,
   onError,
 }) => {
   const [descricao, setDescricao] = useState("");
-  const [dataOcorrencia, setDataOcorrencia] = useState<Date | null>(null);
+  const [dataOcorrencia, setDataOcorrencia] = useState<string>(""); // Mudar para string
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Calcular datas mínima e máxima baseado na corrida
+  const dataMinima = corrida?.dataHoraLiberacaoChave
+    ? new Date(corrida.dataHoraLiberacaoChave)
+    : null;
+
+  if (dataMinima) {
+    dataMinima.setHours(0, 0, 0, 0);
+  }
+
+  const dataLimite = corrida?.dataHoraRecebimentoChave
+    ? new Date(corrida.dataHoraRecebimentoChave)
+    : new Date();
+  dataLimite.setHours(0, 0, 0, 0);
+
+  const minDate = dataMinima
+    ? dataMinima.toISOString().slice(0, 10)
+    : undefined;
+  const maxDate = dataLimite.toISOString().slice(0, 10);
 
   useEffect(() => {
-    if (ocorrencia) {
+    if (open && ocorrencia) {
       setDescricao(ocorrencia.descricao || "");
-
+      
+      // Converter a data da ocorrência para string no formato YYYY-MM-DD
       if (ocorrencia.dataOcorrencia) {
+        let dataObj: Date;
         if (typeof ocorrencia.dataOcorrencia === "string") {
           const dateString = ocorrencia.dataOcorrencia.includes("T")
-            ? ocorrencia.dataOcorrencia.split("T")[0] + "T00:00:00"
-            : ocorrencia.dataOcorrencia + "T00:00:00";
-          setDataOcorrencia(new Date(dateString));
+            ? ocorrencia.dataOcorrencia.split("T")[0]
+            : ocorrencia.dataOcorrencia;
+          dataObj = new Date(dateString + "T00:00:00");
         } else {
-          setDataOcorrencia(ocorrencia.dataOcorrencia);
+          dataObj = ocorrencia.dataOcorrencia;
         }
+        setDataOcorrencia(dataObj.toISOString().slice(0, 10));
       } else {
-        setDataOcorrencia(null);
+        setDataOcorrencia("");
+      }
+      
+      setErrors({});
+      setSuccessMessage("");
+    }
+  }, [open, ocorrencia]);
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!descricao.trim()) {
+      newErrors.descricao = "Descrição é obrigatória";
+    }
+
+    if (!dataOcorrencia) {
+      newErrors.dataOcorrencia = "Data da ocorrência é obrigatória";
+    } else {
+      const [ano, mes, dia] = dataOcorrencia.split("-").map(Number);
+      const dataSelecionada = new Date(ano, mes - 1, dia);
+      dataSelecionada.setHours(0, 0, 0, 0);
+      
+      const apenasData = (d: Date) =>
+        new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+
+      if (dataMinima && apenasData(dataSelecionada) < apenasData(dataMinima)) {
+        newErrors.dataOcorrencia = `Data não pode ser anterior à liberação da chave (${minDate})`;
+      } else if (apenasData(dataSelecionada) > apenasData(dataLimite)) {
+        newErrors.dataOcorrencia = `Data não pode ser posterior ao encerramento da corrida (${maxDate})`;
       }
     }
-  }, [ocorrencia]);
 
-  const formatarDataParaEnvio = (date: Date | null): string | null => {
-    if (!date) return null;
-    return date.toISOString();
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const formatarDataParaEnvio = (dateStr: string): string => {
+    const [ano, mes, dia] = dateStr.split("-").map(Number);
+    const data = new Date(ano, mes - 1, dia);
+    data.setHours(0, 0, 0, 0);
+    return data.toISOString();
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -64,15 +123,7 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
 
     if (!ocorrencia) return;
 
-    if (!descricao.trim()) {
-      onError("A descrição é obrigatória");
-      return;
-    }
-
-    if (!dataOcorrencia) {
-      onError("A data da ocorrência é obrigatória");
-      return;
-    }
+    if (!validateForm()) return;
 
     setLoading(true);
 
@@ -88,9 +139,10 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
       );
 
       const mensagem = "Ocorrência atualizada com sucesso!";
-      onSuccess(mensagem);
+      setSuccessMessage(mensagem);
 
       setTimeout(() => {
+        onSuccess(mensagem);
         onClose();
       }, 1500);
     } catch (error: any) {
@@ -99,12 +151,40 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
       if (error.response?.status === 401) {
         onError("Sessão expirada. Faça login novamente.");
       } else if (error.response?.status === 400) {
-        onError(error.response?.data?.message || "Dados inválidos");
+        setErrors({
+          submit: error.response?.data?.message || "Dados inválidos"
+        });
       } else {
-        onError(error.response?.data?.message || "Erro ao editar ocorrência");
+        setErrors({
+          submit: error.response?.data?.message || "Erro ao editar ocorrência"
+        });
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDescricaoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDescricao(e.target.value);
+    if (errors.descricao) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.descricao;
+        return newErrors;
+      });
+    }
+  };
+
+  const handleDataChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = e.target.value;
+    setDataOcorrencia(selectedDate);
+    
+    if (errors.dataOcorrencia) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.dataOcorrencia;
+        return newErrors;
+      });
     }
   };
 
@@ -145,23 +225,25 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
           </Alert>
         )}
 
+        {errors.submit && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {errors.submit}
+          </Alert>
+        )}
+
         <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
           <TextField
             label="Descrição"
             value={descricao}
-            onChange={(e) => setDescricao(e.target.value)}
+            onChange={handleDescricaoChange}
             fullWidth
             required
             multiline
             rows={3}
             variant="outlined"
             margin="normal"
-            error={!descricao.trim() && descricao !== ""}
-            helperText={
-              !descricao.trim() && descricao !== ""
-                ? "Descrição não pode estar vazia"
-                : ""
-            }
+            error={!!errors.descricao}
+            helperText={errors.descricao}
             disabled={!!successMessage || loading}
           />
         </Box>
@@ -171,20 +253,16 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
             label="Data da ocorrência"
             type="date"
             fullWidth
-            value={
-              dataOcorrencia ? dataOcorrencia.toISOString().slice(0, 10) : ""
-            }
-            onChange={(e) => {
-              const selectedDate = e.target.value;
-              if (selectedDate) {
-                const date = new Date(selectedDate + "T00:00:00");
-                setDataOcorrencia(date);
-              } else {
-                setDataOcorrencia(null);
-              }
-            }}
+            value={dataOcorrencia}
+            onChange={handleDataChange}
             InputLabelProps={{ shrink: true }}
+            inputProps={{
+              min: minDate,
+              max: maxDate,
+            }}
             required
+            error={!!errors.dataOcorrencia}
+            helperText={errors.dataOcorrencia}
             disabled={!!successMessage || loading}
           />
         </Box>

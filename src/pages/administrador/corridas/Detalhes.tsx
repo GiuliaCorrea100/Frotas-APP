@@ -1211,7 +1211,7 @@ const DetalhesRequisicao: React.FC = () => {
         <CadastrarOcorrencia
           open={modalCadastroOcorrenciaAberto}
           onClose={handleFecharModalCadastroOcorrencia}
-          corrida={idcorridaNumber}
+          corrida={corrida}
           onSuccess={async (message) => {
             setMensagemSucesso(message);
             try {
@@ -1231,6 +1231,7 @@ const DetalhesRequisicao: React.FC = () => {
         <ModalEditarOcorrencia
           open={modalEditarOcorrenciaAberto}
           ocorrencia={ocorrenciaSelecionada}
+          corrida={corrida}
           onClose={handleFecharModalEditarOcorrencia}
           onSuccess={async (message) => {
             setMensagemSucesso(message);
@@ -1298,7 +1299,7 @@ const DetalhesRequisicao: React.FC = () => {
           onError={(err) => {
             console.error(err);
           }}
-          corrida={idcorridaNumber}
+          corrida={corrida}
         />
       )}
 
@@ -1306,6 +1307,7 @@ const DetalhesRequisicao: React.FC = () => {
         <EdicaoPercursosModal
           open={modalEditarPercursoAberto}
           percurso={percursoSelecionado}
+          corrida={corrida}
           onClose={handleFecharModalEditarPercurso}
           onSuccess={async (message) => {
             setMensagemSucesso(message);
