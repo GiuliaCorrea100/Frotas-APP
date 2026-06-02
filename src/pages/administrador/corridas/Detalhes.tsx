@@ -44,6 +44,7 @@ import EdicaoPercursosModal from "./modais/ModalEdicaoPercurso";
 import CadastrarPercursosModal from "./modais/ModalCadastroPercurso";
 import AppLayout from "../../../components/Layout";
 import { formatDate, formatDateOnly } from "../../../utils/formatDate";
+import ExportarCorridaPDF from "./ExportarRelatorioDetalhes";
 
 const DetalhesRequisicao: React.FC = () => {
   const theme = useTheme();
@@ -147,7 +148,7 @@ const DetalhesRequisicao: React.FC = () => {
     {
       field: "descricao",
       headerName: "Descrição",
-      flex: 1,
+      width: 300,
       renderCell: (params) => (
         <Typography color="text.primary">{params.value}</Typography>
       ),
@@ -155,7 +156,7 @@ const DetalhesRequisicao: React.FC = () => {
     {
       field: "dataOcorrencia",
       headerName: "Data",
-      flex: 1,
+      width: 200,
       renderCell: (params) => (
         <Typography color="text.primary">
           {formatDateOnly(params.value)}
@@ -230,7 +231,7 @@ const DetalhesRequisicao: React.FC = () => {
     {
       field: "nomeTipoCombustivel",
       headerName: "Combustível",
-      flex: 1,
+      width: 200,
       renderCell: (params) => (
         <Typography color="text.primary">{params.value}</Typography>
       ),
@@ -238,7 +239,7 @@ const DetalhesRequisicao: React.FC = () => {
     {
       field: "quantidade",
       headerName: "Quantidade de Litros",
-      flex: 1,
+      width: 100,
       renderCell: (params) => {
         const value = Number(params.value);
         return isNaN(value) ? "-" : value.toFixed(2);
@@ -624,15 +625,33 @@ const DetalhesRequisicao: React.FC = () => {
           }}
         >
           <Box ml={1.5}>
-            <Typography
-              variant="h6"
-              fontWeight="bold"
-              color="text.primary"
-              ml={1.5}
-              pt={2}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mr: 3,
+                pt: 2,
+              }}
             >
-              Informações Básicas
-            </Typography>
+              <Typography
+                variant="h6"
+                fontWeight="bold"
+                color="text.primary"
+                ml={1.5}
+              >
+                Informações Básicas
+              </Typography>
+              
+              <ExportarCorridaPDF
+                corrida={corrida}
+                ocorrencias={ocorrencias}
+                abastecimentos={abastecimentos}
+                percursos={percursos}
+                disabled={loading || !corrida}
+              />
+            </Box>
+            
             <CardContent>
               {loading ? (
                 <Typography variant="body2" color="text.secondary">
@@ -1192,7 +1211,7 @@ const DetalhesRequisicao: React.FC = () => {
         <CadastrarOcorrencia
           open={modalCadastroOcorrenciaAberto}
           onClose={handleFecharModalCadastroOcorrencia}
-          corrida={idcorridaNumber}
+          corrida={corrida}
           onSuccess={async (message) => {
             setMensagemSucesso(message);
             try {
@@ -1212,6 +1231,7 @@ const DetalhesRequisicao: React.FC = () => {
         <ModalEditarOcorrencia
           open={modalEditarOcorrenciaAberto}
           ocorrencia={ocorrenciaSelecionada}
+          corrida={corrida}
           onClose={handleFecharModalEditarOcorrencia}
           onSuccess={async (message) => {
             setMensagemSucesso(message);
@@ -1279,7 +1299,7 @@ const DetalhesRequisicao: React.FC = () => {
           onError={(err) => {
             console.error(err);
           }}
-          corrida={idcorridaNumber}
+          corrida={corrida}
         />
       )}
 
@@ -1287,6 +1307,7 @@ const DetalhesRequisicao: React.FC = () => {
         <EdicaoPercursosModal
           open={modalEditarPercursoAberto}
           percurso={percursoSelecionado}
+          corrida={corrida}
           onClose={handleFecharModalEditarPercurso}
           onSuccess={async (message) => {
             setMensagemSucesso(message);

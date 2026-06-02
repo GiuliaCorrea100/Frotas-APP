@@ -106,6 +106,7 @@ export default function ListaCorrida() {
   };
 
   const qtdAgendadas = corridas.filter((c) => c.situacao === "AGENDADA").length;
+  const qtdConcluidas = corridas.filter((c) => c.situacao === "CONCLUIDA").length;
   const qtdEmAndamento = corridas.filter(
     (c) => c.situacao === "ANDAMENTO",
   ).length;
@@ -121,13 +122,20 @@ export default function ListaCorrida() {
       String(valor).toLowerCase().includes(busca.toLowerCase()),
     );
 
-    const matchesSituacao =
-      filtroSituacao === "TODOS" || 
-      filtroSituacao === "" || 
-      corrida.situacao === filtroSituacao;
+    let matchesSituacao = true;
+    
+    if (filtroSituacao === "ATIVAS") {
+      matchesSituacao = corrida.situacao === "AGENDADA" || 
+                        corrida.situacao === "ANDAMENTO" || 
+                        corrida.situacao === "CONCLUIDA";
+    } else if (filtroSituacao === "TODOS") {
+      matchesSituacao = true;
+    } else {
+      matchesSituacao = corrida.situacao === filtroSituacao;
+    }
 
     return matchesSearch && matchesSituacao;
-  });
+});
 
   const handleAbrirModalLiberarChave = (corrida: CorridaFrontend) => {
     setSelectedCorrida(corrida);
@@ -253,21 +261,39 @@ export default function ListaCorrida() {
       field: "dataInicio",
       headerName: "Data Início",
       width: 200,
-      renderCell: (params) => (
-        <Typography variant="body2">
-          {formatDateOnly(params.value as string)}
-        </Typography>
-      ),
+      renderCell: (params) => {
+        const corrida = params.row;
+        const chaveEmprestada = !!corrida.dataHoraLiberacaoChave;
+        
+        const horaInicio = chaveEmprestada 
+          ? corrida.dataHoraLiberacaoChave 
+          : corrida.dataInicio;
+        
+        return (
+          <Typography variant="body2">
+            {formatDateOnly(horaInicio as string | null)}
+          </Typography>
+        );
+      },
     },
     {
       field: "dataTermino",
       headerName: "Data Término",
       width: 200,
-      renderCell: (params) => (
-        <Typography variant="body2">
-          {formatDateOnly(params.value as string | null)}
-        </Typography>
-      ),
+      renderCell: (params) => {
+        const corrida = params.row;
+        const chaveEntregue = !!corrida.dataHoraRecebimentoChave;
+        
+        const horaTermino = chaveEntregue 
+          ? corrida.dataHoraRecebimentoChave 
+          : corrida.dataTermino;
+        
+        return (
+          <Typography variant="body2">
+            {formatDateOnly(horaTermino as string | null)}
+          </Typography>
+        );
+      },
     },
     {
       field: "situacao",
@@ -575,7 +601,7 @@ export default function ListaCorrida() {
             {
               label: "ATIVAS",
               value: "ATIVAS",
-              count: qtdAgendadas + qtdEmAndamento,
+              count: qtdAgendadas + qtdEmAndamento + qtdConcluidas,
               color: theme.palette.info.main,
               temSubmenu: true,
             },
@@ -601,8 +627,8 @@ export default function ListaCorrida() {
             <Button
               key={tab.value}
               variant={
-                (tab.temSubmenu && mostrarSubFiltros) || // ATIVAS fica ativo apenas quando submenu está aberto
-                (!tab.temSubmenu && filtroSituacao === tab.value) // Outros botões seguem a lógica normal
+                (tab.temSubmenu && mostrarSubFiltros) || 
+                (!tab.temSubmenu && filtroSituacao === tab.value) 
                   ? "contained"
                   : "outlined"
               }
@@ -611,15 +637,14 @@ export default function ListaCorrida() {
                   setMostrarSubFiltros(!mostrarSubFiltros);
                   
                   if (!mostrarSubFiltros) {
-                    setFiltroSituacao("");
+                    setFiltroSituacao("ATIVAS");
                     setFiltroAtivoInterno(null);
                   } else {
+                    setFiltroSituacao("TODOS");
                     setFiltroAtivoInterno(null);
-                    setFiltroSituacao("");
                   }
                 } else {
                   setFiltroSituacao(tab.value);
-                  // Se clicar em outro filtro, esconde os subfiltros
                   setMostrarSubFiltros(false);
                   setFiltroAtivoInterno(null);
                 }
@@ -706,6 +731,12 @@ export default function ListaCorrida() {
                 label: "EM ANDAMENTO",
                 value: "ANDAMENTO",
                 count: qtdEmAndamento,
+                color: theme.palette.warning.main,
+              },
+              {
+                label: "CONCLUIDA",
+                value: "CONCLUIDA",
+                count: qtdConcluidas,
                 color: theme.palette.warning.main,
               },
             ].map((tab) => (
