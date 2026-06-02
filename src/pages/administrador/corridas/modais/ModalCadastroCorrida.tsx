@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import {
   Button,
   Box,
@@ -81,7 +80,6 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
 
   const navigate = useNavigate();
 
-  // Buscar o modo de autenticação na inicialização
   useEffect(() => {
     const fetchAuthMode = async () => {
       try {
@@ -105,6 +103,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
         `/carro/buscar-modelo-placa/${modeloPlaca}`,
       );
       setCarrosDisponiveis(response.data);
+      setError(null);
     } catch (error) {
       const err = error as AxiosError;
       if (err.response?.status === 404) {
@@ -142,7 +141,6 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
       setLoading(true);
 
       if (authMode === "MOCK") {
-        // Lista estática de motoristas no modo TEST
         const motoristasTeste: MotoristaDTO[] = [
           {
             idUsuario: 1,
@@ -155,13 +153,11 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
             cpf: "22222222222",
           },
         ];
-        // Filtrar motoristas com base no nome digitado
         const filteredMotoristas = motoristasTeste.filter((motorista) =>
           motorista.nome.toLowerCase().includes(nome.toLowerCase()),
         );
         setMotoristasDisponiveis(filteredMotoristas);
       } else {
-        // Busca no endpoint /usuarioSigaa no modo SIGAA
         const response = await axiosConnect.get(`/usuarioSigaa?nome=${nome}`);
         const usuariosRetornados = response.data;
         const uniqueUsuariosMap = new Map();
@@ -170,7 +166,6 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
         });
         const usuariosUnicosEOrdenados = Array.from(uniqueUsuariosMap.values());
 
-        //console.log('Motoristas: ', usuariosUnicosEOrdenados);
         setMotoristasDisponiveis(usuariosUnicosEOrdenados);
       }
     } catch (error) {
@@ -182,7 +177,6 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
   };
 
   const handleSubmit = async () => {
-    // Iniciar o loading
     setIsSubmitting(true);
 
     let hasError = false;
@@ -222,24 +216,22 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
     setErrors(newErrors);
 
     if (hasError) {
-      setIsSubmitting(false); // Parar loading se houver erro
+      setIsSubmitting(false);
       return;
     }
 
     if (new Date(corrida.dataTermino) < new Date(corrida.dataInicio)) {
       showAlert("A data de término não pode ser anterior à data de início");
       setErrors((prev) => ({ ...prev, dataTermino: true }));
-      setIsSubmitting(false); // Parar loading
+      setIsSubmitting(false);
       return;
     }
 
     try {
-      // No modo MOCK, usar diretamente o idUsuario do motorista selecionado
       let idUsuarioMotorista: number;
       if (authMode === "MOCK") {
         idUsuarioMotorista = motoristaSelecionado.idUsuario;
       } else {
-        // No modo SIGAA, consultar o endpoint /usuario/consultaCadastro
         const response = await axiosConnect.get(
           `/usuario/consultaCadastro/${motoristaSelecionado.idPessoaSigaa}`,
           {
@@ -273,7 +265,6 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
 
       const mensagem = "Corrida registrada com sucesso!";
   
-
       setTimeout(() => {
         onSuccess(mensagem);
         onClose();
@@ -298,7 +289,6 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
         onError(error);
       }
     } finally {
-      // Sempre parar o loading, independente de sucesso ou erro
       setIsSubmitting(false);
     }
   };
@@ -344,7 +334,6 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
           </Typography>
         )}
 
-        {/* Veículo */}
         <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
           <Autocomplete
             options={carrosDisponiveis}
@@ -354,10 +343,15 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
               }
               return option.modelo || option.placa || "";
             }}
-            onInputChange={(_, value) => buscarCarro(value)}
+            onInputChange={(_, value, reason) => {
+              if (reason === "input") {
+                buscarCarro(value);
+              }
+            }}
             onChange={(_, newValue) => {
               setCarro(newValue);
               setErrors((prev) => ({ ...prev, carro: false }));
+              setError(null);
             }}
             isOptionEqualToValue={(option, value) =>
               option.idCarro === value.idCarro
@@ -380,7 +374,6 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
           />
         </Box>
 
-        {/* Motorista */}
         <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
           <Autocomplete
             options={motoristasDisponiveis}
@@ -390,7 +383,11 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
               }
               return option.nome || "";
             }}
-            onInputChange={(_, value) => buscarMotoristas(value)}
+            onInputChange={(_, value, reason) => {
+              if (reason === "input") {
+                buscarMotoristas(value);
+              }
+            }}
             onChange={(_, value) => {
               setMotoristaSelecionado(value);
               setCorrida((prev) => ({
@@ -418,7 +415,6 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
           />
         </Box>
 
-        {/* Local de Saída */}
         <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
           <TextField
             name="localDeSaida"
@@ -444,7 +440,6 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
           />
         </Box>
 
-        {/* Data de Início e Término */}
         <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
           <TextField
             name="dataInicio"
