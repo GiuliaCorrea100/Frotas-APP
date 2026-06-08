@@ -144,6 +144,8 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
         formData.append("arquivo", arquivoSelecionado);
       }
 
+      //responde = await VistoriaService.vistoriaRecebimento(formData);
+
       const mensagem = "Chave recebida e vistoria realizada com sucesso "; 
         
 
@@ -327,7 +329,7 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
           <Divider sx={{ my: 2 }} />
 
           <Box
-            sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}
+            sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2, width: "100%" }}
           >
             <Button
               variant="outlined"
@@ -364,6 +366,8 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
                   // }
 
                   await atualizarSituacaoCorrida(corrida.idCorrida,"FINALIZADA",);
+
+                
 
 
                 } catch (error) {
