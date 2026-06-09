@@ -28,6 +28,8 @@ import { CarroService } from "../../services/CarroService";
 import AppLayout from "../../components/Layout";
 import BemVindo from '../BemVindo';
 import { formatDateOnly } from '../../utils/formatDate';
+import ModalVistoriaVeiculo from "./modais/ModalVistoriaVeiculo";
+import { CorridaVistoriaService } from "../../services/CorridaVistoriaService";
 
 const menuItems = [
   { label: "Iniciar Percurso", path: "/IniciarPercurso" },
@@ -56,7 +58,7 @@ const getHorarioAtualLocal = () => {
 const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props) => {
 
   const { idCorrida } = useParams<{ idCorrida: string }>();
-  const { token } = useAuth();
+  const { token, nome } = useAuth();
   const navigate = useNavigate();
 
   const [corridaLocal, setCorridaLocal] = useState(propCorrida);
@@ -92,9 +94,26 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
   const [chaveEmprestada, setChaveEmprestada] = useState(false);
 
   const [mensagemSucesso, setMensagemSucesso] = useState("");
+  const [modalVistoriaOpen, setModalVistoriaOpen] = useState<boolean>(false);
 
   const isCorridaEncerrada = corridaLocal?.situacao === "FINALIZADA" || corridaLocal?.situacao === "CONCLUIDA";
 
+  useEffect(() => {
+    const verificarVistoriaInicial = async () => {
+      if (chaveEmprestada && corridaLocal?.idCorrida && !isCorridaEncerrada) {
+        try {
+          const resultado = await CorridaVistoriaService.verificarVistoriaPendente(corridaLocal.idCorrida);
+          if (resultado.pendente) {
+            setModalVistoriaOpen(true);
+          }
+        } catch (error) {
+          console.error("Erro ao validar vistoria inicial do motorista:", error);
+        }
+      }
+    };
+
+    verificarVistoriaInicial();
+  }, [chaveEmprestada, corridaLocal?.idCorrida, isCorridaEncerrada]);
 
   useEffect(() => {
     if (!corridaLocal && idCorrida) {
@@ -219,7 +238,6 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
     );
   }
 
-  // Lógica de desabilitação dos botões
   const isIniciarDisabled = isCorridaIniciada;
   const isFinalizarDisabled = !isCorridaIniciada;
   const isAbastecimentoDisabled = !chaveEmprestada;
@@ -622,6 +640,18 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
             odometroFinal={odometroFinal}
             setOdometroFinal={setOdometroFinal}
             percursoAtual={percursoAtual}
+          />
+        )}
+
+        {modalVistoriaOpen && corridaLocal?.idCorrida && (
+          <ModalVistoriaVeiculo
+            open={modalVistoriaOpen}
+            idCorrida={corridaLocal.idCorrida}
+            nomeMotorista={nome || "Motorista"}
+            onSuccess={(message) => {
+              setMensagemSucesso(message);
+              setModalVistoriaOpen(false);
+            }}
           />
         )}
       </Box>
