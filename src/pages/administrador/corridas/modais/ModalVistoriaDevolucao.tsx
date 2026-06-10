@@ -21,13 +21,14 @@ import {
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import { atualizarSituacaoCorrida, CorridaDto, CorridaService } from "../../../../services/CorridaService";
 import { CarroService } from "../../../../services/CarroService";
+import { CorridaVistoriaService } from "../../../../services/CorridaVistoriaService";
 
 interface VistoriaDevolucaoProps {
   open: boolean;
   onClose: () => void;
   onSuccess: (message: string) => void;
   onError: (error: any) => void;
-  corrida?: CorridaDto; 
+  corrida: CorridaDto; 
 }
 
 const modalStyle = {
@@ -56,7 +57,7 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
   onError,
   corrida, 
 }) => {
-  const [justificativa, setJustificativa] = useState<string>("");
+  const [observacao, setobservacao] = useState<string>("");
   const [arquivoSelecionado, setArquivoSelecionado] = useState<File | null>(
     null
   );
@@ -74,7 +75,7 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
 
   useEffect(() => {
     if (open) {
-      setJustificativa("");
+      setobservacao("");
       setArquivoSelecionado(null);
       setFileError(null);
       setMensagemMotorista(null);
@@ -138,13 +139,22 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
       let response;
 
       const formData = new FormData();
-      formData.append("justificativa", justificativa);
+      formData.append("observacao", observacao);
 
-      if (arquivoSelecionado) {
-        formData.append("arquivo", arquivoSelecionado);
+      //AQUI, FAZER ARQUIVOS
+      // if (arquivoSelecionado) {
+      //   formData.append("arquivo", arquivoSelecionado);
+      // }
+
+      const dadosVistoria = {
+        idCorrida: corrida?.idCorrida,
+        tipo: "DEVOLUCAO" as const,
+        veiculoRecebidoSemAvarias:comAvaria,
+        observacoes: observacao
       }
 
-      //responde = await VistoriaService.vistoriaRecebimento(formData);
+
+      response = await CorridaVistoriaService.registrarVistoria(dadosVistoria);
 
       const mensagem = "Chave recebida e vistoria realizada com sucesso "; 
         
@@ -226,8 +236,8 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
                           label="Observações"
                           multiline
                           rows={4}
-                          value={justificativa}
-                          onChange={(e) => setJustificativa(e.target.value)}
+                          value={observacao}
+                          onChange={(e) => setobservacao(e.target.value)}
                           placeholder="Registre as avarias detectadas no momento da retirada"
                           variant="outlined"
                           disabled={loading}

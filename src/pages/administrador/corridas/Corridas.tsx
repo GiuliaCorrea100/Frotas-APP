@@ -1043,10 +1043,14 @@ export default function ListaCorrida() {
       <VistoriaDevolucaoModal
         open={showVistoriaDevolucaoModal}
         onClose={() => setShowVistoriaDevolucaoModal(false)}
-        onSuccess={(message) => {
+        onSuccess={async (message) => {
           setMensagemSucesso(message);
           setShowVistoriaDevolucaoModal(false);
-          carregarCorridas();
+          try {
+              await carregarCorridas();
+            } catch (error) {
+              console.error(error);
+            }
         }}
         onError={(error) => {
           console.error("Erro ao solicitar recurso:", error);
