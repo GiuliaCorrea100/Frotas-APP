@@ -7,14 +7,16 @@ export interface CorridaVistoriaDto {
   observacoes?: string;
 }
 
-export const CorridaVistoriaService = {
-  async verificarVistoriaPendente(idCorrida: number): Promise<{ pendente: boolean }> {
+export class CorridaVistoriaService  {
+  static async verificarVistoriaPendente(idCorrida: number): Promise<{ pendente: boolean }> {
     const response = await axiosConnect.get(`/corrida-vistoria/status-pendente/${idCorrida}`);
     return response.data;
-  },
+  };
 
-  async registrarVistoria(dto: CorridaVistoriaDto): Promise<any> {
-    const response = await axiosConnect.post("/corrida-vistoria", dto);
+  static async registrarVistoria(vistoria: CorridaVistoriaDto): Promise<any> {
+    console.log("entrando");
+    const response = await axiosConnect.post("/corrida-vistoria", vistoria);
+    console.log(response);
     return response.data;
-  }
+  };
 };
