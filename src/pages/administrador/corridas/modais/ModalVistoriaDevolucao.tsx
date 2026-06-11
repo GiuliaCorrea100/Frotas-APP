@@ -163,8 +163,6 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
       await CorridaService.confirmarReceberChave(corrida.idCorrida,);
 
       await CarroService.atualizarSituacaoCarro(corrida.idCarro,"DISPONIVEL",);
-      
-      await atualizarSituacaoCorrida(corrida.idCorrida,"FINALIZADA",);
 
 
       const mensagem = "Chave recebida e vistoria realizada com sucesso "; 
