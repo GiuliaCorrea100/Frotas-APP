@@ -66,10 +66,10 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
   const [mensagemMotorista, setMensagemMotorista] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
 
-  const [comAvaria, setComAvaria] = useState(false);
+  const [avariado, setAvariado] = useState(false);
 
   const handleClose = () => {
-    setComAvaria(false);
+    setAvariado(false);
     onClose();
   };
 
@@ -79,7 +79,7 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
       setArquivoSelecionado(null);
       setFileError(null);
       setMensagemMotorista(null);
-      setComAvaria(false);
+      setAvariado(false);
     }
   }, [open]);
 
@@ -146,23 +146,36 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
       //   formData.append("arquivo", arquivoSelecionado);
       // }
 
+      if(avariado === false){
+        setobservacao("sem avarias");
+      }
+
       const dadosVistoria = {
         idCorrida: corrida?.idCorrida,
         tipo: "DEVOLUCAO" as const,
-        veiculoRecebidoSemAvarias:comAvaria,
+        veiculoRecebidoSemAvarias:!avariado,
         observacoes: observacao
       }
 
 
       response = await CorridaVistoriaService.registrarVistoria(dadosVistoria);
 
+      await CorridaService.confirmarReceberChave(corrida.idCorrida,);
+
+      await CarroService.atualizarSituacaoCarro(corrida.idCarro,"DISPONIVEL",);
+      
+      await atualizarSituacaoCorrida(corrida.idCorrida,"FINALIZADA",);
+
+
       const mensagem = "Chave recebida e vistoria realizada com sucesso "; 
         
-
       onSuccess(mensagem);
       handleClose();
     } catch (error) {
-      onError(error);
+
+      const mensagem = "Erro ao processar vistoria e recebimento da chave:";
+      console.error("Erro ao processar vistoria e recebimento da chave:",error,);
+      onError(mensagem);
     } finally {
       setLoading(false);
     }
@@ -219,18 +232,18 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
                 value="sem_avaria" 
                 control={<Radio />} 
                 label="Veículo devolvido sem avarias"
-                onChange={() => setComAvaria(false)} 
+                onChange={() => setAvariado(false)} 
                 />
                 <FormControlLabel 
                 value="com_avaria" 
                 control={<Radio />} 
                 label="Veículo devolvido com avarias" 
-                onChange={() => setComAvaria(true)}
+                onChange={() => setAvariado(true)}
                 />
             </RadioGroup>
           </Box>
 
-          {comAvaria && (<><Box sx={{ flex: "1 1 100%" }}>
+          {avariado && (<><Box sx={{ flex: "1 1 100%" }}>
                       <TextField
                           fullWidth
                           label="Observações"
@@ -356,38 +369,18 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
                 loading || 
                 !!successMessage
               }
-              onClick={async () => {
-              if (corrida) {
-                try {
-                  await CorridaService.confirmarReceberChave(
-                    corrida.idCorrida,
-                  );
-
-                  await CarroService.atualizarSituacaoCarro(
-                    corrida.idCarro,
-                    "DISPONIVEL",
-                  );
-
-                  // if (corrida.situacao === ("ANDAMENTO")) {
-                  //   await atualizarSituacaoCorrida(
-                  //     corrida.idCorrida,
-                  //     "FINALIZADA",
-                  //   );
-                  // }
-
-                  await atualizarSituacaoCorrida(corrida.idCorrida,"FINALIZADA",);
-
-                
-
-
-                } catch (error) {
-                  console.error(
-                    "Erro ao processar vistoria e recebimento da chave:",
-                    error,
-                  );
-                }
-              }
-            }}
+            //   onClick={async () => {
+            //   if (corrida) {
+            //     try {
+                  
+            //     } catch (error) {
+            //       console.error(
+            //         "Erro ao processar vistoria e recebimento da chave:",
+            //         error,
+            //       );
+            //     }
+            //   }
+            // }}
 
             >
               {loading ? <CircularProgress size={24} /> : "Confirmar"}
