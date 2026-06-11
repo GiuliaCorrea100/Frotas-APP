@@ -46,7 +46,7 @@ const modalStyle = {
   borderRadius: 2,
 };
 
-const allowedExtensions = ["pdf", "jpg", "jpeg", "png", "doc", "docx"];
+const allowedExtensions = ["jpg", "jpeg", "png",];
 const MAX_FILE_SIZE_MB = 50;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
@@ -57,29 +57,30 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
   onError,
   corrida, 
 }) => {
-  const [observacao, setobservacao] = useState<string>("");
-  const [arquivoSelecionado, setArquivoSelecionado] = useState<File | null>(
-    null
-  );
+  const [observacao, setObservacao] = useState<string>("");
+  const [arquivosSelecionados, setArquivosSelecionados] = useState<File[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [mensagemMotorista, setMensagemMotorista] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
-
   const [avariado, setAvariado] = useState(false);
 
   const handleClose = () => {
     setAvariado(false);
+    setArquivosSelecionados([]);
+    setObservacao("");
+    setFileError(null);
     onClose();
   };
 
   useEffect(() => {
     if (open) {
-      setobservacao("");
-      setArquivoSelecionado(null);
+      setObservacao("");
+      setArquivosSelecionados([]);
       setFileError(null);
       setMensagemMotorista(null);
       setAvariado(false);
+      setSuccessMessage('');
     }
   }, [open]);
 
@@ -115,18 +116,36 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
-    const file = files[0];
+    const newFiles = Array.from(files);
+    
+    // Validar extensões
+    const invalidFiles = newFiles.filter(file => {
+      const extension = file.name.split('.').pop()?.toLowerCase();
+      return !extension || !allowedExtensions.includes(extension);
+    });
 
-    if (validateFileExtension(file)) {
-      setArquivoSelecionado(file);
+    if (invalidFiles.length > 0) {
+      setFileError('Formato de arquivo inválido. Apenas arquivos JPG, JPEG, PNG são permitidos.');
+      return;
     }
 
-    event.target.value = "";
+    // Verificar tamanho dos arquivos
+    const oversizedFiles = newFiles.filter(file => file.size > MAX_FILE_SIZE_BYTES);
+    if (oversizedFiles.length > 0) {
+      setFileError(`Arquivo(s) muito grande(s). Tamanho máximo: ${MAX_FILE_SIZE_MB}MB`);
+      return;
+    }
+
+    // Adicionar novos arquivos à lista existente
+    setArquivosSelecionados(prev => [...prev, ...newFiles]);
+    setFileError(null);
+    
+    // Limpar o input para permitir nova seleção
+    event.target.value = '';
   };
 
-  const handleRemoveFile = () => {
-    setArquivoSelecionado(null);
-    setFileError(null);
+  const handleRemoveFile = (index: number) => {
+    setArquivosSelecionados(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -134,45 +153,45 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
 
     setLoading(true);
     
-
     try {
-      let response;
-
-      const formData = new FormData();
-      formData.append("observacao", observacao);
-
-      //AQUI, FAZER ARQUIVOS
-      // if (arquivoSelecionado) {
-      //   formData.append("arquivo", arquivoSelecionado);
-      // }
-
-      if(avariado === false){
-        setobservacao("sem avarias");
-      }
+      // Se não houver avarias, define observação padrão
+      const observacaoFinal = !avariado ? "sem avarias" : observacao;
 
       const dadosVistoria = {
         idCorrida: corrida?.idCorrida,
         tipo: "DEVOLUCAO" as const,
-        veiculoRecebidoSemAvarias:!avariado,
-        observacoes: observacao
+        veiculoRecebidoSemAvarias: !avariado,
+        observacoes: observacaoFinal
       }
 
+      // Registrar vistoria
+      await CorridaVistoriaService.registrarVistoria(dadosVistoria);
 
-      response = await CorridaVistoriaService.registrarVistoria(dadosVistoria);
+      // Confirmar recebimento da chave
+      await CorridaService.confirmarReceberChave(corrida.idCorrida);
 
-      await CorridaService.confirmarReceberChave(corrida.idCorrida,);
+      // Atualizar situação do carro para disponível
+      await CarroService.atualizarSituacaoCarro(corrida.idCarro, "DISPONIVEL");
 
-      await CarroService.atualizarSituacaoCarro(corrida.idCarro,"DISPONIVEL",);
-
-
-      const mensagem = "Chave recebida e vistoria realizada com sucesso "; 
+      // Upload dos arquivos se houver
+      if (arquivosSelecionados.length > 0) {
+        const formData = new FormData();
+        arquivosSelecionados.forEach((file, index) => {
+          formData.append(`arquivo_${index}`, file);
+        });
+        formData.append("idCorrida", corrida.idCorrida.toString());
+        formData.append("tipo", "DEVOLUCAO");
         
+        // Chame o serviço de upload aqui se necessário
+        // await UploadService.uploadArquivosVistoria(formData);
+      }
+
+      const mensagem = "Chave recebida e vistoria realizada com sucesso"; 
       onSuccess(mensagem);
       handleClose();
     } catch (error) {
-
-      const mensagem = "Erro ao processar vistoria e recebimento da chave:";
-      console.error("Erro ao processar vistoria e recebimento da chave:",error,);
+      const mensagem = "Erro ao processar vistoria e recebimento da chave";
+      console.error("Erro ao processar vistoria e recebimento da chave:", error);
       onError(mensagem);
     } finally {
       setLoading(false);
@@ -224,111 +243,124 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
         >
           <Box sx={{ flex: "1 1 100%" }}>
             <RadioGroup
+                value={avariado ? "com_avaria" : "sem_avaria"}
                 name="controlled-radio-buttons-group"
             >
                 <FormControlLabel 
-                value="sem_avaria" 
-                control={<Radio />} 
-                label="Veículo devolvido sem avarias"
-                onChange={() => setAvariado(false)} 
+                  value="sem_avaria" 
+                  control={<Radio />} 
+                  label="Veículo devolvido sem avarias"
+                  onChange={() => setAvariado(false)} 
                 />
                 <FormControlLabel 
-                value="com_avaria" 
-                control={<Radio />} 
-                label="Veículo devolvido com avarias" 
-                onChange={() => setAvariado(true)}
+                  value="com_avaria" 
+                  control={<Radio />} 
+                  label="Veículo devolvido com avarias" 
+                  onChange={() => setAvariado(true)}
                 />
             </RadioGroup>
           </Box>
 
-          {avariado && (<><Box sx={{ flex: "1 1 100%" }}>
-                      <TextField
-                          fullWidth
-                          label="Observações"
-                          multiline
-                          rows={4}
-                          value={observacao}
-                          onChange={(e) => setobservacao(e.target.value)}
-                          placeholder="Registre as avarias detectadas no momento da retirada"
-                          variant="outlined"
-                          disabled={loading}
-                          required />
-                  </Box><Box sx={{ flex: "1 1 100%", mt: 2 }}>
-                          <Button
-                              component="label"
-                              variant="outlined"
-                              startIcon={<AttachFileIcon />}
-                              disabled={loading}
-                              sx={{
-                                  mr: 2,
-                                  color: "text.primary",
-                                  borderColor: "divider",
-                                  "&:hover": {
-                                      borderColor: "text.secondary",
-                                      backgroundColor: "action.hover",
-                                  },
-                              }}
-                          >
-                              Anexar Fotos
-                              <input
-                                  type="file"
-                                  hidden
-                                  accept=".jpg,.jpeg,.png"
-                                  onChange={handleFileSelection} />
-                          </Button>
+          {avariado && (
+            <>
+              <Box sx={{ flex: "1 1 100%" }}>
+                <TextField
+                  fullWidth
+                  label="Observações"
+                  multiline
+                  rows={4}
+                  value={observacao}
+                  onChange={(e) => setObservacao(e.target.value)}
+                  placeholder="Registre as avarias detectadas no momento da devolução"
+                  variant="outlined"
+                  disabled={loading}
+                  required
+                />
+              </Box>
+              
+              <Box sx={{ flex: "1 1 100%", mt: 2 }}>
+                <Button
+                  component="label"
+                  variant="outlined"
+                  startIcon={<AttachFileIcon />}
+                  disabled={loading}
+                  sx={{
+                    mr: 2,
+                    color: "text.primary",
+                    borderColor: "divider",
+                    "&:hover": {
+                      borderColor: "text.secondary",
+                      backgroundColor: "action.hover",
+                    },
+                  }}
+                >
+                  Anexar Fotos
+                  <input
+                    type="file"
+                    multiple
+                    hidden
+                    accept=".jpg,.jpeg,.png"
+                    onChange={handleFileSelection}
+                  />
+                </Button>
 
-                          {arquivoSelecionado && (
-                              <Box sx={{ mt: 2 }}>
-                                  <Typography variant="subtitle2" gutterBottom color="textPrimary">
-                                      Arquivo selecionado:
-                                  </Typography>
-                                  <Box
-                                      sx={{
-                                          display: "flex",
-                                          alignItems: "center",
-                                          justifyContent: "space-between",
-                                          mb: 1,
-                                          p: 2,
-                                          backgroundColor: "action.hover",
-                                          borderRadius: 1,
-                                          border: "1px solid",
-                                          borderColor: "divider",
-                                      }}
-                                  >
-                                      <Box>
-                                          <Typography variant="body2" fontWeight="medium" color="text.primary">
-                                              {arquivoSelecionado.name}
-                                          </Typography>
-                                          <Typography variant="caption" color="text.secondary">
-                                              {formatFileSize(arquivoSelecionado.size)}
-                                          </Typography>
-                                      </Box>
-                                      <IconButton
-                                          size="small"
-                                          onClick={handleRemoveFile}
-                                          color="error"
-                                          disabled={loading}
-                                      >
-                                          <Close fontSize="small" />
-                                      </IconButton>
-                                  </Box>
-                              </Box>
-                          )}
-
-                          {fileError && (
-                              <Typography variant="body2" color="error" sx={{ mt: 1 }}>
-                                  {fileError}
-                              </Typography>
-                          )}
-
-                          <Typography
-                              variant="caption"
-                              color="text.secondary"
-                              sx={{ display: "block", mt: 1 }}
-                          >
-                              Formatos permitidos: JPG, JPEG, PNG (Máx: {MAX_FILE_SIZE_MB}MB)
+                {arquivosSelecionados.length > 0 && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom color="textPrimary">
+                      Arquivos selecionados ({arquivosSelecionados.length}):
+                    </Typography>
+                    {arquivosSelecionados.map((file, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          mb: 1,
+                          p: 2,
+                          backgroundColor: "action.hover",
+                          borderRadius: 1,
+                          border: "1px solid",
+                          borderColor: "divider",
+                        }}
+                      >
+                        <Box>
+                          <Typography variant="body2" fontWeight="medium" color="text.primary">
+                            {file.name}
                           </Typography>
-                      </Box></>)}
+                          <Typography variant="caption" color="text.secondary">
+                            {formatFileSize(file.size)}
+                          </Typography>
+                        </Box>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleRemoveFile(index)}
+                          color="error"
+                          disabled={loading}
+                        >
+                          <Close fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+
+                {fileError && (
+                  <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                    {fileError}
+                  </Typography>
+                )}
+
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: "block", mt: 1 }}
+                >
+                  Formatos permitidos: JPG, JPEG, PNG (Máx: {MAX_FILE_SIZE_MB}MB por arquivo)
+                </Typography>
+              </Box>
+            </>
+          )}
 
           {mensagemMotorista && (
             <Box
@@ -365,21 +397,9 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
               variant="contained"
               disabled={
                 loading || 
-                !!successMessage
+                !!successMessage ||
+                (avariado && !observacao.trim())
               }
-            //   onClick={async () => {
-            //   if (corrida) {
-            //     try {
-                  
-            //     } catch (error) {
-            //       console.error(
-            //         "Erro ao processar vistoria e recebimento da chave:",
-            //         error,
-            //       );
-            //     }
-            //   }
-            // }}
-
             >
               {loading ? <CircularProgress size={24} /> : "Confirmar"}
             </Button>

@@ -472,7 +472,7 @@ export default function ListaCorrida() {
                         corrida.situacao === "CANCELADA"  ||
                         corrida.situacao === "CONCLUIDA")) ||
                     (corrida.chaveEmprestada === true &&
-                      corrida.situacao === "CANCELADA")
+                      (corrida.situacao === "CANCELADA" || corrida.situacao === "AGENDADA"))
                   }
                   sx={{
                     minHeight: 42,
