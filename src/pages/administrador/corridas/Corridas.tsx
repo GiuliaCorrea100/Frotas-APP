@@ -108,6 +108,7 @@ export default function ListaCorrida() {
   };
 
   const qtdAgendadas = corridas.filter((c) => c.situacao === "AGENDADA").length;
+  const qtdConcluidas = corridas.filter((c) => c.situacao === "CONCLUIDA").length;
   const qtdEmAndamento = corridas.filter(
     (c) => c.situacao === "ANDAMENTO",
   ).length;
@@ -123,9 +124,10 @@ export default function ListaCorrida() {
       String(valor).toLowerCase().includes(busca.toLowerCase()),
     );
 
-    const matchesSituacao =
+    const matchesSituacao = 
       filtroSituacao === "TODOS" || 
       filtroSituacao === "" || 
+      (filtroSituacao === "ATIVAS" && (corrida.situacao === "AGENDADA" || corrida.situacao === "ANDAMENTO")) ||
       corrida.situacao === filtroSituacao;
 
     return matchesSearch && matchesSituacao;
@@ -472,7 +474,7 @@ export default function ListaCorrida() {
                         corrida.situacao === "CANCELADA"  ||
                         corrida.situacao === "CONCLUIDA")) ||
                     (corrida.chaveEmprestada === true &&
-                      (corrida.situacao === "CANCELADA" || corrida.situacao === "AGENDADA"))
+                      (corrida.situacao === "CANCELADA" || corrida.situacao === "AGENDADA" || corrida.situacao === "ANDAMENTO"))
                   }
                   sx={{
                     minHeight: 42,
@@ -582,6 +584,12 @@ export default function ListaCorrida() {
               temSubmenu: true,
             },
             {
+              label: "CONCLUIDAS",
+              value: "CONCLUIDA",
+              count: qtdConcluidas,
+              color: theme.palette.warning.main,
+            },
+            {
               label: "FINALIZADAS",
               value: "FINALIZADA",
               count: qtdFinalizadas,
@@ -603,8 +611,8 @@ export default function ListaCorrida() {
             <Button
               key={tab.value}
               variant={
-                (tab.temSubmenu && mostrarSubFiltros) || // ATIVAS fica ativo apenas quando submenu está aberto
-                (!tab.temSubmenu && filtroSituacao === tab.value) // Outros botões seguem a lógica normal
+                (tab.temSubmenu && mostrarSubFiltros) || 
+                (!tab.temSubmenu && filtroSituacao === tab.value) 
                   ? "contained"
                   : "outlined"
               }
@@ -621,7 +629,6 @@ export default function ListaCorrida() {
                   }
                 } else {
                   setFiltroSituacao(tab.value);
-                  // Se clicar em outro filtro, esconde os subfiltros
                   setMostrarSubFiltros(false);
                   setFiltroAtivoInterno(null);
                 }

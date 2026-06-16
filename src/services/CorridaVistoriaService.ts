@@ -14,9 +14,30 @@ export class CorridaVistoriaService  {
   };
 
   static async registrarVistoria(vistoria: CorridaVistoriaDto): Promise<any> {
-    console.log("entrando");
     const response = await axiosConnect.post("/corrida-vistoria", vistoria);
     console.log(response);
     return response.data;
   };
+
+  static async salvarFotosVistoria( idCorridaVistoria: number, files: FormData):Promise<any>{
+    console.log("iniciando salvar fotos da vistoria")
+    const response = await axiosConnect.post(
+          `/anexo/upload/${idCorridaVistoria}`,
+          files,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        );
+    console.log(response);
+    return response.data;
+  }
+
+  // static async registrarVistoriaFoto(vistoria: CorridaVistoriaDto, fotos: FormData):Promise<any>{
+  //   console.log("salvando vistoria com fotos")
+  //   const response = await axiosConnect.post("/corrida-vistoria", vistoria);
+  //   console.log(response);
+  //   return response.data;
+  // }
 };

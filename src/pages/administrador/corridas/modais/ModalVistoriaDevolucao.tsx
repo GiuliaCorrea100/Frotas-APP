@@ -19,7 +19,7 @@ import {
   AttachFile as AttachFileIcon,
 } from "@mui/icons-material";
 import AssignmentIcon from '@mui/icons-material/Assignment';
-import { atualizarSituacaoCorrida, CorridaDto, CorridaService } from "../../../../services/CorridaService";
+import { CorridaDto, CorridaService } from "../../../../services/CorridaService";
 import { CarroService } from "../../../../services/CarroService";
 import { CorridaVistoriaService } from "../../../../services/CorridaVistoriaService";
 
@@ -136,11 +136,9 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
       return;
     }
 
-    // Adicionar novos arquivos à lista existente
     setArquivosSelecionados(prev => [...prev, ...newFiles]);
-    setFileError(null);
+    setFileError(null); 
     
-    // Limpar o input para permitir nova seleção
     event.target.value = '';
   };
 
@@ -151,10 +149,15 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
+    // Validação: arquivos obrigatórios quando há avarias
+    if (avariado && arquivosSelecionados.length === 0) {
+      setFileError("É obrigatório anexar fotos quando o veículo for devolvido com avarias");
+      return;
+    }
+
     setLoading(true);
     
     try {
-      // Se não houver avarias, define observação padrão
       const observacaoFinal = !avariado ? "sem avarias" : observacao;
 
       const dadosVistoria = {
@@ -164,27 +167,23 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
         observacoes: observacaoFinal
       }
 
-      // Registrar vistoria
-      await CorridaVistoriaService.registrarVistoria(dadosVistoria);
+      const response = await CorridaVistoriaService.registrarVistoria(dadosVistoria);
+      console.log(response.idCorridaVistoria);
 
-      // Confirmar recebimento da chave
-      await CorridaService.confirmarReceberChave(corrida.idCorrida);
 
-      // Atualizar situação do carro para disponível
-      await CarroService.atualizarSituacaoCarro(corrida.idCarro, "DISPONIVEL");
-
-      // Upload dos arquivos se houver
+    
       if (arquivosSelecionados.length > 0) {
         const formData = new FormData();
-        arquivosSelecionados.forEach((file, index) => {
-          formData.append(`arquivo_${index}`, file);
+        arquivosSelecionados.forEach((file) => {
+          formData.append('files', file); 
         });
-        formData.append("idCorrida", corrida.idCorrida.toString());
-        formData.append("tipo", "DEVOLUCAO");
-        
-        // Chame o serviço de upload aqui se necessário
-        // await UploadService.uploadArquivosVistoria(formData);
+
+        await CorridaVistoriaService.salvarFotosVistoria(response.idCorridaVistoria, formData);
       }
+
+      await CorridaService.confirmarReceberChave(corrida.idCorrida);
+
+      await CarroService.atualizarSituacaoCarro(corrida.idCarro, "DISPONIVEL");
 
       const mensagem = "Chave recebida e vistoria realizada com sucesso"; 
       onSuccess(mensagem);
@@ -294,7 +293,7 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
                     },
                   }}
                 >
-                  Anexar Fotos
+                  Anexar Fotos {arquivosSelecionados.length === 0 && "*"}
                   <input
                     type="file"
                     multiple
@@ -357,6 +356,11 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
                   sx={{ display: "block", mt: 1 }}
                 >
                   Formatos permitidos: JPG, JPEG, PNG (Máx: {MAX_FILE_SIZE_MB}MB por arquivo)
+                  {arquivosSelecionados.length === 0 && (
+                    <span style={{ color: "#d32f2f", display: "block" }}>
+                      * Obrigatório anexar pelo menos uma foto quando há avarias
+                    </span>
+                  )}
                 </Typography>
               </Box>
             </>
@@ -398,7 +402,7 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
               disabled={
                 loading || 
                 !!successMessage ||
-                (avariado && !observacao.trim())
+                (avariado && (!observacao.trim() || arquivosSelecionados.length === 0))
               }
             >
               {loading ? <CircularProgress size={24} /> : "Confirmar"}
