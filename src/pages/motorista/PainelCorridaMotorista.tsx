@@ -31,6 +31,11 @@ import { formatDateOnly } from '../../utils/formatDate';
 import ModalVistoriaVeiculo from "./modais/ModalVistoriaVeiculo";
 import { CorridaVistoriaService } from "../../services/CorridaVistoriaService";
 
+interface Props {
+  corrida?: any;
+  onCorridaUpdate?: (corrida: any) => void;
+}
+
 const menuItems = [
   { label: "Iniciar Percurso", path: "/IniciarPercurso" },
   { label: "Finalizar Percurso", path: "/FinalizarPercurso" },
@@ -67,18 +72,14 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
   const [modalConfirmacaoOpen, setModalConfirmacaoOpen] = useState(false);
   const [modalFinalizarOpen, setModalFinalizarOpen] = useState(false);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
-  const [finalizeSuccessModalOpen, setFinalizeSuccessModalOpen] =
-    useState(false);
+  const [finalizeSuccessModalOpen, setFinalizeSuccessModalOpen] = useState(false);
 
   const [modalOcorrenciaAberto, setModalOcorrenciaAberto] = useState(false);
-  const [modalAbastecimentoAberto, setModalAbastecimentoAberto] =
-    useState(false);
+  const [modalAbastecimentoAberto, setModalAbastecimentoAberto] = useState(false);
 
   const [isCorridaIniciada, setIsCorridaIniciada] = useState(false);
 
-  const [percursoAtual, setPercursoAtual] = useState<PercursoBackend | null>(
-    null
-  );
+  const [percursoAtual, setPercursoAtual] = useState<PercursoBackend | null>(null);
   const [percursosAtivosCount, setPercursosAtivosCount] = useState(0);
   const [idCarro, setIdCarro] = useState<number | null>(null);
   const [odometroAtual, setOdometroAtual] = useState<string>("0");
@@ -103,11 +104,14 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
       if (chaveEmprestada && corridaLocal?.idCorrida && !isCorridaEncerrada) {
         try {
           const resultado = await CorridaVistoriaService.verificarVistoriaPendente(corridaLocal.idCorrida);
-          if (resultado.pendente) {
+          if (resultado?.pendente === true) {
             setModalVistoriaOpen(true);
+          } else {
+            setModalVistoriaOpen(false);
           }
         } catch (error) {
           console.error("Erro ao validar vistoria inicial do motorista:", error);
+          setModalVistoriaOpen(false);
         }
       }
     };
@@ -119,7 +123,7 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
     if (!corridaLocal && idCorrida) {
       buscarCorridaPorId(Number(idCorrida)).then(setCorridaLocal);
     }
-  }, [idCorrida]);
+  }, [idCorrida, corridaLocal]);
 
   useEffect(() => {
     const verificarAcesso = async () => {
@@ -164,7 +168,7 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
     if (!isCorridaEncerrada) {
       fetchStatusChave();
     }
-  }, [corridaLocal?.idCorrida, corridaLocal?.situacao]);
+  }, [corridaLocal?.idCorrida, corridaLocal?.situacao, isCorridaEncerrada]);
 
   useEffect(() => {
     const fetchPercursoStatus = async () => {
@@ -193,7 +197,7 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
     if (!isCorridaEncerrada) {
       fetchPercursoStatus();
     }
-  }, [corridaLocal?.idCorrida, corridaLocal?.situacao]);
+  }, [corridaLocal?.idCorrida, corridaLocal?.situacao, isCorridaEncerrada]);
 
   useEffect(() => {
     const fetchUltimoDestino = async () => {
@@ -206,7 +210,7 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
       }
     };
     fetchUltimoDestino();
-  }, [modalIniciarOpen, corridaLocal?.idCorrida, corridaLocal?.localDeSaida])
+  }, [modalIniciarOpen, corridaLocal?.idCorrida, corridaLocal?.localDeSaida]);
 
   useEffect(() => {
     let isMounted = true;
@@ -249,18 +253,17 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
     return (
       <AppLayout>
         <Box sx={{ p: 4, maxWidth: 800, mx: "auto", textAlign: "center" }}>
-        <Typography variant="h5" fontWeight="bold" gutterBottom color="textPrimary">
-          Corrida Concluída
-        </Typography>
-        <Typography variant="body1" color="success.main" sx={{ mb: 2 }}>
-          Esta corrida foi concluída em {dataFinal}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Nenhuma ação disponível para corridas concluídas.
-        </Typography>
-      </Box>
+          <Typography variant="h5" fontWeight="bold" gutterBottom color="textPrimary">
+            Corrida Concluída
+          </Typography>
+          <Typography variant="body1" color="success.main" sx={{ mb: 2 }}>
+            Esta corrida foi concluída em {dataFinal}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Nenhuma ação disponível para corridas concluídas.
+          </Typography>
+        </Box>
       </AppLayout>
-      
     );
   }
 
@@ -281,7 +284,6 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
   const verificarSeMostrarModalConfirmacao = async () => {
     try {
       const percursos = await buscarPercursosDaCorrida(corridaLocal?.idCorrida);
-
       const percursosFinalizados = percursos.filter((p) => p.chegadaHora);
 
       if (percursosFinalizados.length > 0) {
@@ -316,12 +318,12 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
     setModalIniciarOpen(false);
     setDestino("");
   };
+  
   const handleCloseFinalizarModal = () => {
     setModalFinalizarOpen(false);
     setOdometroFinal("");
   };
-  const handleSuccessClose = () => setSuccessModalOpen(false);
-  const handleFinalizeSuccessClose = () => setFinalizeSuccessModalOpen(false);
+
   const fecharModalOcorrencia = () => setModalOcorrenciaAberto(false);
   const fecharModalAbastecimento = () => setModalAbastecimentoAberto(false);
 
@@ -362,17 +364,14 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
       setSuccessModalOpen(true);
     } catch (error: unknown) {
       console.error("Erro ao iniciar percurso:", error);
-      const message =
-        error instanceof Error ? error.message : "Ocorreu um erro desconhecido";
+      const message = error instanceof Error ? error.message : "Ocorreu um erro desconhecido";
       alert(message);
     }
   };
 
   const handleFinalizarPercurso = async () => {
     if (!odometroFinal || !percursoAtual?.idPercurso) {
-      alert(
-        "Não foi possível encontrar o percurso atual ou o odômetro não foi preenchido."
-      );
+      alert("Não foi possível encontrar o percurso atual ou o odômetro não foi preenchido.");
       return;
     }
 
@@ -387,13 +386,10 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
 
       setOdometroAtual(odometroFinal);
 
-      if (
-        isUltimoPercurso &&
-        percursoAtual.localDestino === corridaLocal?.localDeSaida
-      ) {
-        await atualizarSituacaoCorrida(corridaLocal?.idCorrida,"CONCLUIDA");
+      if (isUltimoPercurso && percursoAtual.localDestino === corridaLocal?.localDeSaida) {
+        await atualizarSituacaoCorrida(corridaLocal?.idCorrida, "CONCLUIDA");
         
-        const corridaAtualizada = {...corridaLocal,situacao: "CONCLUIDA",};
+        const corridaAtualizada = { ...corridaLocal, situacao: "CONCLUIDA" };
         setCorridaLocal(corridaAtualizada);
 
         setDataFinal(getHorarioAtualLocal());
@@ -410,23 +406,19 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
       handleCloseFinalizarModal();
       setFinalizeSuccessModalOpen(true);
 
-      const ultimoPercurso = await buscarUltimoPercursoFinalizado(
-        corridaLocal?.idCorrida
-      );
+      const ultimoPercurso = await buscarUltimoPercursoFinalizado(corridaLocal?.idCorrida);
       if (ultimoPercurso) {
         setUltimoDestino(ultimoPercurso.localDestino);
       }
     } catch (error: unknown) {
       console.error("Erro ao finalizar percurso:", error);
-      const message =
-        error instanceof Error ? error.message : "Ocorreu um erro desconhecido";
+      const message = error instanceof Error ? error.message : "Ocorreu um erro desconhecido";
       alert(message);
     }
   };
 
   return (
     <AppLayout>
-
       {mensagemSucesso && (
         <Alert
           severity="success"
@@ -438,35 +430,23 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
             borderRadius: 1.5,
           }}
           onClose={() => setMensagemSucesso("")}
-          >
-            {mensagemSucesso}
-          </Alert>
-        )}
+        >
+          {mensagemSucesso}
+        </Alert>
+      )}
 
       <BemVindo />
       <Box sx={{ p: 4, maxWidth: 800, mx: "auto" }}>
         <Box sx={{ mb: 4 }}>
-          <Typography
-            variant="h5"
-            fontWeight="bold"
-            color="text.primary"
-            gutterBottom
-          >
+          <Typography variant="h5" fontWeight="bold" color="text.primary" gutterBottom>
             Corrida:
           </Typography>
           <Typography variant="subtitle2" color="text.secondary">
             De {formatDateOnly(corridaLocal.dataInicio)} até{" "}
-            {corridaLocal.dataTermino
-              ? formatDateOnly(corridaLocal.dataTermino)
-              : "em andamento"}
+            {corridaLocal.dataTermino ? formatDateOnly(corridaLocal.dataTermino) : "em andamento"}
           </Typography>
           {!chaveEmprestada && (
-            <Typography
-              variant="body2"
-              fontWeight="bold"
-              gutterBottom
-              sx={{ color: "red" }}
-            >
+            <Typography variant="body2" fontWeight="bold" gutterBottom sx={{ color: "red" }}>
               Retire a chave para liberar a corrida!
             </Typography>
           )}
@@ -574,13 +554,9 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
             onClose={fecharModalOcorrencia}
             corrida={corridaLocal?.idCorrida}
             onSuccess={async (message) => {
-            setMensagemSucesso(message);
-            try {
-              await fecharModalOcorrencia();
-            } catch (error) {
-              console.error(error);
-            }
-          }}
+              setMensagemSucesso(message);
+              fecharModalOcorrencia();
+            }}
             onError={(erro) => {
               console.error("Erro ao salvar ocorrência:", erro);
             }}
@@ -594,11 +570,7 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
             corrida={corridaLocal}
             onSuccess={async (message) => {
               setMensagemSucesso(message);
-              try {
-                await fecharModalAbastecimento();
-              } catch (error) {
-                console.error(error);
-              }
+              fecharModalAbastecimento();
             }}
           />
         )}
@@ -616,7 +588,7 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
           <ModalIniciarPercurso
             open={modalIniciarOpen}
             onClose={handleCloseIniciarModal}
-            onSuccess={async (message) => {setMensagemSucesso(message);}}
+            onSuccess={async (message) => { setMensagemSucesso(message); }}
             onConfirm={handleIniciarPercurso}
             destino={destino}
             setDestino={setDestino}
@@ -635,7 +607,7 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
           <ModalFinalizarPercurso
             open={modalFinalizarOpen}
             onClose={handleCloseFinalizarModal}
-            onSuccess={async (message) => {setMensagemSucesso(message);}}
+            onSuccess={async (message) => { setMensagemSucesso(message); }}
             onConfirm={handleFinalizarPercurso}
             odometroFinal={odometroFinal}
             setOdometroFinal={setOdometroFinal}
@@ -649,8 +621,10 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
             idCorrida={corridaLocal.idCorrida}
             nomeMotorista={nome || "Motorista"}
             onSuccess={(message) => {
-              setMensagemSucesso(message);
+              setMensagemSucesso(message || "Vistoria realizada!");
               setModalVistoriaOpen(false);
+            }}
+            onClose={() => {
             }}
           />
         )}

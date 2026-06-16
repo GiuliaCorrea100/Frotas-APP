@@ -23,9 +23,6 @@ import { Tooltip } from "@mui/material";
 import ContrastIcon from "@mui/icons-material/Contrast";
 import { useThemeContext } from "../context/ThemeContext";
 import DadosPerfil from "../pages/DadosPerfil";
-import ModalVistoriaVeiculo from "../pages/motorista/modais/ModalVistoriaVeiculo";
-import { CorridaVistoriaService } from "../services/CorridaVistoriaService";
-import { getCorridaById } from "../services/CorridaService"; 
 
 const Menu: React.FC = () => {
   const {
@@ -43,18 +40,20 @@ const Menu: React.FC = () => {
   const isMobile = useMediaQuery("(max-width:768px)");
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
-  const [showModalVistoria, setShowModalVistoria] = useState<boolean>(false);
-
+  // Estados para o timer de inatividade
   const [tempoRestante, setTempoRestante] = useState<string>("30:00");
   const [corTimer, setCorTimer] = useState<string>("#4caf50");
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Função para iniciar/atualizar o timer
   const iniciarTimer = useCallback(
     (expiresAt: number) => {
+      // Limpa timer anterior
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
 
+      // Configura novo timer
       timerRef.current = setInterval(() => {
         const agora = Date.now();
         const segundosRestantes = Math.max(
@@ -62,10 +61,12 @@ const Menu: React.FC = () => {
           Math.floor((expiresAt - agora) / 1000),
         );
 
+        // Atualiza display
         const minutos = Math.floor(segundosRestantes / 60);
         const segundos = segundosRestantes % 60;
         setTempoRestante(`${minutos}:${segundos < 10 ? "0" : ""}${segundos}`);
 
+        // Atualiza cor
         if (minutos > 5) {
           setCorTimer(themeMode === "dark" ? "#4caf50" : "#2e7d32");
         } else if (minutos > 1) {
@@ -74,6 +75,7 @@ const Menu: React.FC = () => {
           setCorTimer(themeMode === "dark" ? "#f44336" : "#d32f2f");
         }
 
+        // Se expirou, para o timer e faz logout
         if (segundosRestantes <= 0 && timerRef.current) {
           clearInterval(timerRef.current);
           handleAutoLogout();
@@ -83,22 +85,28 @@ const Menu: React.FC = () => {
     [themeMode],
   );
 
+  // Função para logout automático
   const handleAutoLogout = useCallback(async () => {
     console.log("⏰ Sessão expirada por inatividade");
 
+    // Limpa timer
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
 
+    // Limpa localStorage
     localStorage.removeItem("token");
     localStorage.removeItem("tokenExpiresAt");
 
+    // Faz logout via AuthContext
     await logout();
     navigate("/", { replace: true });
   }, [logout, navigate]);
 
+  // Função para logout manual
   const handleLogout = async () => {
+    // Limpa timer
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
@@ -108,77 +116,13 @@ const Menu: React.FC = () => {
     navigate("/", { replace: true });
   };
 
-  const checarVistoriaObrigatoria = useCallback(async () => {
-    if (!isAuthenticated || !hasCorridaAtiva || !idCorridaAtiva) {
-      setShowModalVistoria(false);
-      return;
-    }
-
-    try {
-      const dadosCorrida = await getCorridaById(idCorridaAtiva);
-
-      if (!dadosCorrida?.chaveEmprestada) {
-        setShowModalVistoria(false);
-        return;
-      }
-
-      const status =
-        await CorridaVistoriaService.verificarVistoriaPendente(
-          idCorridaAtiva
-        );
-
-      setShowModalVistoria(status?.pendente === true);
-    } catch (error) {
-      setShowModalVistoria(false);
-    }
-  }, [isAuthenticated, hasCorridaAtiva, idCorridaAtiva]);
-
-  useEffect(() => {
-    const handleTokenRenewed = (event: CustomEvent) => {
-      if (event.detail && event.detail.expiresAt) {
-        console.log("🔄 Token renovado, reiniciando timer...");
-        iniciarTimer(event.detail.expiresAt);
-      }
-    };
-
-    window.addEventListener(
-      "tokenRenewed",
-      handleTokenRenewed as EventListener,
-    );
-
-    const storedExpiresAt = localStorage.getItem("tokenExpiresAt");
-    if (storedExpiresAt) {
-      const expiresAt = parseInt(storedExpiresAt, 10);
-      if (!isNaN(expiresAt) && expiresAt > Date.now()) {
-        iniciarTimer(expiresAt);
-      } else if (expiresAt <= Date.now() && isAuthenticated) {
-        handleAutoLogout();
-      }
-    }
-
-    return () => {
-      window.removeEventListener(
-        "tokenRenewed",
-        handleTokenRenewed as EventListener,
-      );
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [iniciarTimer, handleAutoLogout, isAuthenticated]);
-
-  useEffect(() => {
-    checarVistoriaObrigatoria();
-  }, [isAuthenticated, hasCorridaAtiva, idCorridaAtiva, checarVistoriaObrigatoria]);
-
-  const handleAbrirModalDadosPerfil = () => setShowModalDadosPerfil(true);
-  const handleFecharModalDadosPerfil = () => setShowModalDadosPerfil(false);
-
+  // Recursos para TODOS os usuários
   const recursosPadrao = [
     { label: "Registros de Infração", path: "/RegistrosDeInfracao" },
     { label: "Histórico", path: "/HistoricoIndividual" },
   ];
 
+  // Recursos EXCLUSIVOS para admin
   const recursosAdmin = [
     { label: "Corridas", path: "/Corridas" },
     { label: "Veículos", path: "/Veiculos" },
@@ -187,6 +131,7 @@ const Menu: React.FC = () => {
     { label: "Relatórios", path: "/Relatorios" },
   ];
 
+  // Função para renderizar botões desktop
   const renderBotoesDesktop = () => (
     <>
       {administrador &&
@@ -215,6 +160,7 @@ const Menu: React.FC = () => {
     </>
   );
 
+  // Função para renderizar botões mobile
   const renderItensMobile = () => (
     <>
       {administrador &&
@@ -242,6 +188,55 @@ const Menu: React.FC = () => {
       ))}
     </>
   );
+
+  // Efeito para escutar renovação de token
+  useEffect(() => {
+    const handleTokenRenewed = (event: CustomEvent) => {
+      if (event.detail && event.detail.expiresAt) {
+        console.log("🔄 Token renovado, reiniciando timer...");
+        iniciarTimer(event.detail.expiresAt);
+      }
+    };
+
+    window.addEventListener(
+      "tokenRenewed",
+      handleTokenRenewed as EventListener,
+    );
+
+    // Inicializa com tempo atual do localStorage
+    const storedExpiresAt = localStorage.getItem("tokenExpiresAt");
+    if (storedExpiresAt) {
+      const expiresAt = parseInt(storedExpiresAt, 10);
+      if (!isNaN(expiresAt) && expiresAt > Date.now()) {
+        iniciarTimer(expiresAt);
+      } else if (expiresAt <= Date.now() && isAuthenticated) {
+        // Se já expirou e usuário está autenticado, faz logout
+        handleAutoLogout();
+      }
+    }
+
+    return () => {
+      window.removeEventListener(
+        "tokenRenewed",
+        handleTokenRenewed as EventListener,
+      );
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [iniciarTimer, handleAutoLogout, isAuthenticated]);
+
+  // Efeito para monitorar mudanças de rota (reinicia timer na navegação)
+  useEffect(() => {
+    if (isAuthenticated && timerRef.current) {
+      // Quando o usuário navega, o timer continua contando
+      // A renovação acontece via interceptor do axiosConnect
+      // e o timer é reiniciado via evento tokenRenewed
+    }
+  }, [location.pathname, isAuthenticated]);
+
+  const handleAbrirModalDadosPerfil = () => setShowModalDadosPerfil(true);
+  const handleFecharModalDadosPerfil = () => setShowModalDadosPerfil(false);
 
   return (
     <>
@@ -392,7 +387,7 @@ const Menu: React.FC = () => {
                       </IconButton>
                     </span>
                   </Tooltip>
-                  
+                  {/* Timer de Inatividade */}
                   <Tooltip title="Sessão expira em">
                     <Chip
                       icon={<AccessTimeIcon />}
@@ -408,7 +403,7 @@ const Menu: React.FC = () => {
                         "& .MuiChip-icon": {
                           color: corTimer,
                         },
-                        display: { xs: "none", sm: "flex" },
+                        display: { xs: "none", sm: "flex" }, // Oculta em mobile
                       }}
                     />
                   </Tooltip>
@@ -440,26 +435,6 @@ const Menu: React.FC = () => {
           </Box>
         </Toolbar>
       </AppBar>
-
-      {showModalVistoria && idCorridaAtiva && (
-        <ModalVistoriaVeiculo
-          open={showModalVistoria}
-          idCorrida={idCorridaAtiva}
-          onSuccess={async () => {
-            setShowModalVistoria(false);
-
-            const status =
-              await CorridaVistoriaService.verificarVistoriaPendente(
-                idCorridaAtiva
-              );
-
-            if (!status.pendente) {
-              setShowModalVistoria(false);
-            }
-          }}
-          onCancel={() => {}}
-        />
-      )}
 
       {showModalDadosPerfil && (
         <DadosPerfil
