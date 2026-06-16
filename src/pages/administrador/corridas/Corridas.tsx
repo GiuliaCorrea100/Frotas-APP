@@ -34,6 +34,7 @@ import axiosConnect from "../../../services/axios/axiosConnect";
 import AppLayout from "../../../components/Layout";
 import BemVindo from "../../BemVindo";
 import { formatDateOnly } from "../../../utils/formatDate";
+import VistoriaDevolucaoModal from "./modais/ModalVistoriaDevolucao";
 
 // Função para converter CorridaFrontend em CorridaDto
 const mapToDto = (c: CorridaFrontend): CorridaDto => ({
@@ -61,6 +62,7 @@ export default function ListaCorrida() {
   const [showModalReceberChave, setShowModalReceberChave] = useState(false);
   const [showModalEditar, setShowModalEditar] = useState(false);
   const [showModalCancelar, setShowModalCancelar] = useState(false);
+  const [showVistoriaDevolucaoModal, setShowVistoriaDevolucaoModal] = useState(false); //point
 
   const [senhaError, setSenhaError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -122,20 +124,14 @@ export default function ListaCorrida() {
       String(valor).toLowerCase().includes(busca.toLowerCase()),
     );
 
-    let matchesSituacao = true;
-    
-    if (filtroSituacao === "ATIVAS") {
-      matchesSituacao = corrida.situacao === "AGENDADA" || 
-                        corrida.situacao === "ANDAMENTO" || 
-                        corrida.situacao === "CONCLUIDA";
-    } else if (filtroSituacao === "TODOS") {
-      matchesSituacao = true;
-    } else {
-      matchesSituacao = corrida.situacao === filtroSituacao;
-    }
+    const matchesSituacao = 
+      filtroSituacao === "TODOS" || 
+      filtroSituacao === "" || 
+      (filtroSituacao === "ATIVAS" && (corrida.situacao === "AGENDADA" || corrida.situacao === "ANDAMENTO")) ||
+      corrida.situacao === filtroSituacao;
 
     return matchesSearch && matchesSituacao;
-});
+  });
 
   const handleAbrirModalLiberarChave = (corrida: CorridaFrontend) => {
     setSelectedCorrida(corrida);
@@ -261,39 +257,21 @@ export default function ListaCorrida() {
       field: "dataInicio",
       headerName: "Data Início",
       width: 200,
-      renderCell: (params) => {
-        const corrida = params.row;
-        const chaveEmprestada = !!corrida.dataHoraLiberacaoChave;
-        
-        const horaInicio = chaveEmprestada 
-          ? corrida.dataHoraLiberacaoChave 
-          : corrida.dataInicio;
-        
-        return (
-          <Typography variant="body2">
-            {formatDateOnly(horaInicio as string | null)}
-          </Typography>
-        );
-      },
+      renderCell: (params) => (
+        <Typography variant="body2">
+          {formatDateOnly(params.value as string)}
+        </Typography>
+      ),
     },
     {
       field: "dataTermino",
       headerName: "Data Término",
       width: 200,
-      renderCell: (params) => {
-        const corrida = params.row;
-        const chaveEntregue = !!corrida.dataHoraRecebimentoChave;
-        
-        const horaTermino = chaveEntregue 
-          ? corrida.dataHoraRecebimentoChave 
-          : corrida.dataTermino;
-        
-        return (
-          <Typography variant="body2">
-            {formatDateOnly(horaTermino as string | null)}
-          </Typography>
-        );
-      },
+      renderCell: (params) => (
+        <Typography variant="body2">
+          {formatDateOnly(params.value as string | null)}
+        </Typography>
+      ),
     },
     {
       field: "situacao",
@@ -496,7 +474,7 @@ export default function ListaCorrida() {
                         corrida.situacao === "CANCELADA"  ||
                         corrida.situacao === "CONCLUIDA")) ||
                     (corrida.chaveEmprestada === true &&
-                      corrida.situacao === "CANCELADA")
+                      (corrida.situacao === "CANCELADA" || corrida.situacao === "AGENDADA" || corrida.situacao === "ANDAMENTO"))
                   }
                   sx={{
                     minHeight: 42,
@@ -601,9 +579,15 @@ export default function ListaCorrida() {
             {
               label: "ATIVAS",
               value: "ATIVAS",
-              count: qtdAgendadas + qtdEmAndamento + qtdConcluidas,
+              count: qtdAgendadas + qtdEmAndamento,
               color: theme.palette.info.main,
               temSubmenu: true,
+            },
+            {
+              label: "CONCLUIDAS",
+              value: "CONCLUIDA",
+              count: qtdConcluidas,
+              color: theme.palette.warning.main,
             },
             {
               label: "FINALIZADAS",
@@ -637,11 +621,11 @@ export default function ListaCorrida() {
                   setMostrarSubFiltros(!mostrarSubFiltros);
                   
                   if (!mostrarSubFiltros) {
-                    setFiltroSituacao("ATIVAS");
+                    setFiltroSituacao("");
                     setFiltroAtivoInterno(null);
                   } else {
-                    setFiltroSituacao("TODOS");
                     setFiltroAtivoInterno(null);
+                    setFiltroSituacao("");
                   }
                 } else {
                   setFiltroSituacao(tab.value);
@@ -731,12 +715,6 @@ export default function ListaCorrida() {
                 label: "EM ANDAMENTO",
                 value: "ANDAMENTO",
                 count: qtdEmAndamento,
-                color: theme.palette.warning.main,
-              },
-              {
-                label: "CONCLUIDA",
-                value: "CONCLUIDA",
-                count: qtdConcluidas,
                 color: theme.palette.warning.main,
               },
             ].map((tab) => (
@@ -968,7 +946,7 @@ export default function ListaCorrida() {
                     "CANCELADA",
                   );
 
-                  // Atualizar situação do carro para DISPONIVEL quando a corrida for cancelada
+                  
                   await CarroService.atualizarSituacaoCarro(
                     selectedCorrida.idCarro,
                     "DISPONIVEL",
@@ -1015,36 +993,9 @@ export default function ListaCorrida() {
             Cancelar
           </Button>
           <Button
-            onClick={async () => {
-              if (selectedCorrida) {
-                try {
-                  await CorridaService.confirmarReceberChave(
-                    selectedCorrida.idCorrida,
-                  );
-
-                  await CarroService.atualizarSituacaoCarro(
-                    selectedCorrida.idCarro,
-                    "DISPONIVEL",
-                  );
-
-                  if (selectedCorrida.situacao === "ANDAMENTO") {
-                    await atualizarSituacaoCorrida(
-                      selectedCorrida.idCorrida,
-                      "FINALIZADA",
-                    );
-                  }
-
-                  const dadosAtualizados = await getCorridas();
-                  setCorridas(dadosAtualizados);
-                  setShowModalReceberChave(false);
-                  setMensagemSucesso("Chave Recebida com sucesso!");
-                } catch (error) {
-                  console.error(
-                    "Erro ao processar recebimento da chave:",
-                    error,
-                  );
-                }
-              }
+            onClick={() => {
+              setShowModalReceberChave(false);
+              setShowVistoriaDevolucaoModal(true);
             }}
             variant="contained"
             color="primary"
@@ -1095,6 +1046,24 @@ export default function ListaCorrida() {
           }}
         />
       )}
+
+      <VistoriaDevolucaoModal
+        open={showVistoriaDevolucaoModal}
+        onClose={() => setShowVistoriaDevolucaoModal(false)}
+        onSuccess={async (message) => {
+          setMensagemSucesso(message);
+          setShowVistoriaDevolucaoModal(false);
+          try {
+              await carregarCorridas();
+            } catch (error) {
+              console.error(error);
+            }
+        }}
+        onError={(error) => {
+          console.error("Erro ao solicitar recurso:", error);
+        }}
+        corrida={selectedCorrida}
+      />
     </AppLayout>
   );
 }
