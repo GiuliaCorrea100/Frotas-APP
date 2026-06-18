@@ -602,6 +602,20 @@ const DetalhesRequisicao: React.FC = () => {
     }
   };
 
+  const formatarStatusVistoria = (veiculoRecebidoSemAvarias: boolean): string => {
+    return veiculoRecebidoSemAvarias ? "Sem avarias" : "Com avarias";
+  };
+
+  const getVistoriaDevolucao = (): CorridaVistoriaFrontend | null => {
+    const vistoriaDevolucao = vistorias.find(v => v.tipo === "DEVOLUCAO");
+    return vistoriaDevolucao || null;
+  };
+
+  const getVistoriaRetirada = (): CorridaVistoriaFrontend | null => {
+    const vistoriaRetirada = vistorias.find(v => v.tipo === "RETIRADA");
+    return vistoriaRetirada || null;
+  }
+
   return (
     <AppLayout>
       {mensagemSucesso && (
@@ -1064,7 +1078,7 @@ const DetalhesRequisicao: React.FC = () => {
 
         {/* Cards de Vistorias lado a lado no desktop */}
         <Grid container spacing={3} sx={{ marginBottom: 3 }}>
-          {/* Card de Vistoria Motorista */}
+          {/* Card de Vistoria Motorista - Tipo RETIRADA */}
           <Grid item xs={12} md={6}>
             <Card
               sx={{
@@ -1109,18 +1123,83 @@ const DetalhesRequisicao: React.FC = () => {
                     <Typography variant="body2" color="text.secondary">
                       Carregando vistoria do motorista...
                     </Typography>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      {/* Conteúdo da vistoria do motorista aqui */}
-                      Nenhuma vistoria cadastrada para esta corrida.
-                    </Typography>
-                  )}
+                  ) : (() => {
+                    const vistoriaRetirada = getVistoriaRetirada();
+                    
+                    if (!vistoriaRetirada) {
+                      return (
+                        <Typography variant="body2" color="text.secondary">
+                          Nenhuma vistoria de retirada cadastrada para esta corrida.
+                        </Typography>
+                      );
+                    }
+                    
+                    return (
+                      <Stack spacing={1.5}>
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            Registrado por:
+                          </Typography>
+                          <Typography variant="body1" color="text.primary">
+                            {vistoriaRetirada.usuarioRegistrou?.nome || 'Usuário não identificado'}
+                          </Typography>
+                        </Box>
+
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            Status:
+                          </Typography>
+                          <Typography 
+                            variant="body1" 
+                            color={vistoriaRetirada.veiculoRecebidoSemAvarias ? "success" : "error"}
+                            fontWeight="medium"
+                          >
+                            {formatarStatusVistoria(vistoriaRetirada.veiculoRecebidoSemAvarias)}
+                          </Typography>
+                        </Box>
+
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            Observações:
+                          </Typography>
+                          <Typography variant="body1" color="text.primary">
+                            {vistoriaRetirada.observacoes || 'Nenhuma observação registrada'}
+                          </Typography>
+                        </Box>
+
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            Data do registro:
+                          </Typography>
+                          <Typography variant="body1" color="text.primary">
+                            {formatDate(vistoriaRetirada.dataRegistro)}
+                          </Typography>
+                        </Box>
+
+                        <Button
+                          variant="contained"
+                          onClick={() => {
+                            console.log('Abrir fotos da vistoria de retirada');
+                          }}
+                          startIcon={<Add />}
+                          sx={{
+                            textTransform: "none",
+                            fontWeight: 600,
+                            boxShadow: theme.shadows[2],
+                            mt: 1
+                          }}
+                        >
+                          Fotos registradas
+                        </Button>
+                      </Stack>
+                    );
+                  })()}
                 </CardContent>
               </Box>
             </Card>
           </Grid>
 
-          {/* Card de Vistoria Administrador */}
+          {/* Card de Vistoria Administrador - Tipo DEVOLUCAO */}
           <Grid item xs={12} md={6}>
             <Card
               sx={{
@@ -1165,55 +1244,77 @@ const DetalhesRequisicao: React.FC = () => {
                     <Typography variant="body2" color="text.secondary">
                       Carregando vistoria do administrador...
                     </Typography>
-                  )  : vistorias ? (
+                  ) : (() => {
+                    const vistoriaDevolucao = getVistoriaDevolucao();
+                    
+                    if (!vistoriaDevolucao) {
+                      return (
+                        <Typography variant="body2" color="text.secondary">
+                          Nenhuma vistoria de devolução cadastrada para esta corrida.
+                        </Typography>
+                      );
+                    }
+                    
+                    return (
                       <Stack spacing={1.5}>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Registrador por:
-                    </Typography>
-                    <Typography variant="body1" color="text.primary">
-                      {/* {vistorias.usuarioResgistrado} */}
-                    </Typography>
-                  </Box>
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            Registrado por:
+                          </Typography>
+                          <Typography variant="body1" color="text.primary">
+                            {vistoriaDevolucao.usuarioRegistrou?.nome || 'Usuário não identificado'}
+                          </Typography>
+                        </Box>
 
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Obsevações:
-                    </Typography>
-                    <Typography variant="body1" color="text.primary">
-                      {corrida.placaVeiculo}
-                    </Typography>
-                  </Box>
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            Status:
+                          </Typography>
+                          <Typography 
+                            variant="body1" 
+                            color={vistoriaDevolucao.veiculoRecebidoSemAvarias ? "success" : "error"}
+                            fontWeight="medium"
+                          >
+                            {formatarStatusVistoria(vistoriaDevolucao.veiculoRecebidoSemAvarias)}
+                          </Typography>
+                        </Box>
 
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Status:
-                    </Typography>
-                    <Typography variant="body1" color="text.primary">
-                      {corrida.situacao}
-                    </Typography>
-                  </Box>
-                  <Button
-                    variant="contained"
-                    onClick={handleAbrirModalCadastroAbastecimento}
-                    startIcon={<Add />}
-                    sx={{
-                      textTransform: "none",
-                      fontWeight: 600,
-                      boxShadow: theme.shadows[2],
-                    }}
-                  >
-                    fotos registradas
-                  </Button>
-                </Stack>
-                  ): (
-                    <Typography variant="body2" color="text.secondary">
-                      {/* Conteúdo da vistoria do administrador aqui */}
-                      Nenhuma vistoria cadastrada para esta corrida.
-                    </Typography>
-                  )
-                  
-                  }
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            Observações:
+                          </Typography>
+                          <Typography variant="body1" color="text.primary">
+                            {vistoriaDevolucao.observacoes || 'Nenhuma observação registrada'}
+                          </Typography>
+                        </Box>
+
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            Data do registro:
+                          </Typography>
+                          <Typography variant="body1" color="text.primary">
+                            {formatDate(vistoriaDevolucao.dataRegistro)}
+                          </Typography>
+                        </Box>
+
+                        <Button
+                          variant="contained"
+                          onClick={() => {
+                            console.log('Abrir fotos da vistoria de devolução');
+                          }}
+                          startIcon={<Add />}
+                          sx={{
+                            textTransform: "none",
+                            fontWeight: 600,
+                            boxShadow: theme.shadows[2],
+                            mt: 1
+                          }}
+                        >
+                          Fotos registradas
+                        </Button>
+                      </Stack>
+                    );
+                  })()}
                 </CardContent>
               </Box>
             </Card>
