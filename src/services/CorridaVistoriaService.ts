@@ -7,6 +7,20 @@ export interface CorridaVistoriaDto {
   observacoes?: string;
 }
 
+export interface CorridaVistoriaFrontend {
+  idCorridaVistoria?: number;
+  idCorrida: number;
+  tipo: "RETIRADA" | "DEVOLUCAO";
+  veiculoRecebidoSemAvarias: boolean;
+  observacoes: string;
+  dataRegistro: Date;
+  registradoPor: number;
+  usuarioRegistrou?: {
+    idUsuario: number;
+    nome: string;
+  };
+}
+
 export class CorridaVistoriaService  {
   static async verificarVistoriaPendente(idCorrida: number): Promise<{ pendente: boolean }> {
     const response = await axiosConnect.get(`/corrida-vistoria/status-pendente/${idCorrida}`);
@@ -20,7 +34,6 @@ export class CorridaVistoriaService  {
   };
 
   static async salvarFotosVistoria( idCorridaVistoria: number, files: FormData):Promise<any>{
-    console.log("iniciando salvar fotos da vistoria")
     const response = await axiosConnect.post(
           `/anexo/upload/${idCorridaVistoria}`,
           files,
@@ -30,14 +43,18 @@ export class CorridaVistoriaService  {
             },
           }
         );
-    console.log(response);
     return response.data;
   }
 
-  // static async registrarVistoriaFoto(vistoria: CorridaVistoriaDto, fotos: FormData):Promise<any>{
-  //   console.log("salvando vistoria com fotos")
-  //   const response = await axiosConnect.post("/corrida-vistoria", vistoria);
-  //   console.log(response);
-  //   return response.data;
-  // }
+  static async buscarVistoria(idCorrida: number): Promise<CorridaVistoriaFrontend[]> {
+  try {
+    console.log("Buscando vistorias da corrida");
+    const response = await axiosConnect.get(`/corrida-vistoria/corrida/${idCorrida}`);
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao buscar vistorias:', error);
+    return []; 
+  }
+}
 };

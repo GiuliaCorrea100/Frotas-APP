@@ -14,6 +14,7 @@ import {
   Dialog,
   Tooltip,
   Alert,
+  Grid,
 } from "@mui/material";
 import CreateIcon from "@mui/icons-material/Create";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -45,6 +46,7 @@ import CadastrarPercursosModal from "./modais/ModalCadastroPercurso";
 import AppLayout from "../../../components/Layout";
 import { formatDate, formatDateOnly } from "../../../utils/formatDate";
 import ExportarCorridaPDF from "./ExportarRelatorioDetalhes";
+import { CorridaVistoriaFrontend, CorridaVistoriaService } from "../../../services/CorridaVistoriaService";
 
 const DetalhesRequisicao: React.FC = () => {
   const theme = useTheme();
@@ -54,6 +56,9 @@ const DetalhesRequisicao: React.FC = () => {
   const [ocorrencias, setOcorrencias] = useState<OcorrenciaDto[]>([]);
   const [abastecimentos, setAbastecimento] = useState<Abastecimento[]>([]);
   const [percursos, setPercursos] = useState<PercursoDto[]>([]);
+  // const [vistoriaAdministrador, setVistoriaAdministrador] = useState<CorridaVistoriaFrontend>(null);
+  // const [vistoriaMotorista, setVistoriaMotorista] = useState<CorridaVistoriaFrontend>(null);
+  const [vistorias, setVistorias] = useState<CorridaVistoriaFrontend[]>([]);
 
   const [mensagemSucesso, setMensagemSucesso] = useState("");
 
@@ -98,14 +103,18 @@ const DetalhesRequisicao: React.FC = () => {
           ocorrenciasData,
           abastecimentosData,
           percursosData,
+          vistoriasData,
+          
         ] = await Promise.all([
           getCorridaById(Number(id)),
           OcorrenciaService.buscarPorCorrida(Number(id)),
           AbastecimentoService.buscarPorCorrida(Number(id)),
           buscarPercursosDaCorrida(Number(id)),
+          CorridaVistoriaService.buscarVistoria(Number(id)),
         ]);
 
         setCorrida(corridaData);
+        
 
         if (Array.isArray(ocorrenciasData)) {
           setOcorrencias(ocorrenciasData);
@@ -123,6 +132,12 @@ const DetalhesRequisicao: React.FC = () => {
           setPercursos(percursosData);
         } else if (percursosData) {
           setPercursos([percursosData]);
+        }
+
+        if (Array.isArray(vistoriasData)){
+          setVistorias(vistoriasData);
+        } else if (vistoriasData){
+          setVistorias([vistoriasData]);
         }
       }
     } catch (error) {
@@ -590,21 +605,21 @@ const DetalhesRequisicao: React.FC = () => {
   return (
     <AppLayout>
       {mensagemSucesso && (
-                <Alert
-                  severity="success"
-                  sx={{
-                    mb: 3,
-                    fontSize: "1.1rem",
-                    border: "1px solid",
-                    borderColor: "success.main",
-                    borderRadius: 1.5,
-                  }}
-                  onClose={() => setMensagemSucesso("")}
-                >
-                  {mensagemSucesso}
-                </Alert>
-              )}
-              
+        <Alert
+          severity="success"
+          sx={{
+            mb: 3,
+            fontSize: "1.1rem",
+            border: "1px solid",
+            borderColor: "success.main",
+            borderRadius: 1.5,
+          }}
+          onClose={() => setMensagemSucesso("")}
+        >
+          {mensagemSucesso}
+        </Alert>
+      )}
+      
       <Box mt={1.5}>
         {/* Card de Informações Básicas */}
         <Card
@@ -942,7 +957,7 @@ const DetalhesRequisicao: React.FC = () => {
           </Box>
         </Card>
 
-        {/* Card de Percusos */}
+        {/* Card de Percursos */}
         <Card
           sx={{
             marginBottom: 3,
@@ -1046,6 +1061,165 @@ const DetalhesRequisicao: React.FC = () => {
             </CardContent>
           </Box>
         </Card>
+
+        {/* Cards de Vistorias lado a lado no desktop */}
+        <Grid container spacing={3} sx={{ marginBottom: 3 }}>
+          {/* Card de Vistoria Motorista */}
+          <Grid item xs={12} md={6}>
+            <Card
+              sx={{
+                boxShadow:
+                  theme.palette.mode === "dark"
+                    ? "0px 4px 20px rgba(0, 0, 0, 0.3)"
+                    : "0px 8px 24px rgba(0, 0, 0, 0.08)",
+                border:
+                  theme.palette.mode === "dark"
+                    ? "1px solid transparent"
+                    : "1px solid #E7E9EE",
+                bgcolor:
+                  theme.palette.mode === "light"
+                    ? "#FFF"
+                    : theme.palette.background.paper,
+                height: '100%',
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  ml: 3,
+                  mr: 3,
+                  height: 56,
+                  pt: 2,
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  fontWeight="bold"
+                  color="text.primary"
+                  pt={1}
+                >
+                  Vistoria Motorista
+                </Typography>
+              </Box>
+              <Box m={1}>
+                <CardContent>
+                  {loading ? (
+                    <Typography variant="body2" color="text.secondary">
+                      Carregando vistoria do motorista...
+                    </Typography>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      {/* Conteúdo da vistoria do motorista aqui */}
+                      Nenhuma vistoria cadastrada para esta corrida.
+                    </Typography>
+                  )}
+                </CardContent>
+              </Box>
+            </Card>
+          </Grid>
+
+          {/* Card de Vistoria Administrador */}
+          <Grid item xs={12} md={6}>
+            <Card
+              sx={{
+                boxShadow:
+                  theme.palette.mode === "dark"
+                    ? "0px 4px 20px rgba(0, 0, 0, 0.3)"
+                    : "0px 8px 24px rgba(0, 0, 0, 0.08)",
+                border:
+                  theme.palette.mode === "dark"
+                    ? "1px solid transparent"
+                    : "1px solid #E7E9EE",
+                bgcolor:
+                  theme.palette.mode === "light"
+                    ? "#FFF"
+                    : theme.palette.background.paper,
+                height: '100%',
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  ml: 3,
+                  mr: 3,
+                  height: 56,
+                  pt: 2,
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  fontWeight="bold"
+                  color="text.primary"
+                  pt={1}
+                >
+                  Vistoria Administrador
+                </Typography>
+              </Box>
+              <Box m={1}>
+                <CardContent>
+                  {loading ? (
+                    <Typography variant="body2" color="text.secondary">
+                      Carregando vistoria do administrador...
+                    </Typography>
+                  )  : vistorias ? (
+                      <Stack spacing={1.5}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Registrador por:
+                    </Typography>
+                    <Typography variant="body1" color="text.primary">
+                      {/* {vistorias.usuarioResgistrado} */}
+                    </Typography>
+                  </Box>
+
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Obsevações:
+                    </Typography>
+                    <Typography variant="body1" color="text.primary">
+                      {corrida.placaVeiculo}
+                    </Typography>
+                  </Box>
+
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Status:
+                    </Typography>
+                    <Typography variant="body1" color="text.primary">
+                      {corrida.situacao}
+                    </Typography>
+                  </Box>
+                  <Button
+                    variant="contained"
+                    onClick={handleAbrirModalCadastroAbastecimento}
+                    startIcon={<Add />}
+                    sx={{
+                      textTransform: "none",
+                      fontWeight: 600,
+                      boxShadow: theme.shadows[2],
+                    }}
+                  >
+                    fotos registradas
+                  </Button>
+                </Stack>
+                  ): (
+                    <Typography variant="body2" color="text.secondary">
+                      {/* Conteúdo da vistoria do administrador aqui */}
+                      Nenhuma vistoria cadastrada para esta corrida.
+                    </Typography>
+                  )
+                  
+                  }
+                </CardContent>
+              </Box>
+            </Card>
+          </Grid>
+        </Grid>
+        
       </Box>
 
       {/* Modal de Exclusão de Percurso */}
@@ -1252,7 +1426,7 @@ const DetalhesRequisicao: React.FC = () => {
           open={modalCadastroAbertoAbastecimento}
           corrida={corrida}
           onClose={handleFecharModalCadastroAbastecimento}
-           onSuccess={async (message) => {
+          onSuccess={async (message) => {
             setMensagemSucesso(message);
             try {
               await carregarDados();
@@ -1260,7 +1434,6 @@ const DetalhesRequisicao: React.FC = () => {
               console.error(error);
             }
           }}
-
         />
       )}
 
