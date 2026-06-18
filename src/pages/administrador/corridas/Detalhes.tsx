@@ -1076,7 +1076,7 @@ const DetalhesRequisicao: React.FC = () => {
           </Box>
         </Card>
 
-        {/* Cards de Vistorias lado a lado no desktop */}
+        {/* Cards de Vistorias */}
         <Grid container spacing={3} sx={{ marginBottom: 3 }}>
           {/* Card de Vistoria Motorista - Tipo RETIRADA */}
           <Grid item xs={12} md={6}>
@@ -1134,6 +1134,8 @@ const DetalhesRequisicao: React.FC = () => {
                       );
                     }
                     
+                    const temAvarias = !vistoriaRetirada.veiculoRecebidoSemAvarias;
+                    
                     return (
                       <Stack spacing={1.5}>
                         <Box>
@@ -1147,7 +1149,7 @@ const DetalhesRequisicao: React.FC = () => {
 
                         <Box>
                           <Typography variant="body2" color="text.secondary">
-                            Status:
+                            Situação:
                           </Typography>
                           <Typography 
                             variant="body1" 
@@ -1158,39 +1160,34 @@ const DetalhesRequisicao: React.FC = () => {
                           </Typography>
                         </Box>
 
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            Observações:
-                          </Typography>
-                          <Typography variant="body1" color="text.primary">
-                            {vistoriaRetirada.observacoes || 'Nenhuma observação registrada'}
-                          </Typography>
-                        </Box>
+                        {temAvarias && (
+                          <Box>
+                            <Typography variant="body2" color="text.secondary">
+                              Observações:
+                            </Typography>
+                            <Typography variant="body1" color="text.primary">
+                              {vistoriaRetirada.observacoes || 'Nenhuma observação registrada'}
+                            </Typography>
+                          </Box>
+                        )}
 
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            Data do registro:
-                          </Typography>
-                          <Typography variant="body1" color="text.primary">
-                            {formatDate(vistoriaRetirada.dataRegistro)}
-                          </Typography>
-                        </Box>
-
-                        <Button
-                          variant="contained"
-                          onClick={() => {
-                            console.log('Abrir fotos da vistoria de retirada');
-                          }}
-                          startIcon={<Add />}
-                          sx={{
-                            textTransform: "none",
-                            fontWeight: 600,
-                            boxShadow: theme.shadows[2],
-                            mt: 1
-                          }}
-                        >
-                          Fotos registradas
-                        </Button>
+                        {temAvarias && (
+                          <Button
+                            variant="contained"
+                            onClick={() => {
+                              console.log('Abrir fotos da vistoria de retirada');
+                            }}
+                            startIcon={<Add />}
+                            sx={{
+                              textTransform: "none",
+                              fontWeight: 600,
+                              boxShadow: theme.shadows[2],
+                              mt: 1
+                            }}
+                          >
+                            Fotos registradas
+                          </Button>
+                        )}
                       </Stack>
                     );
                   })()}
@@ -1255,6 +1252,8 @@ const DetalhesRequisicao: React.FC = () => {
                       );
                     }
                     
+                    const temAvarias = !vistoriaDevolucao.veiculoRecebidoSemAvarias;
+                    
                     return (
                       <Stack spacing={1.5}>
                         <Box>
@@ -1268,7 +1267,7 @@ const DetalhesRequisicao: React.FC = () => {
 
                         <Box>
                           <Typography variant="body2" color="text.secondary">
-                            Status:
+                            Situação:
                           </Typography>
                           <Typography 
                             variant="body1" 
@@ -1279,39 +1278,34 @@ const DetalhesRequisicao: React.FC = () => {
                           </Typography>
                         </Box>
 
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            Observações:
-                          </Typography>
-                          <Typography variant="body1" color="text.primary">
-                            {vistoriaDevolucao.observacoes || 'Nenhuma observação registrada'}
-                          </Typography>
-                        </Box>
+                        {temAvarias && (
+                          <Box>
+                            <Typography variant="body2" color="text.secondary">
+                              Observações:
+                            </Typography>
+                            <Typography variant="body1" color="text.primary">
+                              {vistoriaDevolucao.observacoes || 'Nenhuma observação registrada'}
+                            </Typography>
+                          </Box>
+                        )}
 
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            Data do registro:
-                          </Typography>
-                          <Typography variant="body1" color="text.primary">
-                            {formatDate(vistoriaDevolucao.dataRegistro)}
-                          </Typography>
-                        </Box>
-
-                        <Button
-                          variant="contained"
-                          onClick={() => {
-                            console.log('Abrir fotos da vistoria de devolução');
-                          }}
-                          startIcon={<Add />}
-                          sx={{
-                            textTransform: "none",
-                            fontWeight: 600,
-                            boxShadow: theme.shadows[2],
-                            mt: 1
-                          }}
-                        >
-                          Fotos registradas
-                        </Button>
+                        {temAvarias && (
+                          <Button
+                            variant="contained"
+                            onClick={() => {
+                              console.log('Abrir fotos da vistoria de devolução');
+                            }}
+                            startIcon={<Add />}
+                            sx={{
+                              textTransform: "none",
+                              fontWeight: 600,
+                              boxShadow: theme.shadows[2],
+                              mt: 1
+                            }}
+                          >
+                            Fotos registradas
+                          </Button>
+                        )}
                       </Stack>
                     );
                   })()}
