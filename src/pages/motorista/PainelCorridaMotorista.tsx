@@ -139,7 +139,7 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
         const res = await axiosConnect.get(`/corrida/${idCorrida}`);
         const corrida = res.data;
       
-        if (corrida.idMotorista !== idUsuarioLogado) {
+        if (corrida.idMotoristaPrincipal !== idUsuarioLogado) {
           navigate('/unauthorized', { replace: true });
           return;
         }

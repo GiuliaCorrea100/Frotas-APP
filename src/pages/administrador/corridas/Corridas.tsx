@@ -179,15 +179,15 @@ export default function ListaCorrida() {
         }
 
         // Simular a liberação da chave no modo MOCK
-        await CorridaService.confirmarLiberarChaveMock(
-          selectedCorrida.idCorrida,
-          selectedCorrida.idMotorista,
+            await CorridaService.confirmarLiberarChaveMock(
+                selectedCorrida.idCorrida,
+                selectedCorrida.idMotoristaPrincipal,
         );
       } else {
         // Modo SIGAA normal
-        await CorridaService.confirmarLiberarChave(
-          selectedCorrida.idCorrida,
-          selectedCorrida.idMotorista,
+            await CorridaService.confirmarLiberarChave(
+                selectedCorrida.idCorrida,
+                selectedCorrida.idMotoristaPrincipal,
           senhaLiberarChave,
         );
       }
@@ -242,7 +242,7 @@ export default function ListaCorrida() {
       renderCell: (params) => <Typography>{params.value}</Typography>,
     },
     {
-      field: "nomeMotorista",
+      field: "nomeMotoristaPrincipal",
       headerName: "Motorista",
       flex: 0.8,
       renderCell: (params) => <Typography>{params.value}</Typography>,
@@ -848,7 +848,7 @@ export default function ListaCorrida() {
         <DialogContent>
           <Typography color="text.primary" mb={2}>
             Você está entregando a chave do carro ao motorista:
-            <strong> {selectedCorrida?.nomeMotorista}</strong>
+            <strong> {selectedCorrida?.nomeMotoristaPrincipal}</strong>
           </Typography>
 
           <TextField
@@ -982,7 +982,7 @@ export default function ListaCorrida() {
         <DialogContent>
           <Typography color="text.primary">
             Você confirma que está recebendo a chave do motorista
-            <strong> {selectedCorrida?.nomeMotorista}</strong>?
+            <strong> {selectedCorrida?.nomeMotoristaPrincipal}</strong>?
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0 }}>

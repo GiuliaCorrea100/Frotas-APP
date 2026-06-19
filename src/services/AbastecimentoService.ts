@@ -12,7 +12,7 @@ export interface Corrida {
   dataInicio: string | Date;
   dataTermino: string | Date | null;
   distanciaKm?: string | null;
-  idMotorista: number;
+  idMotoristaPrincipal: number;
   situacao: string; // "PENDENTE", "CONCLUIDA"
   chaveEmprestada: boolean;
   idCarro: number;
