@@ -10,6 +10,10 @@ import {
   CircularProgress,
   IconButton,
   Alert,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
 } from "@mui/material";
 import { AddLocationAlt, Close } from "@mui/icons-material";
 import { inserirPercursoCompleto } from "../../../../services/PercursoService";
@@ -42,6 +46,7 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
   const [chegadaHora, setChegadaHora] = useState<string>("");
   const [chegadaOdometro, setChegadaOdometro] = useState<string>("");
   const [localOrigem, setLocalOrigem] = useState("");
+  const [idMotorista, setIdMotorista] = useState<number | "">("");
   const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -84,6 +89,7 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
       setChegadaHora("");
       setChegadaOdometro("");
       setLocalOrigem("");
+      setIdMotorista("");
       setErrors({});
       setSuccessMessage("");
     }
@@ -168,6 +174,7 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
         chegadaHora: new Date(chegadaHora),
         chegadaOdometro: Number(chegadaOdometro),
         localOrigem: localOrigem.trim().toUpperCase(),
+        idMotorista: idMotorista === "" ? undefined : idMotorista,
       };
 
       await inserirPercursoCompleto(corrida, dadosPercurso);
@@ -368,6 +375,28 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
             disabled={loading || !!successMessage}
             sx={{ flex: "1" }}
           />
+        </Box>
+
+        <Box sx={{ mb: 2 }}>
+          <FormControl fullWidth>
+            <InputLabel id="motorista-label">Motorista Responsável</InputLabel>
+            <Select
+              labelId="motorista-label"
+              value={idMotorista}
+              onChange={(e) => setIdMotorista(e.target.value as number | "")}
+              label="Motorista Responsável"
+              disabled={loading || !!successMessage}
+            >
+              <MenuItem value="">
+                <em>Selecione o motorista</em>
+              </MenuItem>
+              {corrida.motoristas?.map((m) => (
+                <MenuItem key={m.idMotorista} value={m.idMotorista}>
+                  {m.nome}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Box>
 
         <Divider sx={{ my: 2 }} />

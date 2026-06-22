@@ -99,6 +99,9 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
 
   const isCorridaEncerrada = corridaLocal?.situacao === "FINALIZADA" || corridaLocal?.situacao === "CONCLUIDA";
 
+  const decodedUser = decodeToken<{ sub?: number; idUsuario?: number }>(token || '');
+  const idUsuarioLogado = decodedUser?.sub ?? decodedUser?.idUsuario;
+
   useEffect(() => {
     const verificarVistoriaInicial = async () => {
       if (chaveEmprestada && corridaLocal?.idCorrida && !isCorridaEncerrada) {
@@ -133,17 +136,17 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
       }
 
       try {
-        const decoded = decodeToken<{ sub?: number; idUsuario?: number }>(token);
-        const idUsuarioLogado = decoded.sub ?? decoded.idUsuario;
-
         const res = await axiosConnect.get(`/corrida/${idCorrida}`);
         const corrida = res.data;
-      
-        if (corrida.idMotoristaPrincipal !== idUsuarioLogado) {
+
+        const motoristasIds = (corrida.motoristas || []).map((m: any) => m.idMotorista);
+        const temAcesso = corrida.idMotoristaPrincipal === idUsuarioLogado ||
+                          motoristasIds.includes(idUsuarioLogado);
+
+        if (!temAcesso) {
           navigate('/unauthorized', { replace: true });
           return;
         }
-
       } catch (error) {
         console.error('❌ Erro verificação:', error);
         navigate('/unauthorized', { replace: true });
@@ -151,7 +154,7 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
     };
 
     verificarAcesso();
-  }, [idCorrida, token, navigate]);
+  }, [idCorrida, token, navigate, idUsuarioLogado]);
 
   useEffect(() => {
     const fetchStatusChave = async () => {
@@ -243,7 +246,11 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
   }
 
   const isIniciarDisabled = isCorridaIniciada;
-  const isFinalizarDisabled = !isCorridaIniciada;
+  const isFinalizarDisabled = !isCorridaIniciada || (
+    isCorridaIniciada &&
+    percursoAtual?.idMotorista != null &&
+    percursoAtual.idMotorista !== idUsuarioLogado
+  );
   const isAbastecimentoDisabled = !chaveEmprestada;
   const isOcorrenciaDisabled = !chaveEmprestada;
 
@@ -488,10 +495,10 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
 
             if (isIniciar) {
               isDisabled = isIniciarDisabled || !chaveEmprestada;
-              tooltipTitle = isDisabled ? "Percurso já iniciado" : "";
+              tooltipTitle = !chaveEmprestada ? "Chave não emprestada" : isCorridaIniciada ? "Percurso já iniciado" : "";
             } else if (isFinalizar) {
               isDisabled = isFinalizarDisabled;
-              tooltipTitle = isDisabled ? "Nenhum percurso ativo" : "";
+              tooltipTitle = !isCorridaIniciada ? "Nenhum percurso ativo" : "Apenas o motorista que iniciou pode finalizar";
             } else if (isAbastecimento) {
               isDisabled = isAbastecimentoDisabled;
               tooltipTitle = isDisabled ? "Chave não emprestada" : "";
