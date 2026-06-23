@@ -47,6 +47,7 @@ import AppLayout from "../../../components/Layout";
 import { formatDate, formatDateOnly } from "../../../utils/formatDate";
 import ExportarCorridaPDF from "./ExportarRelatorioDetalhes";
 import { CorridaVistoriaFrontend, CorridaVistoriaService } from "../../../services/CorridaVistoriaService";
+import { ModalFotosVistoria } from "./modais/ModalFotosVistoria";
 
 const DetalhesRequisicao: React.FC = () => {
   const theme = useTheme();
@@ -82,6 +83,12 @@ const DetalhesRequisicao: React.FC = () => {
     useState(false);
   const [modalExcluirAbastecimentoAberto, setModalExcluirAbastecimentoAberto] =
     useState(false);
+
+  const [modalCarrosselAberto, setModalCarrosselAberto] = useState(false);
+  const [vistoriaSelecionadaParaFotos, setVistoriaSelecionadaParaFotos] = useState<{
+    id: Number;
+    tipo: "RETIRADA" | "DEVOLUCAO";
+  } | null>(null);
 
   const [abastecimentoSelecionado, setAbastecimentoSelecionado] =
     useState<Abastecimento | null>(null);
@@ -602,6 +609,17 @@ const DetalhesRequisicao: React.FC = () => {
     }
   };
 
+  //funções do carrossel
+  const handleAbrirCarrossel = (idCorridaVistoria: number, tipo: "RETIRADA" | "DEVOLUCAO") => {
+    setVistoriaSelecionadaParaFotos({ id: idCorridaVistoria, tipo});
+    setModalCarrosselAberto(true);
+  }
+
+  const handleFecharCarrossel = () => {
+    setModalCarrosselAberto(false);
+    setVistoriaSelecionadaParaFotos(null);
+  }
+
   const formatarStatusVistoria = (veiculoRecebidoSemAvarias: boolean): string => {
     return veiculoRecebidoSemAvarias ? "Sem avarias" : "Com avarias";
   };
@@ -615,6 +633,8 @@ const DetalhesRequisicao: React.FC = () => {
     const vistoriaRetirada = vistorias.find(v => v.tipo === "RETIRADA");
     return vistoriaRetirada || null;
   }
+
+
 
   return (
     <AppLayout>
@@ -1174,10 +1194,8 @@ const DetalhesRequisicao: React.FC = () => {
                         {temAvarias && (
                           <Button
                             variant="contained"
-                            onClick={() => {
-                              console.log('Abrir fotos da vistoria de retirada');
-                            }}
-                            startIcon={<Add />}
+                            onClick={() => handleAbrirCarrossel(vistoriaRetirada.idCorridaVistoria!, vistoriaRetirada.tipo)}
+                            
                             sx={{
                               textTransform: "none",
                               fontWeight: 600,
@@ -1185,7 +1203,7 @@ const DetalhesRequisicao: React.FC = () => {
                               mt: 1
                             }}
                           >
-                            Fotos registradas
+                            Visualizar fotos
                           </Button>
                         )}
                       </Stack>
@@ -1292,10 +1310,7 @@ const DetalhesRequisicao: React.FC = () => {
                         {temAvarias && (
                           <Button
                             variant="contained"
-                            onClick={() => {
-                              console.log('Abrir fotos da vistoria de devolução');
-                            }}
-                            startIcon={<Add />}
+                             onClick={() => handleAbrirCarrossel(vistoriaDevolucao.idCorridaVistoria!, vistoriaDevolucao.tipo)}
                             sx={{
                               textTransform: "none",
                               fontWeight: 600,
@@ -1303,7 +1318,7 @@ const DetalhesRequisicao: React.FC = () => {
                               mt: 1
                             }}
                           >
-                            Fotos registradas
+                            Visualizar fotos
                           </Button>
                         )}
                       </Stack>
@@ -1590,6 +1605,19 @@ const DetalhesRequisicao: React.FC = () => {
           }}
         />
       )}
+
+      {/* Modal de Fotos da Vistoria */}
+      {modalCarrosselAberto && (
+        <ModalFotosVistoria
+          open={modalCarrosselAberto}
+          onClose={handleFecharCarrossel}
+          modalLoading={loading}
+          idCorridaVistoria={vistoriaSelecionadaParaFotos?.id as number || 0}
+          tipoVistoria={vistoriaSelecionadaParaFotos?.tipo || "RETIRADA"}
+        />
+      )}
+
+
     </AppLayout>
   );
 };

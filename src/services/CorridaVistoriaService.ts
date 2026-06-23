@@ -21,6 +21,18 @@ export interface CorridaVistoriaFrontend {
   };
 }
 
+export interface CorridaVistoriaFotoDto {
+  idCorridaVistoriaFoto?: number;
+  idCorridaVistoria: number;
+  dataUpload: Date;
+  urlArquivo: string;
+  corridaVistoria?: {
+    idCorridaVistoria: number;
+    tipo: "RETIRADA" | "DEVOLUCAO";
+  }
+
+}
+
 export class CorridaVistoriaService  {
   static async verificarVistoriaPendente(idCorrida: number): Promise<{ pendente: boolean }> {
     const response = await axiosConnect.get(`/corrida-vistoria/status-pendente/${idCorrida}`);
@@ -29,7 +41,6 @@ export class CorridaVistoriaService  {
 
   static async registrarVistoria(vistoria: CorridaVistoriaDto): Promise<any> {
     const response = await axiosConnect.post("/corrida-vistoria", vistoria);
-    console.log(response);
     return response.data;
   };
 
@@ -48,13 +59,26 @@ export class CorridaVistoriaService  {
 
   static async buscarVistoria(idCorrida: number): Promise<CorridaVistoriaFrontend[]> {
   try {
-    console.log("Buscando vistorias da corrida");
     const response = await axiosConnect.get(`/corrida-vistoria/corrida/${idCorrida}`);
-    console.log(response.data);
     return response.data;
   } catch (error) {
     console.error('Erro ao buscar vistorias:', error);
     return []; 
   }
+  }
+
+  static async buscarFotosVistoria(idCorridaVistoria: number): Promise<CorridaVistoriaFotoDto[]> {
+  try {
+    const response = await axiosConnect.get(`/corrida-vistoria/fotos/${idCorridaVistoria}`);
+
+    return response.data.map((foto: CorridaVistoriaFotoDto) => ({
+      ...foto,
+      urlArquivo: `http://localhost:3000${foto.urlArquivo}`,
+    }));
+  } catch (error) {
+    console.error('Erro ao buscar fotos da vistoria:', error);
+    return [];
+  }
 }
+
 };
