@@ -14,7 +14,6 @@ import {
   IconButton,
 } from "@mui/material";
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
-import ReportProblemIcon from "@mui/icons-material/ReportProblem";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import CloseIcon from "@mui/icons-material/Close";
 import { CorridaVistoriaService } from "../../../services/CorridaVistoriaService";
@@ -116,7 +115,7 @@ export default function ModalVistoriaVeiculo({
 
     try {
       const response = await CorridaVistoriaService.registrarVistoria({
-        idCorrida,
+        idCorrida: Number(idCorrida),
         tipo: "RETIRADA",
         veiculoRecebidoSemAvarias: semAvariasBool,
         observacoes: semAvariasBool ? undefined : observacoes.trim()
