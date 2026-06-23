@@ -83,9 +83,6 @@ export function ModalFotosVistoria(props: ModalFotosVistoriaProps) {
 
   const tipoLabel = tipoVistoria === 'RETIRADA' ? 'Retirada' : 'Devolução';
 
-  console.log("Foto atual:", fotos[indiceAtual]?.urlArquivo);
-
-
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={modalStyle}>

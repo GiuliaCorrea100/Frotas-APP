@@ -178,7 +178,7 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
           formData.append('files', file); 
         });
 
-        await CorridaVistoriaService.salvarFotosVistoria(response.idCorridaVistoria, formData);
+        await CorridaVistoriaService.salvarFotosVistoria(response.idCorridaVistoria, formData, 'DEVOLUCAO');
       }
 
       await CorridaService.confirmarReceberChave(corrida.idCorrida);

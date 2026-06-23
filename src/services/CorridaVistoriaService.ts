@@ -44,9 +44,9 @@ export class CorridaVistoriaService  {
     return response.data;
   };
 
-  static async salvarFotosVistoria( idCorridaVistoria: number, files: FormData):Promise<any>{
+  static async salvarFotosVistoria( idCorridaVistoria: number, files: FormData, tipo?: string):Promise<any>{
     const response = await axiosConnect.post(
-          `/anexo/upload/${idCorridaVistoria}`,
+          `/anexo/upload/${idCorridaVistoria}${tipo ? `?tipo=${tipo}` : ''}`,
           files,
           {
             headers: {

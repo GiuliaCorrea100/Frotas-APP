@@ -129,7 +129,7 @@ export default function ModalVistoriaVeiculo({
           formData.append('files', file); 
         });
 
-        await CorridaVistoriaService.salvarFotosVistoria(idCorridaVistoria, formData);
+        await CorridaVistoriaService.salvarFotosVistoria(idCorridaVistoria, formData, 'RETIRADA');
       }
 
       onSuccess("Vistoria enviada com sucesso! Boa viagem.");
