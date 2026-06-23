@@ -14,6 +14,8 @@ import {
   Divider,
   IconButton,
   Alert,
+  Chip,
+  Tooltip,
 } from "@mui/material";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import axios, { AxiosError } from "axios";
@@ -24,7 +26,7 @@ import {
 import { CarroService } from "../../../../services/CarroService";
 import axiosConnect from "../../../../services/axios/axiosConnect";
 import { modalStyle } from "../../../../utils/modalStyle";
-import { Close } from "@mui/icons-material";
+import { Close, Cancel } from "@mui/icons-material";
 
 interface MotoristaDTO {
   idUsuario: number;
@@ -62,7 +64,8 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
   const [motoristasDisponiveis, setMotoristasDisponiveis] = useState<
     MotoristaDTO[]
   >([]);
-  const [motoristaSelecionado, setMotoristaSelecionado] = useState<any>(null);
+  const [motoristasSelecionados, setMotoristasSelecionados] = useState<any[]>([]);
+  const [motoristaInput, setMotoristaInput] = useState<string>("");
   const [carrosDisponiveis, setCarrosDisponiveis] = useState<any[]>([]);
   const [errors, setErrors] = useState({
     carro: false,
@@ -193,7 +196,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
       hasError = true;
     }
 
-    if (!motoristaSelecionado) {
+    if (motoristasSelecionados.length === 0) {
       newErrors.motorista = true;
       hasError = true;
     }
@@ -228,20 +231,24 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
     }
 
     try {
-      let idUsuarioMotorista: number;
-      if (authMode === "MOCK") {
-        idUsuarioMotorista = motoristaSelecionado.idUsuario;
-      } else {
+      const converterId = async (motorista: any): Promise<number> => {
+        if (authMode === "MOCK" || motorista.idUsuario) {
+          return motorista.idUsuario;
+        }
         const response = await axiosConnect.get(
-          `/usuario/consultaCadastro/${motoristaSelecionado.idPessoaSigaa}`,
+          `/usuario/consultaCadastro/${motorista.idPessoaSigaa}`,
           {
             params: {
-              nome: motoristaSelecionado.nome,
+              nome: motorista.nome,
             },
           },
         );
-        idUsuarioMotorista = response.data.idUsuario;
-      }
+        return response.data.idUsuario;
+      };
+
+      const motoristasIds = await Promise.all(
+        motoristasSelecionados.map(converterId)
+      );
 
       const toLocalDate = (yyyyMmDd: string): Date => {
         const [ano, mes, dia] = yyyyMmDd.split("-").map(Number);
@@ -253,7 +260,8 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
         dataTermino: toLocalDate(corrida.dataTermino),
         localDeSaida: corrida.localDeSaida,
         distanciaKm: "",
-        idMotorista: idUsuarioMotorista,
+        idMotoristaPrincipal: motoristasIds[0],
+        motoristasIds: motoristasIds,
         situacao: "AGENDADA",
         chaveEmprestada: false,
         idCarro: carro.idCarro,
@@ -374,27 +382,36 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
           />
         </Box>
 
-        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 2 }}>
           <Autocomplete
-            options={motoristasDisponiveis}
+            options={motoristasDisponiveis.filter(
+              (option) =>
+                !motoristasSelecionados.some(
+                  (sel) =>
+                    (sel.idUsuario && sel.idUsuario === option.idUsuario) ||
+                    (sel.idPessoaSigaa && sel.cpf === option.cpf),
+                ),
+            )}
             getOptionLabel={(option) => {
               if (option.nome && option.cpf) {
                 return `${option.nome} (${option.cpf})`;
               }
               return option.nome || "";
             }}
+            value={null}
+            inputValue={motoristaInput}
             onInputChange={(_, value, reason) => {
+              setMotoristaInput(value);
               if (reason === "input") {
                 buscarMotoristas(value);
               }
             }}
             onChange={(_, value) => {
-              setMotoristaSelecionado(value);
-              setCorrida((prev) => ({
-                ...prev,
-                motoristaId: value?.idUsuario || null,
-              }));
-              setErrors((prev) => ({ ...prev, motorista: false }));
+              if (value) {
+                setMotoristasSelecionados((prev) => [...prev, value]);
+                setErrors((prev) => ({ ...prev, motorista: false }));
+              }
+              setMotoristaInput("");
             }}
             isOptionEqualToValue={(option, value) => option.cpf === value.cpf}
             noOptionsText="Digite pelo menos 3 caracteres para buscar"
@@ -406,13 +423,85 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
                 error={errors.motorista}
                 helperText={
                   errors.motorista
-                    ? "Selecione um motorista"
+                    ? "Selecione pelo menos um motorista"
                     : "Informe o motorista que será responsável por essa corrida"
                 }
               />
             )}
             fullWidth
           />
+          {motoristasSelecionados.length > 0 && (
+            <Box
+              sx={{
+                mt: 1,
+                p: 1.5,
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: 1,
+                backgroundColor: "action.hover",
+              }}
+            >
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ display: "block", fontWeight: "bold", mb: 1 }}
+              >
+                Motoristas Selecionados:
+              </Typography>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                {motoristasSelecionados.map((motorista, index) => (
+                  <Box
+                    key={motorista.idUsuario || motorista.idPessoaSigaa || motorista.cpf}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      py: 0.5,
+                      px: 1,
+                      backgroundColor: "background.paper",
+                      borderRadius: 1,
+                      border: "1px solid",
+                      borderColor: "divider",
+                    }}
+                  >
+                    <Typography variant="body2" color="text.primary">
+                      {motorista.nome} {motorista.cpf ? `(${motorista.cpf})` : ""}
+                      {index === 0 && (
+                        <Typography
+                          component="span"
+                          variant="caption"
+                          color="primary"
+                          sx={{ ml: 1, fontWeight: "bold" }}
+                        >
+                          (Principal)
+                        </Typography>
+                      )}
+                    </Typography>
+                    <Tooltip title="Remover motorista">
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => {
+                          setMotoristasSelecionados((prev) =>
+                            prev.filter(
+                              (m) =>
+                                !(
+                                  (m.idUsuario && m.idUsuario === motorista.idUsuario) ||
+                                  (m.idPessoaSigaa && m.idPessoaSigaa === motorista.idPessoaSigaa) ||
+                                  (m.cpf && m.cpf === motorista.cpf)
+                                ),
+                            ),
+                          );
+                        }}
+                      >
+                        <Cancel />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          )}
         </Box>
 
         <Box sx={{ display: "flex", gap: 2, mb: 3 }}>

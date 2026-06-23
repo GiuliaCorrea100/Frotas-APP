@@ -10,23 +10,27 @@ import {
   Autocomplete,
   IconButton,
   Divider,
+  Chip,
+  Tooltip,
 } from "@mui/material";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import axiosConnect from "../../../../services/axios/axiosConnect";
 import { modalStyle } from "../../../../utils/modalStyle";
-import { Close } from "@mui/icons-material";
+import { Close, Cancel } from "@mui/icons-material";
 
 interface CorridaDto {
   idCorrida?: number;
   dataInicio: Date;
   dataTermino: Date;
   distanciaKm?: string;
-  idMotorista: number;
+  idMotoristaPrincipal: number;
   chaveEmprestada: boolean;
   idCarro: number;
-  nomeMotorista?: string;
+  nomeMotoristaPrincipal?: string;
   placaVeiculo?: string;
   situacao?: string;
+  motoristas?: { idMotorista: number; nome: string }[];
+  motoristasIds?: number[];
 }
 
 interface EditarInfoCorridaProps {
@@ -61,15 +65,13 @@ export default function EditarInfoCorrida({
 }: EditarInfoCorridaProps) {
   const [dataInicio, setDataInicio] = useState<Date | null>(null);
   const [dataTermino, setDataTermino] = useState<Date | null>(null);
-  const [selectedMotorista, setSelectedMotorista] = useState<Usuario | null>(
-    null,
-  );
+  const [motoristasSelecionados, setMotoristasSelecionados] = useState<any[]>([]);
+  const [idMotoristaPrincipal, setIdMotoristaPrincipal] = useState<number | null>(null);
+  const [motoristasDisponiveis, setMotoristasDisponiveis] = useState<any[]>([]);
+  const [motoristaInput, setMotoristaInput] = useState("");
   const [selectedVeiculo, setSelectedVeiculo] = useState<Veiculo | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [motoristasDisponiveis, setMotoristasDisponiveis] = useState<Usuario[]>(
-    [],
-  );
   const [carrosDisponiveis, setCarrosDisponiveis] = useState<Veiculo[]>([]);
   const [loadingMotorista, setLoadingMotorista] = useState(false);
   const [loadingVeiculo, setLoadingVeiculo] = useState(false);
@@ -94,43 +96,46 @@ export default function EditarInfoCorrida({
       if (!open || !corrida) return;
 
       try {
-        // Buscar dados do motorista atual
-        if (corrida.idMotorista) {
-          setLoadingMotorista(true);
+        if (corrida.motoristas && corrida.motoristas.length > 0) {
+          const principal = corrida.motoristas.find(
+            (m) => m.idMotorista === corrida.idMotoristaPrincipal,
+          );
+          const outros = corrida.motoristas.filter(
+            (m) => m.idMotorista !== corrida.idMotoristaPrincipal,
+          );
+          const motoristasIniciais = [
+            ...(principal
+              ? [{ idUsuario: principal.idMotorista, nome: principal.nome }]
+              : []),
+            ...outros.map((m) => ({
+              idUsuario: m.idMotorista,
+              nome: m.nome,
+            })),
+          ];
+          setMotoristasSelecionados(motoristasIniciais);
+          setIdMotoristaPrincipal(corrida.idMotoristaPrincipal);
+        } else if (corrida.idMotoristaPrincipal) {
           if (authMode === "MOCK") {
-            const motoristasTeste: Usuario[] = [
-              {
-                idUsuario: 1,
-                idPessoaSigaa: 999998,
-                nome: "ADMINISTRADOR FROTAS",
-                cpf: "11111111111",
-              },
-              {
-                idUsuario: 2,
-                idPessoaSigaa: 999999,
-                nome: "MOTORISTA FROTAS",
-                cpf: "22222222222",
-              },
+            const motoristasTeste = [
+              { idUsuario: 1, idPessoaSigaa: 999998, nome: "ADMINISTRADOR FROTAS", cpf: "11111111111" },
+              { idUsuario: 2, idPessoaSigaa: 999999, nome: "MOTORISTA FROTAS", cpf: "22222222222" },
             ];
             const motorista = motoristasTeste.find(
-              (m) => m.idUsuario === corrida.idMotorista,
+              (m) => m.idUsuario === corrida.idMotoristaPrincipal,
             );
             if (motorista) {
-              setSelectedMotorista(motorista);
-            } else {
-              setError("Motorista não encontrado na lista de teste.");
+              setMotoristasSelecionados([motorista]);
             }
           } else {
             const response = await axiosConnect.get(
-              `/usuario/buscar-usuario/${corrida.idMotorista}`,
+              `/usuario/buscar-usuario/${corrida.idMotoristaPrincipal}`,
             );
             if (response.data) {
-              setSelectedMotorista(response.data);
+              setMotoristasSelecionados([response.data]);
             }
           }
         }
 
-        // Buscar dados do veículo atual
         if (corrida.idCarro) {
           setLoadingVeiculo(true);
           const response = await axiosConnect.get(`/carro/${corrida.idCarro}`);
@@ -139,7 +144,6 @@ export default function EditarInfoCorrida({
           }
         }
 
-        // Configurar datas - mesma lógica do segundo exemplo
         if (corrida.dataInicio) {
           if (typeof corrida.dataInicio === "string") {
             const dateString = corrida.dataInicio.includes("T")
@@ -169,7 +173,6 @@ export default function EditarInfoCorrida({
         console.error("Erro ao carregar dados iniciais:", error);
       } finally {
         setLoadingMotorista(false);
-        setLoadingVeiculo(false);
       }
     };
 
@@ -190,19 +193,9 @@ export default function EditarInfoCorrida({
     try {
       setLoadingMotorista(true);
       if (authMode === "MOCK") {
-        const motoristasTeste: Usuario[] = [
-          {
-            idUsuario: 1,
-            idPessoaSigaa: 999998,
-            nome: "ADMINISTRADOR FROTAS",
-            cpf: "11111111111",
-          },
-          {
-            idUsuario: 2,
-            idPessoaSigaa: 999999,
-            nome: "MOTORISTA FROTAS",
-            cpf: "22222222222",
-          },
+        const motoristasTeste = [
+          { idUsuario: 1, idPessoaSigaa: 999998, nome: "ADMINISTRADOR FROTAS", cpf: "11111111111" },
+          { idUsuario: 2, idPessoaSigaa: 999999, nome: "MOTORISTA FROTAS", cpf: "22222222222" },
         ];
         const filteredMotoristas = motoristasTeste.filter((motorista) =>
           motorista.nome.toLowerCase().includes(nome.toLowerCase()),
@@ -211,7 +204,7 @@ export default function EditarInfoCorrida({
       } else {
         const response = await axiosConnect.get(`/usuarioSigaa?nome=${nome}`);
         const usuariosRetornados = response.data;
-        const uniqueUsuariosMap = new Map<number, Usuario>();
+        const uniqueUsuariosMap = new Map<number, any>();
         usuariosRetornados.forEach((user: any) => {
           uniqueUsuariosMap.set(user.idPessoaSigaa, user);
         });
@@ -249,7 +242,7 @@ export default function EditarInfoCorrida({
     event.preventDefault();
     if (!corrida?.idCorrida) return;
 
-    if (!selectedMotorista || !selectedVeiculo || !dataInicio) {
+    if (motoristasSelecionados.length === 0 || !selectedVeiculo || !dataInicio) {
       setError(
         "Por favor, preencha todos os campos obrigatórios: Motorista, Veículo e Data de Início.",
       );
@@ -260,24 +253,26 @@ export default function EditarInfoCorrida({
     setLoading(true);
 
     try {
-      let idUsuarioMotorista: number;
-      if (authMode === "MOCK") {
-        idUsuarioMotorista = selectedMotorista.idUsuario;
-      } else {
+      const converterId = async (motorista: any): Promise<number> => {
+        if (authMode === "MOCK" || motorista.idUsuario) {
+          return motorista.idUsuario;
+        }
         const response = await axiosConnect.get(
-          `/usuario/consultaCadastro/${selectedMotorista.idPessoaSigaa}`,
+          `/usuario/consultaCadastro/${motorista.idPessoaSigaa}`,
           {
-            params: {
-              nome: selectedMotorista.nome,
-            },
+            params: { nome: motorista.nome },
           },
         );
+        return response.data.idUsuario;
+      };
 
-        idUsuarioMotorista = response.data.idUsuario;
-      }
+      const motoristasIds = await Promise.all(
+        motoristasSelecionados.map(converterId)
+      );
 
       const dadosAtualizados = {
-        idMotorista: idUsuarioMotorista,
+        idMotoristaPrincipal: idMotoristaPrincipal || motoristasIds[0],
+        motoristasIds: motoristasIds,
         idCarro: selectedVeiculo.idCarro,
         dataInicio: formatarDataParaEnvio(dataInicio),
         dataTermino: dataTermino ? formatarDataParaEnvio(dataTermino) : corrida.dataTermino,
@@ -335,7 +330,7 @@ export default function EditarInfoCorrida({
           </IconButton>
         </Box>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}
@@ -348,7 +343,6 @@ export default function EditarInfoCorrida({
             </Alert>
           )}
 
-          {/* Veículo */}
           <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
             <Autocomplete
               options={carrosDisponiveis}
@@ -385,9 +379,6 @@ export default function EditarInfoCorrida({
                       </>
                     ),
                   }}
-                  helperText={
-                    "Informe o veículo a ser reservado para essa corrida"
-                  }
                   disabled={!!successMessage || loading}
                 />
               )}
@@ -395,26 +386,38 @@ export default function EditarInfoCorrida({
             />
           </Box>
 
-          {/* Motorista */}
-          <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 2 }}>
             <Autocomplete
-              options={motoristasDisponiveis}
-              value={selectedMotorista}
+              options={motoristasDisponiveis.filter(
+                (option) =>
+                  !motoristasSelecionados.some(
+                    (sel) =>
+                      (sel.idUsuario && sel.idUsuario === option.idUsuario) ||
+                      (sel.idPessoaSigaa && sel.idPessoaSigaa === option.idPessoaSigaa),
+                  ),
+              )}
               getOptionLabel={(option) => {
-                if (option.cpf) {
+                if (option.nome && option.cpf) {
                   return `${option.nome} (${option.cpf})`;
                 }
                 return option.nome || "";
               }}
-              isOptionEqualToValue={(option, value) =>
-                option.idPessoaSigaa === value?.idPessoaSigaa
-              }
-              onInputChange={(_, value) => {
-                buscarUsuario(value);
+              value={null}
+              inputValue={motoristaInput}
+              onInputChange={(_, value, reason) => {
+                setMotoristaInput(value);
+                if (reason === "input") {
+                  buscarUsuario(value);
+                }
               }}
-              onChange={(_, novoValor) => {
-                setSelectedMotorista(novoValor);
+              onChange={(_, value) => {
+                if (value) {
+                  setMotoristasSelecionados((prev) => [...prev, value]);
+                }
+                setMotoristaInput("");
               }}
+              isOptionEqualToValue={(option, value) => option.cpf === value.cpf}
+              noOptionsText="Digite pelo menos 3 caracteres para buscar"
               loading={loadingMotorista}
               disabled={!!successMessage || loading}
               renderInput={(params) => (
@@ -434,17 +437,90 @@ export default function EditarInfoCorrida({
                       </>
                     ),
                   }}
-                  helperText={
-                    "Informe o motorista que será responsável por essa corrida"
-                  }
                   disabled={!!successMessage || loading}
                 />
               )}
               fullWidth
             />
+            {motoristasSelecionados.length > 0 && (
+              <Box
+                sx={{
+                  mt: 1,
+                  p: 1.5,
+                  border: "1px solid",
+                  borderColor: "divider",
+                  borderRadius: 1,
+                  backgroundColor: "action.hover",
+                }}
+              >
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: "block", fontWeight: "bold", mb: 1 }}
+                >
+                  Motoristas Selecionados:
+                </Typography>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                  {motoristasSelecionados.map((motorista, index) => (
+                    <Box
+                      key={motorista.idUsuario || motorista.idPessoaSigaa || motorista.cpf}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        py: 0.5,
+                        px: 1,
+                        backgroundColor: "background.paper",
+                        borderRadius: 1,
+                        border: "1px solid",
+                        borderColor: "divider",
+                      }}
+                    >
+                      <Typography variant="body2" color="text.primary">
+                        {motorista.nome} {motorista.cpf ? `(${motorista.cpf})` : ""}
+                        {idMotoristaPrincipal && motorista.idUsuario === idMotoristaPrincipal && (
+                          <Typography
+                            component="span"
+                            variant="caption"
+                            color="primary"
+                            sx={{ ml: 1, fontWeight: "bold" }}
+                          >
+                            (Principal)
+                          </Typography>
+                        )}
+                      </Typography>
+                      <Tooltip title="Remover motorista">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => {
+                            const isRemovingPrincipal = motorista.idUsuario === idMotoristaPrincipal;
+                            setMotoristasSelecionados((prev) => {
+                              const novaLista = prev.filter(
+                                (m) =>
+                                  !(
+                                    (m.idUsuario && m.idUsuario === motorista.idUsuario) ||
+                                    (m.idPessoaSigaa && m.idPessoaSigaa === motorista.idPessoaSigaa) ||
+                                    (m.cpf && m.cpf === motorista.cpf)
+                                  ),
+                              );
+                              if (isRemovingPrincipal && novaLista.length > 0) {
+                                setIdMotoristaPrincipal(novaLista[0].idUsuario);
+                              }
+                              return novaLista;
+                            });
+                          }}
+                        >
+                          <Cancel />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            )}
           </Box>
 
-          {/* Data de Início e Término */}
           <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
             <TextField
               fullWidth
@@ -503,7 +579,7 @@ export default function EditarInfoCorrida({
               disabled={
                 loading || 
                 !!successMessage || 
-                !selectedMotorista || 
+                motoristasSelecionados.length === 0 || 
                 !selectedVeiculo || 
                 !dataInicio
               }

@@ -5,12 +5,14 @@ export interface CorridaBackend {
   dataInicio: string | Date;
   dataTermino: string | Date | null;
   distanciaKm?: string | null;
-  idMotorista: number;
+  idMotoristaPrincipal: number;
   situacao: string;
   chaveEmprestada: boolean;
   idCarro: number;
   dataHoraRecebimentoChave: string | Date;
   dataHoraLiberacaoChave: string | Date;
+  motoristasIds?: number[];
+  motoristas?: { idMotorista: number; nome: string }[];
 }
 
 export interface CorridaFrontend {
@@ -18,14 +20,15 @@ export interface CorridaFrontend {
   dataInicio: string;
   dataTermino: string | null;
   distanciaKm: string;
-  idMotorista: number;
-  nomeMotorista?: string;
+  idMotoristaPrincipal: number;
+  nomeMotoristaPrincipal?: string;
   placaVeiculo?: string;
   situacao?: string;
   chaveEmprestada: boolean;
   idCarro: number;
   dataHoraRecebimentoChave?: string | null;
   dataHoraLiberacaoChave?: string | null;
+  motoristas?: { idMotorista: number; nome: string }[];
 }
 
 export interface CorridaDto {
@@ -33,12 +36,14 @@ export interface CorridaDto {
   dataInicio: Date;
   dataTermino: Date | null;
   distanciaKm: string;
-  idMotorista: number;
-  nomeMotorista?: string;
+  idMotoristaPrincipal: number;
+  nomeMotoristaPrincipal?: string;
   placaVeiculo?: string;
   situacao?: string;
   chaveEmprestada: boolean;
   idCarro: number;
+  motoristasIds?: number[];
+  motoristas?: { idMotorista: number; nome: string }[];
 }
 
 export const createCorrida = async (
@@ -136,12 +141,13 @@ function formatCorrida(corrida: CorridaBackend): CorridaFrontend {
       ? corrida.dataHoraRecebimentoChave.toISOString()
       : corrida.dataHoraRecebimentoChave || null,
     distanciaKm: corrida.distanciaKm || "0",
-    idMotorista: corrida.idMotorista,
-    nomeMotorista: (corrida as any).nomeMotorista || "Desconhecido",
+    idMotoristaPrincipal: corrida.idMotoristaPrincipal,
+    nomeMotoristaPrincipal: (corrida as any).nomeMotoristaPrincipal || (corrida as any).nomeMotorista || "Desconhecido",
     chaveEmprestada: corrida.chaveEmprestada ?? false,
     placaVeiculo: (corrida as any).placaVeiculo || "Não informada",
     situacao: corrida.situacao || "Desconhecida",
-    idCarro: corrida.idCarro
+    idCarro: corrida.idCarro,
+    motoristas: (corrida as any).motoristas || undefined,
   };
 }
 

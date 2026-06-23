@@ -10,6 +10,7 @@ export interface PercursoBackend {
   chegadaOdometro?: number;
   localOrigem?: string;
   ativo?: boolean;
+  idMotorista?: number;
 }
 
 export interface PercursoDto {
@@ -21,6 +22,7 @@ export interface PercursoDto {
   chegadaOdometro?: number;
   localOrigem?: string;
   ativo?: boolean;
+  idMotorista?: number;
 }
 
 export const iniciarPercurso = async (
@@ -131,6 +133,7 @@ export const atualizarPercurso = async (
     saidaOdometro: number;
     saidaHora: Date | null;
     chegadaHora: Date | null;
+    idMotorista?: number;
   },
 ): Promise<any> => {
   try {
@@ -141,6 +144,7 @@ export const atualizarPercurso = async (
       localOrigem: data.localOrigem,
       saidaHora: data.saidaHora,
       chegadaHora: data.chegadaHora,
+      idMotorista: data.idMotorista,
     };
 
     const response = await axiosConnect.patch(
@@ -172,6 +176,7 @@ export const inserirPercursoCompleto = async (
     saidaOdometro: number;
     saidaHora: Date | null;
     chegadaHora: Date | null;
+    idMotorista?: number;
   },
 ) => {
   try {
@@ -183,6 +188,7 @@ export const inserirPercursoCompleto = async (
       localOrigem: data.localOrigem,
       saidaHora: data.saidaHora,
       chegadaHora: data.chegadaHora,
+      idMotorista: data.idMotorista,
     };
 
     const response = await axiosConnect.post(

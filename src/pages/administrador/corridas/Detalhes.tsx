@@ -713,7 +713,7 @@ const DetalhesRequisicao: React.FC = () => {
                       Motorista:
                     </Typography>
                     <Typography variant="body1" color="text.primary">
-                      {corrida.nomeMotorista}
+                      {corrida.nomeMotoristaPrincipal}
                     </Typography>
                   </Box>
 

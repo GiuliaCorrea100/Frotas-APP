@@ -178,7 +178,7 @@ export default function HistoricoIndividual() {
   ];
 
   const dadosFiltrados = corridas
-    .filter((corrida) => corrida.idMotorista === idUsuarioLogado)
+      .filter((corrida) => corrida.idMotoristaPrincipal === idUsuarioLogado)
     .filter(
       (corrida) =>
         Object.values(corrida).some((valor) =>

@@ -10,6 +10,10 @@ import {
   CircularProgress,
   IconButton,
   Alert,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
 } from "@mui/material";
 import { Close, AddLocationAlt } from "@mui/icons-material";
 import {
@@ -42,6 +46,7 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
   const [chegadaHora, setChegadaHora] = useState<string>("");
   const [chegadaOdometro, setChegadaOdometro] = useState<string>("");
   const [localOrigem, setLocalOrigem] = useState("");
+  const [idMotorista, setIdMotorista] = useState<number | "">("");
   const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -95,6 +100,7 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
       setChegadaOdometro(percurso.chegadaOdometro?.toString() ?? "");
       setLocalDestino(percurso.localDestino ?? "");
       setLocalOrigem(percurso.localOrigem ?? "");
+      setIdMotorista(percurso.idMotorista ?? "");
       setErrors({});
       setSuccessMessage("");
     }
@@ -172,6 +178,7 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
         chegadaHora: new Date(chegadaHora),
         chegadaOdometro: Number(chegadaOdometro),
         localOrigem: localOrigem.trim().toUpperCase(),
+        idMotorista: idMotorista === "" ? undefined : idMotorista,
       };
 
       await atualizarPercurso(percurso.idPercurso!, dadosAtualizados);
@@ -372,6 +379,28 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
             disabled={loading || !!successMessage}
             sx={{ flex: 1 }}
           />
+        </Box>
+
+        <Box sx={{ mb: 2 }}>
+          <FormControl fullWidth>
+            <InputLabel id="motorista-label">Motorista Responsável</InputLabel>
+            <Select
+              labelId="motorista-label"
+              value={idMotorista}
+              onChange={(e) => setIdMotorista(e.target.value as number | "")}
+              label="Motorista Responsável"
+              disabled={loading || !!successMessage}
+            >
+              <MenuItem value="">
+                <em>Selecione o motorista</em>
+              </MenuItem>
+              {corrida.motoristas?.map((m) => (
+                <MenuItem key={m.idMotorista} value={m.idMotorista}>
+                  {m.nome}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Box>
 
         <Divider sx={{ my: 2 }} />
