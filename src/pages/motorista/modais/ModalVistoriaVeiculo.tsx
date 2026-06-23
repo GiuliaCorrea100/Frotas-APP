@@ -117,7 +117,7 @@ export default function ModalVistoriaVeiculo({
     try {
       const response = await CorridaVistoriaService.registrarVistoria({
         idCorrida,
-        tipo: "ENTRADA",
+        tipo: "DEVOLUCAO",
         veiculoRecebidoSemAvarias: semAvariasBool,
         observacoes: semAvariasBool ? undefined : observacoes.trim()
       });
