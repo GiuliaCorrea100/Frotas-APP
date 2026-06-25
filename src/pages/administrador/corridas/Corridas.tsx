@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import CreateIcon from "@mui/icons-material/Create";
 import CancelIcon from "@mui/icons-material/Cancel";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
 import {
   CorridaFrontend,
@@ -245,7 +246,80 @@ export default function ListaCorrida() {
       field: "nomeMotoristaPrincipal",
       headerName: "Motorista",
       flex: 0.8,
-      renderCell: (params) => <Typography>{params.value}</Typography>,
+      renderCell: (params) => {
+        const corrida = params.row;
+        const principalNome = params.value || "Desconhecido";
+        
+        const outrosMotoristas = corrida.motoristas 
+          ? corrida.motoristas.filter((motorista: any) => motorista.idMotorista !== corrida.idMotoristaPrincipal)
+          : [];
+          
+        if (outrosMotoristas.length === 0) {
+          return <Typography>{principalNome}</Typography>;
+        }
+
+        return (
+          <Box display="flex" alignItems="center" gap={1}>
+            <Typography>{principalNome}</Typography>
+            <Tooltip 
+              title={
+                <Box sx={{ p: 0.5 }}>
+                  <Typography variant="subtitle2" color="text.primary" sx={{ fontWeight: "bold", mb: 0.5 }}>
+                    Outros motoristas:
+                  </Typography>
+                  {outrosMotoristas.map((motorista) => (
+                    <Box
+                      key={motorista.idMotorista}
+                      display="flex"
+                      alignItems="center"
+                      gap={0.5}
+                      mb={0.3}
+                    >
+                      <PersonOutlineIcon
+                        sx={{ fontSize: 14, color: "text.secondary" }}
+                      />
+                      <Typography variant="body2">
+                        {motorista.nome}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              }
+              arrow
+              slotProps={{
+                tooltip: {
+                  sx: {
+                    backgroundColor: theme.palette.mode === "light" ? "#f5f5f9" : theme.palette.background.paper,
+                    color: theme.palette.text.primary,
+                    border: `1px solid ${theme.palette.divider}`,
+                    boxShadow: theme.shadows[3],
+                  },
+                },
+                arrow: {
+                  sx: {
+                    color: theme.palette.mode === "light" ? "#f5f5f9" : theme.palette.background.paper,
+                    "&::before": {
+                      border: `1px solid ${theme.palette.divider}`,
+                    },
+                  },
+                },
+              }}
+            >
+              <Chip 
+                label={`+${outrosMotoristas.length}`} 
+                size="small" 
+                color="primary" 
+                sx={{ 
+                  height: 20, 
+                  fontSize: "0.75rem", 
+                  fontWeight: "bold",
+                  cursor: "pointer" 
+                }}
+              />
+            </Tooltip>
+          </Box>
+        );
+      },
     },
     {
       field: "placaVeiculo",
