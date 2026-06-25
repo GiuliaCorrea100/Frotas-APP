@@ -48,6 +48,7 @@ import { formatDate, formatDateOnly } from "../../../utils/formatDate";
 import ExportarCorridaPDF from "./ExportarRelatorioDetalhes";
 import { CorridaVistoriaFrontend, CorridaVistoriaService } from "../../../services/CorridaVistoriaService";
 import { ModalFotosVistoria } from "./modais/ModalFotosVistoria";
+import ModalCadastroMotoristaAdicional from "./modais/ModalCadastroMotoristaAdicional";
 
 const DetalhesRequisicao: React.FC = () => {
   const theme = useTheme();
@@ -57,45 +58,34 @@ const DetalhesRequisicao: React.FC = () => {
   const [ocorrencias, setOcorrencias] = useState<OcorrenciaDto[]>([]);
   const [abastecimentos, setAbastecimento] = useState<Abastecimento[]>([]);
   const [percursos, setPercursos] = useState<PercursoDto[]>([]);
+
+  const [idMotoristaPrincipal, setIdMotoristaPrincipal] = useState<number | null>(null);
+  const [motoristasDisponiveis, setMotoristasDisponiveis] = useState<any[]>([]);
+
   // const [vistoriaAdministrador, setVistoriaAdministrador] = useState<CorridaVistoriaFrontend>(null);
   // const [vistoriaMotorista, setVistoriaMotorista] = useState<CorridaVistoriaFrontend>(null);
   const [vistorias, setVistorias] = useState<CorridaVistoriaFrontend[]>([]);
 
   const [mensagemSucesso, setMensagemSucesso] = useState("");
 
-  const [modalEditarOcorrenciaAberto, setModalEditarOcorrenciaAberto] =
-    useState(false);
-  const [modalCadastroOcorrenciaAberto, setModalCadastroOcorrenciaAberto] =
-    useState(false);
-  const [
-    modalCadastroAbertoAbastecimento,
-    setModalCadastroAbertoAbastecimento,
-  ] = useState(false);
-  const [modalEditarAbastecimentoAberto, setModalEditarAbastecimento] =
-    useState(false);
-  const [modalCadastrarPercursoAberto, setModalCadastrarPercusoAberto] =
-    useState(false);
-  const [modalEditarPercursoAberto, setModalEditarPercursoAberto] =
-    useState(false);
-  const [modalExcluirPercursoAberto, setModalExcluirPercursoAberto] =
-    useState(false);
-  const [modalExcluirOcorrenciaAberto, setModalExcluirOcorrenciaAberto] =
-    useState(false);
-  const [modalExcluirAbastecimentoAberto, setModalExcluirAbastecimentoAberto] =
-    useState(false);
-
+  const [modalEditarOcorrenciaAberto, setModalEditarOcorrenciaAberto] = useState(false);
+  const [modalCadastroOcorrenciaAberto, setModalCadastroOcorrenciaAberto] = useState(false);
+  const [modalCadastroAbertoAbastecimento, setModalCadastroAbertoAbastecimento] = useState(false);
+  const [modalEditarAbastecimentoAberto, setModalEditarAbastecimento] = useState(false);
+  const [modalCadastrarPercursoAberto, setModalCadastrarPercusoAberto] = useState(false);
+  const [modalEditarPercursoAberto, setModalEditarPercursoAberto] = useState(false);
+  const [modalExcluirPercursoAberto, setModalExcluirPercursoAberto] = useState(false);
+  const [modalExcluirOcorrenciaAberto, setModalExcluirOcorrenciaAberto] = useState(false);
+  const [modalExcluirAbastecimentoAberto, setModalExcluirAbastecimentoAberto] = useState(false);
+  const [modalAdicionarMotoristaAberto, setModalAdicionarMotoristaAberto] = useState(false);
   const [modalCarrosselAberto, setModalCarrosselAberto] = useState(false);
   const [vistoriaSelecionadaParaFotos, setVistoriaSelecionadaParaFotos] = useState<{
     id: Number;
     tipo: "RETIRADA" | "DEVOLUCAO";
   } | null>(null);
-
-  const [abastecimentoSelecionado, setAbastecimentoSelecionado] =
-    useState<Abastecimento | null>(null);
-  const [ocorrenciaSelecionada, setOcorrenciaSelecionada] =
-    useState<OcorrenciaDto | null>(null);
-  const [percursoSelecionado, setPercursoSelecionado] =
-    useState<PercursoDto | null>(null);
+  const [abastecimentoSelecionado, setAbastecimentoSelecionado] = useState<Abastecimento | null>(null);
+  const [ocorrenciaSelecionada, setOcorrenciaSelecionada] = useState<OcorrenciaDto | null>(null);
+  const [percursoSelecionado, setPercursoSelecionado] = useState<PercursoDto | null>(null);
 
   useEffect(() => {
     carregarDados();
@@ -566,6 +556,16 @@ const DetalhesRequisicao: React.FC = () => {
     
   };
 
+  const handleAbrirModalAdicionarMotorista = ( corrida: CorridaFrontend) => {
+    setCorrida(corrida);
+    setModalAdicionarMotoristaAberto(true);
+  }
+
+  const handleFecharModalAdicionarMotorista = () => {
+    setModalAdicionarMotoristaAberto(false);
+    setCorrida(null);
+  }
+
   const handleConfirmarExclusaoOcorrencia = async () => {
     if (!ocorrenciaSelecionada) return;
 
@@ -692,13 +692,26 @@ const DetalhesRequisicao: React.FC = () => {
                 Informações Básicas
               </Typography>
               
-              <ExportarCorridaPDF
+              {/* POINT */}
+              {/* <ExportarCorridaPDF
                 corrida={corrida}
                 ocorrencias={ocorrencias}
                 abastecimentos={abastecimentos}
                 percursos={percursos}
                 disabled={loading || !corrida}
-              />
+              /> */}
+              <Button
+              variant="contained"
+              onClick={handleAbrirModalAdicionarMotorista}
+              startIcon={<Add />}
+              sx={{
+                textTransform: "none",
+                fontWeight: 600,
+                boxShadow: theme.shadows[2],
+              }}
+            >
+              Adicionar Motorista
+            </Button>
             </Box>
             
             <CardContent>
@@ -1606,7 +1619,6 @@ const DetalhesRequisicao: React.FC = () => {
         />
       )}
 
-      {/* Modal de Fotos da Vistoria */}
       {modalCarrosselAberto && (
         <ModalFotosVistoria
           open={modalCarrosselAberto}
@@ -1616,6 +1628,18 @@ const DetalhesRequisicao: React.FC = () => {
           tipoVistoria={vistoriaSelecionadaParaFotos?.tipo || "RETIRADA"}
         />
       )}
+
+      {modalAdicionarMotoristaAberto && (
+        <ModalCadastroMotoristaAdicional
+          open={modalAdicionarMotoristaAberto} 
+          onClose={handleFecharModalAdicionarMotorista} 
+          onSuccess={function (message: string): void {throw new Error("Function not implemented.");} } 
+          onError={function (error: any): void {throw new Error("Function not implemented.");} } 
+          corrida={corrida}          
+        />
+      )}
+
+
 
 
     </AppLayout>
