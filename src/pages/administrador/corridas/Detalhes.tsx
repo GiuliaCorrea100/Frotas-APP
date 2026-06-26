@@ -15,6 +15,7 @@ import {
   Tooltip,
   Alert,
   Grid,
+  Chip,
 } from "@mui/material";
 import CreateIcon from "@mui/icons-material/Create";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -59,6 +60,7 @@ const DetalhesRequisicao: React.FC = () => {
   const [abastecimentos, setAbastecimento] = useState<Abastecimento[]>([]);
   const [percursos, setPercursos] = useState<PercursoDto[]>([]);
 
+  const [motoristasSelecionados, setMotoristasSelecionados] = useState<any[]>([]);
   const [idMotoristaPrincipal, setIdMotoristaPrincipal] = useState<number | null>(null);
   const [motoristasDisponiveis, setMotoristasDisponiveis] = useState<any[]>([]);
 
@@ -101,7 +103,6 @@ const DetalhesRequisicao: React.FC = () => {
           abastecimentosData,
           percursosData,
           vistoriasData,
-          
         ] = await Promise.all([
           getCorridaById(Number(id)),
           OcorrenciaService.buscarPorCorrida(Number(id)),
@@ -111,7 +112,26 @@ const DetalhesRequisicao: React.FC = () => {
         ]);
 
         setCorrida(corridaData);
-        
+
+        if (corridaData.motoristas && corridaData.motoristas.length > 0) {
+          const principal = corridaData.motoristas.find(
+            (m) => m.idMotorista === corridaData.idMotoristaPrincipal,
+          );
+          const outros = corridaData.motoristas.filter(
+            (m) => m.idMotorista !== corridaData.idMotoristaPrincipal,
+          );
+          const motoristasIniciais = [
+            ...(principal
+              ? [{ idUsuario: principal.idMotorista, nome: principal.nome }]
+              : []),
+            ...outros.map((m) => ({
+              idUsuario: m.idMotorista,
+              nome: m.nome,
+            })),
+          ];
+          setMotoristasSelecionados(motoristasIniciais);
+          setIdMotoristaPrincipal(corridaData.idMotoristaPrincipal);
+        }
 
         if (Array.isArray(ocorrenciasData)) {
           setOcorrencias(ocorrenciasData);
@@ -142,7 +162,7 @@ const DetalhesRequisicao: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+};
 
   const idcorridaNumber = Number(id);
   const isAgendada = corrida ? !corrida.dataHoraLiberacaoChave : false;
@@ -357,6 +377,15 @@ const DetalhesRequisicao: React.FC = () => {
 
   const colunsPercursos: GridColDef<PercursoDto>[] = [
     {
+      field: "nomeMotorista",
+      headerName: "Motorista Responsável",
+      flex: 1,
+      sortable: false,
+      renderCell: (params) => (
+        <Typography color="text.primary">{params.value}</Typography>
+      ),
+    },
+    {
       field: "localOrigem",
       headerName: "Local origem",
       flex: 1,
@@ -563,7 +592,6 @@ const DetalhesRequisicao: React.FC = () => {
 
   const handleFecharModalAdicionarMotorista = () => {
     setModalAdicionarMotoristaAberto(false);
-    setCorrida(null);
   }
 
   const handleConfirmarExclusaoOcorrencia = async () => {
@@ -692,17 +720,17 @@ const DetalhesRequisicao: React.FC = () => {
                 Informações Básicas
               </Typography>
               
-              {/* POINT */}
-              {/* <ExportarCorridaPDF
+              <ExportarCorridaPDF
                 corrida={corrida}
                 ocorrencias={ocorrencias}
                 abastecimentos={abastecimentos}
                 percursos={percursos}
+                vistorias={vistorias}
                 disabled={loading || !corrida}
-              /> */}
+              />
               <Button
               variant="contained"
-              onClick={handleAbrirModalAdicionarMotorista}
+              onClick={() => handleAbrirModalAdicionarMotorista(corrida)}
               startIcon={<Add />}
               sx={{
                 textTransform: "none",
@@ -723,11 +751,30 @@ const DetalhesRequisicao: React.FC = () => {
                 <Stack spacing={1.5}>
                   <Box>
                     <Typography variant="body2" color="text.secondary">
-                      Motorista:
+                      Motoristas da corrida:
                     </Typography>
-                    <Typography variant="body1" color="text.primary">
-                      {corrida.nomeMotoristaPrincipal}
-                    </Typography>
+                    <Stack spacing={0.5} mt={0.5}>
+                      {motoristasSelecionados.map((motorista, index) => (
+                        <Box 
+                          key={motorista.idUsuario}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1
+                          }}
+                        >
+                          <Typography variant="body1" color="text.primary">
+                            {motorista.nome}
+                          </Typography>
+                          {motorista.idUsuario === idMotoristaPrincipal && (
+                            <Typography variant="body1" color="red">
+                           (Principal)
+                          </Typography>
+                            
+                          )}
+                        </Box>
+                      ))}
+                    </Stack>
                   </Box>
 
                   <Box>
@@ -1181,7 +1228,7 @@ const DetalhesRequisicao: React.FC = () => {
                         </Box>
 
                         <Box>
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography variant="body2" color="text.primary">
                             Situação:
                           </Typography>
                           <Typography 
@@ -1297,12 +1344,12 @@ const DetalhesRequisicao: React.FC = () => {
                         </Box>
 
                         <Box>
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography variant="body2" color="text.primary">
                             Situação:
                           </Typography>
                           <Typography 
                             variant="body1" 
-                            color={vistoriaDevolucao.veiculoRecebidoSemAvarias ? "success" : "error"}
+                            color={vistoriaDevolucao.veiculoRecebidoSemAvarias ? "text.primary" : "error"}
                             fontWeight="medium"
                           >
                             {formatarStatusVistoria(vistoriaDevolucao.veiculoRecebidoSemAvarias)}
@@ -1633,8 +1680,17 @@ const DetalhesRequisicao: React.FC = () => {
         <ModalCadastroMotoristaAdicional
           open={modalAdicionarMotoristaAberto} 
           onClose={handleFecharModalAdicionarMotorista} 
-          onSuccess={function (message: string): void {throw new Error("Function not implemented.");} } 
-          onError={function (error: any): void {throw new Error("Function not implemented.");} } 
+          onSuccess={async (message) => {
+            setMensagemSucesso(message);
+            try {
+              await carregarDados();
+            } catch (error) {
+              console.error(error);
+            }
+          }} 
+         onError={(err) => {
+            console.error(err);
+          }}
           corrida={corrida}          
         />
       )}
