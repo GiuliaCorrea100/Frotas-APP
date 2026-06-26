@@ -157,21 +157,10 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
   }, [idCorrida, token, navigate, idUsuarioLogado]);
 
   useEffect(() => {
-    const fetchStatusChave = async () => {
-      if (!corridaLocal?.idCorrida) return;
-      try {
-        const corridaDetalhada = await buscarCorridaPorId(corridaLocal?.idCorrida);
-        setChaveEmprestada(corridaDetalhada.chaveEmprestada ?? false);
-      } catch (error) {
-        console.error('Erro ao buscar status da chave:', error);
-        setChaveEmprestada(false);
-      }
-    };
-
-    if (!isCorridaEncerrada) {
-      fetchStatusChave();
+    if (corridaLocal && !isCorridaEncerrada) {
+      setChaveEmprestada(corridaLocal.chaveEmprestada ?? false);
     }
-  }, [corridaLocal?.idCorrida, corridaLocal?.situacao, isCorridaEncerrada]);
+  }, [corridaLocal, isCorridaEncerrada]);
 
   useEffect(() => {
     const fetchPercursoStatus = async () => {
