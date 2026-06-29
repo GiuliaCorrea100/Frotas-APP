@@ -666,6 +666,35 @@ const DetalhesRequisicao: React.FC = () => {
 
   return (
     <AppLayout>
+
+      <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              mb={1.5}
+              mx={3.5}
+              height={56}
+            >
+              <Typography
+                variant="h5"
+                fontWeight="bold"
+                color="text.primary"
+                display="flex"
+                pb={0}
+              >
+                {corrida ? `Corrida Nº ${corrida.idCorrida}` : 'Carregando...'}
+              </Typography>
+              <ExportarCorridaPDF
+                corrida={corrida}
+                ocorrencias={ocorrencias}
+                abastecimentos={abastecimentos}
+                percursos={percursos}
+                vistorias={vistorias}
+                disabled={loading || !corrida}
+              />
+              
+            </Box>
+
       {mensagemSucesso && (
         <Alert
           severity="success"
@@ -720,14 +749,7 @@ const DetalhesRequisicao: React.FC = () => {
                 Informações Básicas
               </Typography>
               
-              <ExportarCorridaPDF
-                corrida={corrida}
-                ocorrencias={ocorrencias}
-                abastecimentos={abastecimentos}
-                percursos={percursos}
-                vistorias={vistorias}
-                disabled={loading || !corrida}
-              />
+              
               <Button
               variant="contained"
               onClick={() => handleAbrirModalAdicionarMotorista(corrida)}
