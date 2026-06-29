@@ -1233,10 +1233,11 @@ const DetalhesRequisicao: React.FC = () => {
                           </Typography>
                           <Typography 
                             variant="body1" 
-                            color={vistoriaRetirada.veiculoRecebidoSemAvarias ? "success" : "error"}
+                            color={vistoriaRetirada.veiculoRecebidoSemAvarias ? "text.primary" : "error"}
                             fontWeight="medium"
                           >
                             {formatarStatusVistoria(vistoriaRetirada.veiculoRecebidoSemAvarias)}
+                            
                           </Typography>
                         </Box>
 
@@ -1691,7 +1692,8 @@ const DetalhesRequisicao: React.FC = () => {
          onError={(err) => {
             console.error(err);
           }}
-          corrida={corrida}          
+          corrida={corrida}
+          percursos={percursos}          
         />
       )}
 
