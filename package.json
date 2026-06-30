@@ -19,6 +19,7 @@
     "@mui/lab": "^5.0.0-alpha.170",
     "@mui/material": "^5.15.20",
     "@mui/x-data-grid": "^6.20.2",
+    "@nestjs/serve-static": "^5.0.5",
     "@react-pdf/renderer": "^4.3.2",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
