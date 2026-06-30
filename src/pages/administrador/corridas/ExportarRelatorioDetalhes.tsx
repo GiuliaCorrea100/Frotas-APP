@@ -1,9 +1,10 @@
 import React from 'react';
-import { Document, Page, View, Text, StyleSheet, pdf } from '@react-pdf/renderer';
+import { Document, Page, View, Text, StyleSheet, pdf, Image } from '@react-pdf/renderer';
 import { Button } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { Download } from '@mui/icons-material';
 import { formatDate, formatDateOnly } from '../../../utils/formatDate';
+import { CorridaVistoriaService } from '../../../services/CorridaVistoriaService';
 
 // Estilos para o PDF
 const styles = StyleSheet.create({
@@ -101,6 +102,64 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
   },
+  vistoriaCard: {
+    marginBottom: 10,
+    padding: 10,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 5,
+    border: '1px solid #e0e0e0',
+  },
+  vistoriaTitle: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#1976d2',
+  },
+  statusBadge: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    padding: 3,
+    borderRadius: 3,
+  },
+  statusOk: {
+    color: '#2e7d32',
+  },
+  statusError: {
+    color: '#d32f2f',
+  },
+  photoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 5,
+    gap: 5,
+  },
+  photoItem: {
+    width: 100,
+    height: 80,
+    margin: 2,
+    border: '1px solid #e0e0e0',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  photoImage: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+  noPhotoText: {
+    fontSize: 8,
+    color: '#999',
+    fontStyle: 'italic',
+  },
+  motoristaItem: {
+    fontSize: 10,
+    color: '#000',
+    marginBottom: 2,
+  },
+  motoristaPrincipal: {
+    fontWeight: 'bold',
+    color: '#1976d2',
+  },
 });
 
 // Funções auxiliares para conversão segura de números
@@ -122,17 +181,81 @@ const formatCurrency = (value: any): string => {
   }).format(num);
 };
 
+// Componente para exibir fotos da vistoria
+const VistoriaFotos = ({ fotos, tipo }: { fotos: string[]; tipo: string }) => {
+  if (!fotos || fotos.length === 0) {
+    return (
+      <Text style={styles.noPhotoText}>Nenhuma foto registrada para esta vistoria</Text>
+    );
+  }
+
+  return (
+    <View style={styles.photoGrid}>
+      {fotos.map((fotoBase64, index) => (
+        <View key={index} style={styles.photoItem}>
+          <Image src={fotoBase64} style={styles.photoImage} />
+        </View>
+      ))}
+    </View>
+  );
+};
+
+// Componente para exibir informações de uma vistoria
+const VistoriaSection = ({ vistoria, titulo }: { vistoria: any; titulo: string }) => {
+  if (!vistoria) return null;
+
+  const temAvarias = !vistoria.veiculoRecebidoSemAvarias;
+  const statusText = vistoria.veiculoRecebidoSemAvarias ? '✅ Sem avarias' : '⚠️ Com avarias';
+  const statusStyle = vistoria.veiculoRecebidoSemAvarias ? styles.statusOk : styles.statusError;
+
+  return (
+    <View style={styles.vistoriaCard}>
+      <Text style={styles.vistoriaTitle}>{titulo}</Text>
+      
+      <View style={styles.infoRow}>
+        <Text style={styles.infoLabel}>Registrado por:</Text>
+        <Text style={styles.infoValue}>
+          {vistoria.usuarioRegistrou?.nome || 'Usuário não identificado'}
+        </Text>
+      </View>
+      
+      <View style={styles.infoRow}>
+        <Text style={styles.infoLabel}>Situação:</Text>
+        <Text style={[styles.infoValue, statusStyle]}>{statusText}</Text>
+      </View>
+      
+      {temAvarias && vistoria.observacoes && (
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Observações:</Text>
+          <Text style={styles.infoValue}>{vistoria.observacoes}</Text>
+        </View>
+      )}
+      
+      {temAvarias && vistoria.fotos && vistoria.fotos.length > 0 && (
+        <>
+          <Text style={{ fontSize: 9, fontWeight: 'bold', marginTop: 5, marginBottom: 5 }}>
+            Fotos das avarias:
+          </Text>
+          <VistoriaFotos fotos={vistoria.fotos} tipo={vistoria.tipo} />
+        </>
+      )}
+    </View>
+  );
+};
+
 // Componente principal do PDF
 const RelatorioCorridaPDF = ({
   corrida,
   ocorrencias,
   abastecimentos,
   percursos,
+  vistorias,
 }: {
   corrida: any;
   ocorrencias: any[];
   abastecimentos: any[];
   percursos: any[];
+  vistorias: any[];
 }) => {
   // Verificar se tem dados
   if (!corrida) {
@@ -146,6 +269,19 @@ const RelatorioCorridaPDF = ({
   }
 
   const isAgendada = !corrida.dataHoraLiberacaoChave;
+
+  // Separar vistorias por tipo
+  const vistoriaRetirada = vistorias?.find(v => v.tipo === 'RETIRADA');
+  const vistoriaDevolucao = vistorias?.find(v => v.tipo === 'DEVOLUCAO');
+
+  // Obter lista de motoristas
+  const motoristasList = corrida.motoristas || [];
+  const motoristaPrincipal = motoristasList.find(
+    (m: any) => m.idMotorista === corrida.idMotoristaPrincipal
+  );
+  const motoristasSecundarios = motoristasList.filter(
+    (m: any) => m.idMotorista !== corrida.idMotoristaPrincipal
+  );
 
   return (
     <Document>
@@ -162,15 +298,31 @@ const RelatorioCorridaPDF = ({
           </Text>
         </View>
 
-        {/* Informações Básicas */}
+        {/* Informações Básicas com lista de motoristas */}
         {corrida && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Informações Básicas</Text>
             <View style={styles.card}>
+              {/* Lista de Motoristas */}
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Motorista:</Text>
-                <Text style={styles.infoValue}>{corrida.nomeMotorista || 'N/A'}</Text>
+                <Text style={styles.infoLabel}>Motoristas:</Text>
+                <View style={{ width: '65%' }}>
+                  {motoristaPrincipal && (
+                    <Text style={[styles.motoristaItem, styles.motoristaPrincipal]}>
+                      {motoristaPrincipal.nome} (Principal)
+                    </Text>
+                  )}
+                  {motoristasSecundarios.map((motorista: any, index: number) => (
+                    <Text key={index} style={styles.motoristaItem}>
+                      {motorista.nome}
+                    </Text>
+                  ))}
+                  {motoristasList.length === 0 && (
+                    <Text style={styles.motoristaItem}>Nenhum motorista associado</Text>
+                  )}
+                </View>
               </View>
+
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Veículo (placa):</Text>
                 <Text style={styles.infoValue}>{corrida.placaVeiculo || 'N/A'}</Text>
@@ -208,6 +360,22 @@ const RelatorioCorridaPDF = ({
                 </Text>
               </View>
             </View>
+          </View>
+        )}
+
+        {/* Vistorias - Retirada */}
+        {vistoriaRetirada && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Vistoria de Retirada</Text>
+            <VistoriaSection vistoria={vistoriaRetirada} titulo="Vistoria Motorista" />
+          </View>
+        )}
+
+        {/* Vistorias - Devolução */}
+        {vistoriaDevolucao && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Vistoria de Devolução</Text>
+            <VistoriaSection vistoria={vistoriaDevolucao} titulo="Vistoria Administrador" />
           </View>
         )}
 
@@ -296,7 +464,7 @@ const RelatorioCorridaPDF = ({
           </View>
         )}
 
-        {/* Percursos - Com colunas separadas para odômetro */}
+        {/* Percursos*/}
         {percursos && percursos.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
@@ -304,6 +472,7 @@ const RelatorioCorridaPDF = ({
             </Text>
             <View style={styles.table}>
               <View style={[styles.tableRow, styles.tableHeader]}>
+                <Text style={styles.tableCell}>Motorista Responsável</Text>
                 <Text style={styles.tableCell}>Origem</Text>
                 <Text style={styles.tableCell}>Data Saída </Text>
                 <Text style={styles.tableCell}>Odômetro Saída</Text>
@@ -313,6 +482,9 @@ const RelatorioCorridaPDF = ({
               </View>
               {percursos.map((percurso, index) => (
                 <View key={index} style={styles.tableRow}>
+                  <Text style={styles.tableCell}>
+                    {percurso.nomeMotorista || 'N/A'}
+                  </Text>
                   <Text style={styles.tableCell}>
                     {percurso.localOrigem || 'N/A'}
                   </Text>
@@ -370,11 +542,12 @@ const RelatorioCorridaPDF = ({
         {/* Mensagem quando não há dados */}
         {(!ocorrencias || ocorrencias.length === 0) && 
          (!abastecimentos || abastecimentos.length === 0) && 
-         (!percursos || percursos.length === 0) && (
+         (!percursos || percursos.length === 0) &&
+         (!vistorias || vistorias.length === 0) && (
           <View style={styles.section}>
             <Text style={styles.cardTitle}>Informações Adicionais</Text>
             <Text style={{ fontSize: 10, color: '#666' }}>
-              Não há ocorrências, abastecimentos ou percursos registrados para esta corrida.
+              Não há ocorrências, abastecimentos, percursos ou vistorias registrados para esta corrida.
             </Text>
           </View>
         )}
@@ -394,12 +567,14 @@ const ExportarCorridaPDF = ({
   ocorrencias,
   abastecimentos,
   percursos,
+  vistorias = [],
   disabled = false,
 }: {
   corrida: any;
   ocorrencias: any[];
   abastecimentos: any[];
   percursos: any[];
+  vistorias?: any[];
   disabled?: boolean;
 }) => {
   const theme = useTheme();
@@ -411,6 +586,7 @@ const ExportarCorridaPDF = ({
     console.log('Ocorrências:', ocorrencias?.length || 0);
     console.log('Abastecimentos:', abastecimentos?.length || 0);
     console.log('Percursos:', percursos?.length || 0);
+    console.log('Vistorias:', vistorias?.length || 0);
     
     setIsGenerating(true);
 
@@ -422,6 +598,21 @@ const ExportarCorridaPDF = ({
         return;
       }
 
+      // Buscar fotos das vistorias se necessário
+      let vistoriasComFotos = vistorias || [];
+      
+      // Se não tiver vistorias ou fotos, buscar do serviço
+      if (corrida.idCorrida && (!vistorias || vistorias.length === 0)) {
+        try {
+          const vistoriasData = await CorridaVistoriaService.buscarVistoria(corrida.idCorrida);
+          if (vistoriasData && vistoriasData.length > 0) {
+            vistoriasComFotos = vistoriasData;
+          }
+        } catch (error) {
+          console.error('Erro ao buscar vistorias:', error);
+        }
+      }
+
       console.log('Criando componente do PDF...');
       
       // Criar o PDF
@@ -431,6 +622,7 @@ const ExportarCorridaPDF = ({
           ocorrencias={ocorrencias || []}
           abastecimentos={abastecimentos || []}
           percursos={percursos || []}
+          vistorias={vistoriasComFotos}
         />
       ).toBlob();
 

@@ -250,12 +250,14 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
                   control={<Radio />} 
                   label="Veículo devolvido sem avarias"
                   onChange={() => setAvariado(false)} 
+                  sx ={ { color:"text.primary"}}
                 />
                 <FormControlLabel 
                   value="com_avaria" 
                   control={<Radio />} 
                   label="Veículo devolvido com avarias" 
                   onChange={() => setAvariado(true)}
+                  sx ={ { color:"text.primary"}}
                 />
             </RadioGroup>
           </Box>
