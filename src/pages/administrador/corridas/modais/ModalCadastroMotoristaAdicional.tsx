@@ -12,7 +12,7 @@ import {
   TextField,
   Tooltip,
 } from "@mui/material";
-import { Cancel, Close, Warning } from "@mui/icons-material";
+import { Cancel, Close, PersonAdd, Warning } from "@mui/icons-material";
 import { modalStyle } from "../../../../utils/modalStyle";
 import { CorridaFrontend } from "../../../../services/CorridaService";
 import axiosConnect from "../../../../services/axios/axiosConnect";
@@ -277,7 +277,7 @@ const AdidicionarMotorista: React.FC<AdidicionarMotoristaProps> = ({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            mb: 0,
+            mb: 2,
           }}
         >
           <Typography
@@ -290,7 +290,8 @@ const AdidicionarMotorista: React.FC<AdidicionarMotoristaProps> = ({
               pt: 1,
             }}
           >
-            Adicionar Motorista
+            <PersonAdd color="primary" sx={{ fontSize: 24, mr: 1 }} />
+            Editar Motoristas
           </Typography>
           <IconButton onClick={onClose} disabled={loading}>
             <Close />
@@ -309,7 +310,7 @@ const AdidicionarMotorista: React.FC<AdidicionarMotoristaProps> = ({
           </Alert>
         )}
 
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 2 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 3 }}>
           <Autocomplete
             options={motoristasDisponiveis.filter(
               (option) =>
@@ -351,6 +352,7 @@ const AdidicionarMotorista: React.FC<AdidicionarMotoristaProps> = ({
                 placeholder={
                   loadingMotorista ? "Carregando..." : "Digite para buscar"
                 }
+                helperText={"Selecione o motorista a ser adicionado à corrida"}
                 InputProps={{
                   ...params.InputProps,
                   endAdornment: (
@@ -369,7 +371,7 @@ const AdidicionarMotorista: React.FC<AdidicionarMotoristaProps> = ({
             <Box
               sx={{
                 mt: 1,
-                p: 1.5,
+                p: 2,
                 border: "1px solid",
                 borderColor: "divider",
                 borderRadius: 1,
@@ -398,8 +400,8 @@ const AdidicionarMotorista: React.FC<AdidicionarMotoristaProps> = ({
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                        py: 0.5,
-                        px: 1,
+                        py: 1,
+                        px: 1.5,
                         backgroundColor: "background.paper",
                         borderRadius: 1,
                         border: "1px solid",

@@ -35,7 +35,7 @@ import {
   removerPercurso,
 } from "../../../services/PercursoService";
 
-import { Add } from "@mui/icons-material";
+import { Add, PersonAdd, PersonOutlineOutlined } from "@mui/icons-material";
 import { Abastecimento } from "../../../services/AbastecimentoService";
 import AbastecimentoService from "../../../services/AbastecimentoService";
 import ModalEditarOcorrencia from "./modais/ModalEdicaoOcorrencia";
@@ -666,35 +666,6 @@ const DetalhesRequisicao: React.FC = () => {
 
   return (
     <AppLayout>
-
-      <Box
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-              mb={1.5}
-              mx={3.5}
-              height={56}
-            >
-              <Typography
-                variant="h5"
-                fontWeight="bold"
-                color="text.primary"
-                display="flex"
-                pb={0}
-              >
-                {corrida ? `Corrida Nº ${corrida.idCorrida}` : 'Carregando...'}
-              </Typography>
-              <ExportarCorridaPDF
-                corrida={corrida}
-                ocorrencias={ocorrencias}
-                abastecimentos={abastecimentos}
-                percursos={percursos}
-                vistorias={vistorias}
-                disabled={loading || !corrida}
-              />
-              
-            </Box>
-
       {mensagemSucesso && (
         <Alert
           severity="success"
@@ -750,18 +721,14 @@ const DetalhesRequisicao: React.FC = () => {
               </Typography>
               
               
-              <Button
-              variant="contained"
-              onClick={() => handleAbrirModalAdicionarMotorista(corrida)}
-              startIcon={<Add />}
-              sx={{
-                textTransform: "none",
-                fontWeight: 600,
-                boxShadow: theme.shadows[2],
-              }}
-            >
-              Adicionar Motorista
-            </Button>
+              <ExportarCorridaPDF
+                corrida={corrida}
+                ocorrencias={ocorrencias}
+                abastecimentos={abastecimentos}
+                percursos={percursos}
+                vistorias={vistorias}
+                disabled={loading || !corrida}
+              />
             </Box>
             
             <CardContent>
@@ -772,9 +739,32 @@ const DetalhesRequisicao: React.FC = () => {
               ) : corrida ? (
                 <Stack spacing={1.5}>
                   <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Motoristas da corrida:
-                    </Typography>
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Motoristas da corrida:
+                      </Typography>
+                      <Tooltip title="Editar motoristas">
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={() => handleAbrirModalAdicionarMotorista(corrida)}
+                          sx={{
+                            // minWidth: 24,
+                            // width: 24,
+                            height: 24,
+                            padding: 1,
+                            borderRadius: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            ml: 1,
+                          }}
+                        >
+                          <PersonAdd sx={{ fontSize: 16, mr: 1 }} />
+                          Editar Motoristas
+                        </Button>
+                      </Tooltip>
+                    </Box>
                     <Stack spacing={0.5} mt={0.5}>
                       {motoristasSelecionados.map((motorista, index) => (
                         <Box 
@@ -785,14 +775,13 @@ const DetalhesRequisicao: React.FC = () => {
                             gap: 1
                           }}
                         >
-                          <Typography variant="body1" color="text.primary">
+                          <Typography variant="body2" color="text.primary">
                             {motorista.nome}
                           </Typography>
                           {motorista.idUsuario === idMotoristaPrincipal && (
                             <Typography variant="body1" color="red">
-                           (Principal)
-                          </Typography>
-                            
+                              (Principal)
+                            </Typography>
                           )}
                         </Box>
                       ))}
@@ -857,7 +846,7 @@ const DetalhesRequisicao: React.FC = () => {
                   </Box>
                 </Stack>
               ) : (
-                <Typography variant="body2" color="error">
+                <Typography variant="body1" color="error">
                   Corrida não encontrada.
                 </Typography>
               )}
