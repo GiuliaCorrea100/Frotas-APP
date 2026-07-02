@@ -13,6 +13,7 @@ import {
   Tooltip,
   Chip,
   Alert,
+  Autocomplete,
 } from "@mui/material";
 import CreateIcon from "@mui/icons-material/Create";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -64,6 +65,13 @@ export default function ListaCorrida() {
   const [showModalEditar, setShowModalEditar] = useState(false);
   const [showModalCancelar, setShowModalCancelar] = useState(false);
   const [showVistoriaDevolucaoModal, setShowVistoriaDevolucaoModal] = useState(false); //point
+
+  const [motoristaSelecionadoLiberacao, setMotoristaSelecionadoLiberacao] =
+    useState<{ idMotorista: number; nome: string } | null>(null);
+  const [motoristaSelecionadoDevolucao, setMotoristaSelecionadoDevolucao] =
+    useState<{ idMotorista: number; nome: string } | null>(null);
+  const [liberacaoConfirmada, setLiberacaoConfirmada] = useState(false);
+  const [devolucaoConfirmada, setDevolucaoConfirmada] = useState(false);
 
   const [senhaError, setSenhaError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -136,6 +144,11 @@ export default function ListaCorrida() {
 
   const handleAbrirModalLiberarChave = (corrida: CorridaFrontend) => {
     setSelectedCorrida(corrida);
+    const principal = corrida.motoristas?.find(
+      (m) => m.idMotorista === corrida.idMotoristaPrincipal
+    ) || { idMotorista: corrida.idMotoristaPrincipal, nome: corrida.nomeMotoristaPrincipal || "" };
+    setMotoristaSelecionadoLiberacao(principal);
+    setLiberacaoConfirmada(false);
     setSenhaError(null);
     setSenhaLiberarChave("");
     setIsProcessing(false);
@@ -144,6 +157,11 @@ export default function ListaCorrida() {
 
   const handleAbrirModalReceberChave = (corrida: CorridaFrontend) => {
     setSelectedCorrida(corrida);
+    const principal = corrida.motoristas?.find(
+      (m) => m.idMotorista === corrida.idMotoristaPrincipal
+    ) || { idMotorista: corrida.idMotoristaPrincipal, nome: corrida.nomeMotoristaPrincipal || "" };
+    setMotoristaSelecionadoDevolucao(principal);
+    setDevolucaoConfirmada(false);
     setShowModalReceberChave(true);
   };
 
@@ -171,6 +189,8 @@ export default function ListaCorrida() {
     setIsProcessing(true);
 
     try {
+      if (!motoristaSelecionadoLiberacao) return;
+
       // No modo MOCK, validar com senha fixa
       if (authMode === "MOCK") {
         if (senhaLiberarChave !== "secret") {
@@ -182,14 +202,15 @@ export default function ListaCorrida() {
         // Simular a liberação da chave no modo MOCK
             await CorridaService.confirmarLiberarChaveMock(
                 selectedCorrida.idCorrida,
-                selectedCorrida.idMotoristaPrincipal,
+                motoristaSelecionadoLiberacao.idMotorista,
         );
       } else {
         // Modo SIGAA normal
             await CorridaService.confirmarLiberarChave(
                 selectedCorrida.idCorrida,
-                selectedCorrida.idMotoristaPrincipal,
+                motoristaSelecionadoLiberacao.idMotorista,
           senhaLiberarChave,
+                motoristaSelecionadoLiberacao.idMotorista,
         );
       }
 
@@ -276,9 +297,9 @@ export default function ListaCorrida() {
                       mb={0.3}
                     >
                       <PersonOutlineIcon
-                        sx={{ fontSize: 14, color: "text.secondary" }}
+                        sx={{ fontSize: 14, color: "text.primary" }}
                       />
-                      <Typography variant="body2">
+                      <Typography variant="body2" color="text.primary">
                         {motorista.nome}
                       </Typography>
                     </Box>
@@ -920,41 +941,81 @@ export default function ListaCorrida() {
           LIBERAR CHAVE
         </DialogTitle>
         <DialogContent>
-          <Typography color="text.primary" mb={2}>
-            Você está entregando a chave do carro ao motorista:
-            <strong> {selectedCorrida?.nomeMotoristaPrincipal}</strong>
-          </Typography>
+          {!liberacaoConfirmada ? (
+            <>
+              <Typography color="text.secondary" mb={1}>
+                Selecione o motorista que irá retirar a chave:
+              </Typography>
+              <Autocomplete
+                options={selectedCorrida?.motoristas || []}
+                getOptionLabel={(option) => option.nome}
+                isOptionEqualToValue={(option, value) =>
+                  option.idMotorista === value.idMotorista
+                }
+                value={motoristaSelecionadoLiberacao}
+                onChange={(_, newValue) =>
+                  setMotoristaSelecionadoLiberacao(newValue)
+                }
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Motorista"
+                    placeholder="Buscar motorista..."
+                    autoFocus
+                  />
+                )}
+                fullWidth
+                disabled={isProcessing}
+              />
+            </>
+          ) : (
+            <>
+              <Typography color="text.primary" mb={2}>
+                Você está entregando a chave do carro ao motorista:
+                <strong> {motoristaSelecionadoLiberacao?.nome}</strong>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => setLiberacaoConfirmada(false)}
+                  sx={{ ml: 1, textTransform: "none" }}
+                  disabled={isProcessing}
+                >
+                  Alterar
+                </Button>
+              </Typography>
 
-          <TextField
-            label="Digite sua senha"
-            type="password"
-            value={senhaLiberarChave}
-            onChange={(e) => {
-              setSenhaLiberarChave(e.target.value);
-              setSenhaError(null);
-            }}
-            fullWidth
-            variant="outlined"
-            error={!!senhaError}
-            helperText={senhaError}
-            autoFocus
-            disabled={isProcessing}
-            onKeyPress={(e) => {
-              if (e.key === "Enter" && !isProcessing) {
-                e.preventDefault();
-                handleLiberarChave();
-              }
-            }}
-          />
+              <TextField
+                label="Senha do motorista"
+                type="password"
+                value={senhaLiberarChave}
+                onChange={(e) => {
+                  setSenhaLiberarChave(e.target.value);
+                  setSenhaError(null);
+                }}
+                fullWidth
+                variant="outlined"
+                error={!!senhaError}
+                helperText={senhaError}
+                autoFocus
+                disabled={isProcessing}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !isProcessing) {
+                    e.preventDefault();
+                    handleLiberarChave();
+                  }
+                }}
+              />
 
-          {authMode === "MOCK" && (
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ display: "block", mt: 1, fontStyle: "italic" }}
-            >
-              Modo de teste ativo. Use a senha: <strong>secret</strong>
-            </Typography>
+              {authMode === "MOCK" && (
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: "block", mt: 1, fontStyle: "italic" }}
+                >
+                  Modo de teste ativo. Use a senha: <strong>secret</strong>
+                </Typography>
+              )}
+            </>
           )}
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0 }}>
@@ -968,14 +1029,25 @@ export default function ListaCorrida() {
           >
             Cancelar
           </Button>
-          <Button
-            onClick={handleLiberarChave}
-            variant="contained"
-            color="primary"
-            disabled={isProcessing}
-          >
-            {isProcessing ? "Processando..." : "Confirmar"}
-          </Button>
+          {!liberacaoConfirmada ? (
+            <Button
+              onClick={() => setLiberacaoConfirmada(true)}
+              variant="contained"
+              color="primary"
+              disabled={!motoristaSelecionadoLiberacao}
+            >
+              Confirmar
+            </Button>
+          ) : (
+            <Button
+              onClick={handleLiberarChave}
+              variant="contained"
+              color="primary"
+              disabled={isProcessing || !senhaLiberarChave.trim()}
+            >
+              {isProcessing ? "Processando..." : "Confirmar"}
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
 
@@ -1054,10 +1126,46 @@ export default function ListaCorrida() {
           RECEBER CHAVE
         </DialogTitle>
         <DialogContent>
-          <Typography color="text.primary">
-            Você confirma que está recebendo a chave do motorista
-            <strong> {selectedCorrida?.nomeMotoristaPrincipal}</strong>?
-          </Typography>
+          {!devolucaoConfirmada ? (
+            <>
+              <Typography color="text.secondary" mb={1}>
+                Selecione o motorista que está devolvendo a chave:
+              </Typography>
+              <Autocomplete
+                options={selectedCorrida?.motoristas || []}
+                getOptionLabel={(option) => option.nome}
+                isOptionEqualToValue={(option, value) =>
+                  option.idMotorista === value.idMotorista
+                }
+                value={motoristaSelecionadoDevolucao}
+                onChange={(_, newValue) =>
+                  setMotoristaSelecionadoDevolucao(newValue)
+                }
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Motorista"
+                    placeholder="Buscar motorista..."
+                    autoFocus
+                  />
+                )}
+                fullWidth
+              />
+            </>
+          ) : (
+            <Typography color="text.primary">
+              Você confirma que está recebendo a chave do motorista
+              <strong> {motoristaSelecionadoDevolucao?.nome}</strong>?
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() => setDevolucaoConfirmada(false)}
+                sx={{ ml: 1, textTransform: "none" }}
+              >
+                Alterar
+              </Button>
+            </Typography>
+          )}
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0 }}>
           <Button
@@ -1066,16 +1174,27 @@ export default function ListaCorrida() {
           >
             Cancelar
           </Button>
-          <Button
-            onClick={() => {
-              setShowModalReceberChave(false);
-              setShowVistoriaDevolucaoModal(true);
-            }}
-            variant="contained"
-            color="primary"
-          >
-            Confirmar
-          </Button>
+          {!devolucaoConfirmada ? (
+            <Button
+              onClick={() => setDevolucaoConfirmada(true)}
+              variant="contained"
+              color="primary"
+              disabled={!motoristaSelecionadoDevolucao}
+            >
+              Confirmar
+            </Button>
+          ) : (
+            <Button
+              onClick={() => {
+                setShowModalReceberChave(false);
+                setShowVistoriaDevolucaoModal(true);
+              }}
+              variant="contained"
+              color="primary"
+            >
+              Confirmar
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
 
@@ -1137,6 +1256,7 @@ export default function ListaCorrida() {
           console.error("Erro ao solicitar recurso:", error);
         }}
         corrida={selectedCorrida}
+        idMotoristaDevolucao={motoristaSelecionadoDevolucao!.idMotorista}
       />
     </AppLayout>
   );

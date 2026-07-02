@@ -11,6 +11,8 @@ export interface CorridaBackend {
   idCarro: number;
   dataHoraRecebimentoChave: string | Date;
   dataHoraLiberacaoChave: string | Date;
+  idMotoristaRetirada?: number;
+  idMotoristaDevolucao?: number;
   motoristasIds?: number[];
   motoristas?: { idMotorista: number; nome: string }[];
 }
@@ -28,6 +30,8 @@ export interface CorridaFrontend {
   idCarro: number;
   dataHoraRecebimentoChave?: string | null;
   dataHoraLiberacaoChave?: string | null;
+  idMotoristaRetirada?: number;
+  idMotoristaDevolucao?: number;
   motoristas?: { idMotorista: number; nome: string }[];
 }
 
@@ -42,6 +46,8 @@ export interface CorridaDto {
   situacao?: string;
   chaveEmprestada: boolean;
   idCarro: number;
+  idMotoristaRetirada?: number;
+  idMotoristaDevolucao?: number;
   motoristasIds?: number[];
   motoristas?: { idMotorista: number; nome: string }[];
 }
@@ -155,7 +161,8 @@ export class CorridaService {
   static async confirmarLiberarChave(
     idCorrida: number,
     idMotorista: number,
-    senha: string
+    senha: string,
+    idMotoristaRetirada: number
   ): Promise<void> {
     try {
       const { data } = await axiosConnect.get(`/usuario/buscar-usuario/${idMotorista}`);
@@ -167,7 +174,7 @@ export class CorridaService {
       );
 
       if (senhaValida === true) {
-        await axiosConnect.patch(`/corrida/emprestar-chave/${idCorrida}`);
+        await axiosConnect.patch(`/corrida/emprestar-chave/${idCorrida}`, { idMotoristaRetirada });
       } else {
         console.error("Senha inválida!");
         throw new Error("Senha inválida!");
@@ -180,19 +187,22 @@ export class CorridaService {
 
   static async confirmarLiberarChaveMock(
     idCorrida: number,
-    idMotorista: number
+    idMotoristaRetirada: number
   ): Promise<void> {
     try {
-      await axiosConnect.patch(`/corrida/emprestar-chave/${idCorrida}`);
+      await axiosConnect.patch(`/corrida/emprestar-chave/${idCorrida}`, { idMotoristaRetirada });
     } catch (error) {
       console.error("Erro ao liberar chave no modo MOCK:", error);
       throw error;
     }
   }
 
-  static async confirmarReceberChave(idCorrida: number): Promise<void> {
+  static async confirmarReceberChave(
+    idCorrida: number,
+    idMotoristaDevolucao: number
+  ): Promise<void> {
     try {
-      await axiosConnect.patch(`/corrida/emprestar-chave/${idCorrida}`);
+      await axiosConnect.patch(`/corrida/emprestar-chave/${idCorrida}`, { idMotoristaDevolucao });
     } catch (error) {
       console.error("Erro ao emprestar chave", error);
       throw error;
