@@ -5,6 +5,7 @@ import { useTheme } from '@mui/material/styles';
 import { Download } from '@mui/icons-material';
 import { formatDate, formatDateOnly } from '../../../utils/formatDate';
 import { CorridaVistoriaService } from '../../../services/CorridaVistoriaService';
+import axiosConnect from '../../../services/axios/axiosConnect';
 
 // Estilos para o PDF
 const styles = StyleSheet.create({
@@ -128,23 +129,20 @@ const styles = StyleSheet.create({
     color: '#d32f2f',
   },
   photoGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: 'column',
     marginTop: 5,
-    gap: 5,
+    gap: 8,
   },
   photoItem: {
-    width: 100,
-    height: 80,
-    margin: 2,
+    alignSelf: 'center',
+    marginBottom: 8,
     border: '1px solid #e0e0e0',
     borderRadius: 4,
     overflow: 'hidden',
   },
   photoImage: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
+    maxWidth: 320,
+    maxHeight: 240,
   },
   noPhotoText: {
     fontSize: 8,
@@ -613,7 +611,26 @@ const ExportarCorridaPDF = ({
         }
       }
 
-      console.log('Criando componente do PDF...');
+      // Buscar fotos para cada vistoria que tenha avarias
+      for (const vistoria of vistoriasComFotos) {
+        if (!vistoria.veiculoRecebidoSemAvarias && vistoria.idCorridaVistoria) {
+          try {
+            const fotos = await CorridaVistoriaService.buscarFotosVistoria(vistoria.idCorridaVistoria);
+            const fotosBase64 = await Promise.all(
+              fotos.map(async (f) => {
+                const relativePath = f.urlArquivo.replace(/^https?:\/\/[^/]+/, '');
+                const { data } = await axiosConnect.get('/anexo/converter-png', {
+                  params: { path: relativePath }
+                });
+                return data.url;
+              })
+            );
+            (vistoria as any).fotos = fotosBase64;
+          } catch (error) {
+            console.error('Erro ao buscar fotos da vistoria:', error);
+          }
+        }
+      }
       
       // Criar o PDF
       const blob = await pdf(
@@ -626,8 +643,6 @@ const ExportarCorridaPDF = ({
         />
       ).toBlob();
 
-      console.log('PDF gerado com sucesso, tamanho:', blob.size, 'bytes');
-
       // Criar link para download
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -638,8 +653,6 @@ const ExportarCorridaPDF = ({
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      
-      console.log('Download iniciado:', fileName);
     } catch (error) {
       console.error('Erro detalhado ao gerar PDF:', error);
       alert(`Erro ao gerar PDF: ${error.message || 'Erro desconhecido'}. Verifique o console para mais detalhes.`);

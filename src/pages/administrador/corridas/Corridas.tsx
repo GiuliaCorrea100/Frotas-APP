@@ -1240,24 +1240,26 @@ export default function ListaCorrida() {
         />
       )}
 
-      <VistoriaDevolucaoModal
-        open={showVistoriaDevolucaoModal}
-        onClose={() => setShowVistoriaDevolucaoModal(false)}
-        onSuccess={async (message) => {
-          setMensagemSucesso(message);
-          setShowVistoriaDevolucaoModal(false);
-          try {
-              await carregarCorridas();
-            } catch (error) {
-              console.error(error);
-            }
-        }}
-        onError={(error) => {
-          console.error("Erro ao solicitar recurso:", error);
-        }}
-        corrida={selectedCorrida}
-        idMotoristaDevolucao={motoristaSelecionadoDevolucao!.idMotorista}
-      />
+      {showVistoriaDevolucaoModal && motoristaSelecionadoDevolucao && (
+        <VistoriaDevolucaoModal
+          open={showVistoriaDevolucaoModal}
+          onClose={() => setShowVistoriaDevolucaoModal(false)}
+          onSuccess={async (message) => {
+            setMensagemSucesso(message);
+            setShowVistoriaDevolucaoModal(false);
+            try {
+                await carregarCorridas();
+              } catch (error) {
+                console.error(error);
+              }
+          }}
+          onError={(error) => {
+            console.error("Erro ao solicitar recurso:", error);
+          }}
+          corrida={selectedCorrida}
+          idMotoristaDevolucao={motoristaSelecionadoDevolucao.idMotorista}
+        />
+      )}
     </AppLayout>
   );
 }
