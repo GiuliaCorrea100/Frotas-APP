@@ -15,6 +15,7 @@ import {
   Tooltip,
   Alert,
   Grid,
+  Chip,
 } from "@mui/material";
 import CreateIcon from "@mui/icons-material/Create";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -34,7 +35,7 @@ import {
   removerPercurso,
 } from "../../../services/PercursoService";
 
-import { Add } from "@mui/icons-material";
+import { Add, PersonAdd, PersonOutlineOutlined } from "@mui/icons-material";
 import { Abastecimento } from "../../../services/AbastecimentoService";
 import AbastecimentoService from "../../../services/AbastecimentoService";
 import ModalEditarOcorrencia from "./modais/ModalEdicaoOcorrencia";
@@ -48,6 +49,7 @@ import { formatDate, formatDateOnly } from "../../../utils/formatDate";
 import ExportarCorridaPDF from "./ExportarRelatorioDetalhes";
 import { CorridaVistoriaFrontend, CorridaVistoriaService } from "../../../services/CorridaVistoriaService";
 import { ModalFotosVistoria } from "./modais/ModalFotosVistoria";
+import ModalCadastroMotoristaAdicional from "./modais/ModalCadastroMotoristaAdicional";
 
 const DetalhesRequisicao: React.FC = () => {
   const theme = useTheme();
@@ -57,45 +59,35 @@ const DetalhesRequisicao: React.FC = () => {
   const [ocorrencias, setOcorrencias] = useState<OcorrenciaDto[]>([]);
   const [abastecimentos, setAbastecimento] = useState<Abastecimento[]>([]);
   const [percursos, setPercursos] = useState<PercursoDto[]>([]);
+
+  const [motoristasSelecionados, setMotoristasSelecionados] = useState<any[]>([]);
+  const [idMotoristaPrincipal, setIdMotoristaPrincipal] = useState<number | null>(null);
+  const [motoristasDisponiveis, setMotoristasDisponiveis] = useState<any[]>([]);
+
   // const [vistoriaAdministrador, setVistoriaAdministrador] = useState<CorridaVistoriaFrontend>(null);
   // const [vistoriaMotorista, setVistoriaMotorista] = useState<CorridaVistoriaFrontend>(null);
   const [vistorias, setVistorias] = useState<CorridaVistoriaFrontend[]>([]);
 
   const [mensagemSucesso, setMensagemSucesso] = useState("");
 
-  const [modalEditarOcorrenciaAberto, setModalEditarOcorrenciaAberto] =
-    useState(false);
-  const [modalCadastroOcorrenciaAberto, setModalCadastroOcorrenciaAberto] =
-    useState(false);
-  const [
-    modalCadastroAbertoAbastecimento,
-    setModalCadastroAbertoAbastecimento,
-  ] = useState(false);
-  const [modalEditarAbastecimentoAberto, setModalEditarAbastecimento] =
-    useState(false);
-  const [modalCadastrarPercursoAberto, setModalCadastrarPercusoAberto] =
-    useState(false);
-  const [modalEditarPercursoAberto, setModalEditarPercursoAberto] =
-    useState(false);
-  const [modalExcluirPercursoAberto, setModalExcluirPercursoAberto] =
-    useState(false);
-  const [modalExcluirOcorrenciaAberto, setModalExcluirOcorrenciaAberto] =
-    useState(false);
-  const [modalExcluirAbastecimentoAberto, setModalExcluirAbastecimentoAberto] =
-    useState(false);
-
+  const [modalEditarOcorrenciaAberto, setModalEditarOcorrenciaAberto] = useState(false);
+  const [modalCadastroOcorrenciaAberto, setModalCadastroOcorrenciaAberto] = useState(false);
+  const [modalCadastroAbertoAbastecimento, setModalCadastroAbertoAbastecimento] = useState(false);
+  const [modalEditarAbastecimentoAberto, setModalEditarAbastecimento] = useState(false);
+  const [modalCadastrarPercursoAberto, setModalCadastrarPercusoAberto] = useState(false);
+  const [modalEditarPercursoAberto, setModalEditarPercursoAberto] = useState(false);
+  const [modalExcluirPercursoAberto, setModalExcluirPercursoAberto] = useState(false);
+  const [modalExcluirOcorrenciaAberto, setModalExcluirOcorrenciaAberto] = useState(false);
+  const [modalExcluirAbastecimentoAberto, setModalExcluirAbastecimentoAberto] = useState(false);
+  const [modalAdicionarMotoristaAberto, setModalAdicionarMotoristaAberto] = useState(false);
   const [modalCarrosselAberto, setModalCarrosselAberto] = useState(false);
   const [vistoriaSelecionadaParaFotos, setVistoriaSelecionadaParaFotos] = useState<{
     id: Number;
     tipo: "RETIRADA" | "DEVOLUCAO";
   } | null>(null);
-
-  const [abastecimentoSelecionado, setAbastecimentoSelecionado] =
-    useState<Abastecimento | null>(null);
-  const [ocorrenciaSelecionada, setOcorrenciaSelecionada] =
-    useState<OcorrenciaDto | null>(null);
-  const [percursoSelecionado, setPercursoSelecionado] =
-    useState<PercursoDto | null>(null);
+  const [abastecimentoSelecionado, setAbastecimentoSelecionado] = useState<Abastecimento | null>(null);
+  const [ocorrenciaSelecionada, setOcorrenciaSelecionada] = useState<OcorrenciaDto | null>(null);
+  const [percursoSelecionado, setPercursoSelecionado] = useState<PercursoDto | null>(null);
 
   useEffect(() => {
     carregarDados();
@@ -111,7 +103,6 @@ const DetalhesRequisicao: React.FC = () => {
           abastecimentosData,
           percursosData,
           vistoriasData,
-          
         ] = await Promise.all([
           getCorridaById(Number(id)),
           OcorrenciaService.buscarPorCorrida(Number(id)),
@@ -121,7 +112,26 @@ const DetalhesRequisicao: React.FC = () => {
         ]);
 
         setCorrida(corridaData);
-        
+
+        if (corridaData.motoristas && corridaData.motoristas.length > 0) {
+          const principal = corridaData.motoristas.find(
+            (m) => m.idMotorista === corridaData.idMotoristaPrincipal,
+          );
+          const outros = corridaData.motoristas.filter(
+            (m) => m.idMotorista !== corridaData.idMotoristaPrincipal,
+          );
+          const motoristasIniciais = [
+            ...(principal
+              ? [{ idUsuario: principal.idMotorista, nome: principal.nome }]
+              : []),
+            ...outros.map((m) => ({
+              idUsuario: m.idMotorista,
+              nome: m.nome,
+            })),
+          ];
+          setMotoristasSelecionados(motoristasIniciais);
+          setIdMotoristaPrincipal(corridaData.idMotoristaPrincipal);
+        }
 
         if (Array.isArray(ocorrenciasData)) {
           setOcorrencias(ocorrenciasData);
@@ -152,7 +162,7 @@ const DetalhesRequisicao: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+};
 
   const idcorridaNumber = Number(id);
   const isAgendada = corrida ? !corrida.dataHoraLiberacaoChave : false;
@@ -367,6 +377,15 @@ const DetalhesRequisicao: React.FC = () => {
 
   const colunsPercursos: GridColDef<PercursoDto>[] = [
     {
+      field: "nomeMotorista",
+      headerName: "Motorista Responsável",
+      flex: 1,
+      sortable: false,
+      renderCell: (params) => (
+        <Typography color="text.primary">{params.value}</Typography>
+      ),
+    },
+    {
       field: "localOrigem",
       headerName: "Local origem",
       flex: 1,
@@ -566,6 +585,15 @@ const DetalhesRequisicao: React.FC = () => {
     
   };
 
+  const handleAbrirModalAdicionarMotorista = ( corrida: CorridaFrontend) => {
+    setCorrida(corrida);
+    setModalAdicionarMotoristaAberto(true);
+  }
+
+  const handleFecharModalAdicionarMotorista = () => {
+    setModalAdicionarMotoristaAberto(false);
+  }
+
   const handleConfirmarExclusaoOcorrencia = async () => {
     if (!ocorrenciaSelecionada) return;
 
@@ -692,11 +720,13 @@ const DetalhesRequisicao: React.FC = () => {
                 Informações Básicas
               </Typography>
               
+              
               <ExportarCorridaPDF
                 corrida={corrida}
                 ocorrencias={ocorrencias}
                 abastecimentos={abastecimentos}
                 percursos={percursos}
+                vistorias={vistorias}
                 disabled={loading || !corrida}
               />
             </Box>
@@ -709,12 +739,53 @@ const DetalhesRequisicao: React.FC = () => {
               ) : corrida ? (
                 <Stack spacing={1.5}>
                   <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Motorista:
-                    </Typography>
-                    <Typography variant="body1" color="text.primary">
-                      {corrida.nomeMotoristaPrincipal}
-                    </Typography>
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Motoristas da corrida:
+                      </Typography>
+                      <Tooltip title="Editar motoristas">
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={() => handleAbrirModalAdicionarMotorista(corrida)}
+                          sx={{
+                            // minWidth: 24,
+                            // width: 24,
+                            height: 24,
+                            padding: 1,
+                            borderRadius: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            ml: 1,
+                          }}
+                        >
+                          <PersonAdd sx={{ fontSize: 16, mr: 1 }} />
+                          Editar Motoristas
+                        </Button>
+                      </Tooltip>
+                    </Box>
+                    <Stack spacing={0.5} mt={0.5}>
+                      {motoristasSelecionados.map((motorista, index) => (
+                        <Box 
+                          key={motorista.idUsuario}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1
+                          }}
+                        >
+                          <Typography variant="body2" color="text.primary">
+                            {motorista.nome}
+                          </Typography>
+                          {motorista.idUsuario === idMotoristaPrincipal && (
+                            <Typography variant="body1" color="red">
+                              (Principal)
+                            </Typography>
+                          )}
+                        </Box>
+                      ))}
+                    </Stack>
                   </Box>
 
                   <Box>
@@ -775,7 +846,7 @@ const DetalhesRequisicao: React.FC = () => {
                   </Box>
                 </Stack>
               ) : (
-                <Typography variant="body2" color="error">
+                <Typography variant="body1" color="error">
                   Corrida não encontrada.
                 </Typography>
               )}
@@ -1168,15 +1239,16 @@ const DetalhesRequisicao: React.FC = () => {
                         </Box>
 
                         <Box>
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography variant="body2" color="text.primary">
                             Situação:
                           </Typography>
                           <Typography 
                             variant="body1" 
-                            color={vistoriaRetirada.veiculoRecebidoSemAvarias ? "success" : "error"}
+                            color={vistoriaRetirada.veiculoRecebidoSemAvarias ? "text.primary" : "error"}
                             fontWeight="medium"
                           >
                             {formatarStatusVistoria(vistoriaRetirada.veiculoRecebidoSemAvarias)}
+                            
                           </Typography>
                         </Box>
 
@@ -1284,12 +1356,12 @@ const DetalhesRequisicao: React.FC = () => {
                         </Box>
 
                         <Box>
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography variant="body2" color="text.primary">
                             Situação:
                           </Typography>
                           <Typography 
                             variant="body1" 
-                            color={vistoriaDevolucao.veiculoRecebidoSemAvarias ? "success" : "error"}
+                            color={vistoriaDevolucao.veiculoRecebidoSemAvarias ? "text.primary" : "error"}
                             fontWeight="medium"
                           >
                             {formatarStatusVistoria(vistoriaDevolucao.veiculoRecebidoSemAvarias)}
@@ -1606,7 +1678,6 @@ const DetalhesRequisicao: React.FC = () => {
         />
       )}
 
-      {/* Modal de Fotos da Vistoria */}
       {modalCarrosselAberto && (
         <ModalFotosVistoria
           open={modalCarrosselAberto}
@@ -1616,6 +1687,28 @@ const DetalhesRequisicao: React.FC = () => {
           tipoVistoria={vistoriaSelecionadaParaFotos?.tipo || "RETIRADA"}
         />
       )}
+
+      {modalAdicionarMotoristaAberto && (
+        <ModalCadastroMotoristaAdicional
+          open={modalAdicionarMotoristaAberto} 
+          onClose={handleFecharModalAdicionarMotorista} 
+          onSuccess={async (message) => {
+            setMensagemSucesso(message);
+            try {
+              await carregarDados();
+            } catch (error) {
+              console.error(error);
+            }
+          }} 
+         onError={(err) => {
+            console.error(err);
+          }}
+          corrida={corrida}
+          percursos={percursos}          
+        />
+      )}
+
+
 
 
     </AppLayout>

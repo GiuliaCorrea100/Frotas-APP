@@ -28,7 +28,8 @@ interface VistoriaDevolucaoProps {
   onClose: () => void;
   onSuccess: (message: string) => void;
   onError: (error: any) => void;
-  corrida: CorridaDto; 
+  corrida: CorridaDto;
+  idMotoristaDevolucao: number;
 }
 
 const modalStyle = {
@@ -55,7 +56,8 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
   onClose,
   onSuccess,
   onError,
-  corrida, 
+  corrida,
+  idMotoristaDevolucao,
 }) => {
   const [observacao, setObservacao] = useState<string>("");
   const [arquivosSelecionados, setArquivosSelecionados] = useState<File[]>([]);
@@ -181,7 +183,7 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
         await CorridaVistoriaService.salvarFotosVistoria(response.idCorridaVistoria, formData, 'DEVOLUCAO');
       }
 
-      await CorridaService.confirmarReceberChave(corrida.idCorrida);
+      await CorridaService.confirmarReceberChave(corrida.idCorrida, idMotoristaDevolucao);
 
       await CarroService.atualizarSituacaoCarro(corrida.idCarro, "DISPONIVEL");
 
@@ -250,12 +252,14 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
                   control={<Radio />} 
                   label="Veículo devolvido sem avarias"
                   onChange={() => setAvariado(false)} 
+                  sx ={ { color:"text.primary"}}
                 />
                 <FormControlLabel 
                   value="com_avaria" 
                   control={<Radio />} 
                   label="Veículo devolvido com avarias" 
                   onChange={() => setAvariado(true)}
+                  sx ={ { color:"text.primary"}}
                 />
             </RadioGroup>
           </Box>

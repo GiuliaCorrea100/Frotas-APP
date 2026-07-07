@@ -177,7 +177,7 @@ const CadastrarPercursosModal: React.FC<CadastrarModalProps> = ({
         idMotorista: idMotorista === "" ? undefined : idMotorista,
       };
 
-      await inserirPercursoCompleto(corrida, dadosPercurso);
+      await inserirPercursoCompleto(corrida.idCorrida, dadosPercurso);
 
       const mensagem = "Percurso cadastrado com sucesso!";
       setSuccessMessage(mensagem);

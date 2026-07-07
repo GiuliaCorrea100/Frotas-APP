@@ -23,6 +23,7 @@ export interface PercursoDto {
   localOrigem?: string;
   ativo?: boolean;
   idMotorista?: number;
+  nomeMotorista?: string;
 }
 
 export const iniciarPercurso = async (
@@ -44,7 +45,6 @@ export const iniciarPercurso = async (
     const response = await axiosConnect.post(`/percurso`, payload);
     return response.data as PercursoBackend;
   } catch (error: unknown) {
-    //
     if (error instanceof Error) {
       throw error;
     }
