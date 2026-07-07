@@ -85,7 +85,6 @@ export default function HistoricoIndividual() {
         buscarPercursosDaCorrida(corrida.idCorrida),
         AbastecimentoService.buscarPorCorrida(corrida.idCorrida),
         OcorrenciaService.buscarPorCorrida(corrida.idCorrida),
-    
       ]);
       setPercursos(percursosCorrida);
       setAbastecimentos(abastecimentosCorrida);
@@ -178,12 +177,14 @@ export default function HistoricoIndividual() {
   ];
 
   const dadosFiltrados = corridas
-      .filter((corrida) => corrida.idMotoristaPrincipal === idUsuarioLogado)
-    .filter(
-      (corrida) =>
-        Object.values(corrida).some((valor) =>
-          String(valor).toLowerCase().includes(busca.toLowerCase()),
-        ),
+    .filter((corrida) => 
+      corrida.idMotoristaPrincipal === idUsuarioLogado || 
+      corrida.motoristas?.some((m) => m.idMotorista === idUsuarioLogado)
+    )
+    .filter((corrida) =>
+      Object.values(corrida).some((valor) =>
+        String(valor).toLowerCase().includes(busca.toLowerCase()),
+      ),
     );
 
   return (
@@ -209,7 +210,6 @@ export default function HistoricoIndividual() {
         </Typography>
       </Box>
 
-      {/* Campo de busca + datagrid */}
       <Box
         sx={{
           bgcolor:
