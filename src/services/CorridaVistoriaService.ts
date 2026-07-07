@@ -73,7 +73,7 @@ export class CorridaVistoriaService  {
 
     return response.data.map((foto: CorridaVistoriaFotoDto) => ({
       ...foto,
-      urlArquivo: `http://localhost:3000${foto.urlArquivo}`,
+      urlArquivo: `${axiosConnect.defaults.baseURL}${foto.urlArquivo}`,
     }));
   } catch (error) {
     console.error('Erro ao buscar fotos da vistoria:', error);
