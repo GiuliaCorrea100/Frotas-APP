@@ -51,30 +51,21 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Calcular limites de data baseado na corrida
   const { minDateTimeStr, maxDateTimeStr } = useMemo(() => {
     if (!corrida) {
       return { minDateTimeStr: "", maxDateTimeStr: "" };
     }
 
-    // Data mínima: liberação da chave
-    let minDateTime: Date | null = corrida.dataHoraLiberacaoChave
-      ? new Date(corrida.dataHoraLiberacaoChave)
-      : null;
-
-    // Data máxima: recebimento da chave
-    let maxDateTime: Date | null = corrida.dataHoraRecebimentoChave
-      ? new Date(corrida.dataHoraRecebimentoChave)
-      : new Date();
-
-    // Formatar para datetime-local (YYYY-MM-DDThh:mm)
-    const formatToDateTimeLocal = (date: Date): string => {
-      return date.toISOString().slice(0, 16);
+    const formatToDateTimeLocal = (dateString: string | Date | null | undefined): string => {
+      if (!dateString) return "";
+      const d = new Date(dateString);
+      const offset = d.getTimezoneOffset() * 60000;
+      return new Date(d.getTime() - offset).toISOString().slice(0, 16);
     };
 
     return {
-      minDateTimeStr: minDateTime ? formatToDateTimeLocal(minDateTime) : "",
-      maxDateTimeStr: maxDateTime ? formatToDateTimeLocal(maxDateTime) : "",
+      minDateTimeStr: corrida.dataHoraLiberacaoChave ? formatToDateTimeLocal(corrida.dataHoraLiberacaoChave) : "",
+      maxDateTimeStr: corrida.dataHoraRecebimentoChave ? formatToDateTimeLocal(corrida.dataHoraRecebimentoChave) : formatToDateTimeLocal(new Date()),
     };
   }, [corrida]);
 
@@ -202,7 +193,6 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
   };
 
   const handleFieldChange = (field: string, value: any) => {
-    // Limpar erro do campo específico
     if (errors[field]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -211,7 +201,6 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
       });
     }
 
-    // Atualizar campo
     switch (field) {
       case "localOrigem":
         setLocalOrigem(value.toUpperCase());
