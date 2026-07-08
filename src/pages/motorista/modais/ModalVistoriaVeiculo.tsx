@@ -204,30 +204,26 @@ export default function ModalVistoriaVeiculo({
             );
             setError(null);
           }}
+          sx={{ mb: 2 }} 
         >
-          <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-            <FormControlLabel
-              value="sem_avarias"
-              control={<Radio color="primary" />}
-              label={
-                <Typography variant="body2" color="text.primary" fontWeight={500}>
-                  Veículo recebido sem avarias
-                </Typography>
-              }
-            />
-          </Box>
-
-          <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-            <FormControlLabel
-              value="com_observacoes"
-              control={<Radio color="primary" />}
-              label={
-                <Typography variant="body2" color="text.primary" fontWeight={500}>
-                  Registrar observações
-                </Typography>
-              }
-            />
-          </Box>
+          <FormControlLabel
+            value="sem_avarias"
+            control={<Radio color="primary" />}
+            label={
+              <Typography variant="body2" color="text.primary" fontWeight={500}>
+                Veículo recebido sem avarias
+              </Typography>
+            }
+          />
+          <FormControlLabel
+            value="com_observacoes"
+            control={<Radio color="primary" />}
+            label={
+              <Typography variant="body2" color="text.primary" fontWeight={500}>
+                Registrar observações
+              </Typography>
+            }
+          />
         </RadioGroup>
 
         {opcaoSelecionada === "com_observacoes" && (
@@ -265,14 +261,16 @@ export default function ModalVistoriaVeiculo({
                 startIcon={<AttachFileIcon />}
                 disabled={isProcessing}
                 sx={{
+                  mr: 2,
                   color: "text.primary",
                   borderColor: "divider",
                   "&:hover": {
                     borderColor: "text.secondary",
+                    backgroundColor: "action.hover",
                   },
                 }}
               >
-                Anexar Fotos *
+                Anexar Fotos {arquivosSelecionados.length === 0 && "*"}
                 <input
                   type="file"
                   multiple
@@ -329,6 +327,11 @@ export default function ModalVistoriaVeiculo({
                 sx={{ display: "block", mt: 1 }}
               >
                 Formatos permitidos: JPG, JPEG, PNG (Máx: {MAX_FILE_SIZE_MB}MB por arquivo)
+                {arquivosSelecionados.length === 0 && (
+                  <span style={{ color: "#d32f2f", display: "block", marginTop: "4px" }}>
+                    * Obrigatório anexar pelo menos uma foto quando há avarias
+                  </span>
+                )}
               </Typography>
             </Box>
           </Box>
