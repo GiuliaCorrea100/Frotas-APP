@@ -6,7 +6,6 @@ import {
   Button,
   TextField,
   CircularProgress,
-  Paper,
   IconButton,
   Alert,
   Divider,
@@ -47,7 +46,7 @@ const modalStyle = {
   borderRadius: 2,
 };
 
-const allowedExtensions = ["jpg", "jpeg", "png",];
+const allowedExtensions = ["jpg", "jpeg", "png"];
 const MAX_FILE_SIZE_MB = 50;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
@@ -94,25 +93,6 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
-  const validateFileExtension = (file: File): boolean => {
-    const extension = file.name.split(".").pop()?.toLowerCase();
-    if (!extension || !allowedExtensions.includes(extension)) {
-      setFileError(
-        `Formato de arquivo não permitido. Extensões permitidas: ${allowedExtensions.join(
-          ", "
-        )}`
-      );
-      return false;
-    }
-
-    if (file.size > MAX_FILE_SIZE_BYTES) {
-      setFileError(`Arquivo muito grande. Tamanho máximo: ${MAX_FILE_SIZE_MB}MB`);
-      return false;
-    }
-
-    setFileError(null);
-    return true;
-  };
 
   const handleFileSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -120,7 +100,6 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
 
     const newFiles = Array.from(files);
     
-    // Validar extensões
     const invalidFiles = newFiles.filter(file => {
       const extension = file.name.split('.').pop()?.toLowerCase();
       return !extension || !allowedExtensions.includes(extension);
@@ -131,7 +110,6 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
       return;
     }
 
-    // Verificar tamanho dos arquivos
     const oversizedFiles = newFiles.filter(file => file.size > MAX_FILE_SIZE_BYTES);
     if (oversizedFiles.length > 0) {
       setFileError(`Arquivo(s) muito grande(s). Tamanho máximo: ${MAX_FILE_SIZE_MB}MB`);
@@ -140,7 +118,6 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
 
     setArquivosSelecionados(prev => [...prev, ...newFiles]);
     setFileError(null); 
-    
     event.target.value = '';
   };
 
@@ -151,7 +128,6 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    // Validação: arquivos obrigatórios quando há avarias
     if (avariado && arquivosSelecionados.length === 0) {
       setFileError("É obrigatório anexar fotos quando o veículo for devolvido com avarias");
       return;
@@ -167,13 +143,10 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
         tipo: "DEVOLUCAO" as const,
         veiculoRecebidoSemAvarias: !avariado,
         observacoes: observacaoFinal
-      }
+      };
 
       const response = await CorridaVistoriaService.registrarVistoria(dadosVistoria);
-      console.log(response.idCorridaVistoria);
 
-
-    
       if (arquivosSelecionados.length > 0) {
         const formData = new FormData();
         arquivosSelecionados.forEach((file) => {
@@ -201,87 +174,96 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
 
   return (
     <Modal open={open} onClose={handleClose}>
-      <Paper sx={modalStyle}>
+      <Box sx={modalStyle}>
         <Box
           display="flex"
           justifyContent="space-between"
           alignItems="center"
-          mb={3}
+          mb={2}
         >
           <Box display="flex" alignItems="center">
             <Typography 
-                variant="h6" 
-                fontWeight="bold" 
-                color="text.primary"
-                sx={{
+              variant="h6" 
+              color="text.primary"
+              sx={{
                 display: "flex",
                 alignItems: "center",
                 fontWeight: "bold",
+                fontSize: 24, 
                 pt: 1,
-                }}
+              }}
             >
-                <AssignmentIcon color="primary" sx={{ fontSize: 32, mr: 1 }} />
-                Vistoria de Devolução
+              <AssignmentIcon color="primary" sx={{ fontSize: 24, mr: 1 }} />
+              Vistoria de Devolução
             </Typography>
           </Box>
-          <IconButton onClick={handleClose}>
+          <IconButton onClick={handleClose} sx={{ color: "text.primary" }}>
             <Close />
           </IconButton>
         </Box>
 
         {successMessage && (
           <Alert severity="success" sx={{ mb: 2 }}>
-              {successMessage}
-            </Alert>
+            {successMessage}
+          </Alert>
         )}
 
         <Box
           component="form"
           onSubmit={handleSubmit}
           display="flex"
-          flexWrap="wrap"
+          flexDirection="column"
           gap={2}
         >
-          <Box sx={{ flex: "1 1 100%" }}>
+          <Box>
             <RadioGroup
-                value={avariado ? "com_avaria" : "sem_avaria"}
-                name="controlled-radio-buttons-group"
+              value={avariado ? "com_avaria" : "sem_avaria"}
+              name="controlled-radio-buttons-group"
+              sx={{ mb: 2 }}
             >
-                <FormControlLabel 
-                  value="sem_avaria" 
-                  control={<Radio />} 
-                  label="Veículo devolvido sem avarias"
-                  onChange={() => setAvariado(false)} 
-                  sx ={ { color:"text.primary"}}
-                />
-                <FormControlLabel 
-                  value="com_avaria" 
-                  control={<Radio />} 
-                  label="Veículo devolvido com avarias" 
-                  onChange={() => setAvariado(true)}
-                  sx ={ { color:"text.primary"}}
-                />
+              <FormControlLabel 
+                value="sem_avaria" 
+                control={<Radio color="primary" />} 
+                label={
+                  <Typography variant="body2" color="text.primary" fontWeight={500}>
+                    Veículo devolvido sem avarias
+                  </Typography>
+                }
+                onChange={() => setAvariado(false)} 
+              />
+              <FormControlLabel 
+                value="com_avaria" 
+                control={<Radio color="primary" />} 
+                label={
+                  <Typography variant="body2" color="text.primary" fontWeight={500}>
+                    Veículo devolvido com avarias
+                  </Typography>
+                } 
+                onChange={() => setAvariado(true)}
+              />
             </RadioGroup>
           </Box>
 
           {avariado && (
-            <>
-              <Box sx={{ flex: "1 1 100%" }}>
-                <TextField
-                  fullWidth
-                  label="Observações"
-                  multiline
-                  rows={4}
-                  value={observacao}
-                  onChange={(e) => setObservacao(e.target.value)}
-                  placeholder="Registre as avarias detectadas no momento da devolução"
-                  variant="outlined"
-                  disabled={loading}
-                  required
-                />
-              </Box>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mb: 3 }}>
+              <TextField
+                fullWidth
+                placeholder="Registre as avarias detectadas no momento da devolução"
+                multiline
+                rows={4}
+                value={observacao}
+                onChange={(e) => setObservacao(e.target.value)}
+                variant="outlined"
+                disabled={loading}
+                required
+                slotProps={{
+                  input: {
+                    style: { color: "inherit" },
+                  },
+                }}
+              />
               
-              <Box sx={{ flex: "1 1 100%", mt: 2 }}>
+              <Box sx={{ mt: 1 }}>
                 <Button
                   component="label"
                   variant="outlined"
@@ -309,7 +291,7 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
 
                 {arquivosSelecionados.length > 0 && (
                   <Box sx={{ mt: 2 }}>
-                    <Typography variant="subtitle2" gutterBottom color="textPrimary">
+                    <Typography variant="subtitle2" gutterBottom color="text.primary">
                       Arquivos selecionados ({arquivosSelecionados.length}):
                     </Typography>
                     {arquivosSelecionados.map((file, index) => (
@@ -320,7 +302,7 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
                           alignItems: "center",
                           justifyContent: "space-between",
                           mb: 1,
-                          p: 2,
+                          p: 1.5,
                           backgroundColor: "action.hover",
                           borderRadius: 1,
                           border: "1px solid",
@@ -361,13 +343,13 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
                 >
                   Formatos permitidos: JPG, JPEG, PNG (Máx: {MAX_FILE_SIZE_MB}MB por arquivo)
                   {arquivosSelecionados.length === 0 && (
-                    <span style={{ color: "#d32f2f", display: "block" }}>
+                    <span style={{ color: "#d32f2f", display: "block", marginTop: "4px" }}>
                       * Obrigatório anexar pelo menos uma foto quando há avarias
                     </span>
                   )}
                 </Typography>
               </Box>
-            </>
+            </Box>
           )}
 
           {mensagemMotorista && (
@@ -375,10 +357,11 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
               sx={{
                 width: "100%",
                 p: 2,
-                mt: 2,
+                mt: 1,
                 borderRadius: 1,
-                backgroundColor: "#FFF4E5",
-                border: "1px solid #FFA726",
+                backgroundColor: "action.hover",
+                border: "1px solid",
+                borderColor: "warning.main",
               }}
             >
               <Typography color="warning.main" fontWeight="bold">
@@ -387,15 +370,15 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
             </Box>
           )}
 
-          <Divider sx={{ my: 2 }} />
+          <Divider sx={{ my: 1 }} />
 
           <Box
-            sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2, width: "100%" }}
+            sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 1 }}
           >
             <Button
               variant="outlined"
               onClick={handleClose}
-              sx={{ textTransform: "none" }}
+              sx={{ textTransform: "none", color: "text.primary", borderColor: "divider" }}
               disabled={loading || !!successMessage}
             >
               Cancelar
@@ -409,11 +392,11 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
                 (avariado && (!observacao.trim() || arquivosSelecionados.length === 0))
               }
             >
-              {loading ? <CircularProgress size={24} /> : "Confirmar"}
+              {loading ? <CircularProgress size={24} color="inherit" /> : "Confirmar"}
             </Button>
           </Box>
         </Box>
-      </Paper>
+      </Box>
     </Modal>
   );
 };
