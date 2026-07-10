@@ -35,6 +35,7 @@ export interface Abastecimento {
   corrida: Corrida;
 
   idMotorista: number;
+  nomeMotorista?: string;
 }
 
 // Interface para o corpo da requisição de cadastro/atualização
