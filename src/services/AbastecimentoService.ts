@@ -33,6 +33,8 @@ export interface Abastecimento {
   // Relacionamentos
   tipoCombustivel: TipoCombustivel;
   corrida: Corrida;
+
+  idMotorista: number;
 }
 
 // Interface para o corpo da requisição de cadastro/atualização
@@ -45,8 +47,10 @@ export interface AbastecimentoRequest {
   justificativaAlteracao?: string;
   idTipoCombustivel: number;
   idCorrida: number;
+  idMotorista: number;
 }
 
+//não ta sendo usado
 export interface AbastecimentoUpdate {
   idAbastecimento: number;
   quantidade: number;
@@ -118,6 +122,7 @@ export class AbastecimentoService {
     valorUnitario?: number;
     justificativaAlteracao?: string;
     tipoCombustivel: number;
+    idMotorista: number;
   }): Promise<Abastecimento> {
     try {
       const payload: AbastecimentoRequest = {
@@ -129,8 +134,10 @@ export class AbastecimentoService {
         valorUnitario: data.valorUnitario,
         justificativaAlteracao: data.justificativaAlteracao,
         idTipoCombustivel: data.tipoCombustivel,
+        idMotorista: data.idMotorista,
       };
 
+      console.log(payload);
       const response = await axiosConnect.post(`/abastecimento`, payload);
       return response.data as Abastecimento;
     } catch (error: unknown) {
