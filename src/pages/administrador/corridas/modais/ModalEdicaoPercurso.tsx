@@ -117,9 +117,9 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
       const apenasDataSaida = dataSaida.getTime();
 
       if (minDateTimeStr && apenasDataSaida < new Date(minDateTimeStr).getTime()) {
-        newErrors.saidaHora = `Hora de saída não pode ser anterior à liberação da chave (${new Date(minDateTimeStr).toLocaleString()})`;
+        newErrors.saidaHora = `Hora de saída não pode ser anterior à liberação da chave (${new Date(minDateTimeStr).toLocaleString("pt-BR")})`;
       } else if (maxDateTimeStr && apenasDataSaida > new Date(maxDateTimeStr).getTime()) {
-        newErrors.saidaHora = `Hora de saída não pode ser posterior ao encerramento da corrida (${new Date(maxDateTimeStr).toLocaleString()})`;
+        newErrors.saidaHora = `Hora de saída não pode ser posterior ao encerramento da corrida (${new Date(maxDateTimeStr).toLocaleString("pt-BR")})`;
       }
     }
 
@@ -142,9 +142,9 @@ const EdicaoPercursosModal: React.FC<EdicaoPercursosModalProps> = ({
       const apenasDataChegada = dataChegada.getTime();
 
       if (minDateTimeStr && apenasDataChegada < new Date(minDateTimeStr).getTime()) {
-        newErrors.chegadaHora = `Hora de chegada não pode ser anterior à liberação da chave (${new Date(minDateTimeStr).toLocaleString()})`;
+        newErrors.chegadaHora = `Hora de chegada não pode ser anterior à liberação da chave (${new Date(minDateTimeStr).toLocaleString("pt-BR")})`;
       } else if (maxDateTimeStr && apenasDataChegada > new Date(maxDateTimeStr).getTime()) {
-        newErrors.chegadaHora = `Hora de chegada não pode ser posterior ao encerramento da corrida (${new Date(maxDateTimeStr).toLocaleString()})`;
+        newErrors.chegadaHora = `Hora de chegada não pode ser posterior ao encerramento da corrida (${new Date(maxDateTimeStr).toLocaleString("pt-BR")})`;
       } else if (saidaHora && apenasDataChegada < new Date(saidaHora).getTime()) {
         newErrors.chegadaHora = "Hora de chegada não pode ser anterior à hora de saída";
       }
