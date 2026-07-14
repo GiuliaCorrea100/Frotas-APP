@@ -93,6 +93,27 @@ const VistoriaDevolucaoModal: React.FC<VistoriaDevolucaoProps> = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
+  const validateFileExtension = (file: File): boolean => {
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    if (!extension || !allowedExtensions.includes(extension)) {
+      setFileError(
+        `Formato de arquivo não permitido. Extensões permitidas: ${allowedExtensions.join(
+          ", "
+        )}`
+      );
+      return false;
+    }
+
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      setFileError(`Arquivo muito grande. Tamanho máximo: ${MAX_FILE_SIZE_MB}MB`);
+      return false;
+    }
+
+    setFileError(null);
+    return true;
+  };
+
+
 
   const handleFileSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
