@@ -9,6 +9,11 @@ import {
   Alert,
   IconButton,
   Divider,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
 } from "@mui/material";
 import { OcorrenciaService } from "../../../../services/OcorrenciaService";
 import { Close, Warning } from "@mui/icons-material";
@@ -37,6 +42,7 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [idMotorista, setIdMotorista] = useState<number | "">("");
 
   const dataMinima = corrida?.dataHoraLiberacaoChave
     ? new Date(corrida.dataHoraLiberacaoChave)
@@ -109,6 +115,7 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
         descricao: descricao.trim(),
         idCorrida: corrida.idCorrida,
         dataOcorrencia: dataOcorrenciaFormatada,
+        idMotorista: idMotorista,
       };
 
       await OcorrenciaService.criar(dadosOcorrencia);
@@ -237,6 +244,34 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
             helperText={errors.dataOcorrencia}
             disabled={!!successMessage || loading}
           />
+        </Box>
+
+        <Box sx={{ mb: 2 }}>
+          <FormControl fullWidth error={!!errors.idMotorista}>
+            <InputLabel id="motorista-label">Motorista Responsável</InputLabel>
+            <Select
+              labelId="motorista-label"
+              name="idMotorista"
+              value={idMotorista}
+              onChange={(e) => setIdMotorista(e.target.value as number | "")}
+              label="Motorista Responsável"
+              disabled={loading || !!successMessage}
+            >
+              <MenuItem value="">
+                <em>Selecione o motorista</em>
+              </MenuItem>
+              {corrida?.motoristas?.map((m) => (
+                <MenuItem key={m.idMotorista} value={String(m.idMotorista)}>
+                  {m.nome}
+                </MenuItem>
+              ))}
+            </Select>
+            {errors.idMotorista && (
+              <Typography variant="caption" color="error" sx={{ ml: 2 }}>
+                {errors.idMotorista}
+              </Typography>
+            )}
+          </FormControl>
         </Box>
 
         <Divider sx={{ my: 2 }} />

@@ -377,7 +377,7 @@ const RelatorioCorridaPDF = ({
           </View>
         )}
 
-        {/* Ocorrências */}
+        {/* Ocorrências - COM MOTORISTA RESPONSÁVEL */}
         {ocorrencias && ocorrencias.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
@@ -385,11 +385,15 @@ const RelatorioCorridaPDF = ({
             </Text>
             <View style={styles.table}>
               <View style={[styles.tableRow, styles.tableHeader]}>
+                <Text style={styles.tableCell}>Motorista Responsável</Text>
                 <Text style={styles.tableCell}>Descrição</Text>
                 <Text style={styles.lastTableCell}>Data</Text>
               </View>
               {ocorrencias.map((ocorrencia, index) => (
                 <View key={index} style={styles.tableRow}>
+                  <Text style={styles.tableCell}>
+                    {ocorrencia.nomeMotorista || 'N/A'}
+                  </Text>
                   <Text style={styles.tableCell}>
                     {ocorrencia.descricao || 'N/A'}
                   </Text>
@@ -402,7 +406,7 @@ const RelatorioCorridaPDF = ({
           </View>
         )}
 
-        {/* Abastecimentos */}
+        {/* Abastecimentos - COM MOTORISTA RESPONSÁVEL */}
         {abastecimentos && abastecimentos.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
@@ -410,6 +414,7 @@ const RelatorioCorridaPDF = ({
             </Text>
             <View style={styles.table}>
               <View style={[styles.tableRow, styles.tableHeader]}>
+                <Text style={styles.tableCell}>Motorista Responsável</Text>
                 <Text style={styles.tableCell}>Combustível</Text>
                 <Text style={styles.tableCell}>Quantidade (L)</Text>
                 <Text style={styles.tableCell}>Valor/Litro</Text>
@@ -417,6 +422,9 @@ const RelatorioCorridaPDF = ({
               </View>
               {abastecimentos.map((abastecimento, index) => (
                 <View key={index} style={styles.tableRow}>
+                  <Text style={styles.tableCell}>
+                    {abastecimento.nomeMotorista || 'N/A'}
+                  </Text>
                   <Text style={styles.tableCell}>
                     {abastecimento.nomeTipoCombustivel || 'N/A'}
                   </Text>
@@ -462,7 +470,7 @@ const RelatorioCorridaPDF = ({
           </View>
         )}
 
-        {/* Percursos*/}
+        {/* Percursos */}
         {percursos && percursos.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
@@ -472,10 +480,10 @@ const RelatorioCorridaPDF = ({
               <View style={[styles.tableRow, styles.tableHeader]}>
                 <Text style={styles.tableCell}>Motorista Responsável</Text>
                 <Text style={styles.tableCell}>Origem</Text>
-                <Text style={styles.tableCell}>Data Saída </Text>
+                <Text style={styles.tableCell}>Data Saída</Text>
                 <Text style={styles.tableCell}>Odômetro Saída</Text>
                 <Text style={styles.tableCell}>Destino</Text>
-                <Text style={styles.tableCell}>Data Chegada </Text>
+                <Text style={styles.tableCell}>Data Chegada</Text>
                 <Text style={styles.lastTableCell}>Odômetro Chegada</Text>
               </View>
               {percursos.map((percurso, index) => (

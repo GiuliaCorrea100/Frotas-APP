@@ -62,7 +62,6 @@ export function ModalFotosVistoria(props: ModalFotosVistoriaProps) {
       setLoading(true);
       setError(null);
       const dados = await CorridaVistoriaService.buscarFotosVistoria(idCorridaVistoria);
-      // console.log('📸 Dados das fotos recebidos:', dados);
       setFotos(dados);
       setIndiceAtual(0);
     } catch (err) {

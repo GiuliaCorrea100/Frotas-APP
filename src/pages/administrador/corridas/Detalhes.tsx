@@ -179,6 +179,14 @@ const DetalhesRequisicao: React.FC = () => {
 
   const columnsOcorrencias: GridColDef<OcorrenciaDto>[] = [
     {
+      field: "nomeMotorista",
+      headerName: "Motorista Responsável",
+      width: 400,
+      renderCell: (params) => (
+        <Typography color="text.primary">{params.value}</Typography>
+      ),
+    },
+    {
       field: "descricao",
       headerName: "Descrição",
       width: 300,
@@ -264,7 +272,7 @@ const DetalhesRequisicao: React.FC = () => {
     {
       field: "nomeMotorista",
       headerName: "Motorista Responsável",
-      width: 200,
+      width: 400,
       renderCell: (params) => (
         <Typography color="text.primary">{params.value}</Typography>
       ),

@@ -9,6 +9,10 @@ import {
   Alert,
   IconButton,
   Divider,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { Close, Warning } from "@mui/icons-material";
 import { OcorrenciaDto } from "../../../../services/OcorrenciaService";
@@ -38,6 +42,7 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [idMotorista, setIdMotorista] = useState<number | "">("");
 
   // Calcular datas mínima e máxima baseado na corrida
   const dataMinima = corrida?.dataHoraLiberacaoChave
@@ -77,6 +82,8 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
       } else {
         setDataOcorrencia("");
       }
+
+      setIdMotorista(ocorrencia.idMotorista || "");
       
       setErrors({});
       setSuccessMessage("");
@@ -130,6 +137,7 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
     try {
       const dadosAtualizados = {
         descricao: descricao.trim(),
+        idMotorista: idMotorista,
         dataOcorrencia: formatarDataParaEnvio(dataOcorrencia),
       };
 
@@ -265,6 +273,28 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
             helperText={errors.dataOcorrencia}
             disabled={!!successMessage || loading}
           />
+        </Box>
+
+        <Box sx={{ mb: 2 }}>
+          <FormControl fullWidth>
+            <InputLabel id="motorista-label">Motorista Responsável</InputLabel>
+            <Select
+              labelId="motorista-label"
+              value={idMotorista}
+              onChange={(e) => setIdMotorista(e.target.value as number | "")}
+              label="Motorista Responsável"
+              disabled={loading || !!successMessage}
+            >
+              <MenuItem value="">
+                <em>Selecione o motorista</em>
+              </MenuItem>
+              {corrida.motoristas?.map((m) => (
+                <MenuItem key={m.idMotorista} value={m.idMotorista}>
+                  {m.nome}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Box>
 
         <Divider sx={{ my: 2 }} />
