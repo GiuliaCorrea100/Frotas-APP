@@ -548,7 +548,7 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
             open={modalOcorrenciaAberto}
             chaveEmprestada={chaveEmprestada}
             onClose={fecharModalOcorrencia}
-            corrida={corridaLocal?.idCorrida}
+            corrida={corridaLocal}
             onSuccess={async (message) => {
               setMensagemSucesso(message);
               fecharModalOcorrencia();
@@ -556,6 +556,7 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
             onError={(erro) => {
               console.error("Erro ao salvar ocorrência:", erro);
             }}
+            cadastroMotorista={idUsuarioLogado}
           />
         )}
 
@@ -568,6 +569,7 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
               setMensagemSucesso(message);
               fecharModalAbastecimento();
             }}
+            cadastroMotorista={idUsuarioLogado}
           />
         )}
 

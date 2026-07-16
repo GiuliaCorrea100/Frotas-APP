@@ -30,6 +30,7 @@ interface AbastecimentoModalProps {
   onClose: () => void;
   corrida?: CorridaFrontend;
   onSuccess: (message: string) => void;
+  cadastroMotorista?: number;
 }
 
 const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
@@ -37,6 +38,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
   onClose,
   corrida,
   onSuccess,
+  cadastroMotorista,
 }) => {
   const [formData, setFormData] = useState({
     quantidade: "",
@@ -47,7 +49,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
     justificativaAlteracao: "",
     tipoCombustivelId: "",
     idCorrida: corrida ? corrida.idCorrida.toString() : "",
-    idMotorista: "",
+    idMotorista: cadastroMotorista? cadastroMotorista?.toString() : "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -178,6 +180,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
     if (!validateForm()) return;
 
+    
     setIsSubmitting(true);
 
     const tipoCombustivelSelecionado = tiposCombustivel.find(
@@ -458,33 +461,35 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
           </FormControl>
         </Box>
 
-        <Box sx={{ mb: 2 }}>
-          <FormControl fullWidth error={!!errors.idMotorista}>
-            <InputLabel id="motorista-label">Motorista Responsável</InputLabel>
-            <Select
-              labelId="motorista-label"
-              name="idMotorista"
-              value={formData.idMotorista}
-              onChange={handleSelectChange}
-              label="Motorista Responsável"
-              disabled={loading || !!successMessage}
-            >
-              <MenuItem value="">
-                <em>Selecione o motorista</em>
-              </MenuItem>
-              {corrida?.motoristas?.map((m) => (
-                <MenuItem key={m.idMotorista} value={String(m.idMotorista)}>
-                  {m.nome}
+        { !cadastroMotorista  && (
+          <Box sx={{ mb: 2 }}>
+            <FormControl fullWidth error={!!errors.idMotorista}>
+              <InputLabel id="motorista-label">Motorista Responsável</InputLabel>
+              <Select
+                labelId="motorista-label"
+                name="idMotorista"
+                value={formData.idMotorista}
+                onChange={handleSelectChange}
+                label="Motorista Responsável"
+                disabled={loading || !!successMessage}
+              >
+                <MenuItem value="">
+                  <em>Selecione o motorista</em>
                 </MenuItem>
-              ))}
-            </Select>
-            {errors.idMotorista && (
-              <Typography variant="caption" color="error" sx={{ ml: 2 }}>
-                {errors.idMotorista}
-              </Typography>
-            )}
-          </FormControl>
-        </Box>
+                {corrida?.motoristas?.map((m) => (
+                  <MenuItem key={m.idMotorista} value={String(m.idMotorista)}>
+                    {m.nome}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.idMotorista && (
+                <Typography variant="caption" color="error" sx={{ ml: 2 }}>
+                  {errors.idMotorista}
+                </Typography>
+              )}
+            </FormControl>
+          </Box>
+        )}
 
         <Divider sx={{ my: 2 }} />
 

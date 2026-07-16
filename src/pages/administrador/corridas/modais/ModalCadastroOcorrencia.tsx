@@ -13,7 +13,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  SelectChangeEvent,
 } from "@mui/material";
 import { OcorrenciaService } from "../../../../services/OcorrenciaService";
 import { Close, Warning } from "@mui/icons-material";
@@ -28,6 +27,7 @@ interface CadastrarOcorrenciaProps {
   onError: (error: any) => void;
   corrida: CorridaFrontend;
   dataRegistro?: Date;
+  cadastroMotorista?: number;
 }
 
 const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
@@ -36,6 +36,7 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
   onSuccess,
   onError,
   corrida,
+  cadastroMotorista,
 }) => {
   const [descricao, setDescricao] = useState("");
   const [dataOcorrencia, setDataOcorrencia] = useState<string>("");
@@ -110,6 +111,10 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
       const [ano, mes, dia] = dataOcorrencia.split("-").map(Number);
       const dataOcorrenciaFormatada = new Date(ano, mes - 1, dia);
       dataOcorrenciaFormatada.setHours(0, 0, 0, 0);
+
+      if (cadastroMotorista){
+        setIdMotorista(cadastroMotorista);
+      }
 
       const dadosOcorrencia = {
         descricao: descricao.trim(),
@@ -245,8 +250,9 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
             disabled={!!successMessage || loading}
           />
         </Box>
-
-        <Box sx={{ mb: 2 }}>
+        
+        { !cadastroMotorista  && (
+          <Box sx={{ mb: 2 }}>
           <FormControl fullWidth error={!!errors.idMotorista}>
             <InputLabel id="motorista-label">Motorista Responsável</InputLabel>
             <Select
@@ -273,6 +279,8 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
             )}
           </FormControl>
         </Box>
+        )}
+        
 
         <Divider sx={{ my: 2 }} />
 
