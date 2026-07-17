@@ -469,101 +469,101 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
 
       <BemVindo />
       <Box sx={{ p: 4, maxWidth: 800, mx: "auto" }}>
-        <Box sx={{ mb: 4, }}>
-          <Box 
-            sx={{ 
-              display: 'flex',
-              flexDirection: { xs: 'column', md: 'row' },
-              alignItems: { xs: 'stretch', md: 'center' },
+
+
+        <Box sx={{ mb: 4 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
+              alignItems: "stretch",
               gap: { xs: 2, md: 3 },
-              
             }}
           >
             {/* Informações da Corrida */}
-            <Box 
-              sx={{ 
-                flex: 1, 
-                alignItems: "center",
-                justifyContent: "space-between",
-                py: 0.5,
-                px: 1,
+            <Box
+              sx={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
                 borderRadius: 3,
-                border: "1px solid",
-                borderColor: "divider"
-              }}>
-              <Typography variant="h5" fontWeight="bold" color="text.primary" gutterBottom>
+                border: "2px solid",
+                borderColor: "divider",
+                p: 3,
+              }}
+            >
+              <Typography
+                variant="h5"
+                fontWeight="bold"
+                color="text.primary"
+                gutterBottom
+              >
                 Corrida:
               </Typography>
+
               <Typography variant="subtitle2" color="text.secondary">
                 De {formatDateOnly(corridaLocal.dataInicio)} até{" "}
-                {corridaLocal.dataTermino ? formatDateOnly(corridaLocal.dataTermino) : "em andamento"}
+                {corridaLocal.dataTermino
+                  ? formatDateOnly(corridaLocal.dataTermino)
+                  : "em andamento"}
               </Typography>
-              {!chaveEmprestada && (
-                <Typography variant="body2" fontWeight="bold" gutterBottom sx={{ color: "red" }}>
-                  Retire a chave para liberar a corrida!
-                </Typography>
-              )}
+
+             
+
               <Typography
                 variant="body2"
-                color={
-                  corridaLocal?.situacao === "FINALIZADA"
-                    ? "success.main"
-                    : corridaLocal?.situacao === "ANDAMENTO"
+                sx={{
+                  mt: 1,
+                  fontWeight: "bold",
+                  color:
+                    corridaLocal?.situacao === "FINALIZADA"
+                      ? "success.main"
+                      : corridaLocal?.situacao === "ANDAMENTO"
                       ? "warning.main"
-                      : "text.secondary"
-                }
-                sx={{ fontWeight: "bold" }}
+                      : "text.secondary",
+                }}
               >
                 Situação: {corridaLocal?.situacao}
               </Typography>
             </Box>
 
-            {/* Botão de Editar Motoristas */}
-            <Box 
-              sx={{ 
-                width: { xs: '50%' },
-                height: {xs: '100%'},
-                minWidth: { md: '200px' }
+            {/* Botão Editar Motoristas */}
+            <Paper
+              component={ButtonBase}
+              onClick={() => setModalEditarMotoristasAberto(true)}
+              elevation={4}
+              sx={{
+                width: { xs: "100%", md: 230 },
+                borderRadius: 3,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                p: 3,
+                transition: "transform 0.2s, box-shadow 0.2s",
+                "&:hover": {
+                  transform: "scale(1.03)",
+                  boxShadow: 6,
+                },
               }}
             >
-              <ButtonBase
-                onClick={() => setModalEditarMotoristasAberto(true)}
-                sx={{ 
-                  borderRadius: 3, 
-                  width: '100%',
-                  height: '100%',
-                  display: 'block'
-                }}
-              >
-                <Paper
-                  elevation={4}
-                  sx={{
-                    width: "100%",
-                    height: "100%",
-                    p: 2,
-                    textAlign: "center",
-                    borderRadius: 3,
-                    transition: "transform 0.2s, box-shadow 0.2s",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minHeight: "60px",
-                    '&:hover': {
-                      transform: 'scale(1.05)',
-                      boxShadow: 6,
-                    }
-                  }}
-                >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Typography sx={{ fontWeight: "bold" }}>
-                      Editar Motoristas
-                    </Typography>
-                  </Box>
-                </Paper>
-              </ButtonBase>
-            </Box>
+              <Typography fontWeight="bold">
+                Editar Motoristas
+              </Typography>
+            </Paper>
           </Box>
-</Box>
+        </Box>
+
+         {!chaveEmprestada && (
+                <Typography
+                  variant="body2"
+                  fontWeight="bold"
+                  gutterBottom
+                  sx={{ color: "red", mt: 1 }}
+                >
+                  Retire a chave para liberar a corrida!
+                </Typography>
+              )}
 
         <ModalPercursos
             corridaId={corridaLocal?.idCorrida}
