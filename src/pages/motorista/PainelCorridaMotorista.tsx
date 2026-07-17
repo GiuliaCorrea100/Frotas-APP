@@ -2,7 +2,7 @@ import { useAuth } from '../../context/AuthContext';
 import { decodeToken } from "../../utils/jwtDecodeHelper";
 import axiosConnect from '../../services/axios/axiosConnect'; 
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Paper, ButtonBase, Tooltip, CircularProgress, Alert } from "@mui/material";
+import { Box, Typography, Paper, ButtonBase, Tooltip, CircularProgress, Alert, Chip } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 
 import {
@@ -30,6 +30,9 @@ import BemVindo from '../BemVindo';
 import { formatDateOnly } from '../../utils/formatDate';
 import ModalVistoriaVeiculo from "./modais/ModalVistoriaVeiculo";
 import { CorridaVistoriaService } from "../../services/CorridaVistoriaService";
+import ModalCadastroMotoristaAdicional from "./modais/ModalCadastroMotoristaAdicional";
+import AdidicionarMotorista from '../administrador/corridas/modais/ModalCadastroMotoristaAdicional';
+
 
 interface Props {
   corrida?: any;
@@ -77,6 +80,8 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
   const [modalOcorrenciaAberto, setModalOcorrenciaAberto] = useState(false);
   const [modalAbastecimentoAberto, setModalAbastecimentoAberto] = useState(false);
 
+  const [modalEditarMotoristasAberto, setModalEditarMotoristasAberto] = useState(false);
+
   const [isCorridaIniciada, setIsCorridaIniciada] = useState(false);
 
   const [percursoAtual, setPercursoAtual] = useState<PercursoBackend | null>(null);
@@ -97,10 +102,26 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
   const [mensagemSucesso, setMensagemSucesso] = useState("");
   const [modalVistoriaOpen, setModalVistoriaOpen] = useState<boolean>(false);
 
+  const [percursos, setPercursos] = useState<any[]>([]);
+
   const isCorridaEncerrada = corridaLocal?.situacao === "FINALIZADA" || corridaLocal?.situacao === "CONCLUIDA";
 
   const decodedUser = decodeToken<{ sub?: number; idUsuario?: number }>(token || '');
   const idUsuarioLogado = decodedUser?.sub ?? decodedUser?.idUsuario;
+
+  useEffect(() => {
+    const carregarPercursos = async () => {
+      if (corridaLocal?.idCorrida) {
+        try {
+          const percursosData = await buscarPercursosDaCorrida(corridaLocal.idCorrida);
+          setPercursos(percursosData);
+        } catch (error) {
+          console.error("Erro ao carregar percursos:", error);
+        }
+      }
+    };
+    carregarPercursos();
+  }, [corridaLocal?.idCorrida]);
 
   useEffect(() => {
     const verificarVistoriaInicial = async () => {
@@ -243,6 +264,8 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
   const isAbastecimentoDisabled = !chaveEmprestada;
   const isOcorrenciaDisabled = !chaveEmprestada;
 
+  //const isEditarMotoristasDisabled = isCorridaIniciada || isCorridaEncerrada;
+
   if (!corridaLocal) return <CircularProgress />;
 
   if (isCorridaEncerrada) {
@@ -322,6 +345,19 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
 
   const fecharModalOcorrencia = () => setModalOcorrenciaAberto(false);
   const fecharModalAbastecimento = () => setModalAbastecimentoAberto(false);
+
+ 
+  const fecharModalEditarMotoristas = () => {
+    setModalEditarMotoristasAberto(false);
+    if (idCorrida) {
+      buscarCorridaPorId(Number(idCorrida)).then((corridaAtualizada) => {
+        setCorridaLocal(corridaAtualizada);
+        if (onCorridaUpdate) {
+          onCorridaUpdate(corridaAtualizada);
+        }
+      });
+    }
+  };
 
   const handleIniciarPercurso = async () => {
     if (!destino || !odometro) {
@@ -433,38 +469,106 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
 
       <BemVindo />
       <Box sx={{ p: 4, maxWidth: 800, mx: "auto" }}>
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h5" fontWeight="bold" color="text.primary" gutterBottom>
-            Corrida:
-          </Typography>
-          <Typography variant="subtitle2" color="text.secondary">
-            De {formatDateOnly(corridaLocal.dataInicio)} até{" "}
-            {corridaLocal.dataTermino ? formatDateOnly(corridaLocal.dataTermino) : "em andamento"}
-          </Typography>
-          {!chaveEmprestada && (
-            <Typography variant="body2" fontWeight="bold" gutterBottom sx={{ color: "red" }}>
-              Retire a chave para liberar a corrida!
-            </Typography>
-          )}
-          <Typography
-            variant="body2"
-            color={
-              corridaLocal?.situacao === "FINALIZADA"
-                ? "success.main"
-                : corridaLocal?.situacao === "ANDAMENTO"
-                  ? "warning.main"
-                  : "text.secondary"
-            }
-            sx={{ mb: 2, fontWeight: "bold" }}
+        <Box sx={{ mb: 4, }}>
+          <Box 
+            sx={{ 
+              display: 'flex',
+              flexDirection: { xs: 'column', md: 'row' },
+              alignItems: { xs: 'stretch', md: 'center' },
+              gap: { xs: 2, md: 3 },
+              
+            }}
           >
-            Situação: {corridaLocal?.situacao}
-          </Typography>
+            {/* Informações da Corrida */}
+            <Box 
+              sx={{ 
+                flex: 1, 
+                alignItems: "center",
+                justifyContent: "space-between",
+                py: 0.5,
+                px: 1,
+                borderRadius: 3,
+                border: "1px solid",
+                borderColor: "divider"
+              }}>
+              <Typography variant="h5" fontWeight="bold" color="text.primary" gutterBottom>
+                Corrida:
+              </Typography>
+              <Typography variant="subtitle2" color="text.secondary">
+                De {formatDateOnly(corridaLocal.dataInicio)} até{" "}
+                {corridaLocal.dataTermino ? formatDateOnly(corridaLocal.dataTermino) : "em andamento"}
+              </Typography>
+              {!chaveEmprestada && (
+                <Typography variant="body2" fontWeight="bold" gutterBottom sx={{ color: "red" }}>
+                  Retire a chave para liberar a corrida!
+                </Typography>
+              )}
+              <Typography
+                variant="body2"
+                color={
+                  corridaLocal?.situacao === "FINALIZADA"
+                    ? "success.main"
+                    : corridaLocal?.situacao === "ANDAMENTO"
+                      ? "warning.main"
+                      : "text.secondary"
+                }
+                sx={{ fontWeight: "bold" }}
+              >
+                Situação: {corridaLocal?.situacao}
+              </Typography>
+            </Box>
 
-          <ModalPercursos
+            {/* Botão de Editar Motoristas */}
+            <Box 
+              sx={{ 
+                width: { xs: '50%' },
+                height: {xs: '100%'},
+                minWidth: { md: '200px' }
+              }}
+            >
+              <ButtonBase
+                onClick={() => setModalEditarMotoristasAberto(true)}
+                sx={{ 
+                  borderRadius: 3, 
+                  width: '100%',
+                  height: '100%',
+                  display: 'block'
+                }}
+              >
+                <Paper
+                  elevation={4}
+                  sx={{
+                    width: "100%",
+                    height: "100%",
+                    p: 2,
+                    textAlign: "center",
+                    borderRadius: 3,
+                    transition: "transform 0.2s, box-shadow 0.2s",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minHeight: "60px",
+                    '&:hover': {
+                      transform: 'scale(1.05)',
+                      boxShadow: 6,
+                    }
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography sx={{ fontWeight: "bold" }}>
+                      Editar Motoristas
+                    </Typography>
+                  </Box>
+                </Paper>
+              </ButtonBase>
+            </Box>
+          </Box>
+</Box>
+
+        <ModalPercursos
             corridaId={corridaLocal?.idCorrida}
             situacaoCorrida={corridaLocal?.situacao || "AGENDADA"}
           />
-        </Box>
 
         <Box
           sx={{
@@ -624,6 +728,32 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
             }}
             onClose={() => {
             }}
+          />
+        )}
+
+        
+        {modalEditarMotoristasAberto && (
+          <AdidicionarMotorista
+            open={modalEditarMotoristasAberto}
+            onClose={fecharModalEditarMotoristas}
+            onSuccess={(message) => {
+              setMensagemSucesso(message);
+              // Recarregar os dados da corrida
+              if (idCorrida) {
+                buscarCorridaPorId(Number(idCorrida)).then((corridaAtualizada) => {
+                  setCorridaLocal(corridaAtualizada);
+                  if (onCorridaUpdate) {
+                    onCorridaUpdate(corridaAtualizada);
+                  }
+                });
+              }
+            }}
+            onError={(error) => {
+              console.error("Erro ao editar motoristas:", error);
+              setMensagemSucesso("Erro ao editar motoristas. Tente novamente.");
+            }}
+            corrida={corridaLocal}
+            percursos={percursos} 
           />
         )}
       </Box>
