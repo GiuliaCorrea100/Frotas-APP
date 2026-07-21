@@ -14,6 +14,7 @@ import {
   CircularProgress,
   IconButton,
   Alert,
+  SelectChangeEvent,
 } from "@mui/material";
 import { LocalGasStation, Close } from "@mui/icons-material";
 import { Abastecimento } from "../../../../services/AbastecimentoService";
@@ -41,21 +42,24 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
   onError,
 }) => {
   const [formData, setFormData] = useState({
-    quantidade: 0,
-    valorTotal: 0,
-    valorUnitario: 0,
+    quantidade: "",
+    codigoPagamento: "",
+    valorTotal: "",
     dataAbastecimento: "",
+    valorUnitario: "",
+    justificativaAlteracao: "",
     tipoCombustivelId: "",
+    idCorrida: corrida ? corrida.idCorrida.toString() : "",
+    idMotorista: "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [tiposCombustivel, setTiposCombustivel] = useState<TipoCombustivel[]>(
     [],
   );
-  const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
   const [carregandoTipos, setCarregandoTipos] = useState(true);
-
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const dataMinima = corrida?.dataHoraLiberacaoChave
@@ -82,19 +86,17 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
     tiposCombustivel: TipoCombustivel[],
   ) => {
     const dados = {
-      quantidade: abastecimento.quantidade
-        ? Number(abastecimento.quantidade)
-        : 0,
-      valorTotal: abastecimento.valorTotal
-        ? Number(abastecimento.valorTotal)
-        : 0,
-      valorUnitario: abastecimento.valorUnitario
-        ? Number(abastecimento.valorUnitario)
-        : 0,
+      quantidade: abastecimento.quantidade ? String(abastecimento.quantidade) : "",
+      codigoPagamento: abastecimento.codigoPagamento || "",
+      valorTotal: abastecimento.valorTotal ? String(abastecimento.valorTotal) : "",
       dataAbastecimento: abastecimento.dataAbastecimento
         ? new Date(abastecimento.dataAbastecimento).toISOString().slice(0, 10)
         : "",
+      valorUnitario: abastecimento.valorUnitario ? String(abastecimento.valorUnitario) : "",
+      justificativaAlteracao: abastecimento.justificativaAlteracao || "",
       tipoCombustivelId: abastecimento.idTipoCombustivel?.toString() || "",
+      idCorrida: corrida?.idCorrida ? corrida.idCorrida.toString() : "",
+      idMotorista: abastecimento.idMotorista ? String(abastecimento.idMotorista) : "",
     };
 
     setFormData(dados);
@@ -129,14 +131,17 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
 
   // Calcula preço final automaticamente
   useEffect(() => {
-    if (formData.quantidade >= 0 && formData.valorUnitario >= 0) {
-      const total = Number(
-        (formData.quantidade * formData.valorUnitario).toFixed(2),
-      );
-      setFormData((prev) => ({
-        ...prev,
-        valorTotal: total,
-      }));
+    if (formData.quantidade && formData.valorUnitario) {
+      const litros = parseFloat(formData.quantidade);
+      const valorUnitario = parseFloat(formData.valorUnitario);
+
+      if (!isNaN(litros) && !isNaN(valorUnitario)) {
+        const precoFinal = litros * valorUnitario;
+        setFormData((prev) => ({
+          ...prev,
+          valorTotal: precoFinal.toFixed(2),
+        }));
+      }
     }
   }, [formData.quantidade, formData.valorUnitario]);
 
@@ -144,13 +149,17 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
     const novosErros: Record<string, string> = {};
 
     // Validações obrigatórias
-    if (!formData.quantidade || formData.quantidade <= 0) {
+    if (!formData.quantidade || parseFloat(formData.quantidade) <= 0) {
       novosErros.quantidade =
         "Litros são obrigatórios e devem ser maiores que zero";
     }
 
-    if (!formData.valorUnitario || formData.valorUnitario <= 0) {
-      novosErros.valorUnitario = "Valor unitário é obrigatório";
+    if (!formData.codigoPagamento) {
+      novosErros.codigoPagamento = "Código de pagamento é obrigatório";
+    }
+
+    if (!formData.valorTotal || parseFloat(formData.valorTotal) <= 0) {
+      novosErros.valorTotal = "Preço final é obrigatório";
     }
 
     if (!formData.dataAbastecimento) {
@@ -161,7 +170,11 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
       novosErros.tipoCombustivelId = "Tipo de combustível é obrigatório";
     }
 
-    // Validação de data (não pode ser futura)
+    if (!formData.idMotorista) {
+      novosErros.idMotorista = "Motorista é obrigatório";
+    }
+
+    // Validação de data
     const apenasData = (d: Date) =>
       new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 
@@ -188,7 +201,6 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
-    // Limpa erro do campo quando usuário começar a digitar
     if (errors[name]) {
       setErrors((prev) => {
         const novosErros = { ...prev };
@@ -199,17 +211,13 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
 
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        name.includes("quantidade") || name.includes("valor")
-          ? Number(value)
-          : value,
+      [name]: value,
     }));
   };
 
-  const handleSelectChange = (e: any) => {
-    const { name, value } = e.target;
+  const handleSelectChange = (event: SelectChangeEvent<string>) => {
+    const { name, value } = event.target;
 
-    // Limpa erro do campo quando usuário selecionar uma opção
     if (errors[name]) {
       setErrors((prev) => {
         const novosErros = { ...prev };
@@ -229,15 +237,13 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
     if (!abastecimento) return;
 
     if (!validarFormulario()) {
-      return; // Impede o salvamento se houver erros
+      return;
     }
 
     setIsSubmitting(true);
     setLoading(true);
 
     try {
-      // Criar a data considerando o fuso horário
-      // const dataAbastecimentoUTC = new Date(formData.dataAbastecimento + 'T04:00:00.000Z');
       let dataAbastecimento: Date | null = null;
       if (formData.dataAbastecimento) {
         const [ano, mes, dia] = formData.dataAbastecimento
@@ -247,11 +253,14 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
       }
 
       const dadosAtualizados = {
-        quantidade: formData.quantidade,
-        valorTotal: formData.valorTotal,
-        valorUnitario: formData.valorUnitario,
+        quantidade: parseFloat(formData.quantidade),
+        codigoPagamento: formData.codigoPagamento,
+        valorTotal: parseFloat(formData.valorTotal),
         dataAbastecimento: dataAbastecimento as Date,
+        valorUnitario: formData.valorUnitario ? parseFloat(formData.valorUnitario) : 0,
+        justificativaAlteracao: formData.justificativaAlteracao || "",
         idTipoCombustivel: Number(formData.tipoCombustivelId),
+        idMotorista: parseInt(formData.idMotorista),
       };
 
       await abastecimentoService.atualizarAbastecimentoPatch(
@@ -262,7 +271,8 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
       const mensagem = "Abastecimento atualizado com sucesso!";
 
       setTimeout(() => {
-        onSuccess(mensagem);
+        setSuccessMessage("");
+        if (onSuccess) onSuccess(mensagem);
         onClose();
       }, 1500);
     } catch (error) {
@@ -329,6 +339,7 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
             required
             error={!!errors.quantidade}
             helperText={errors.quantidade}
+            inputProps={{ min: 0, step: 0.01 }}
             InputProps={{
               endAdornment: <InputAdornment position="end">L</InputAdornment>,
             }}
@@ -339,32 +350,37 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
 
         <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
           <TextField
-            label="Valor Unitário"
+            label="Valor Unitário por Litro"
             name="valorUnitario"
             type="number"
             value={formData.valorUnitario}
             onChange={handleInputChange}
-            required
-            error={!!errors.valorUnitario}
-            helperText={errors.valorUnitario}
-            sx={{ flex: "1 1 50%" }}
+            inputProps={{ min: 0, step: 0.001 }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">R$</InputAdornment>
               ),
             }}
             disabled={loading || isSubmitting}
+            sx={{ flex: "1 1 50%" }}
           />
+
           <TextField
             label="Preço Final"
+            name="valorTotal"
             type="number"
             value={formData.valorTotal}
+            onChange={handleInputChange}
+            required
+            error={!!errors.valorTotal}
+            helperText={errors.valorTotal}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">R$</InputAdornment>
               ),
               readOnly: true,
             }}
+            disabled={loading || isSubmitting}
             sx={{
               flex: "1 1 50%",
               "& .MuiOutlinedInput-notchedOutline": { border: "none" },
@@ -375,22 +391,32 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
                     : "#f5f5f5",
               },
             }}
-            disabled={loading || isSubmitting}
           />
         </Box>
 
         <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
           <TextField
+            label="Código de Pagamento"
+            name="codigoPagamento"
+            value={formData.codigoPagamento}
+            onChange={handleInputChange}
+            required
+            error={!!errors.codigoPagamento}
+            helperText={errors.codigoPagamento}
+            disabled={loading || isSubmitting}
+            sx={{ flex: "1 1 50%" }}
+          />
+
+          <TextField
             label="Data de Abastecimento"
             name="dataAbastecimento"
             type="date"
-            fullWidth
-            InputLabelProps={{ shrink: true }}
             value={formData.dataAbastecimento}
             onChange={handleInputChange}
             required
             error={!!errors.dataAbastecimento}
             helperText={errors.dataAbastecimento}
+            InputLabelProps={{ shrink: true }}
             InputProps={{
               inputProps: {
                 min: minDate,
@@ -398,26 +424,27 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
               },
             }}
             disabled={loading || isSubmitting}
+            sx={{ flex: "1 1 50%" }}
           />
         </Box>
 
         <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
           <FormControl fullWidth required error={!!errors.tipoCombustivelId}>
-            <InputLabel>Tipo</InputLabel>
+            <InputLabel>Tipo de Combustível</InputLabel>
             <Select
               name="tipoCombustivelId"
               value={formData.tipoCombustivelId}
               onChange={handleSelectChange}
-              label="Tipo"
+              label="Tipo de Combustível"
               disabled={loading || isSubmitting}
             >
               {carregandoTipos ? (
-                <MenuItem disabled>Carregando tipos de combustível...</MenuItem>
+                <MenuItem value="">Carregando tipos de combustível...</MenuItem>
               ) : (
                 tiposCombustivel.map((tipo) => (
                   <MenuItem
                     key={tipo.idTipoCombustivel}
-                    value={tipo.idTipoCombustivel}
+                    value={String(tipo.idTipoCombustivel)}
                   >
                     {tipo.nome}
                   </MenuItem>
@@ -432,9 +459,36 @@ const EdicaoAbastecimentoModal: React.FC<EdicaoAbastecimentoModalProps> = ({
           </FormControl>
         </Box>
 
+        <Box sx={{ mb: 2 }}>
+          <FormControl fullWidth error={!!errors.idMotorista}>
+            <InputLabel id="motorista-label">Motorista Responsável</InputLabel>
+            <Select
+              labelId="motorista-label"
+              name="idMotorista"
+              value={formData.idMotorista}
+              onChange={handleSelectChange}
+              label="Motorista Responsável"
+              disabled={loading || isSubmitting}
+            >
+              <MenuItem value="">
+                <em>Selecione o motorista</em>
+              </MenuItem>
+              {corrida?.motoristas?.map((m) => (
+                <MenuItem key={m.idMotorista} value={String(m.idMotorista)}>
+                  {m.nome}
+                </MenuItem>
+              ))}
+            </Select>
+            {errors.idMotorista && (
+              <Typography variant="caption" color="error" sx={{ ml: 2 }}>
+                {errors.idMotorista}
+              </Typography>
+            )}
+          </FormControl>
+        </Box>
+
         <Divider sx={{ my: 2 }} />
 
-        {/* Botões */}
         <Box
           sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}
         >

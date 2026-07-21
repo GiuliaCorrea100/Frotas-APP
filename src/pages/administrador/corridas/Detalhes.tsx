@@ -140,6 +140,7 @@ const DetalhesRequisicao: React.FC = () => {
         }
 
         if (Array.isArray(abastecimentosData)) {
+          console.log(abastecimentosData);
           setAbastecimento(abastecimentosData);
         } else if (abastecimentosData) {
           setAbastecimento([abastecimentosData]);
@@ -177,6 +178,14 @@ const DetalhesRequisicao: React.FC = () => {
   };
 
   const columnsOcorrencias: GridColDef<OcorrenciaDto>[] = [
+    {
+      field: "nomeMotorista",
+      headerName: "Motorista Responsável",
+      width: 400,
+      renderCell: (params) => (
+        <Typography color="text.primary">{params.value}</Typography>
+      ),
+    },
     {
       field: "descricao",
       headerName: "Descrição",
@@ -260,6 +269,14 @@ const DetalhesRequisicao: React.FC = () => {
   ];
 
   const columnsAbastecimentos: GridColDef<Abastecimento>[] = [
+    {
+      field: "nomeMotorista",
+      headerName: "Motorista Responsável",
+      width: 400,
+      renderCell: (params) => (
+        <Typography color="text.primary">{params.value}</Typography>
+      ),
+    },
     {
       field: "nomeTipoCombustivel",
       headerName: "Combustível",

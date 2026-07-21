@@ -101,7 +101,6 @@ const AdidicionarMotorista: React.FC<AdidicionarMotoristaProps> = ({
             })),
           ];
           setMotoristasSelecionados(motoristasIniciais);
-          console.log(motoristasIniciais);
           setIdMotoristaPrincipal(corrida.idMotoristaPrincipal);
         } else if (corrida.idMotoristaPrincipal) {
           if (authMode === "MOCK") {

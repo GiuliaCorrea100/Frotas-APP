@@ -9,6 +9,10 @@ import {
   Alert,
   IconButton,
   Divider,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { OcorrenciaService } from "../../../../services/OcorrenciaService";
 import { Close, Warning } from "@mui/icons-material";
@@ -23,6 +27,7 @@ interface CadastrarOcorrenciaProps {
   onError: (error: any) => void;
   corrida: CorridaFrontend;
   dataRegistro?: Date;
+  cadastroMotorista?: number;
 }
 
 const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
@@ -31,12 +36,14 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
   onSuccess,
   onError,
   corrida,
+  cadastroMotorista,
 }) => {
   const [descricao, setDescricao] = useState("");
   const [dataOcorrencia, setDataOcorrencia] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [idMotorista, setIdMotorista] = useState<number | "">("");
 
   const dataMinima = corrida?.dataHoraLiberacaoChave
     ? new Date(corrida.dataHoraLiberacaoChave)
@@ -105,10 +112,15 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
       const dataOcorrenciaFormatada = new Date(ano, mes - 1, dia);
       dataOcorrenciaFormatada.setHours(0, 0, 0, 0);
 
+      if (cadastroMotorista){
+        setIdMotorista(cadastroMotorista);
+      }
+
       const dadosOcorrencia = {
         descricao: descricao.trim(),
         idCorrida: corrida.idCorrida,
         dataOcorrencia: dataOcorrenciaFormatada,
+        idMotorista: idMotorista,
       };
 
       await OcorrenciaService.criar(dadosOcorrencia);
@@ -238,6 +250,37 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
             disabled={!!successMessage || loading}
           />
         </Box>
+        
+        { !cadastroMotorista  && (
+          <Box sx={{ mb: 2 }}>
+          <FormControl fullWidth error={!!errors.idMotorista}>
+            <InputLabel id="motorista-label">Motorista Responsável</InputLabel>
+            <Select
+              labelId="motorista-label"
+              name="idMotorista"
+              value={idMotorista}
+              onChange={(e) => setIdMotorista(e.target.value as number | "")}
+              label="Motorista Responsável"
+              disabled={loading || !!successMessage}
+            >
+              <MenuItem value="">
+                <em>Selecione o motorista</em>
+              </MenuItem>
+              {corrida?.motoristas?.map((m) => (
+                <MenuItem key={m.idMotorista} value={String(m.idMotorista)}>
+                  {m.nome}
+                </MenuItem>
+              ))}
+            </Select>
+            {errors.idMotorista && (
+              <Typography variant="caption" color="error" sx={{ ml: 2 }}>
+                {errors.idMotorista}
+              </Typography>
+            )}
+          </FormControl>
+        </Box>
+        )}
+        
 
         <Divider sx={{ my: 2 }} />
 

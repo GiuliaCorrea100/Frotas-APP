@@ -7,6 +7,8 @@ export interface OcorrenciaDto {
   //dataRegistro: String;
   dataOcorrencia: Date;
   ativa?: boolean;
+  idMotorista: number;
+  nomeMotorista?: string;
 }
 
 interface OcorrenciaBackend {

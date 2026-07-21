@@ -14,6 +14,7 @@ import {
   Divider,
   CircularProgress,
   IconButton,
+  SelectChangeEvent,
 } from "@mui/material";
 import { LocalGasStation, Close } from "@mui/icons-material";
 import { CorridaFrontend } from "../../../../services/CorridaService";
@@ -27,8 +28,9 @@ import { modalStyle } from "../../../../utils/modalStyle";
 interface AbastecimentoModalProps {
   open: boolean;
   onClose: () => void;
-  corrida?: CorridaFrontend; 
+  corrida?: CorridaFrontend;
   onSuccess: (message: string) => void;
+  cadastroMotorista?: number;
 }
 
 const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
@@ -36,6 +38,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
   onClose,
   corrida,
   onSuccess,
+  cadastroMotorista,
 }) => {
   const [formData, setFormData] = useState({
     quantidade: "",
@@ -46,6 +49,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
     justificativaAlteracao: "",
     tipoCombustivelId: "",
     idCorrida: corrida ? corrida.idCorrida.toString() : "",
+    idMotorista: cadastroMotorista? cadastroMotorista?.toString() : "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -67,7 +71,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
   const dataLimite = corrida?.dataHoraRecebimentoChave
     ? new Date(corrida.dataHoraRecebimentoChave)
     : new Date();
-  dataLimite.setHours(0, 0, 0, 0); 
+  dataLimite.setHours(0, 0, 0, 0);
 
   const minDate = dataMinima
     ? dataMinima.toISOString().slice(0, 10)
@@ -85,7 +89,6 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
   useEffect(() => {
     if (open) {
-      // Carregar tipos de combustível apenas quando o modal abrir
       setCarregandoTipos(true);
       TipoCombustivelService.listar()
         .then((res) => {
@@ -121,9 +124,8 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    // Validações obrigatórias
     if (!formData.quantidade || parseFloat(formData.quantidade) <= 0) {
-      newErrors.litros = "Litros são obrigatórios e devem ser maiores que zero";
+      newErrors.quantidade = "Litros são obrigatórios e devem ser maiores que zero";
     }
 
     if (!formData.codigoPagamento) {
@@ -131,7 +133,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
     }
 
     if (!formData.valorTotal || parseFloat(formData.valorTotal) <= 0) {
-      newErrors.preco_final = "Preço final é obrigatório";
+      newErrors.valorTotal = "Preço final é obrigatório";
     }
 
     if (!formData.dataAbastecimento) {
@@ -143,10 +145,13 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
     }
 
     if (!formData.idCorrida) {
-      newErrors.id_corrida = "Corrida é obrigatória";
+      newErrors.idCorrida = "Corrida é obrigatória";
     }
 
-    // Validação de data (deve ser entre a data de liberação e recebimento da chave)
+    if (!formData.idMotorista) {
+      newErrors.idMotorista = "Motorista é obrigatório";
+    }
+
     const apenasData = (d: Date) =>
       new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 
@@ -175,9 +180,9 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
     if (!validateForm()) return;
 
+    
     setIsSubmitting(true);
 
-    // Encontrar o tipo de combustível selecionado
     const tipoCombustivelSelecionado = tiposCombustivel.find(
       (tipo) => tipo.idTipoCombustivel === parseInt(formData.tipoCombustivelId),
     );
@@ -188,7 +193,6 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       return;
     }
 
-    // Utilizar apenas a data e não o horário
     let dataAbastecimento: Date | null = null;
     if (formData.dataAbastecimento) {
       const [ano, mes, dia] = formData.dataAbastecimento.split("-").map(Number);
@@ -206,12 +210,13 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
       justificativaAlteracao: formData.justificativaAlteracao || "",
       tipoCombustivel: tipoCombustivelSelecionado.idTipoCombustivel as number,
       idCorrida: parseInt(formData.idCorrida),
+      idMotorista: parseInt(formData.idMotorista),
     };
 
     try {
       setLoading(true);
       await AbastecimentoService.cadastrarAbastecimento(dadosParaCadastro);
-      
+
       const mensagem = "Abastecimento cadastrado com sucesso!";
 
       setTimeout(() => {
@@ -224,7 +229,8 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
           valorUnitario: "",
           justificativaAlteracao: "",
           tipoCombustivelId: "",
-          idCorrida: corrida?.idCorrida ? corrida?.idCorrida.toString() : "",
+          idCorrida: corrida?.idCorrida ? corrida.idCorrida.toString() : "",
+          idMotorista: "",
         });
 
         if (onSuccess) onSuccess(mensagem);
@@ -260,8 +266,8 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
     }));
   };
 
-  const handleSelectChange = (e: any) => {
-    const { name, value } = e.target;
+  const handleSelectChange = (event: SelectChangeEvent<string>) => {
+    const { name, value } = event.target;
 
     if (errors[name]) {
       setErrors((prev) => {
@@ -363,7 +369,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
 
           <TextField
             label="Preço Final"
-            name="preco_final"
+            name="valorTotal"
             type="number"
             value={formData.valorTotal}
             onChange={handleInputChange}
@@ -424,7 +430,6 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
           />
         </Box>
 
-        {/* Tipo de Combustível */}
         <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
           <FormControl fullWidth required error={!!errors.tipoCombustivelId}>
             <InputLabel>Tipo de Combustível</InputLabel>
@@ -441,7 +446,7 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
                 tiposCombustivel.map((tipo) => (
                   <MenuItem
                     key={tipo.idTipoCombustivel}
-                    value={tipo.idTipoCombustivel}
+                    value={String(tipo.idTipoCombustivel)}
                   >
                     {tipo.nome}
                   </MenuItem>
@@ -456,9 +461,38 @@ const AbastecimentoModal: React.FC<AbastecimentoModalProps> = ({
           </FormControl>
         </Box>
 
+        { !cadastroMotorista  && (
+          <Box sx={{ mb: 2 }}>
+            <FormControl fullWidth error={!!errors.idMotorista}>
+              <InputLabel id="motorista-label">Motorista Responsável</InputLabel>
+              <Select
+                labelId="motorista-label"
+                name="idMotorista"
+                value={formData.idMotorista}
+                onChange={handleSelectChange}
+                label="Motorista Responsável"
+                disabled={loading || !!successMessage}
+              >
+                <MenuItem value="">
+                  <em>Selecione o motorista</em>
+                </MenuItem>
+                {corrida?.motoristas?.map((m) => (
+                  <MenuItem key={m.idMotorista} value={String(m.idMotorista)}>
+                    {m.nome}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.idMotorista && (
+                <Typography variant="caption" color="error" sx={{ ml: 2 }}>
+                  {errors.idMotorista}
+                </Typography>
+              )}
+            </FormControl>
+          </Box>
+        )}
+
         <Divider sx={{ my: 2 }} />
 
-        {/* Botões */}
         <Box
           sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}
         >
