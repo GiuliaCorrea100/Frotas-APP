@@ -43,7 +43,8 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [idMotorista, setIdMotorista] = useState<number | "">("");
+  //const [idMotorista, setIdMotorista] = useState<number>(cadastroMotorista);
+  const [idMotorista, setIdMotorista] = useState<number | undefined>(cadastroMotorista);
 
   const dataMinima = corrida?.dataHoraLiberacaoChave
     ? new Date(corrida.dataHoraLiberacaoChave)
@@ -259,7 +260,8 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
               labelId="motorista-label"
               name="idMotorista"
               value={idMotorista}
-              onChange={(e) => setIdMotorista(e.target.value as number | "")}
+              //onChange={(e) => setIdMotorista(e.target.value as number | "")}
+              onChange={(e) => setIdMotorista(Number(e.target.value) || undefined)}
               label="Motorista Responsável"
               disabled={loading || !!successMessage}
             >
