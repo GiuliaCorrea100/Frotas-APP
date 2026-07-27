@@ -12,11 +12,15 @@ import {
   Divider,
   Chip,
   Tooltip,
+  DialogActions,
+  Dialog,
+  DialogTitle,
 } from "@mui/material";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import axiosConnect from "../../../../services/axios/axiosConnect";
 import { modalStyle } from "../../../../utils/modalStyle";
 import { Close, Cancel } from "@mui/icons-material";
+import axios from "axios";
 
 interface CorridaDto {
   idCorrida?: number;
@@ -77,6 +81,9 @@ export default function EditarInfoCorrida({
   const [loadingVeiculo, setLoadingVeiculo] = useState(false);
   const [authMode, setAuthMode] = useState<string>("SIGAA");
   const [successMessage, setSuccessMessage] = useState("");
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [alertOpen, setAlertOpen] = useState(false);
+
 
   useEffect(() => {
     const fetchAuthMode = async () => {
@@ -184,6 +191,12 @@ export default function EditarInfoCorrida({
     return date.toISOString();
   };
 
+  function showAlert(message: string) {
+    setAlertMessage(message);
+    setAlertOpen(true);
+  }
+
+
   const buscarUsuario = async (nome: string) => {
     if (nome.length < 3) {
       setMotoristasDisponiveis([]);
@@ -290,12 +303,35 @@ export default function EditarInfoCorrida({
       setTimeout(() => {
         onClose();
       }, 1500);
-    } catch (error: any) {
-      setError(
-        error.response?.data?.message ||
-          error.message ||
-          "Erro ao salvar edições.",
-      );
+    } catch (error: unknown) {
+
+      if (axios.isAxiosError(error) && error.response) {
+        if (error.response.status === 409) {
+          if (error.response.data.message.includes("carro")) {
+            showAlert(
+              "Este carro já está agendado para outra corrida nesse período.",
+            );
+          } else {
+            showAlert("Usuário já tem corrida agendada para essa data.");
+          }
+        } else {
+          const errorMessage =
+            error.response.data?.message || "Erro ao cadastrar a corrida.";
+          showAlert(errorMessage);
+        }
+      } else {
+        console.error("Erro ao cadastrar a corrida:", error);
+        //error(error);
+      }
+
+      // setError(
+      //   error.response?.data?.message ||
+      //     error.message ||
+      //     "Erro ao salvar edições.",
+      // );
+
+
+
     } finally {
       setLoading(false);
     }
@@ -588,7 +624,15 @@ export default function EditarInfoCorrida({
             </Button>
           </Box>
         </form>
+
+        <Dialog open={alertOpen} onClose={() => setAlertOpen(false)}>
+          <DialogTitle>{alertMessage}</DialogTitle>
+          <DialogActions>
+            <Button onClick={() => setAlertOpen(false)}>OK</Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </Modal>
   );
 }
+
