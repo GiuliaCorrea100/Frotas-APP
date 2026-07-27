@@ -33,7 +33,7 @@ interface CorridaDto {
   motoristasIds?: number[];
 }
 
-interface AdidicionarMotoristaProps {
+interface AdicionarMotoristaProps {
   open: boolean;
   onClose: () => void;
   onSuccess: (message: string) => void;
@@ -42,7 +42,7 @@ interface AdidicionarMotoristaProps {
   percursos?: PercursoDto[];
 }
 
-const AdidicionarMotorista: React.FC<AdidicionarMotoristaProps> = ({
+const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
   open,
   onClose,
   onSuccess,
@@ -492,4 +492,4 @@ const AdidicionarMotorista: React.FC<AdidicionarMotoristaProps> = ({
   );
 };
 
-export default AdidicionarMotorista;
+export default AdicionarMotorista;

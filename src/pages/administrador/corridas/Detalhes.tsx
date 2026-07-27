@@ -140,7 +140,6 @@ const DetalhesRequisicao: React.FC = () => {
         }
 
         if (Array.isArray(abastecimentosData)) {
-          console.log(abastecimentosData);
           setAbastecimento(abastecimentosData);
         } else if (abastecimentosData) {
           setAbastecimento([abastecimentosData]);

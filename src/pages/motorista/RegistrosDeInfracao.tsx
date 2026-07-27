@@ -94,7 +94,6 @@ export default function RegistrosDeInfracao() {
       const multasDoUsuario = dados.filter(
         (multa) => ((multa.idMotorista === idUsuarioLogado)),
       );
-      console.log(multasDoUsuario);
       const multasOrdenadas = [...multasDoUsuario].sort((a, b) => b.idMulta - a.idMulta);
 
 
@@ -191,7 +190,6 @@ export default function RegistrosDeInfracao() {
 
     try {
       const recursoEncontrado = await RecursoService.buscarPorMulta(idMulta);
-      console.log("Recurso encontrado:", recursoEncontrado);
       
       if (recursoEncontrado) {
         setRecursoSelecionado(recursoEncontrado);

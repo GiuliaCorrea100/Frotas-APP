@@ -137,8 +137,6 @@ export class AbastecimentoService {
         idTipoCombustivel: data.tipoCombustivel,
         idMotorista: data.idMotorista,
       };
-
-      console.log(payload);
       const response = await axiosConnect.post(`/abastecimento`, payload);
       return response.data as Abastecimento;
     } catch (error: unknown) {
