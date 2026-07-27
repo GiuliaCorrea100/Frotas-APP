@@ -11,6 +11,8 @@ import {
   Button,
   CircularProgress,
   useTheme,
+  Chip,
+  Tooltip as MuiTooltip,
 } from "@mui/material";
 
 import Grid from "@mui/material/Grid";
@@ -41,6 +43,7 @@ import {
 } from "recharts";
 import { DataGrid } from "@mui/x-data-grid";
 import { ptBR } from "@mui/x-data-grid/locales";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 
 import AppLayout from "../../components/Layout";
 import axiosConnect from "../../services/axios/axiosConnect";
@@ -651,8 +654,87 @@ const Relatorios: React.FC = () => {
                   autoHeight
                   rows={corridasTabela}
                   columns={[
-                    { field: "motorista", headerName: "Motorista", flex: 1 },
-                    { field: "veiculo", headerName: "Veículo", flex: 1 },
+                    // { field: "motorista", headerName: "Motorista", flex: 1 },
+                    {
+                      field: "motorista",
+                      headerName: "Motorista",
+                      flex: 1,
+                      renderCell: (params) => {
+                        const corrida = params.row;
+                        const principalNome = params.value || "Desconhecido";
+                        
+                        const outrosMotoristas = corrida.motoristas 
+                          ? corrida.motoristas.filter((motorista: any) => motorista.idMotorista !== corrida.idMotoristaPrincipal)
+                          : [];
+                          
+                        if (outrosMotoristas.length === 0) {
+                          return <Typography>{principalNome}</Typography>;
+                        }
+
+                        return (
+                          <Box display="flex" alignItems="center" gap={1}>
+                            <Typography>{principalNome}</Typography>
+                            <MuiTooltip 
+                              title={
+                                <Box sx={{ p: 0.5 }}>
+                                  <Typography variant="subtitle2" color="text.primary" sx={{ fontWeight: "bold", mb: 0.5 }}>
+                                    Outros motoristas:
+                                  </Typography>
+                                  {outrosMotoristas.map((motorista) => (
+                                    <Box
+                                      key={motorista.idMotorista}
+                                      display="flex"
+                                      alignItems="center"
+                                      gap={0.5}
+                                      mb={0.3}
+                                    >
+                                      <PersonOutlineIcon
+                                        sx={{ fontSize: 14, color: "text.primary" }}
+                                      />
+                                      <Typography variant="body2" color="text.primary">
+                                        {motorista.nome}
+                                      </Typography>
+                                    </Box>
+                                  ))}
+                                </Box>
+                              }
+                              arrow
+                              slotProps={{
+                                tooltip: {
+                                  sx: {
+                                    backgroundColor: theme.palette.mode === "light" ? "#f5f5f9" : theme.palette.background.paper,
+                                    color: theme.palette.text.primary,
+                                    border: `1px solid ${theme.palette.divider}`,
+                                    boxShadow: theme.shadows[3],
+                                  },
+                                },
+                                arrow: {
+                                  sx: {
+                                    color: theme.palette.mode === "light" ? "#f5f5f9" : theme.palette.background.paper,
+                                    "&::before": {
+                                      border: `1px solid ${theme.palette.divider}`,
+                                    },
+                                  },
+                                },
+                              }}
+                            >
+                              <Chip 
+                                label={`+${outrosMotoristas.length}`} 
+                                size="small" 
+                                color="primary" 
+                                sx={{ 
+                                  height: 20, 
+                                  fontSize: "0.75rem", 
+                                  fontWeight: "bold",
+                                  cursor: "pointer" 
+                                }}
+                              />
+                            </MuiTooltip>
+                          </Box>
+                        );
+                      },
+                    },
+                    { field: "veiculo", headerName: "Veículo", flex: 0.6 },
                     { field: "situacao", headerName: "Situação", flex: 1 },
                     {
                       field: "dataInicio",
