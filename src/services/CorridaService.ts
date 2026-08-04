@@ -119,7 +119,6 @@ export const atualizarSituacaoCorrida = async (
   situacao: string
 ): Promise<void> => {
   try {
-    console.log("situacao: ", situacao, "id: ", idCorrida);
     await axiosConnect.patch(`/corrida/${idCorrida}/situacao`, { situacao });
     
   } catch (error) {

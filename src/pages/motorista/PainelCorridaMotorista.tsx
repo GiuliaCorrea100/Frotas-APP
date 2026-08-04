@@ -30,8 +30,7 @@ import BemVindo from '../BemVindo';
 import { formatDateOnly } from '../../utils/formatDate';
 import ModalVistoriaVeiculo from "./modais/ModalVistoriaVeiculo";
 import { CorridaVistoriaService } from "../../services/CorridaVistoriaService";
-import ModalCadastroMotoristaAdicional from "./modais/ModalCadastroMotoristaAdicional";
-import AdidicionarMotorista from '../administrador/corridas/modais/ModalCadastroMotoristaAdicional';
+import AdicionarMotorista from '../administrador/corridas/modais/ModalCadastroMotoristaAdicional';
 
 
 interface Props {
@@ -472,6 +471,9 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
 
 
         <Box sx={{ mb: 4 }}>
+
+          <Typography variant="h5" fontWeight="bold" color="text.primary" gutterBottom >Corrida</Typography>
+
           <Box
             sx={{
               display: "flex",
@@ -493,14 +495,7 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
                 p: 3,
               }}
             >
-              <Typography
-                variant="h5"
-                fontWeight="bold"
-                color="text.primary"
-                gutterBottom
-              >
-                Corrida:
-              </Typography>
+              
 
               <Typography variant="subtitle2" color="text.secondary">
                 De {formatDateOnly(corridaLocal.dataInicio)} até{" "}
@@ -547,8 +542,8 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
                 },
               }}
             >
-              <Typography fontWeight="bold">
-                Editar Motoristas
+              <Typography fontWeight="bold" color="text.primary">
+                Gerenciar Motoristas
               </Typography>
             </Paper>
           </Box>
@@ -730,15 +725,13 @@ const PainelCorridaMotorista = ({ corrida: propCorrida, onCorridaUpdate }: Props
             }}
           />
         )}
-
         
         {modalEditarMotoristasAberto && (
-          <AdidicionarMotorista
+          <AdicionarMotorista
             open={modalEditarMotoristasAberto}
             onClose={fecharModalEditarMotoristas}
             onSuccess={(message) => {
               setMensagemSucesso(message);
-              // Recarregar os dados da corrida
               if (idCorrida) {
                 buscarCorridaPorId(Number(idCorrida)).then((corridaAtualizada) => {
                   setCorridaLocal(corridaAtualizada);

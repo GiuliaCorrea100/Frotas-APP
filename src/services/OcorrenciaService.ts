@@ -24,11 +24,14 @@ export class OcorrenciaService {
   static async buscarTodos(): Promise<OcorrenciaDto[]> {
     try {
       const token = localStorage.getItem("token");
-      const respOcorrencias = await axiosConnect.get<OcorrenciaDto[]>("/ocorrencia", {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const respOcorrencias = await axiosConnect.get<OcorrenciaDto[]>(
+        "/ocorrencia",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       return respOcorrencias.data;
     } catch (err) {
@@ -37,17 +40,31 @@ export class OcorrenciaService {
     }
   }
 
-  static async criar(dados: OcorrenciaBackend): Promise<void> {
+  // static async criar(dados: OcorrenciaBackend): Promise<void> {
+  //   try {
+  //     const token = localStorage.getItem("token");
+  //     await axiosConnect.post("/ocorrencia", dados, {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     });
+  //   } catch (err) {
+  //     console.error("Erro ao salvar ocorrência:", err);
+  //     throw err;
+  //   }
+  // }
+
+  static async criar(formData: FormData): Promise<any> {
     try {
-      const token = localStorage.getItem("token");
-      await axiosConnect.post("/ocorrencia", dados, {
+      const response = await axiosConnect.post("/ocorrencia", formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
         },
       });
-    } catch (err) {
-      console.error("Erro ao salvar ocorrência:", err);
-      throw err;
+      return response.data;
+    } catch (error) {
+      console.error("Erro ao cadastrar ocorrencia com arquivo:", error);
+      throw error;
     }
   }
 
@@ -60,17 +77,18 @@ export class OcorrenciaService {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
-      const ocorrenciasAtivas = response.data.filter(ocorrencia => ocorrencia.ativa == true);
+      const ocorrenciasAtivas = response.data.filter(
+        (ocorrencia) => ocorrencia.ativa == true,
+      );
 
-      
       return ocorrenciasAtivas;
     } catch (error) {
       console.error(
         `Erro ao buscar ocorrências para corrida ${idCorrida}:`,
-        error
+        error,
       );
       return [];
     }
@@ -78,7 +96,7 @@ export class OcorrenciaService {
 
   static async atualizarDescricao(
     id: number,
-    descricao: string
+    descricao: string,
   ): Promise<void> {
     try {
       const token = localStorage.getItem("token");
@@ -89,7 +107,7 @@ export class OcorrenciaService {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
     } catch (error) {
       console.error(`Erro ao atualizar ocorrência ${id}:`, error);
@@ -113,14 +131,13 @@ export class OcorrenciaService {
 
   static async excluirOcorrencia(idOcorrencia: number): Promise<any> {
     try {
-      await axiosConnect.patch(`/ocorrencia/deletar-ocorrencia/${idOcorrencia}`);
+      await axiosConnect.patch(
+        `/ocorrencia/deletar-ocorrencia/${idOcorrencia}`,
+      );
       console.log(`ocorrencia ${idOcorrencia} marcada como deletada`);
     } catch (error) {
       console.error(`Erro ao deletar ocorrência ${idOcorrencia}:`, error);
       throw error;
     }
-
-
-
   }
 }

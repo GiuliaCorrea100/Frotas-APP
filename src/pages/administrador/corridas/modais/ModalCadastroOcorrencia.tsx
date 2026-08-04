@@ -15,7 +15,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import { OcorrenciaService } from "../../../../services/OcorrenciaService";
-import { Close, Warning } from "@mui/icons-material";
+import { Close, Warning, AttachFile as AttachFileIcon, } from "@mui/icons-material";
 import { modalStyle } from "../../../../utils/modalStyle";
 import { CorridaFrontend } from "../../../../services/CorridaService";
 
@@ -30,6 +30,10 @@ interface CadastrarOcorrenciaProps {
   cadastroMotorista?: number;
 }
 
+const allowedExtensions = ["pdf", "jpg", "jpeg", "png", "doc", "docx"];
+const MAX_FILE_SIZE_MB = 50;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
 const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
   open,
   onClose,
@@ -43,7 +47,11 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [idMotorista, setIdMotorista] = useState<number | "">("");
+  const [idMotorista, setIdMotorista] = useState<number | undefined>(cadastroMotorista);
+  const [arquivoSelecionado, setArquivoSelecionado] = useState<File | null>(
+      null
+    );
+  const [fileError, setFileError] = useState<string | null>(null);
 
   const dataMinima = corrida?.dataHoraLiberacaoChave
     ? new Date(corrida.dataHoraLiberacaoChave)
@@ -79,20 +87,26 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
       newErrors.descricao = "Descrição é obrigatória";
     }
 
-    if (!dataOcorrencia) {
-      newErrors.dataOcorrencia = "Data da ocorrência é obrigatória";
-    } else {
-      const [ano, mes, dia] = dataOcorrencia.split("-").map(Number);
-      const dataSelecionada = new Date(ano, mes - 1, dia);
-      dataSelecionada.setHours(0, 0, 0, 0);
-      
-      const apenasData = (d: Date) =>
-        new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    if (!cadastroMotorista) {
+      if (!dataOcorrencia) {
+        newErrors.dataOcorrencia = "Data da ocorrência é obrigatória";
+      } else {
+        const [ano, mes, dia] = dataOcorrencia.split("-").map(Number);
+        const dataSelecionada = new Date(ano, mes - 1, dia);
+        dataSelecionada.setHours(0, 0, 0, 0);
 
-      if (dataMinima && apenasData(dataSelecionada) < apenasData(dataMinima)) {
-        newErrors.dataOcorrencia = `Data não pode ser anterior à liberação da chave (${minDate})`;
-      } else if (apenasData(dataSelecionada) > apenasData(dataLimite)) {
-        newErrors.dataOcorrencia = `Data não pode ser posterior ao encerramento da corrida (${maxDate})`;
+        const apenasData = (d: Date) =>
+          new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+
+        if (dataMinima && apenasData(dataSelecionada) < apenasData(dataMinima)) {
+          newErrors.dataOcorrencia = `Data não pode ser anterior à liberação da chave (${minDate})`;
+        } else if (apenasData(dataSelecionada) > apenasData(dataLimite)) {
+          newErrors.dataOcorrencia = `Data não pode ser posterior ao encerramento da corrida (${maxDate})`;
+        }
+      }
+
+      if (!idMotorista) {
+        newErrors.idMotorista = "Selecione um motorista";
       }
     }
 
@@ -108,22 +122,41 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
     setLoading(true);
 
     try {
-      const [ano, mes, dia] = dataOcorrencia.split("-").map(Number);
-      const dataOcorrenciaFormatada = new Date(ano, mes - 1, dia);
-      dataOcorrenciaFormatada.setHours(0, 0, 0, 0);
+      let dataOcorrenciaFormatada: Date;
+      let motorista: number | undefined;
+      let enviadoMotorista: boolean;
 
-      if (cadastroMotorista){
-        setIdMotorista(cadastroMotorista);
+      if (cadastroMotorista) {
+        dataOcorrenciaFormatada = new Date();
+        motorista = cadastroMotorista;
+        enviadoMotorista = true;
+      } else {
+        const [ano, mes, dia] = dataOcorrencia.split("-").map(Number);
+        dataOcorrenciaFormatada = new Date(ano, mes - 1, dia);
+        dataOcorrenciaFormatada.setHours(0, 0, 0, 0);
+
+        motorista = idMotorista;
+
+        enviadoMotorista = false;
       }
 
-      const dadosOcorrencia = {
-        descricao: descricao.trim(),
-        idCorrida: corrida.idCorrida,
-        dataOcorrencia: dataOcorrenciaFormatada,
-        idMotorista: idMotorista,
-      };
+      console.log(enviadoMotorista);
 
-      await OcorrenciaService.criar(dadosOcorrencia);
+      const formData = new FormData();
+      formData.append("descricao", descricao.trim());
+      formData.append("idCorrida", corrida.idCorrida.toString());
+      formData.append("dataOcorrencia", dataOcorrenciaFormatada.toISOString());
+      formData.append("enviadoMotorista", enviadoMotorista.toString());
+
+      if (motorista !== undefined) {
+        formData.append("idMotorista", motorista.toString());
+      }
+
+      if (arquivoSelecionado) {
+        formData.append("arquivo", arquivoSelecionado);
+      }
+
+      await OcorrenciaService.criar(formData);
 
       const mensagem = "Ocorrência cadastrada com sucesso!";
 
@@ -140,7 +173,9 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
         onError("Sessão expirada. Faça login novamente.");
       } else {
         setErrors({
-          submit: error.response?.data?.message || "Erro ao cadastrar ocorrência",
+          submit:
+            error.response?.data?.message ||
+            "Erro ao cadastrar ocorrência",
         });
       }
     } finally {
@@ -171,6 +206,54 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
       });
     }
   };
+
+  const formatFileSize = (bytes: number): string => {
+      if (bytes === 0) return "0 Bytes";
+      const k = 1024;
+      const sizes = ["Bytes", "KB", "MB", "GB"];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    };
+  
+    const validateFileExtension = (file: File): boolean => {
+      const extension = file.name.split(".").pop()?.toLowerCase();
+      if (!extension || !allowedExtensions.includes(extension)) {
+        setFileError(
+          `Formato de arquivo não permitido. Extensões permitidas: ${allowedExtensions.join(
+            ", "
+          )}`
+        );
+        return false;
+      }
+  
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        setFileError(`Arquivo muito grande. Tamanho máximo: ${MAX_FILE_SIZE_MB}MB`);
+        return false;
+      }
+  
+      setFileError(null);
+      return true;
+    };
+  
+    const handleFileSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
+  
+      const file = files[0];
+  
+      if (validateFileExtension(file)) {
+        setArquivoSelecionado(file);
+      }
+  
+      event.target.value = "";
+    };
+  
+    const handleRemoveFile = () => {
+      setArquivoSelecionado(null);
+      setFileError(null);
+    };
+
+
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -232,53 +315,136 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
           />
         </Box>
 
-        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-          <TextField
-            label="Data da ocorrência"
-            type="date"
-            fullWidth
-            value={dataOcorrencia}
-            onChange={handleDataChange}
-            InputLabelProps={{ shrink: true }}
-            inputProps={{
-              min: minDate,
-              max: maxDate,
-            }}
-            required
-            error={!!errors.dataOcorrencia}
-            helperText={errors.dataOcorrencia}
-            disabled={!!successMessage || loading}
-          />
-        </Box>
+        <Box sx={{ flex: "1 1 100%", mt: 2 }}>
+                    <Button
+                      component="label"
+                      variant="outlined"
+                      startIcon={<AttachFileIcon />}
+                      disabled={loading}
+                      sx={{
+                        mr: 2,
+                        color: "text.primary",
+                        borderColor: "divider",
+                        "&:hover": {
+                          borderColor: "text.secondary",
+                          backgroundColor: "action.hover",
+                        },
+                      }}
+                    >
+                      Anexar Documentos
+                      <input
+                        type="file"
+                        hidden
+                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                        onChange={handleFileSelection}
+                      />
+                    </Button>
+        
+                    {arquivoSelecionado && (
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="subtitle2" gutterBottom color="textPrimary">
+                          Arquivo selecionado:
+                        </Typography>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            mb: 1,
+                            p: 2,
+                            backgroundColor: "action.hover",
+                            borderRadius: 1,
+                            border: "1px solid",
+                            borderColor: "divider",
+                          }}
+                        >
+                          <Box>
+                            <Typography variant="body2" fontWeight="medium" color="text.primary">
+                              {arquivoSelecionado.name}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {formatFileSize(arquivoSelecionado.size)}
+                            </Typography>
+                          </Box>
+                          <IconButton
+                            size="small"
+                            onClick={handleRemoveFile}
+                            color="error"
+                            disabled={loading}
+                          >
+                            <Close fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      </Box>
+                    )}
+        
+                    {fileError && (
+                      <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                        {fileError}
+                      </Typography>
+                    )}
+        
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ display: "block", mt: 1, mb: 3 }}
+                    >
+                      Formatos permitidos: PDF, JPG, JPEG, PNG, DOC, DOCX (Máx: {MAX_FILE_SIZE_MB}MB)
+                    </Typography>
+                  </Box>
+
+        
         
         { !cadastroMotorista  && (
           <Box sx={{ mb: 2 }}>
-          <FormControl fullWidth error={!!errors.idMotorista}>
-            <InputLabel id="motorista-label">Motorista Responsável</InputLabel>
-            <Select
-              labelId="motorista-label"
-              name="idMotorista"
-              value={idMotorista}
-              onChange={(e) => setIdMotorista(e.target.value as number | "")}
-              label="Motorista Responsável"
-              disabled={loading || !!successMessage}
-            >
-              <MenuItem value="">
-                <em>Selecione o motorista</em>
-              </MenuItem>
-              {corrida?.motoristas?.map((m) => (
-                <MenuItem key={m.idMotorista} value={String(m.idMotorista)}>
-                  {m.nome}
+            <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+                  <TextField
+                    label="Data da ocorrência"
+                    type="date"
+                    fullWidth
+                    value={dataOcorrencia}
+                    onChange={handleDataChange}
+                    InputLabelProps={{ shrink: true }}
+                    inputProps={{
+                      min: minDate,
+                      max: maxDate,
+                    }}
+                    required
+                    error={!!errors.dataOcorrencia}
+                    helperText={errors.dataOcorrencia}
+                    disabled={!!successMessage || loading}
+                  />
+            </Box>
+
+            <FormControl fullWidth error={!!errors.idMotorista}>
+              <InputLabel id="motorista-label">Motorista Responsável</InputLabel>
+              <Select
+                labelId="motorista-label"
+                name="idMotorista"
+                value={idMotorista}
+                onChange={(e) => setIdMotorista(Number(e.target.value) || undefined)}
+                label="Motorista Responsável"
+                disabled={loading || !!successMessage}
+              >
+                <MenuItem value="">
+                  <em>Selecione o motorista</em>
                 </MenuItem>
-              ))}
-            </Select>
-            {errors.idMotorista && (
-              <Typography variant="caption" color="error" sx={{ ml: 2 }}>
-                {errors.idMotorista}
-              </Typography>
-            )}
-          </FormControl>
+                {corrida?.motoristas?.map((m) => (
+                  <MenuItem key={m.idMotorista} value={String(m.idMotorista)}>
+                    {m.nome}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.idMotorista && (
+                <Typography variant="caption" color="error" sx={{ ml: 2 }}>
+                  {errors.idMotorista}
+                </Typography>
+              )}
+            </FormControl>
+
         </Box>
+
+
         )}
         
 
@@ -296,7 +462,7 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
             disabled={
               loading ||
               !descricao.trim() ||
-              !dataOcorrencia ||
+              (!cadastroMotorista && !dataOcorrencia) ||
               !!successMessage
             }
           >
