@@ -140,6 +140,8 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
         enviadoMotorista = false;
       }
 
+      console.log(enviadoMotorista);
+
       const formData = new FormData();
       formData.append("descricao", descricao.trim());
       formData.append("idCorrida", corrida.idCorrida.toString());
@@ -385,7 +387,7 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
                     <Typography
                       variant="caption"
                       color="text.secondary"
-                      sx={{ display: "block", mt: 1 }}
+                      sx={{ display: "block", mt: 1, mb: 3 }}
                     >
                       Formatos permitidos: PDF, JPG, JPEG, PNG, DOC, DOCX (Máx: {MAX_FILE_SIZE_MB}MB)
                     </Typography>
