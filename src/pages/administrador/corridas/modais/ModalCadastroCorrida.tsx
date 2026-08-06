@@ -267,9 +267,11 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
         idCarro: carro.idCarro,
       };
 
+      
+      await createCorrida(corridaParaEnviar);
+
       await CarroService.atualizarSituacaoCarro(carro.idCarro, "RESERVADO");
 
-      await createCorrida(corridaParaEnviar);
 
       const mensagem = "Corrida registrada com sucesso!";
   
