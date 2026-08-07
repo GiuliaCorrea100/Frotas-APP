@@ -54,18 +54,31 @@ export class OcorrenciaService {
   //   }
   // }
 
-  static async criar(formData: FormData): Promise<any> {
-    try {
-      const response = await axiosConnect.post("/ocorrencia", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      return response.data;
-    } catch (error) {
-      console.error("Erro ao cadastrar ocorrencia com arquivo:", error);
-      throw error;
-    }
+  static async criar(payload: any): Promise<any> {
+  try {
+    const response = await axiosConnect.post("/ocorrencia", payload, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao cadastrar ocorrencia: ", error);
+    throw error;
+  }
+}
+
+  static async salvarArquivosOcorrencia( idOcorrencia: number, FormData: FormData):Promise<any>{
+    const response = await axiosConnect.post(
+          `/ocorrencia/upload/${idOcorrencia}`,
+          FormData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        );
+    return response.data;
   }
 
   static async buscarPorCorrida(idCorrida: number): Promise<OcorrenciaDto[]> {
