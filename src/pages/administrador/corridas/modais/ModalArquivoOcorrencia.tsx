@@ -19,16 +19,8 @@ import {
   Image,
 } from "@mui/icons-material";
 import { modalStyle } from "../../../../utils/modalStyle";
-import { CorridaVistoriaService } from "../../../../services/CorridaVistoriaService";
 import { ArquivoOcorrenciaDto, OcorrenciaDto, OcorrenciaService } from "../../../../services/OcorrenciaService";
 
-// Interface para as fotos da vistoria
-// export interface FotoVistoriaDto {
-//   idCorridaVistoriaFoto: number;
-//   idCorridaVistoria: number;
-//   urlArquivo: string;
-//   dataUpload: Date;
-// }
 
 type ModalArquivoOcorrenciaProps = {
   open: boolean;

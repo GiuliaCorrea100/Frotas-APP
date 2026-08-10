@@ -35,7 +35,7 @@ import {
   removerPercurso,
 } from "../../../services/PercursoService";
 
-import { Add, PersonAdd, PersonOutlineOutlined } from "@mui/icons-material";
+import { Add, PersonAdd,} from "@mui/icons-material";
 import { Abastecimento } from "../../../services/AbastecimentoService";
 import AbastecimentoService from "../../../services/AbastecimentoService";
 import ModalEditarOcorrencia from "./modais/ModalEdicaoOcorrencia";
