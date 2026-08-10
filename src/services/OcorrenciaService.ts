@@ -20,6 +20,13 @@ interface OcorrenciaBackend {
   ativa?: boolean;
 }
 
+export interface ArquivoOcorrenciaDto {
+  idArquivoOcorrencia?: number;
+  idOcorrencia: number,
+  urlArquivo: string;
+  dataUpload: Date;
+}
+
 export class OcorrenciaService {
   static async buscarTodos(): Promise<OcorrenciaDto[]> {
     try {
@@ -80,6 +87,20 @@ export class OcorrenciaService {
         );
     return response.data;
   }
+
+  static async buscarArquivosOcorrencia(idOcorrencia: number): Promise<ArquivoOcorrenciaDto[]> {
+  try {
+    const response = await axiosConnect.get(`/ocorrencia/arquivos/${idOcorrencia}`);
+
+    return response.data.map((arquivo: ArquivoOcorrenciaDto) => ({
+      ...arquivo,
+      urlArquivo: `${axiosConnect.defaults.baseURL}${arquivo.urlArquivo}`,
+    }));
+  } catch (error) {
+    console.error('Erro ao buscar fotos da vistoria:', error);
+    return [];
+  }
+}
 
   static async buscarPorCorrida(idCorrida: number): Promise<OcorrenciaDto[]> {
     try {

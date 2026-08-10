@@ -48,9 +48,9 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
   const [successMessage, setSuccessMessage] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [idMotorista, setIdMotorista] = useState<number | undefined>(cadastroMotorista);
-  const [arquivoSelecionado, setArquivoSelecionado] = useState<File | null>(
-      null
-    );
+  // const [arquivoSelecionado, setArquivoSelecionado] = useState<File | null>(
+  //     null
+  //   );
   const [fileError, setFileError] = useState<string | null>(null);
   const [arquivosSelecionados, setArquivosSelecionados] = useState<File[]>([]);
 
@@ -220,25 +220,25 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
       return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
     };
   
-    const validateFileExtension = (file: File): boolean => {
-      const extension = file.name.split(".").pop()?.toLowerCase();
-      if (!extension || !allowedExtensions.includes(extension)) {
-        setFileError(
-          `Formato de arquivo não permitido. Extensões permitidas: ${allowedExtensions.join(
-            ", "
-          )}`
-        );
-        return false;
-      }
+    // const validateFileExtension = (file: File): boolean => {
+    //   const extension = file.name.split(".").pop()?.toLowerCase();
+    //   if (!extension || !allowedExtensions.includes(extension)) {
+    //     setFileError(
+    //       `Formato de arquivo não permitido. Extensões permitidas: ${allowedExtensions.join(
+    //         ", "
+    //       )}`
+    //     );
+    //     return false;
+    //   }
   
-      if (file.size > MAX_FILE_SIZE_BYTES) {
-        setFileError(`Arquivo muito grande. Tamanho máximo: ${MAX_FILE_SIZE_MB}MB`);
-        return false;
-      }
+    //   if (file.size > MAX_FILE_SIZE_BYTES) {
+    //     setFileError(`Arquivo muito grande. Tamanho máximo: ${MAX_FILE_SIZE_MB}MB`);
+    //     return false;
+    //   }
   
-      setFileError(null);
-      return true;
-    };
+    //   setFileError(null);
+    //   return true;
+    // };
   
     const handleFileSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
@@ -349,12 +349,12 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
                             },
                           }}
                         >
-                          Anexar Fotos {arquivosSelecionados.length === 0 && "*"}
+                          Anexar Arquivos {arquivosSelecionados.length === 0 && "*"}
                           <input
                             type="file"
                             multiple
                             hidden
-                            accept=".jpg,.jpeg,.png"
+                            accept=" .pdf, .jpg,.jpeg,.png"
                             onChange={handleFileSelection}
                           />
                         </Button>
