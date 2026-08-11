@@ -7,40 +7,18 @@ import {
   StyleSheet,
   pdf,
 } from "@react-pdf/renderer";
-import { Button, useTheme } from "@mui/material";
+import { Button, useTheme, CircularProgress } from "@mui/material";
 import { Download } from "@mui/icons-material";
 import { CorridaFrontend } from "../../services/CorridaService";
 import { formatDate } from "../../utils/formatDate";
 
 const styles = StyleSheet.create({
-  page: {
-    padding: 30,
-    fontFamily: "Helvetica",
-  },
-  header: {
-    marginBottom: 20,
-    paddingBottom: 10,
-    borderBottom: "1px solid #e0e0e0",
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  subtitle: {
-    fontSize: 10,
-    color: "#666",
-    marginBottom: 3,
-  },
-  section: {
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: "bold",
-    marginBottom: 8,
-    color: "#1976d2",
-  },
+  page: { padding: 30, fontFamily: "Helvetica" },
+  header: { marginBottom: 20, paddingBottom: 10, borderBottom: "1px solid #e0e0e0" },
+  title: { fontSize: 18, fontWeight: "bold", marginBottom: 5 },
+  subtitle: { fontSize: 10, color: "#666", marginBottom: 3 },
+  section: { marginBottom: 20 },
+  sectionTitle: { fontSize: 12, fontWeight: "bold", marginBottom: 8, color: "#1976d2" },
   cardSummary: {
     padding: 10,
     backgroundColor: "#f5f5f5",
@@ -49,39 +27,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  summaryItem: {
-    fontSize: 10,
-  },
-  summaryLabel: {
-    color: "#666",
-    fontSize: 9,
-  },
-  summaryValue: {
-    fontWeight: "bold",
-    fontSize: 12,
-  },
-  table: {
-    width: "100%",
-    border: "1px solid #e0e0e0",
-    fontSize: 8,
-  },
-  tableRow: {
-    flexDirection: "row",
-    borderBottom: "1px solid #e0e0e0",
-  },
-  tableHeader: {
-    backgroundColor: "#f5f5f5",
-    fontWeight: "bold",
-  },
-  tableCell: {
-    padding: 6,
-    flex: 1,
-    borderRight: "1px solid #e0e0e0",
-  },
-  lastTableCell: {
-    padding: 6,
-    flex: 1,
-  },
+  summaryItem: { fontSize: 10 },
+  summaryLabel: { color: "#666", fontSize: 9 },
+  summaryValue: { fontWeight: "bold", fontSize: 12 },
+  table: { width: "100%", border: "1px solid #e0e0e0", fontSize: 8 },
+  tableRow: { flexDirection: "row", borderBottom: "1px solid #e0e0e0" },
+  tableHeader: { backgroundColor: "#f5f5f5", fontWeight: "bold" },
+  tableCell: { padding: 6, flex: 1, borderRight: "1px solid #e0e0e0" },
+  lastTableCell: { padding: 6, flex: 1 },
   footer: {
     position: "absolute",
     bottom: 20,
@@ -97,9 +50,7 @@ interface RelatorioHistoricoProps {
   corridas: CorridaFrontend[];
 }
 
-const RelatorioHistoricoMotoristaPDF: React.FC<RelatorioHistoricoProps> = ({
-  corridas,
-}) => {
+const RelatorioHistoricoMotoristaPDFDocument: React.FC<RelatorioHistoricoProps> = ({ corridas }) => {
   const totalCorridas = corridas.length;
   const finalizadas = corridas.filter((c) => c.situacao === "FINALIZADA").length;
   const emAndamento = corridas.filter((c) => c.situacao === "ANDAMENTO").length;
@@ -192,23 +143,22 @@ export const ExportarHistoricoMotoristaPDF: React.FC<{
 
     setIsGenerating(true);
     try {
-      const blob = await pdf(
-        <RelatorioHistoricoMotoristaPDF corridas={corridas} />
-      ).toBlob();
+      const doc = <RelatorioHistoricoMotoristaPDFDocument corridas={corridas} />;
+      const blob = await pdf(doc).toBlob();
 
       const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `historico_corridas_motorista_${
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `historico_corridas_motorista_${
         new Date().toISOString().split("T")[0]
       }.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Erro ao gerar PDF do histórico:", error);
-      alert("Ocorreu um erro ao gerar o PDF do histórico.");
+      alert("Erro ao gerar o histórico em PDF.");
     } finally {
       setIsGenerating(false);
     }
@@ -220,7 +170,9 @@ export const ExportarHistoricoMotoristaPDF: React.FC<{
       color="primary"
       onClick={handleExport}
       disabled={isGenerating || disabled || corridas.length === 0}
-      startIcon={<Download />}
+      startIcon={
+        isGenerating ? <CircularProgress size={18} color="inherit" /> : <Download />
+      }
       sx={{
         textTransform: "none",
         fontWeight: 600,
@@ -228,7 +180,7 @@ export const ExportarHistoricoMotoristaPDF: React.FC<{
         height: "38px",
       }}
     >
-      {isGenerating ? "Gerando PDF..." : "Exportar Histórico"}
+      {isGenerating ? "Gerando PDF..." : "Exportar Histórico (PDF)"}
     </Button>
   );
 };
