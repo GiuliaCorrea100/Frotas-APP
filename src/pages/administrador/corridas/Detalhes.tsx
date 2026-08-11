@@ -35,7 +35,7 @@ import {
   removerPercurso,
 } from "../../../services/PercursoService";
 
-import { Add, PersonAdd, PersonOutlineOutlined } from "@mui/icons-material";
+import { Add, PersonAdd,} from "@mui/icons-material";
 import { Abastecimento } from "../../../services/AbastecimentoService";
 import AbastecimentoService from "../../../services/AbastecimentoService";
 import ModalEditarOcorrencia from "./modais/ModalEdicaoOcorrencia";
@@ -50,6 +50,8 @@ import ExportarCorridaPDF from "./ExportarRelatorioDetalhes";
 import { CorridaVistoriaFrontend, CorridaVistoriaService } from "../../../services/CorridaVistoriaService";
 import { ModalFotosVistoria } from "./modais/ModalFotosVistoria";
 import ModalCadastroMotoristaAdicional from "./modais/ModalCadastroMotoristaAdicional";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import { ModalArquivoOcorrencia } from "./modais/ModalArquivoOcorrencia";
 
 const DetalhesRequisicao: React.FC = () => {
   const theme = useTheme();
@@ -81,12 +83,16 @@ const DetalhesRequisicao: React.FC = () => {
   const [modalExcluirAbastecimentoAberto, setModalExcluirAbastecimentoAberto] = useState(false);
   const [modalAdicionarMotoristaAberto, setModalAdicionarMotoristaAberto] = useState(false);
   const [modalCarrosselAberto, setModalCarrosselAberto] = useState(false);
+  const [modalCarrosselOcorrenciaAberto, setModalCarrosselOcorrenciaAberto] = useState(false);
   const [vistoriaSelecionadaParaFotos, setVistoriaSelecionadaParaFotos] = useState<{
     id: Number;
     tipo: "RETIRADA" | "DEVOLUCAO";
   } | null>(null);
   const [abastecimentoSelecionado, setAbastecimentoSelecionado] = useState<Abastecimento | null>(null);
   const [ocorrenciaSelecionada, setOcorrenciaSelecionada] = useState<OcorrenciaDto | null>(null);
+
+  
+
   const [percursoSelecionado, setPercursoSelecionado] = useState<PercursoDto | null>(null);
 
   useEffect(() => {
@@ -213,6 +219,32 @@ const DetalhesRequisicao: React.FC = () => {
         const ocorrencia = params.row;
         return (
           <Box sx={{ display: "flex", gap: 1 }}>
+            <Tooltip title="Ver arquivos">
+              <span>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="small"
+                  onClick={() =>
+                    handleAbrirCarrosselOcorrencia(ocorrencia)
+                  }
+                  startIcon={<VisibilityIcon />}
+                  sx={{
+                    width: 42,
+                    height: 42,
+                    minWidth: 42,
+                    padding: 0,
+                    borderRadius: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    "& .MuiButton-startIcon": {
+                      margin: 0,
+                    },
+                  }}
+                ></Button>
+              </span>
+            </Tooltip>
             <Tooltip title="Editar ocorrência">
               <Button
                 variant="contained"
@@ -662,6 +694,17 @@ const DetalhesRequisicao: React.FC = () => {
   const handleFecharCarrossel = () => {
     setModalCarrosselAberto(false);
     setVistoriaSelecionadaParaFotos(null);
+  }
+
+  const handleAbrirCarrosselOcorrencia = (ocorrencia: OcorrenciaDto) => {
+    setOcorrenciaSelecionada(ocorrencia);
+    setModalCarrosselOcorrenciaAberto(true);
+  }
+
+  const handleFecharCarrosselOcorrencia = () => {
+    setModalCarrosselOcorrenciaAberto(false);
+    setOcorrenciaSelecionada(null);
+
   }
 
   const formatarStatusVistoria = (veiculoRecebidoSemAvarias: boolean): string => {
@@ -1701,6 +1744,15 @@ const DetalhesRequisicao: React.FC = () => {
           modalLoading={loading}
           idCorridaVistoria={vistoriaSelecionadaParaFotos?.id as number || 0}
           tipoVistoria={vistoriaSelecionadaParaFotos?.tipo || "RETIRADA"}
+        />
+      )}
+
+      {modalCarrosselOcorrenciaAberto && (
+        <ModalArquivoOcorrencia 
+        open={modalCarrosselOcorrenciaAberto} 
+        onClose={handleFecharCarrosselOcorrencia} 
+        modalLoading={loading} 
+        ocorrencia={ocorrenciaSelecionada}
         />
       )}
 

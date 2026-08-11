@@ -20,6 +20,13 @@ interface OcorrenciaBackend {
   ativa?: boolean;
 }
 
+export interface ArquivoOcorrenciaDto {
+  idArquivoOcorrencia?: number;
+  idOcorrencia: number,
+  urlArquivo: string;
+  dataUpload: Date;
+}
+
 export class OcorrenciaService {
   static async buscarTodos(): Promise<OcorrenciaDto[]> {
     try {
@@ -40,33 +47,46 @@ export class OcorrenciaService {
     }
   }
 
-  // static async criar(dados: OcorrenciaBackend): Promise<void> {
-  //   try {
-  //     const token = localStorage.getItem("token");
-  //     await axiosConnect.post("/ocorrencia", dados, {
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //     });
-  //   } catch (err) {
-  //     console.error("Erro ao salvar ocorrência:", err);
-  //     throw err;
-  //   }
-  // }
-
-  static async criar(formData: FormData): Promise<any> {
-    try {
-      const response = await axiosConnect.post("/ocorrencia", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      return response.data;
-    } catch (error) {
-      console.error("Erro ao cadastrar ocorrencia com arquivo:", error);
-      throw error;
-    }
+  static async criar(payload: any): Promise<any> {
+  try {
+    const response = await axiosConnect.post("/ocorrencia", payload, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao cadastrar ocorrencia: ", error);
+    throw error;
   }
+}
+
+  static async salvarArquivosOcorrencia( idOcorrencia: number, FormData: FormData):Promise<any>{
+    const response = await axiosConnect.post(
+          `/ocorrencia/upload/${idOcorrencia}`,
+          FormData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        );
+    return response.data;
+  }
+
+  static async buscarArquivosOcorrencia(idOcorrencia: number): Promise<ArquivoOcorrenciaDto[]> {
+  try {
+    const response = await axiosConnect.get(`/ocorrencia/arquivos/${idOcorrencia}`);
+
+    return response.data.map((arquivo: ArquivoOcorrenciaDto) => ({
+      ...arquivo,
+      urlArquivo: `${axiosConnect.defaults.baseURL}${arquivo.urlArquivo}`,
+    }));
+  } catch (error) {
+    console.error('Erro ao buscar fotos da vistoria:', error);
+    return [];
+  }
+}
 
   static async buscarPorCorrida(idCorrida: number): Promise<OcorrenciaDto[]> {
     try {

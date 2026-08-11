@@ -48,10 +48,11 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
   const [successMessage, setSuccessMessage] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [idMotorista, setIdMotorista] = useState<number | undefined>(cadastroMotorista);
-  const [arquivoSelecionado, setArquivoSelecionado] = useState<File | null>(
-      null
-    );
+  // const [arquivoSelecionado, setArquivoSelecionado] = useState<File | null>(
+  //     null
+  //   );
   const [fileError, setFileError] = useState<string | null>(null);
+  const [arquivosSelecionados, setArquivosSelecionados] = useState<File[]>([]);
 
   const dataMinima = corrida?.dataHoraLiberacaoChave
     ? new Date(corrida.dataHoraLiberacaoChave)
@@ -114,7 +115,7 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
+ const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     if (!validateForm()) return;
@@ -136,27 +137,31 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
         dataOcorrenciaFormatada.setHours(0, 0, 0, 0);
 
         motorista = idMotorista;
-
         enviadoMotorista = false;
       }
 
       console.log(enviadoMotorista);
 
-      const formData = new FormData();
-      formData.append("descricao", descricao.trim());
-      formData.append("idCorrida", corrida.idCorrida.toString());
-      formData.append("dataOcorrencia", dataOcorrenciaFormatada.toISOString());
-      formData.append("enviadoMotorista", enviadoMotorista.toString());
+      const payload = {
+        descricao: descricao.trim(),
+        idCorrida: corrida.idCorrida,
+        dataOcorrencia: dataOcorrenciaFormatada.toISOString(),
+        enviadoMotorista: enviadoMotorista,
+        idMotorista: motorista
+      };
 
-      if (motorista !== undefined) {
-        formData.append("idMotorista", motorista.toString());
+      const response = await OcorrenciaService.criar(payload);
+      console.log(response.idOcorrencia);
+
+      if (arquivosSelecionados.length > 0) {
+        const formData = new FormData();
+        arquivosSelecionados.forEach((file) => {
+          formData.append('files', file);
+        });
+
+        console.log("salvando foto");
+        await OcorrenciaService.salvarArquivosOcorrencia(response.idOcorrencia, formData);
       }
-
-      if (arquivoSelecionado) {
-        formData.append("arquivo", arquivoSelecionado);
-      }
-
-      await OcorrenciaService.criar(formData);
 
       const mensagem = "Ocorrência cadastrada com sucesso!";
 
@@ -215,42 +220,55 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
       return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
     };
   
-    const validateFileExtension = (file: File): boolean => {
-      const extension = file.name.split(".").pop()?.toLowerCase();
-      if (!extension || !allowedExtensions.includes(extension)) {
-        setFileError(
-          `Formato de arquivo não permitido. Extensões permitidas: ${allowedExtensions.join(
-            ", "
-          )}`
-        );
-        return false;
-      }
+    // const validateFileExtension = (file: File): boolean => {
+    //   const extension = file.name.split(".").pop()?.toLowerCase();
+    //   if (!extension || !allowedExtensions.includes(extension)) {
+    //     setFileError(
+    //       `Formato de arquivo não permitido. Extensões permitidas: ${allowedExtensions.join(
+    //         ", "
+    //       )}`
+    //     );
+    //     return false;
+    //   }
   
-      if (file.size > MAX_FILE_SIZE_BYTES) {
-        setFileError(`Arquivo muito grande. Tamanho máximo: ${MAX_FILE_SIZE_MB}MB`);
-        return false;
-      }
+    //   if (file.size > MAX_FILE_SIZE_BYTES) {
+    //     setFileError(`Arquivo muito grande. Tamanho máximo: ${MAX_FILE_SIZE_MB}MB`);
+    //     return false;
+    //   }
   
-      setFileError(null);
-      return true;
-    };
+    //   setFileError(null);
+    //   return true;
+    // };
   
     const handleFileSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const files = event.target.files;
-      if (!files || files.length === 0) return;
-  
-      const file = files[0];
-  
-      if (validateFileExtension(file)) {
-        setArquivoSelecionado(file);
-      }
-  
-      event.target.value = "";
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
+    
+        const newFiles = Array.from(files);
+        
+        const invalidFiles = newFiles.filter(file => {
+          const extension = file.name.split('.').pop()?.toLowerCase();
+          return !extension || !allowedExtensions.includes(extension);
+        });
+    
+        if (invalidFiles.length > 0) {
+          setFileError('Formato de arquivo inválido. Apenas arquivos JPG, JPEG, PNG são permitidos.');
+          return;
+        }
+    
+        const oversizedFiles = newFiles.filter(file => file.size > MAX_FILE_SIZE_BYTES);
+        if (oversizedFiles.length > 0) {
+          setFileError(`Arquivo(s) muito grande(s). Tamanho máximo: ${MAX_FILE_SIZE_MB}MB`);
+          return;
+        }
+    
+        setArquivosSelecionados(prev => [...prev, ...newFiles]);
+        setFileError(null); 
+        event.target.value = '';
     };
   
-    const handleRemoveFile = () => {
-      setArquivoSelecionado(null);
-      setFileError(null);
+    const handleRemoveFile = (index: number) => {
+      setArquivosSelecionados(prev => prev.filter((_, i) => i !== index));
     };
 
 
@@ -315,83 +333,87 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
           />
         </Box>
 
-        <Box sx={{ flex: "1 1 100%", mt: 2 }}>
-                    <Button
-                      component="label"
-                      variant="outlined"
-                      startIcon={<AttachFileIcon />}
-                      disabled={loading}
-                      sx={{
-                        mr: 2,
-                        color: "text.primary",
-                        borderColor: "divider",
-                        "&:hover": {
-                          borderColor: "text.secondary",
-                          backgroundColor: "action.hover",
-                        },
-                      }}
-                    >
-                      Anexar Documentos
-                      <input
-                        type="file"
-                        hidden
-                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                        onChange={handleFileSelection}
-                      />
-                    </Button>
-        
-                    {arquivoSelecionado && (
-                      <Box sx={{ mt: 2 }}>
-                        <Typography variant="subtitle2" gutterBottom color="textPrimary">
-                          Arquivo selecionado:
-                        </Typography>
-                        <Box
+        <Box sx={{ mt: 1 }}>
+                        <Button
+                          component="label"
+                          variant="outlined"
+                          startIcon={<AttachFileIcon />}
+                          disabled={loading}
                           sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            mb: 1,
-                            p: 2,
-                            backgroundColor: "action.hover",
-                            borderRadius: 1,
-                            border: "1px solid",
+                            mr: 2,
+                            color: "text.primary",
                             borderColor: "divider",
+                            "&:hover": {
+                              borderColor: "text.secondary",
+                              backgroundColor: "action.hover",
+                            },
                           }}
                         >
-                          <Box>
-                            <Typography variant="body2" fontWeight="medium" color="text.primary">
-                              {arquivoSelecionado.name}
+                          Anexar Arquivos {arquivosSelecionados.length === 0 && "*"}
+                          <input
+                            type="file"
+                            multiple
+                            hidden
+                            accept=" .pdf, .jpg,.jpeg,.png"
+                            onChange={handleFileSelection}
+                          />
+                        </Button>
+        
+                        {arquivosSelecionados.length > 0 && (
+                          <Box sx={{ mt: 2 }}>
+                            <Typography variant="subtitle2" gutterBottom color="text.primary">
+                              Arquivos selecionados ({arquivosSelecionados.length}):
                             </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {formatFileSize(arquivoSelecionado.size)}
-                            </Typography>
+                            {arquivosSelecionados.map((file, index) => (
+                              <Box
+                                key={index}
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  mb: 1,
+                                  p: 1.5,
+                                  backgroundColor: "action.hover",
+                                  borderRadius: 1,
+                                  border: "1px solid",
+                                  borderColor: "divider",
+                                }}
+                              >
+                                <Box>
+                                  <Typography variant="body2" fontWeight="medium" color="text.primary">
+                                    {file.name}
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary">
+                                    {formatFileSize(file.size)}
+                                  </Typography>
+                                </Box>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleRemoveFile(index)}
+                                  color="error"
+                                  disabled={loading}
+                                >
+                                  <Close fontSize="small" />
+                                </IconButton>
+                              </Box>
+                            ))}
                           </Box>
-                          <IconButton
-                            size="small"
-                            onClick={handleRemoveFile}
-                            color="error"
-                            disabled={loading}
-                          >
-                            <Close fontSize="small" />
-                          </IconButton>
-                        </Box>
+                        )}
+        
+                        {fileError && (
+                          <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                            {fileError}
+                          </Typography>
+                        )}
+        
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ display: "block", mt: 1, mb: 4 }}
+                        >
+                          Formatos permitidos: JPG, JPEG, PNG (Máx: {MAX_FILE_SIZE_MB}MB por arquivo)
+                        </Typography>
                       </Box>
-                    )}
-        
-                    {fileError && (
-                      <Typography variant="body2" color="error" sx={{ mt: 1 }}>
-                        {fileError}
-                      </Typography>
-                    )}
-        
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ display: "block", mt: 1, mb: 3 }}
-                    >
-                      Formatos permitidos: PDF, JPG, JPEG, PNG, DOC, DOCX (Máx: {MAX_FILE_SIZE_MB}MB)
-                    </Typography>
-                  </Box>
 
         
         
