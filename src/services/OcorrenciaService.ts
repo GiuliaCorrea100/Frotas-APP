@@ -47,20 +47,6 @@ export class OcorrenciaService {
     }
   }
 
-  // static async criar(dados: OcorrenciaBackend): Promise<void> {
-  //   try {
-  //     const token = localStorage.getItem("token");
-  //     await axiosConnect.post("/ocorrencia", dados, {
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //     });
-  //   } catch (err) {
-  //     console.error("Erro ao salvar ocorrência:", err);
-  //     throw err;
-  //   }
-  // }
-
   static async criar(payload: any): Promise<any> {
   try {
     const response = await axiosConnect.post("/ocorrencia", payload, {
