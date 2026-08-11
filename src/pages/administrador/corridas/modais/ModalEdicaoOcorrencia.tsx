@@ -60,6 +60,7 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
   const [idMotorista, setIdMotorista] = useState<number | "">("");
   const [arquivosExistentes, setArquivosExistentes] = useState<ArquivoOcorrenciaDto[]>([]);
   const [arquivosSelecionados, setArquivosSelecionados] = useState<File[]>([]);
+  // const [arquivosSelecionadosExcluir, set]
 
   const [fileError, setFileError] = useState<string | null>(null);
 
