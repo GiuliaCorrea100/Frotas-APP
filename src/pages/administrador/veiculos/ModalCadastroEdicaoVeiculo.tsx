@@ -54,7 +54,7 @@ const ModalCadastroEdicaoVeiculo: React.FC<ModalCadastroEdicaoVeiculoProps> = ({
   const [placa, setPlaca] = useState<string>("");
   const [odometro, setOdometro] = useState<string>("");
   const [modelo, setModelo] = useState<string>("");
-  const [ano, setAno] = useState<number | null>(null); // ALTERADO: Inicializado como null
+  const [ano, setAno] = useState<number | null>(null);
   const [tombo, setTombo] = useState<string>("");
   const [localidadeFisica, setLocalidadeFisica] = useState<string>("");
   const [tipoCombustivelSelecionado, setTipoCombustivelSelecionado] =
@@ -141,7 +141,7 @@ const ModalCadastroEdicaoVeiculo: React.FC<ModalCadastroEdicaoVeiculoProps> = ({
     setPlaca(veiculo.placa || "");
     setOdometro(veiculo.odometro?.toString() || "");
     setModelo(veiculo.modelo || "");
-    setAno(veiculo.ano || null); // ALTERADO: Preenche com null se for 0/falsy
+    setAno(veiculo.ano || null);
     setTombo(veiculo.tombo?.toString() || "");
     setLocalidadeFisica(veiculo.localidadeFisica || "");
     setArquivoAtualUrl(veiculo.urlCrlv || null);
@@ -251,7 +251,7 @@ const ModalCadastroEdicaoVeiculo: React.FC<ModalCadastroEdicaoVeiculoProps> = ({
         setModelo(value.toUpperCase());
         break;
       case "ano":
-        setAno(value === "" ? null : Number(value)); // ALTERADO: Trata string vazia como null
+        setAno(value === "" ? null : Number(value));
         break;
       case "tombo":
         setTombo(value);
@@ -272,7 +272,7 @@ const ModalCadastroEdicaoVeiculo: React.FC<ModalCadastroEdicaoVeiculoProps> = ({
     if (!odometro || parseFloat(odometro) < 0)
       newErrors.odometro = "Odômetro é obrigatório e deve ser um valor válido.";
     if (!modelo) newErrors.modelo = "Modelo é obrigatório.";
-    if (ano === null || ano === 0) newErrors.ano = "Ano é obrigatório."; // ALTERADO: Verifica se é null ou 0
+    if (ano === null || ano === 0) newErrors.ano = "Ano é obrigatório.";
     if (!tombo) newErrors.tombo = "Tombo é obrigatório.";
     if (!localidadeFisica)
       newErrors.localidadeFisica = "Localidade Física é obrigatória.";
@@ -291,6 +291,8 @@ const ModalCadastroEdicaoVeiculo: React.FC<ModalCadastroEdicaoVeiculoProps> = ({
     setIsSubmitting(true);
     setLoading(true);
 
+    const tomboLimpo = tombo.trim().replace(/\D/g, "");
+
     try {
       if (modoEdicao && idVeiculo) {
         const dadosVeiculo: CarroDto = {
@@ -298,7 +300,7 @@ const ModalCadastroEdicaoVeiculo: React.FC<ModalCadastroEdicaoVeiculoProps> = ({
           odometro: odometro,
           modelo,
           ano: ano as number,
-          tombo: Number(tombo),
+          tombo: Number(tomboLimpo),
           qrCode: "",
           localidadeFisica: localidadeFisica,
           ativo: true,
@@ -320,7 +322,7 @@ const ModalCadastroEdicaoVeiculo: React.FC<ModalCadastroEdicaoVeiculoProps> = ({
           formData.append("odometro", odometro);
           formData.append("modelo", modelo);
           formData.append("ano", (ano as number).toString());
-          formData.append("tombo", tombo);
+          formData.append("tombo", tomboLimpo);
           formData.append("localidadeFisica", localidadeFisica);
           formData.append("ativo", "true");
           formData.append(
@@ -336,7 +338,7 @@ const ModalCadastroEdicaoVeiculo: React.FC<ModalCadastroEdicaoVeiculoProps> = ({
             odometro: odometro,
             modelo,
             ano: ano as number,
-            tombo: Number(tombo),
+            tombo: Number(tomboLimpo),
             qrCode: "",
             localidadeFisica: localidadeFisica,
             ativo: true,
@@ -538,9 +540,7 @@ const ModalCadastroEdicaoVeiculo: React.FC<ModalCadastroEdicaoVeiculoProps> = ({
             </FormControl>
           </Box>
 
-          {/* PARTE DE ANEXO DE CRLV SEGUINDO EXATAMENTE O PADRÃO DE MULTAS */}
           {modoEdicao ? (
-            /* Layout de Edição (estilo EditarMultaModal) */
             <Box
               sx={{
                 flex: "1 1 100%",
@@ -615,7 +615,6 @@ const ModalCadastroEdicaoVeiculo: React.FC<ModalCadastroEdicaoVeiculoProps> = ({
               )}
             </Box>
           ) : (
-            /* Layout de Cadastro (estilo CadastroMultaModal) */
             <Box sx={{ flex: "1 1 100%", mt: 1 }}>
               <Button
                 component="label"
