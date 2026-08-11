@@ -9,7 +9,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
-import { Warning, Visibility } from "@mui/icons-material";
+import { Visibility } from "@mui/icons-material";
 import { CorridaFrontend, getCorridas } from "../../services/CorridaService";
 import {
   buscarPercursosDaCorrida,
@@ -25,7 +25,8 @@ import { decodeToken } from "../../utils/jwtDecodeHelper";
 import { useAuth } from "../../context/AuthContext";
 import AppLayout from "../../components/Layout";
 import BemVindo from "../BemVindo";
-import { MultaService } from "../../services/MultaService";
+import { ExportarHistoricoMotoristaPDF } from "./ExportarHistoricoMotoristaPDF";
+import { BotaoExportarCorridaIndividual } from "./BotaoExportarCorridaIndividual";
 
 const situacaoMap = {
   AGENDADA: "info",
@@ -81,11 +82,12 @@ export default function HistoricoIndividual() {
     setModalLoading(true);
 
     try {
-      const [percursosCorrida, abastecimentosCorrida, ocorrenciasCorrida, ] = await Promise.all([
-        buscarPercursosDaCorrida(corrida.idCorrida),
-        AbastecimentoService.buscarPorCorrida(corrida.idCorrida),
-        OcorrenciaService.buscarPorCorrida(corrida.idCorrida),
-      ]);
+      const [percursosCorrida, abastecimentosCorrida, ocorrenciasCorrida] =
+        await Promise.all([
+          buscarPercursosDaCorrida(corrida.idCorrida),
+          AbastecimentoService.buscarPorCorrida(corrida.idCorrida),
+          OcorrenciaService.buscarPorCorrida(corrida.idCorrida),
+        ]);
       setPercursos(percursosCorrida);
       setAbastecimentos(abastecimentosCorrida);
       setOcorrencias(ocorrenciasCorrida);
@@ -106,13 +108,13 @@ export default function HistoricoIndividual() {
     {
       field: "placaVeiculo",
       headerName: "Veículo",
-      width: 250,
+      width: 200,
       renderCell: (params) => <Typography>{params.value}</Typography>,
     },
     {
       field: "dataHoraLiberacaoChave",
       headerName: "Data/Hora Início",
-      width: 250,
+      width: 220,
       renderCell: (params) => (
         <Typography>{formatDate(params.value as string)}</Typography>
       ),
@@ -120,7 +122,7 @@ export default function HistoricoIndividual() {
     {
       field: "dataHoraRecebimentoChave",
       headerName: "Data/Hora Término",
-      width: 250,
+      width: 220,
       renderCell: (params) => (
         <Typography>{formatDate(params.value as string)}</Typography>
       ),
@@ -128,7 +130,7 @@ export default function HistoricoIndividual() {
     {
       field: "situacao",
       headerName: "Situação",
-      width: 300,
+      width: 200,
       renderCell: (params) => {
         const { label, color } = getSituacaoChipProps(params.value);
         return (
@@ -144,47 +146,52 @@ export default function HistoricoIndividual() {
     {
       field: "detalhes",
       headerName: "Ações",
-      width: 100,
+      width: 150,
       sortable: false,
       filterable: false,
       renderCell: (params) => (
-        <Tooltip title="Ver detalhes">
-          <span>
-            <Button
-              variant="contained"
-              color="primary"
-              size="small"
-              onClick={() => handleOpenDetails(params.row)}
-              startIcon={<Visibility />}
-              sx={{
-                width: 42,
-                height: 42,
-                minWidth: 42,
-                padding: 0,
-                borderRadius: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                "& .MuiButton-startIcon": {
-                  margin: 0,
-                },
-              }}
-            ></Button>
-          </span>
-        </Tooltip>
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <Tooltip title="Ver detalhes">
+            <span>
+              <Button
+                variant="contained"
+                color="primary"
+                size="small"
+                onClick={() => handleOpenDetails(params.row)}
+                startIcon={<Visibility />}
+                sx={{
+                  width: 42,
+                  height: 42,
+                  minWidth: 42,
+                  padding: 0,
+                  borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  "& .MuiButton-startIcon": {
+                    margin: 0,
+                  },
+                }}
+              />
+            </span>
+          </Tooltip>
+
+          <BotaoExportarCorridaIndividual corrida={params.row} />
+        </Box>
       ),
     },
   ];
 
   const dadosFiltrados = corridas
-    .filter((corrida) => 
-      corrida.idMotoristaPrincipal === idUsuarioLogado || 
-      corrida.motoristas?.some((m) => m.idMotorista === idUsuarioLogado)
+    .filter(
+      (corrida) =>
+        corrida.idMotoristaPrincipal === idUsuarioLogado ||
+        corrida.motoristas?.some((m) => m.idMotorista === idUsuarioLogado)
     )
     .filter((corrida) =>
       Object.values(corrida).some((valor) =>
-        String(valor).toLowerCase().includes(busca.toLowerCase()),
-      ),
+        String(valor).toLowerCase().includes(busca.toLowerCase())
+      )
     );
 
   return (
@@ -197,7 +204,7 @@ export default function HistoricoIndividual() {
         alignItems="center"
         mb={1.5}
         mx={3.5}
-        height={56}
+        minHeight={56}
       >
         <Typography
           variant="h5"
@@ -208,6 +215,11 @@ export default function HistoricoIndividual() {
         >
           Histórico de Corridas
         </Typography>
+
+        <ExportarHistoricoMotoristaPDF
+          corridas={dadosFiltrados}
+          disabled={loading}
+        />
       </Box>
 
       <Box

@@ -4,7 +4,7 @@ import axiosConnect from "./axios/axiosConnect";
 export interface CarroDto {
   idCarro?: number;
   tombo: number;
-  qrCode: string;
+  qrCode?: string;
   placa: string;
   odometro: string;
   modelo: string;
@@ -16,7 +16,9 @@ export interface CarroDto {
   ativo: boolean; // Adicionando campo ativo
   idTipoCombustivel: number | TipoCombustivel; // Pode ser um número, um objeto TipoCombustivel ou null
   nomeTipoCombustivel?: string;
+  urlCrlv?: string | null;
 }
+
 export interface TipoCombustivel {
   idTipoCombustivel?: number;
   nome: string;
@@ -38,6 +40,7 @@ export class CarroService {
 
     return resposta.data;
   }
+
   // Buscar um carro por ID
   static async buscarPorId(idCarro: number): Promise<CarroDto> {
     const resposta = await axiosConnect.get<CarroDto>(`/carro/${idCarro}`);
@@ -59,10 +62,31 @@ export class CarroService {
     return resposta.data;
   }
 
+  static async criarComArquivo(formData: FormData): Promise<CarroDto> {
+    const resposta = await axiosConnect.post<CarroDto>(`/carro/com-arquivo`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return resposta.data;
+  }
+
   // Atualizar um carro existente
   static async atualizar(id: number, carro: CarroDto): Promise<CarroDto> {
     const resposta = await axiosConnect.put<CarroDto>(`/carro/${id}`, carro);
     return resposta.data;
+  }
+
+  static async atualizarArquivoCrlv(idCarro: number, formData: FormData): Promise<void> {
+    await axiosConnect.put(`/carro/${idCarro}/arquivo`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  }
+
+  static async removerArquivoCrlv(idCarro: number): Promise<void> {
+    await axiosConnect.delete(`/carro/${idCarro}/arquivo`);
   }
 
   static async atualizarSituacaoCarro(idCarro: number, situacao: string): Promise<void> {
