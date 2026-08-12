@@ -180,7 +180,7 @@ export const ExportarHistoricoMotoristaPDF: React.FC<{
         height: "38px",
       }}
     >
-      {isGenerating ? "Gerando PDF..." : "Exportar Histórico (PDF)"}
+      {isGenerating ? "Gerando Relatório..." : "Exportar Histórico"}
     </Button>
   );
 };

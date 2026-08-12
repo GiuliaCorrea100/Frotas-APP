@@ -474,7 +474,7 @@ export const BotaoExportarCorridaIndividual: React.FC<
   };
 
   return (
-    <Tooltip title="Exportar PDF da corrida">
+    <Tooltip title="Exportar Relatório">
       <span>
         <Button
           variant="contained"

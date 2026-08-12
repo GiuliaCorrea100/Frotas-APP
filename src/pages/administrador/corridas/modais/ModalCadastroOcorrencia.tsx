@@ -30,7 +30,7 @@ interface CadastrarOcorrenciaProps {
   cadastroMotorista?: number;
 }
 
-const allowedExtensions = ["pdf", "jpg", "jpeg", "png", "doc", "docx"];
+const allowedExtensions = ["jpg", "jpeg", "png", "doc", "docx"];
 const MAX_FILE_SIZE_MB = 50;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
@@ -354,7 +354,7 @@ const CadastrarOcorrencia: React.FC<CadastrarOcorrenciaProps> = ({
                             type="file"
                             multiple
                             hidden
-                            accept=" .pdf, .jpg,.jpeg,.png"
+                            accept=" .jpg,.jpeg,.png"
                             onChange={handleFileSelection}
                           />
                         </Button>

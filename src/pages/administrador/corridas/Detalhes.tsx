@@ -46,7 +46,7 @@ import EdicaoPercursosModal from "./modais/ModalEdicaoPercurso";
 import CadastrarPercursosModal from "./modais/ModalCadastroPercurso";
 import AppLayout from "../../../components/Layout";
 import { formatDate, formatDateOnly } from "../../../utils/formatDate";
-import ExportarCorridaPDF from "./ExportarRelatorioDetalhes";
+import ExportarCorridaPDF from "./RelatorioDetalhes";
 import { CorridaVistoriaFrontend, CorridaVistoriaService } from "../../../services/CorridaVistoriaService";
 import { ModalFotosVistoria } from "./modais/ModalFotosVistoria";
 import ModalCadastroMotoristaAdicional from "./modais/ModalCadastroMotoristaAdicional";

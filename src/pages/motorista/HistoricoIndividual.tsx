@@ -25,8 +25,8 @@ import { decodeToken } from "../../utils/jwtDecodeHelper";
 import { useAuth } from "../../context/AuthContext";
 import AppLayout from "../../components/Layout";
 import BemVindo from "../BemVindo";
-import { ExportarHistoricoMotoristaPDF } from "./ExportarHistoricoMotoristaPDF";
-import { BotaoExportarCorridaIndividual } from "./BotaoExportarCorridaIndividual";
+import { ExportarHistoricoMotoristaPDF } from "./RelatorioCorridasMotorista";
+import { BotaoExportarCorridaIndividual } from "./RelatorioCorridaIndividual";
 
 const situacaoMap = {
   AGENDADA: "info",
