@@ -196,6 +196,27 @@ const VistoriaFotos = ({ fotos }: { fotos: string[] }) => {
   );
 };
 
+// Componente para fotos da Ocorrência
+const OcorrenciaFotos = ({ fotos }: { fotos: string[] }) => {
+  if (!fotos || fotos.length === 0) {
+    return (
+      <Text style={pdfStyles.noPhotoText}>
+        Nenhuma foto registrada para esta ocorrência
+      </Text>
+    );
+  }
+
+  return (
+    <View style={pdfStyles.photoGrid}>
+      {fotos.map((fotoBase64, index) => (
+        <View key={index} style={pdfStyles.photoItem}>
+          <Image src={fotoBase64} style={pdfStyles.photoImage} />
+        </View>
+      ))}
+    </View>
+  );
+};
+
 // Componente para seção da Vistoria
 const VistoriaSection = ({
   vistoria,
@@ -296,7 +317,7 @@ const RelatorioCorridaDocumento: React.FC<{
         <View style={pdfStyles.section}>
           <Text style={pdfStyles.sectionTitle}>Informações Básicas</Text>
           <View style={pdfStyles.card}>
-            {/* Motoristas saltando linha */}
+            {/* Motoristas */}
             <View style={pdfStyles.infoRow}>
               <Text style={pdfStyles.infoLabel}>Motoristas:</Text>
               <View style={{ width: "65%" }}>
@@ -394,32 +415,69 @@ const RelatorioCorridaDocumento: React.FC<{
           </View>
         )}
 
-        {/* Ocorrências */}
+        {/* Ocorrências com Cards e Fotos */}
         {ocorrencias && ocorrencias.length > 0 && (
           <View style={pdfStyles.section}>
             <Text style={pdfStyles.sectionTitle}>
               Ocorrências ({ocorrencias.length})
             </Text>
-            <View style={pdfStyles.table}>
-              <View style={[pdfStyles.tableRow, pdfStyles.tableHeader]}>
-                <Text style={pdfStyles.tableCell}>Motorista Responsável</Text>
-                <Text style={pdfStyles.tableCell}>Descrição</Text>
-                <Text style={pdfStyles.lastTableCell}>Data</Text>
-              </View>
-              {ocorrencias.map((item, idx) => (
-                <View key={idx} style={pdfStyles.tableRow}>
-                  <Text style={pdfStyles.tableCell}>
+
+            {ocorrencias.map((item: any, idx: number) => (
+              <View key={idx} style={pdfStyles.card}>
+                <Text style={pdfStyles.cardTitle}>
+                  Ocorrência {idx + 1}
+                </Text>
+
+                <View style={pdfStyles.infoRow}>
+                  <Text style={pdfStyles.infoLabel}>
+                    Motorista Responsável:
+                  </Text>
+                  <Text style={pdfStyles.infoValue}>
                     {item.nomeMotorista || "N/A"}
                   </Text>
-                  <Text style={pdfStyles.tableCell}>
-                    {item.descricao || "N/A"}
+                </View>
+
+                <View style={pdfStyles.infoRow}>
+                  <Text style={pdfStyles.infoLabel}>
+                    Data:
                   </Text>
-                  <Text style={pdfStyles.lastTableCell}>
-                    {formatDateOnly(item.dataOcorrencia)}
+                  <Text style={pdfStyles.infoValue}>
+                    {item.dataOcorrencia
+                      ? formatDateOnly(item.dataOcorrencia)
+                      : "N/A"}
                   </Text>
                 </View>
-              ))}
-            </View>
+
+                <View style={pdfStyles.infoRow}>
+                  <Text style={pdfStyles.infoLabel}>
+                    Descrição:
+                  </Text>
+                  <Text style={pdfStyles.infoValue}>
+                    {item.descricao || "N/A"}
+                  </Text>
+                </View>
+
+                {/* Fotos da ocorrência */}
+                {item.fotos && item.fotos.length > 0 ? (
+                  <View style={{ marginTop: 8 }}>
+                    <Text
+                      style={{
+                        fontSize: 9,
+                        fontWeight: "bold",
+                        marginBottom: 5,
+                      }}
+                    >
+                      Fotos da ocorrência:
+                    </Text>
+                    <OcorrenciaFotos fotos={item.fotos} />
+                  </View>
+                ) : (
+                  <Text style={pdfStyles.noPhotoText}>
+                    Nenhuma foto registrada para esta ocorrência
+                  </Text>
+                )}
+              </View>
+            ))}
           </View>
         )}
 
@@ -607,6 +665,62 @@ export const BotaoExportarCorridaIndividual: React.FC<
       const ocorrencias = Array.isArray(ocorrenciasData)
         ? ocorrenciasData
         : [ocorrenciasData];
+
+      const ocorrenciasComFotos = await Promise.all(
+        ocorrencias
+          .filter(Boolean)
+          .map(async (ocorrencia) => {
+            try {
+              const arquivos =
+                await OcorrenciaService.buscarArquivosOcorrencia(
+                  ocorrencia.idOcorrencia
+                );
+
+              const fotosBase64 = await Promise.all(
+                (arquivos || []).map(async (arquivo: any) => {
+                  try {
+                    const relativePath = arquivo.urlArquivo.replace(
+                      /^https?:\/\/[^/]+/,
+                      ""
+                    );
+
+                    const { data } = await axiosConnect.get(
+                      "/anexo/converter-png",
+                      {
+                        params: {
+                          path: relativePath,
+                        },
+                      }
+                    );
+
+                    return data.url;
+                  } catch (error) {
+                    console.error(
+                      `Erro ao converter foto da ocorrência ${ocorrencia.idOcorrencia}:`,
+                      error
+                    );
+                    return null;
+                  }
+                })
+              );
+
+              return {
+                ...ocorrencia,
+                fotos: fotosBase64.filter(Boolean),
+              };
+            } catch (error) {
+              console.error(
+                `Erro ao buscar fotos da ocorrência ${ocorrencia.idOcorrencia}:`,
+                error
+              );
+              return {
+                ...ocorrencia,
+                fotos: [],
+              };
+            }
+          })
+      );
+
       const abastecimentos = Array.isArray(abastecimentosData)
         ? abastecimentosData
         : [abastecimentosData];
@@ -651,7 +765,7 @@ export const BotaoExportarCorridaIndividual: React.FC<
       const doc = (
         <RelatorioCorridaDocumento
           corrida={corrida}
-          ocorrencias={ocorrencias.filter(Boolean)}
+          ocorrencias={ocorrenciasComFotos}
           abastecimentos={abastecimentos.filter(Boolean)}
           percursos={percursos.filter(Boolean)}
           vistorias={vistoriasComFotos}
