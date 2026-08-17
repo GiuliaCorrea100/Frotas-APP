@@ -638,6 +638,118 @@ const RelatorioCorridaDocumento: React.FC<{
   );
 };
 
+export const gerarRelatorioCorridaIndividual = async (corrida: CorridaFrontend) => {
+  const [percursosData, abastecimentosData, ocorrenciasData, vistoriasData] =
+    await Promise.all([
+      buscarPercursosDaCorrida(corrida.idCorrida).catch(() => []),
+      AbastecimentoService.buscarPorCorrida(corrida.idCorrida).catch(() => []),
+      OcorrenciaService.buscarPorCorrida(corrida.idCorrida).catch(() => []),
+      CorridaVistoriaService.buscarVistoria(corrida.idCorrida).catch(() => []),
+    ]);
+
+  const ocorrencias = Array.isArray(ocorrenciasData)
+    ? ocorrenciasData
+    : [ocorrenciasData];
+
+  const ocorrenciasComFotos = await Promise.all(
+    ocorrencias.filter(Boolean).map(async (ocorrencia) => {
+      try {
+        const arquivos = await OcorrenciaService.buscarArquivosOcorrencia(
+          ocorrencia.idOcorrencia
+        );
+
+        const fotosBase64 = await Promise.all(
+          (arquivos || []).map(async (arquivo: any) => {
+            try {
+              const relativePath = arquivo.urlArquivo.replace(/^https?:\/\/[^/]+/, "");
+              const { data } = await axiosConnect.get("/anexo/converter-png", {
+                params: { path: relativePath },
+              });
+              return data.url;
+            } catch (error) {
+              console.error(
+                `Erro ao converter foto da ocorrência ${ocorrencia.idOcorrencia}:`,
+                error
+              );
+              return null;
+            }
+          })
+        );
+
+        return {
+          ...ocorrencia,
+          fotos: fotosBase64.filter(Boolean),
+        };
+      } catch (error) {
+        console.error(
+          `Erro ao buscar fotos da ocorrência ${ocorrencia.idOcorrencia}:`,
+          error
+        );
+        return {
+          ...ocorrencia,
+          fotos: [],
+        };
+      }
+    })
+  );
+
+  const abastecimentos = Array.isArray(abastecimentosData)
+    ? abastecimentosData
+    : [abastecimentosData];
+  const percursos = Array.isArray(percursosData)
+    ? percursosData
+    : [percursosData];
+  let vistoriasComFotos = Array.isArray(vistoriasData)
+    ? vistoriasData
+    : [vistoriasData];
+
+  vistoriasComFotos = vistoriasComFotos.filter(Boolean);
+
+  for (const vistoria of vistoriasComFotos) {
+    if (!vistoria.veiculoRecebidoSemAvarias && vistoria.idCorridaVistoria) {
+      try {
+        const fotos = await CorridaVistoriaService.buscarFotosVistoria(
+          vistoria.idCorridaVistoria
+        );
+        const fotosBase64 = await Promise.all(
+          fotos.map(async (f) => {
+            const relativePath = f.urlArquivo.replace(/^https?:\/\/[^/]+/, "");
+            const { data } = await axiosConnect.get("/anexo/converter-png", {
+              params: { path: relativePath },
+            });
+            return data.url;
+          })
+        );
+        (vistoria as any).fotos = fotosBase64;
+      } catch (error) {
+        console.error("Erro ao buscar fotos da vistoria:", error);
+      }
+    }
+  }
+
+  const doc = (
+    <RelatorioCorridaDocumento
+      corrida={corrida}
+      ocorrencias={ocorrenciasComFotos}
+      abastecimentos={abastecimentos.filter(Boolean)}
+      percursos={percursos.filter(Boolean)}
+      vistorias={vistoriasComFotos}
+    />
+  );
+
+  const blob = await pdf(doc).toBlob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `relatorio_corrida_${corrida.idCorrida}_${
+    new Date().toISOString().split("T")[0]
+  }.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
 interface BotaoExportarCorridaIndividualProps {
   corrida: CorridaFrontend;
 }
@@ -654,136 +766,7 @@ export const BotaoExportarCorridaIndividual: React.FC<
     setLoading(true);
 
     try {
-      const [percursosData, abastecimentosData, ocorrenciasData, vistoriasData] =
-        await Promise.all([
-          buscarPercursosDaCorrida(corrida.idCorrida).catch(() => []),
-          AbastecimentoService.buscarPorCorrida(corrida.idCorrida).catch(() => []),
-          OcorrenciaService.buscarPorCorrida(corrida.idCorrida).catch(() => []),
-          CorridaVistoriaService.buscarVistoria(corrida.idCorrida).catch(() => []),
-        ]);
-
-      const ocorrencias = Array.isArray(ocorrenciasData)
-        ? ocorrenciasData
-        : [ocorrenciasData];
-
-      const ocorrenciasComFotos = await Promise.all(
-        ocorrencias
-          .filter(Boolean)
-          .map(async (ocorrencia) => {
-            try {
-              const arquivos =
-                await OcorrenciaService.buscarArquivosOcorrencia(
-                  ocorrencia.idOcorrencia
-                );
-
-              const fotosBase64 = await Promise.all(
-                (arquivos || []).map(async (arquivo: any) => {
-                  try {
-                    const relativePath = arquivo.urlArquivo.replace(
-                      /^https?:\/\/[^/]+/,
-                      ""
-                    );
-
-                    const { data } = await axiosConnect.get(
-                      "/anexo/converter-png",
-                      {
-                        params: {
-                          path: relativePath,
-                        },
-                      }
-                    );
-
-                    return data.url;
-                  } catch (error) {
-                    console.error(
-                      `Erro ao converter foto da ocorrência ${ocorrencia.idOcorrencia}:`,
-                      error
-                    );
-                    return null;
-                  }
-                })
-              );
-
-              return {
-                ...ocorrencia,
-                fotos: fotosBase64.filter(Boolean),
-              };
-            } catch (error) {
-              console.error(
-                `Erro ao buscar fotos da ocorrência ${ocorrencia.idOcorrencia}:`,
-                error
-              );
-              return {
-                ...ocorrencia,
-                fotos: [],
-              };
-            }
-          })
-      );
-
-      const abastecimentos = Array.isArray(abastecimentosData)
-        ? abastecimentosData
-        : [abastecimentosData];
-      const percursos = Array.isArray(percursosData)
-        ? percursosData
-        : [percursosData];
-      let vistoriasComFotos = Array.isArray(vistoriasData)
-        ? vistoriasData
-        : [vistoriasData];
-
-      vistoriasComFotos = vistoriasComFotos.filter(Boolean);
-
-      // Buscar imagens das vistorias que contenham avarias
-      for (const vistoria of vistoriasComFotos) {
-        if (!vistoria.veiculoRecebidoSemAvarias && vistoria.idCorridaVistoria) {
-          try {
-            const fotos = await CorridaVistoriaService.buscarFotosVistoria(
-              vistoria.idCorridaVistoria
-            );
-            const fotosBase64 = await Promise.all(
-              fotos.map(async (f) => {
-                const relativePath = f.urlArquivo.replace(
-                  /^https?:\/\/[^/]+/,
-                  ""
-                );
-                const { data } = await axiosConnect.get(
-                  "/anexo/converter-png",
-                  {
-                    params: { path: relativePath },
-                  }
-                );
-                return data.url;
-              })
-            );
-            (vistoria as any).fotos = fotosBase64;
-          } catch (error) {
-            console.error("Erro ao buscar fotos da vistoria:", error);
-          }
-        }
-      }
-
-      const doc = (
-        <RelatorioCorridaDocumento
-          corrida={corrida}
-          ocorrencias={ocorrenciasComFotos}
-          abastecimentos={abastecimentos.filter(Boolean)}
-          percursos={percursos.filter(Boolean)}
-          vistorias={vistoriasComFotos}
-        />
-      );
-
-      const blob = await pdf(doc).toBlob();
-
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `relatorio_corrida_${corrida.idCorrida}_${
-        new Date().toISOString().split("T")[0]
-      }.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      await gerarRelatorioCorridaIndividual(corrida);
     } catch (error) {
       console.error("Erro ao gerar PDF individual:", error);
       alert("Ocorreu um erro ao gerar o PDF da corrida.");

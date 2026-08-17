@@ -128,6 +128,29 @@ const RelatorioHistoricoMotoristaPDFDocument: React.FC<RelatorioHistoricoProps> 
   );
 };
 
+export const gerarRelatorioHistoricoMotoristaPDF = async (
+  corridas: CorridaFrontend[]
+) => {
+  if (!corridas || corridas.length === 0) {
+    alert("Nenhuma corrida disponível para exportação.");
+    return;
+  }
+
+  const doc = <RelatorioHistoricoMotoristaPDFDocument corridas={corridas} />;
+  const blob = await pdf(doc).toBlob();
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `historico_corridas_motorista_${
+    new Date().toISOString().split("T")[0]
+  }.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
 export const ExportarHistoricoMotoristaPDF: React.FC<{
   corridas: CorridaFrontend[];
   disabled?: boolean;
@@ -143,19 +166,7 @@ export const ExportarHistoricoMotoristaPDF: React.FC<{
 
     setIsGenerating(true);
     try {
-      const doc = <RelatorioHistoricoMotoristaPDFDocument corridas={corridas} />;
-      const blob = await pdf(doc).toBlob();
-
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `historico_corridas_motorista_${
-        new Date().toISOString().split("T")[0]
-      }.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      await gerarRelatorioHistoricoMotoristaPDF(corridas);
     } catch (error) {
       console.error("Erro ao gerar PDF do histórico:", error);
       alert("Erro ao gerar o histórico em PDF.");
