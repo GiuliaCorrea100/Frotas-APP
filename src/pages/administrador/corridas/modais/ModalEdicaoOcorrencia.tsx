@@ -13,12 +13,15 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Chip,
+  Tooltip,
 } from "@mui/material";
 
 import {
   Close,
   Warning,
-  AttachFile as AttachFileIcon,
+  Description,
+  CloudUpload,
 } from "@mui/icons-material";
 
 import {
@@ -40,7 +43,7 @@ interface ModalEditarOcorrenciaProps {
   onError: (error: any) => void;
 }
 
-const allowedExtensions = ["jpg", "jpeg", "png", "doc", "docx"];
+const allowedExtensions = ["jpg", "jpeg", "png", "doc", "docx", "pdf"];
 const MAX_FILE_SIZE_MB = 50;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
@@ -55,13 +58,14 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
   const [descricao, setDescricao] = useState("");
   const [dataOcorrencia, setDataOcorrencia] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [idMotorista, setIdMotorista] = useState<number | "">("");
+
+  // Estados de Arquivos (Padrão Veículo)
   const [arquivosExistentes, setArquivosExistentes] = useState<ArquivoOcorrenciaDto[]>([]);
   const [arquivosSelecionados, setArquivosSelecionados] = useState<File[]>([]);
-  // const [arquivosSelecionadosExcluir, set]
-
   const [fileError, setFileError] = useState<string | null>(null);
 
   const dataMinima = corrida?.dataHoraLiberacaoChave
@@ -78,11 +82,13 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
 
   dataLimite.setHours(0, 0, 0, 0);
 
-  const minDate = dataMinima
-    ? dataMinima.toISOString().slice(0, 10)
-    : undefined;
-
+  const minDate = dataMinima ? dataMinima.toISOString().slice(0, 10) : undefined;
   const maxDate = dataLimite.toISOString().slice(0, 10);
+
+  const extrairNomeArquivo = (url: string): string => {
+    if (!url) return "Arquivo";
+    return url.split("/").pop() || "Arquivo";
+  };
 
   useEffect(() => {
     const carregarDadosEdicao = async () => {
@@ -91,40 +97,30 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
 
         if (ocorrencia.dataOcorrencia) {
           let dataObj: Date;
-
           if (typeof ocorrencia.dataOcorrencia === "string") {
-            const dateString = ocorrencia.dataOcorrencia.includes("T")
-              ? ocorrencia.dataOcorrencia.split("T")[0]
+            const dateString = (ocorrencia.dataOcorrencia as string).includes("T")
+              ? (ocorrencia.dataOcorrencia as string).split("T")[0]
               : ocorrencia.dataOcorrencia;
-
             dataObj = new Date(dateString + "T00:00:00");
           } else {
             dataObj = ocorrencia.dataOcorrencia;
           }
-
           setDataOcorrencia(dataObj.toISOString().slice(0, 10));
         } else {
           setDataOcorrencia("");
         }
 
         setIdMotorista(ocorrencia.idMotorista || "");
-
         setArquivosSelecionados([]);
         setFileError(null);
         setErrors({});
         setSuccessMessage("");
 
-
         try {
           const arquivos = await OcorrenciaService.buscarArquivosOcorrencia(ocorrencia.idOcorrencia);
-
           setArquivosExistentes(arquivos);
         } catch (error) {
-          console.error(
-            "Erro ao carregar arquivos da ocorrência:",
-            error
-          );
-
+          console.error("Erro ao carregar arquivos da ocorrência:", error);
           setArquivosExistentes([]);
         }
       }
@@ -141,36 +137,18 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
     }
 
     if (!dataOcorrencia) {
-      newErrors.dataOcorrencia =
-        "Data da ocorrência é obrigatória";
+      newErrors.dataOcorrencia = "Data da ocorrência é obrigatória";
     } else {
       const [ano, mes, dia] = dataOcorrencia.split("-").map(Number);
-
-      const dataSelecionada = new Date(
-        ano,
-        mes - 1,
-        dia
-      );
-
+      const dataSelecionada = new Date(ano, mes - 1, dia);
       dataSelecionada.setHours(0, 0, 0, 0);
 
       const apenasData = (d: Date) =>
-        new Date(
-          d.getFullYear(),
-          d.getMonth(),
-          d.getDate()
-        ).getTime();
+        new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 
-      if (
-        dataMinima &&
-        apenasData(dataSelecionada) <
-          apenasData(dataMinima)
-      ) {
+      if (dataMinima && apenasData(dataSelecionada) < apenasData(dataMinima)) {
         newErrors.dataOcorrencia = `Data não pode ser anterior à liberação da chave (${minDate})`;
-      } else if (
-        apenasData(dataSelecionada) >
-        apenasData(dataLimite)
-      ) {
+      } else if (apenasData(dataSelecionada) > apenasData(dataLimite)) {
         newErrors.dataOcorrencia = `Data não pode ser posterior ao encerramento da corrida (${maxDate})`;
       }
     }
@@ -179,65 +157,89 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-
-  const formatarDataParaEnvio = (
-    dateStr: string
-  ): string => {
-    const [ano, mes, dia] = dateStr
-      .split("-")
-      .map(Number);
-
-    const data = new Date(
-      ano,
-      mes - 1,
-      dia
-    );
-
+  const formatarDataParaEnvio = (dateStr: string): string => {
+    const [ano, mes, dia] = dateStr.split("-").map(Number);
+    const data = new Date(ano, mes - 1, dia);
     data.setHours(0, 0, 0, 0);
-
     return data.toISOString();
   };
 
-  const handleSubmit = async (
-    event: React.FormEvent
-  ) => {
+  const handleFileSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    const newFiles = Array.from(files);
+
+    const invalidFiles = newFiles.filter((file) => {
+      const ext = file.name.split(".").pop()?.toLowerCase();
+      return !ext || !allowedExtensions.includes(ext);
+    });
+
+    if (invalidFiles.length > 0) {
+      setFileError(`Formato não permitido. Permitidos: ${allowedExtensions.join(", ")}`);
+      return;
+    }
+
+    const oversizedFiles = newFiles.filter((file) => file.size > MAX_FILE_SIZE_BYTES);
+    if (oversizedFiles.length > 0) {
+      setFileError(`Arquivo(s) muito grande(s). Tamanho máximo: ${MAX_FILE_SIZE_MB}MB`);
+      return;
+    }
+
+    setArquivosSelecionados((prev) => [...prev, ...newFiles]);
+    setFileError(null);
+    event.target.value = "";
+  };
+
+  const handleRemoveSelectedFile = (index: number) => {
+    setArquivosSelecionados((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Exclusão direta no banco seguindo o padrão de veículo
+  const handleRemoverArquivoExistente = async (idArquivo?: number) => {
+    if (!idArquivo) return;
+
+    try {
+      setLoading(true);
+      await OcorrenciaService.excluirArquivoOcorrencia(idArquivo);
+      setArquivosExistentes((prev) =>
+        prev.filter((arq) => (arq.idArquivoOcorrencia ?? (arq as any).idOcorrenciaArquivo) !== idArquivo)
+      );
+    } catch (error) {
+      console.error("Erro ao remover anexo:", error);
+      setErrors({ submit: "Erro ao remover arquivo existente." });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!ocorrencia) return;
+    if (!ocorrencia || !validateForm()) return;
 
-    if (!validateForm()) return;
-
+    setIsSubmitting(true);
     setLoading(true);
 
     try {
       const dadosAtualizados = {
         descricao: descricao.trim(),
         idMotorista: idMotorista,
-        dataOcorrencia:
-          formatarDataParaEnvio(dataOcorrencia),
+        dataOcorrencia: formatarDataParaEnvio(dataOcorrencia),
       };
 
-      await axiosConnect.patch(
-        `/ocorrencia/${ocorrencia.idOcorrencia}`,
-        dadosAtualizados
-      );
+      await axiosConnect.patch(`/ocorrencia/${ocorrencia.idOcorrencia}`, dadosAtualizados);
 
       if (arquivosSelecionados.length > 0) {
         const formData = new FormData();
-
         arquivosSelecionados.forEach((file) => {
           formData.append("files", file);
         });
 
-        await OcorrenciaService.salvarArquivosOcorrencia(
-          ocorrencia.idOcorrencia,
-          formData
-        );
+        await OcorrenciaService.salvarArquivosOcorrencia(ocorrencia.idOcorrencia, formData);
       }
 
-      const mensagem =
-        "Ocorrência atualizada com sucesso!";
-
+      const mensagem = "Ocorrência atualizada com sucesso!";
       setSuccessMessage(mensagem);
 
       setTimeout(() => {
@@ -245,123 +247,29 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
         onClose();
       }, 1500);
     } catch (error: any) {
-      console.error( "Erro ao editar ocorrência:", error);
-
+      console.error("Erro ao editar ocorrência:", error);
       if (error.response?.status === 401) {
         onError("Sessão expirada. Faça login novamente.");
-      } else if (
-        error.response?.status === 400
-      ) {
-        setErrors({
-          submit: error.response?.data?.message ||"Dados inválidos",
-        });
       } else {
         setErrors({
-          submit: error.response?.data?.message ||"Erro ao editar ocorrência",
+          submit: error.response?.data?.message || "Erro ao editar ocorrência",
         });
       }
     } finally {
       setLoading(false);
+      setIsSubmitting(false);
     }
-  };
-
-  const handleDescricaoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDescricao(e.target.value);
-    if (errors.descricao) {
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors.descricao;
-        return newErrors;
-      });
-    }
-  };
-
-  const handleDataChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedDate = e.target.value;
-    setDataOcorrencia(selectedDate);
-    
-    if (errors.dataOcorrencia) {
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors.dataOcorrencia;
-        return newErrors;
-      });
-    }
-  };
-
-  const handleFileSelection = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const files = event.target.files;
-
-    if (!files || files.length === 0) {
-      return;
-    }
-
-    const newFiles = Array.from(files);
-
-
-    const oversizedFiles =
-      newFiles.filter(
-        (file) =>
-          file.size >
-          MAX_FILE_SIZE_BYTES
-      );
-
-    if (oversizedFiles.length > 0) {
-      setFileError(
-        `Arquivo(s) muito grande(s). Tamanho máximo: ${MAX_FILE_SIZE_MB}MB`
-      );
-
-      return;
-    }
-
-    setArquivosSelecionados(
-      (prev) => [
-        ...prev,
-        ...newFiles,
-      ]
-    );
-
-    setFileError(null);
-    event.target.value = "";
-  };
-
-  const handleRemoveFile = (
-    index: number
-  ) => {
-    setArquivosSelecionados(
-      (prev) =>
-        prev.filter(
-          (_, i) => i !== index
-        )
-    );
-  };
-
-  const obterNomeArquivo = (
-    urlArquivo: string
-  ): string => {
-    const partes =
-      urlArquivo.split("/");
-
-    return (
-      partes[partes.length - 1] ||
-      "Arquivo"
-    );
   };
 
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={modalStyle}>
         <Box
-          component="form"
-          onSubmit={handleSubmit}
           sx={{
             display: "flex",
-            justifyContent:
-              "space-between",
+            justifyContent: "space-between",
             alignItems: "center",
-            mb: 0,
+            mb: 2,
           }}
         >
           <Typography
@@ -374,18 +282,11 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
               pt: 1,
             }}
           >
-            <Warning
-              color="primary"
-              sx={{fontSize: 24,mr: 1, }}
-            />
-
-            Editar ocorrência
+            <Warning color="primary" sx={{ fontSize: 24, mr: 1 }} />
+            EDITAR OCORRÊNCIA
           </Typography>
 
-          <IconButton
-            onClick={onClose}
-            disabled={loading}
-          >
+          <IconButton onClick={onClose} disabled={loading || isSubmitting}>
             <Close />
           </IconButton>
         </Box>
@@ -402,330 +303,198 @@ const ModalEditarOcorrencia: React.FC<ModalEditarOcorrenciaProps> = ({
           </Alert>
         )}
 
-        <Box
-          sx={{display: "flex", gap: 2, mb: 2,}}
-        >
-          <TextField
-            label="Descrição"
-            value={descricao}
-            onChange={handleDescricaoChange}
-            fullWidth
-            required
-            multiline
-            rows={3}
-            variant="outlined"
-            margin="normal"
-            error={!!errors.descricao}
-            helperText={errors.descricao}
-            disabled={!!successMessage ||loading }
-          />
-        </Box>
-
-        <Box sx={{ mt: 1, mb: 2,}}>
-          <Button
-            component="label"
-            variant="outlined"
-            startIcon={<AttachFileIcon />}
-            disabled={loading}
-            sx={{
-              mr: 2,
-              color:
-                "text.primary",
-              borderColor:
-                "divider",
-              "&:hover": {
-                borderColor:
-                  "text.secondary",
-                backgroundColor:
-                  "action.hover",
-              },
-            }}
-          >
-            Anexar Arquivos
-            <input
-              type="file"
-              multiple
-              hidden
-              accept=".jpg,.jpeg,.png"
-              onChange={handleFileSelection}
+        <Box component="form" onSubmit={handleSubmit}>
+          <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+            <TextField
+              label="Descrição"
+              value={descricao}
+              onChange={(e) => {
+                setDescricao(e.target.value);
+                if (errors.descricao) {
+                  setErrors((prev) => {
+                    const newErr = { ...prev };
+                    delete newErr.descricao;
+                    return newErr;
+                  });
+                }
+              }}
+              fullWidth
+              required
+              multiline
+              rows={3}
+              variant="outlined"
+              error={!!errors.descricao}
+              helperText={errors.descricao}
+              disabled={!!successMessage || loading || isSubmitting}
             />
-          </Button>
+          </Box>
 
-          {(arquivosExistentes.length > 0 || arquivosSelecionados.length >0) && 
-            (
-              <Box sx={{ mt: 2 }}>
-                <Typography
-                  variant="subtitle2"
-                  gutterBottom
-                  color="text.primary"
-                >
-                  Arquivos selecionados (
-                  {arquivosExistentes.length +
-                    arquivosSelecionados.length}
-                  ):
-                </Typography>
+          <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+            <TextField
+              label="Data da ocorrência"
+              type="date"
+              fullWidth
+              value={dataOcorrencia}
+              onChange={(e) => {
+                setDataOcorrencia(e.target.value);
+                if (errors.dataOcorrencia) {
+                  setErrors((prev) => {
+                    const newErr = { ...prev };
+                    delete newErr.dataOcorrencia;
+                    return newErr;
+                  });
+                }
+              }}
+              InputLabelProps={{ shrink: true }}
+              inputProps={{ min: minDate, max: maxDate }}
+              required
+              error={!!errors.dataOcorrencia}
+              helperText={errors.dataOcorrencia}
+              disabled={!!successMessage || loading || isSubmitting}
+            />
+          </Box>
 
-                {arquivosExistentes.map(
-                  (arquivo) => {
-                    const nomeArquivo =
-                      obterNomeArquivo(
-                        arquivo.urlArquivo
-                      );
-
-                    return (
-                      <Box
-                        key={`existente-${arquivo.idArquivoOcorrencia}`}
-                        sx={{
-                          display: "flex",
-                          alignItems:
-                            "center",
-                          justifyContent:
-                            "space-between",
-                          mb: 1,
-                          p: 1.5,
-                          backgroundColor:
-                            "action.hover",
-                          borderRadius: 1,
-                          border:
-                            "1px solid",
-                          borderColor:
-                            "divider",
-                        }}
-                      >
-                        <Box>
-                          <Typography
-                            variant="body2"
-                            fontWeight="medium"
-                            color="text.primary"
-                          >
-                            {
-                              nomeArquivo
-                            }
-                          </Typography>
-
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                          >
-                            Arquivo existente
-                          </Typography>
-                        </Box>
-
-                        <IconButton
-                          size="small"
-                          color="primary"
-                          disabled={
-                            loading
-                          }
-                          component="a"
-                          href={
-                            arquivo.urlArquivo
-                          }
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <AttachFileIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    );
-                  }
-                )}
-
-                {arquivosSelecionados.map(
-                  (file, index) => (
-                    <Box
-                      key={`novo-${index}`}
-                      sx={{
-                        display: "flex",
-                        alignItems:
-                          "center",
-                        justifyContent:
-                          "space-between",
-                        mb: 1,
-                        p: 1.5,
-                        backgroundColor:
-                          "action.hover",
-                        borderRadius: 1,
-                        border:
-                          "1px solid",
-                        borderColor:
-                          "divider",
-                      }}
-                    >
-                      <Box>
-                        <Typography
-                          variant="body2"
-                          fontWeight="medium"
-                          color="text.primary"
-                        >
-                          {file.name}
-                        </Typography>
-
-                      </Box>
-
-                      <IconButton
-                        size="small"
-                        onClick={() => handleRemoveFile(index)}
-                        color="error"
-                        disabled={loading}
-                      >
-                        <Close fontSize="small" />
-                      </IconButton>
-                    </Box>
-                  )
-                )}
-              </Box>
-          )}
-
-          {fileError && (
-            <Typography
-              variant="body2"
-              color="error"
-              sx={{ mt: 1 }}
-            >
-              {fileError}
-            </Typography>
-          )}
-
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{
-              display: "block",
-              mt: 1,
-              mb: 4,
-            }}
-          >
-            Formatos permitidos:
-            JPG, JPEG, PNG (Máx:{" "}
-            {MAX_FILE_SIZE_MB}MB por
-            arquivo)
-          </Typography>
-        </Box>
-        <Box sx={{display: "flex", gap: 2,mb: 2,}}>
-          <TextField
-            label="Data da ocorrência"
-            type="date"
-            fullWidth
-            value={
-              dataOcorrencia
-            }
-            onChange={
-              handleDataChange
-            }
-            InputLabelProps={{
-              shrink: true,
-            }}
-            inputProps={{
-              min: minDate,
-              max: maxDate,
-            }}
-            required
-            error={
-              !!errors.dataOcorrencia
-            }
-            helperText={
-              errors.dataOcorrencia
-            }
-            disabled={
-              !!successMessage ||
-              loading
-            }
-          />
-        </Box>
-
-        <Box sx={{ mb: 2 }}>
-          <FormControl fullWidth>
-            <InputLabel id="motorista-label">
-              Motorista Responsável
-            </InputLabel>
-
-            <Select
-              labelId="motorista-label"
-              value={idMotorista}
-              onChange={(e) =>
-                setIdMotorista(
-                  e.target
-                    .value as
-                    | number
-                    | ""
-                )
-              }
-              label="Motorista Responsável"
-              disabled={
-                loading ||
-                !!successMessage
-              }
-            >
-              <MenuItem value="">
-                <em>
-                  Selecione o
-                  motorista
-                </em>
-              </MenuItem>
-
-              {corrida.motoristas?.map(
-                (m) => (
-                  <MenuItem
-                    key={
-                      m.idMotorista
-                    }
-                    value={
-                      m.idMotorista
-                    }
-                  >
+          <Box sx={{ mb: 2 }}>
+            <FormControl fullWidth>
+              <InputLabel id="motorista-label">Motorista Responsável</InputLabel>
+              <Select
+                labelId="motorista-label"
+                value={idMotorista}
+                onChange={(e) => setIdMotorista(e.target.value as number | "")}
+                label="Motorista Responsável"
+                disabled={loading || isSubmitting || !!successMessage}
+              >
+                <MenuItem value="">
+                  <em>Selecione o motorista</em>
+                </MenuItem>
+                {corrida.motoristas?.map((m) => (
+                  <MenuItem key={m.idMotorista} value={m.idMotorista}>
                     {m.nome}
                   </MenuItem>
-                )
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+
+          {/* Seção de Anexos no Padrão do Modal de Veículo */}
+          <Box
+            sx={{
+              flex: "1 1 100%",
+              mt: 2,
+              mb: 2,
+              p: 2,
+              border: "1px dashed",
+              borderColor: "divider",
+              borderRadius: 2,
+            }}
+          >
+            <Typography
+              variant="subtitle2"
+              fontWeight="bold"
+              gutterBottom
+              color="text.primary"
+            >
+              ANEXOS DA OCORRÊNCIA
+            </Typography>
+
+            <Box display="flex" alignItems="center" gap={1.5} flexWrap="wrap">
+              {arquivosExistentes.map((arquivo) => {
+                const idArq = arquivo.idArquivoOcorrencia ?? (arquivo as any).idOcorrenciaArquivo;
+                const nomeArquivo = extrairNomeArquivo(arquivo.urlArquivo);
+
+                return (
+                  <Tooltip key={`existente-${idArq}`} title="Clique no 'X' para remover o anexo">
+                    <Chip
+                      icon={<Description />}
+                      label={nomeArquivo}
+                      onDelete={() => handleRemoverArquivoExistente(idArq)}
+                      color="primary"
+                      variant="outlined"
+                      disabled={loading || isSubmitting}
+                      onClick={() => window.open(arquivo.urlArquivo, "_blank")}
+                      sx={{ maxWidth: "100%", cursor: "pointer" }}
+                    />
+                  </Tooltip>
+                );
+              })}
+
+              {arquivosExistentes.length === 0 && arquivosSelecionados.length === 0 && (
+                <Typography variant="body2" color="text.secondary">
+                  Nenhum anexo registrado.
+                </Typography>
               )}
-            </Select>
-          </FormControl>
-        </Box>
 
-        <Divider
-          sx={{ my: 2 }}
-        />
+              <Button
+                variant="contained"
+                component="label"
+                size="small"
+                startIcon={<CloudUpload />}
+                color={arquivosSelecionados.length > 0 ? "success" : "inherit"}
+                disabled={loading || isSubmitting}
+                sx={{ textTransform: "none" }}
+              >
+                {arquivosSelecionados.length > 0 ? "Anexar Mais" : "Adicionar Arquivos"}
+                <input
+                  type="file"
+                  multiple
+                  hidden
+                  accept=".jpg,.jpeg,.png,.doc,.docx,.pdf"
+                  onChange={handleFileSelection}
+                />
+              </Button>
 
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent:
-              "flex-end",
-            gap: 1,
-            mt: 2,
-          }}
-        >
-          <Button
-            variant="outlined"
-            onClick={onClose}
-            disabled={
-              loading ||
-              !!successMessage
-            }
-          >
-            Cancelar
-          </Button>
+              {arquivosSelecionados.map((file, index) => (
+                <Chip
+                  key={`novo-${index}`}
+                  label={`Upload pendente: ${file.name}`}
+                  size="small"
+                  color="success"
+                  onDelete={() => handleRemoveSelectedFile(index)}
+                  disabled={loading || isSubmitting}
+                />
+              ))}
+            </Box>
 
-          <Button
-            onClick={
-              handleSubmit
-            }
-            variant="contained"
-            disabled={
-              loading ||
-              !descricao.trim() ||
-              !dataOcorrencia ||
-              !!successMessage
-            }
-          >
-            {loading ? (
-              <CircularProgress
-                size={24}
-              />
-            ) : (
-              "Salvar"
+            {fileError && (
+              <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                {fileError}
+              </Typography>
             )}
-          </Button>
+
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: "block", mt: 1.5 }}
+            >
+              Formatos permitidos: JPG, JPEG, PNG, DOC, DOCX, PDF (Máx: {MAX_FILE_SIZE_MB}MB por arquivo)
+            </Typography>
+          </Box>
+
+          <Divider sx={{ my: 2 }} />
+
+          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}>
+            <Button
+              variant="outlined"
+              onClick={onClose}
+              sx={{ textTransform: "none" }}
+              disabled={loading || isSubmitting}
+            >
+              Cancelar
+            </Button>
+
+            <Button
+              type="submit"
+              variant="contained"
+              sx={{ textTransform: "none", minWidth: 100 }}
+              disabled={loading || isSubmitting || !descricao.trim() || !dataOcorrencia || !!successMessage}
+            >
+              {loading || isSubmitting ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                "Salvar"
+              )}
+            </Button>
+          </Box>
         </Box>
       </Box>
     </Modal>

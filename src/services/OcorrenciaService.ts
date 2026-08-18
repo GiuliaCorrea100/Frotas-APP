@@ -98,6 +98,20 @@ export class OcorrenciaService {
     }
   }
 
+  static async excluirArquivoOcorrencia(idArquivo: number): Promise<void> {
+    try {
+      const token = localStorage.getItem("token");
+      await axiosConnect.delete(`/ocorrencia/arquivo/${idArquivo}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch (error) {
+      console.error(`Erro ao excluir arquivo ${idArquivo}:`, error);
+      throw error;
+    }
+  }
+
   static async buscarPorCorrida(idCorrida: number): Promise<OcorrenciaDto[]> {
     try {
       const token = localStorage.getItem("token");
