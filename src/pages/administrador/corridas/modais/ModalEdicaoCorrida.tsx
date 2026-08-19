@@ -104,22 +104,28 @@ export default function EditarInfoCorrida({
 
       try {
         if (corrida.motoristas && corrida.motoristas.length > 0) {
+          const motoristasUnicosMap = new Map<number, { idUsuario: number; nome: string }>();
+
           const principal = corrida.motoristas.find(
             (m) => m.idMotorista === corrida.idMotoristaPrincipal,
           );
-          const outros = corrida.motoristas.filter(
-            (m) => m.idMotorista !== corrida.idMotoristaPrincipal,
-          );
-          const motoristasIniciais = [
-            ...(principal
-              ? [{ idUsuario: principal.idMotorista, nome: principal.nome }]
-              : []),
-            ...outros.map((m) => ({
-              idUsuario: m.idMotorista,
-              nome: m.nome,
-            })),
-          ];
-          setMotoristasSelecionados(motoristasIniciais);
+          if (principal) {
+            motoristasUnicosMap.set(principal.idMotorista, {
+              idUsuario: principal.idMotorista,
+              nome: principal.nome,
+            });
+          }
+
+          corrida.motoristas.forEach((m) => {
+            if (m.idMotorista && !motoristasUnicosMap.has(m.idMotorista)) {
+              motoristasUnicosMap.set(m.idMotorista, {
+                idUsuario: m.idMotorista,
+                nome: m.nome,
+              });
+            }
+          });
+
+          setMotoristasSelecionados(Array.from(motoristasUnicosMap.values()));
           setIdMotoristaPrincipal(corrida.idMotoristaPrincipal);
         } else if (corrida.idMotoristaPrincipal) {
           if (authMode === "MOCK") {

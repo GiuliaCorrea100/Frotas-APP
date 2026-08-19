@@ -282,7 +282,7 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response) {
         if (error.response.status === 409) {
-          if (error.response.data.message.includes("carro")) {
+          if (error.response.data.message?.includes("carro")) {
             showAlert(
               "Este carro já está agendado para outra corrida nesse período.",
             );
@@ -591,8 +591,22 @@ const CadastrarCorrida: React.FC<CadastrarCorridaProps> = ({
           </Button>
         </Box>
 
-        <Dialog open={alertOpen} onClose={() => setAlertOpen(false)}>
-          <DialogTitle>{alertMessage}</DialogTitle>
+        <Dialog
+          open={alertOpen}
+          onClose={() => setAlertOpen(false)}
+          PaperProps={{
+            sx: {
+              bgcolor: "background.paper",
+              backgroundImage: "none",
+            },
+          }}
+        >
+          <DialogTitle
+            color="text.primary"
+            sx={{ fontWeight: "medium" }}
+          >
+            {alertMessage}
+          </DialogTitle>
           <DialogActions>
             <Button onClick={() => setAlertOpen(false)}>OK</Button>
           </DialogActions>

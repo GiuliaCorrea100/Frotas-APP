@@ -63,7 +63,7 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
 
   // Função para verificar se um motorista tem percursos
   const motoristaTemPercursos = (idMotorista: number): boolean => {
-    return percursos.some(percurso => percurso.idMotorista === idMotorista);
+    return percursos.some((percurso) => percurso.idMotorista === idMotorista);
   };
 
   useEffect(() => {
@@ -85,22 +85,20 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
 
       try {
         if (corrida.motoristas && corrida.motoristas.length > 0) {
-          const principal = corrida.motoristas.find(
-            (m) => m.idMotorista === corrida.idMotoristaPrincipal,
-          );
-          const outros = corrida.motoristas.filter(
-            (m) => m.idMotorista !== corrida.idMotoristaPrincipal,
-          );
-          const motoristasIniciais = [
-            ...(principal
-              ? [{ idUsuario: principal.idMotorista, nome: principal.nome }]
-              : []),
-            ...outros.map((m) => ({
-              idUsuario: m.idMotorista,
-              nome: m.nome,
-            })),
-          ];
-          setMotoristasSelecionados(motoristasIniciais);
+          const motoristasMap = new Map<number, any>();
+
+          corrida.motoristas.forEach((m) => {
+            const id = m.idMotorista;
+            if (id && !motoristasMap.has(id)) {
+              motoristasMap.set(id, {
+                idUsuario: id,
+                idMotorista: id,
+                nome: m.nome,
+              });
+            }
+          });
+
+          setMotoristasSelecionados(Array.from(motoristasMap.values()));
           setIdMotoristaPrincipal(corrida.idMotoristaPrincipal);
         } else if (corrida.idMotoristaPrincipal) {
           if (authMode === "MOCK") {
@@ -122,6 +120,7 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
               setMotoristasSelecionados([response.data]);
             }
           }
+          setIdMotoristaPrincipal(corrida.idMotoristaPrincipal);
         }
       } catch (error) {
         console.error("Erro ao carregar dados iniciais:", error);
@@ -131,7 +130,7 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
     };
 
     carregarDadosIniciais();
-  }, [open, authMode]);
+  }, [open, authMode, corrida]);
 
   const buscarUsuario = async (nome: string) => {
     if (nome.length < 3) {
@@ -157,8 +156,7 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
         usuariosRetornados.forEach((user: any) => {
           uniqueUsuariosMap.set(user.idPessoaSigaa, user);
         });
-        const usuariosUnicosEOrdenados = Array.from(uniqueUsuariosMap.values());
-        setMotoristasDisponiveis(usuariosUnicosEOrdenados);
+        setMotoristasDisponiveis(Array.from(uniqueUsuariosMap.values()));
       }
     } catch (error) {
       console.error("Erro ao buscar usuários:", error);
@@ -180,7 +178,7 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
 
     if (motoristasSelecionados.length === 0) {
       setErrorMessage(
-        "A corrida precisa está associada a pelo menos um motorista ",
+        "A corrida precisa estar associada a pelo menos um motorista.",
       );
       return;
     }
@@ -190,8 +188,8 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
 
     try {
       const converterId = async (motorista: any): Promise<number> => {
-        if (authMode === "MOCK" || motorista.idUsuario) {
-          return motorista.idUsuario;
+        if (authMode === "MOCK" || motorista.idUsuario || motorista.idMotorista) {
+          return motorista.idUsuario || motorista.idMotorista;
         }
         const response = await axiosConnect.get(
           `/usuario/consultaCadastro/${motorista.idPessoaSigaa}`,
@@ -202,9 +200,11 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
         return response.data.idUsuario;
       };
 
-      const motoristasIds = await Promise.all(
-        motoristasSelecionados.map(converterId)
+      const motoristasIdsBrutos = await Promise.all(
+        motoristasSelecionados.map(converterId),
       );
+
+      const motoristasIds = Array.from(new Set(motoristasIdsBrutos.filter(Boolean)));
 
       const dadosAtualizados = {
         idMotoristaPrincipal: idMotoristaPrincipal || motoristasIds[0],
@@ -213,7 +213,7 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
 
       await axiosConnect.patch(`/corrida/salvar-edicao-adm/${corrida.idCorrida}`, dadosAtualizados);
 
-      const mensagem = "Motorista editados com sucesso!";
+      const mensagem = "Motoristas editados com sucesso!";
       setSuccessMessage(mensagem);
 
       setTimeout(() => {
@@ -227,7 +227,9 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
       if (error.response?.status === 401) {
         onError("Sessão expirada. Faça login novamente.");
       } else {
-        setErrorMessage("Erro ao editar informações dos motoristas");
+        setErrorMessage(
+          error.response?.data?.message || "Erro ao editar informações dos motoristas",
+        );
       }
     } finally {
       setLoading(false);
@@ -235,34 +237,35 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
   };
 
   const handleRemoverMotorista = (motorista: any) => {
-    const idMotorista = motorista.idUsuario || motorista.idPessoaSigaa;
-    
+    const idMotorista = motorista.idUsuario || motorista.idMotorista || motorista.idPessoaSigaa;
+
     if (motoristaTemPercursos(idMotorista)) {
       setErrorMessage(
-        `Não é possível remover ${motorista.nome} pois possui percursos cadastrados.`
+        `Não é possível remover ${motorista.nome} pois possui percursos cadastrados.`,
       );
       return;
     }
 
-    if (motorista.idUsuario === idMotoristaPrincipal) {
+    if (
+      idMotorista === idMotoristaPrincipal ||
+      motorista.idUsuario === idMotoristaPrincipal ||
+      motorista.idMotorista === idMotoristaPrincipal
+    ) {
       setErrorMessage(
-        `Não é possível remover ${motorista.nome} pois é o motorista principal da corrida.`
+        `Não é possível remover ${motorista.nome} pois é o motorista principal da corrida.`,
       );
       return;
     }
 
     setMotoristasSelecionados((prev) => {
-      const novaLista = prev.filter(
-        (m) =>
-          !(
-            (m.idUsuario && m.idUsuario === motorista.idUsuario) ||
-            (m.idPessoaSigaa && m.idPessoaSigaa === motorista.idPessoaSigaa) ||
-            (m.cpf && m.cpf === motorista.cpf)
-          ),
-      );
-      return novaLista;
+      return prev.filter((m) => {
+        const mId = m.idUsuario || m.idMotorista || m.idPessoaSigaa;
+        if (mId && idMotorista && mId === idMotorista) return false;
+        if (m.cpf && motorista.cpf && m.cpf === motorista.cpf) return false;
+        return true;
+      });
     });
-    
+
     setErrorMessage("");
   };
 
@@ -270,8 +273,6 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
     <Modal open={open} onClose={onClose}>
       <Box sx={modalStyle}>
         <Box
-          component="form"
-          onSubmit={handleSubmit}
           sx={{
             display: "flex",
             justifyContent: "space-between",
@@ -311,14 +312,16 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 3 }}>
           <Autocomplete
-            options={motoristasDisponiveis.filter(
-              (option) =>
-                !motoristasSelecionados.some(
-                  (sel) =>
-                    (sel.idUsuario && sel.idUsuario === option.idUsuario) ||
-                    (sel.idPessoaSigaa && sel.idPessoaSigaa === option.idPessoaSigaa),
-                ),
-            )}
+            options={motoristasDisponiveis.filter((option) => {
+              return !motoristasSelecionados.some((sel) => {
+                const selId = sel.idUsuario || sel.idMotorista || sel.idPessoaSigaa;
+                const optId = option.idUsuario || option.idMotorista || option.idPessoaSigaa;
+
+                if (selId && optId && selId === optId) return true;
+                if (sel.cpf && option.cpf && sel.cpf === option.cpf) return true;
+                return false;
+              });
+            })}
             getOptionLabel={(option) => {
               if (option.nome && option.cpf) {
                 return `${option.nome} (${option.cpf})`;
@@ -335,11 +338,30 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
             }}
             onChange={(_, value) => {
               if (value) {
-                setMotoristasSelecionados((prev) => [...prev, value]);
+                const jaExiste = motoristasSelecionados.some((sel) => {
+                  const selId = sel.idUsuario || sel.idMotorista || sel.idPessoaSigaa;
+                  const valId = value.idUsuario || value.idMotorista || value.idPessoaSigaa;
+                  return (
+                    (selId && valId && selId === valId) ||
+                    (sel.cpf && value.cpf && sel.cpf === value.cpf)
+                  );
+                });
+
+                if (!jaExiste) {
+                  setMotoristasSelecionados((prev) => [...prev, value]);
+                  setErrorMessage("");
+                } else {
+                  setErrorMessage("Este motorista já foi adicionado à corrida.");
+                }
               }
               setMotoristaInput("");
             }}
-            isOptionEqualToValue={(option, value) => option.cpf === value.cpf}
+            isOptionEqualToValue={(option, value) => {
+              if (option.cpf && value.cpf) return option.cpf === value.cpf;
+              const optId = option.idUsuario || option.idPessoaSigaa;
+              const valId = value.idUsuario || value.idPessoaSigaa;
+              return optId === valId;
+            }}
             noOptionsText="Digite pelo menos 3 caracteres para buscar"
             loading={loadingMotorista}
             disabled={!!successMessage || loading}
@@ -347,10 +369,7 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
               <TextField
                 {...params}
                 label="Motorista"
-                required
-                placeholder={
-                  loadingMotorista ? "Carregando..." : "Digite para buscar"
-                }
+                placeholder={loadingMotorista ? "Carregando..." : "Digite para buscar"}
                 helperText={"Selecione o motorista a ser adicionado à corrida"}
                 InputProps={{
                   ...params.InputProps,
@@ -387,14 +406,18 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
 
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                 {motoristasSelecionados.map((motorista, index) => {
-                  const idMotorista = motorista.idUsuario || motorista.idPessoaSigaa;
+                  const idMotorista =
+                    motorista.idUsuario || motorista.idMotorista || motorista.idPessoaSigaa;
                   const temPercursos = motoristaTemPercursos(idMotorista);
-                  const ehMotoristaPrincipal = motorista.idUsuario === idMotoristaPrincipal;
+                  const ehMotoristaPrincipal =
+                    idMotorista === idMotoristaPrincipal ||
+                    motorista.idUsuario === idMotoristaPrincipal ||
+                    motorista.idMotorista === idMotoristaPrincipal;
                   const naoPodeRemover = temPercursos || ehMotoristaPrincipal;
 
                   return (
                     <Box
-                      key={motorista.idUsuario || motorista.idPessoaSigaa || motorista.cpf}
+                      key={idMotorista || motorista.cpf || index}
                       sx={{
                         display: "flex",
                         alignItems: "center",
@@ -409,7 +432,7 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
                     >
                       <Typography variant="body2" color="text.primary">
                         {motorista.nome} {motorista.cpf ? `(${motorista.cpf})` : ""}
-                        
+
                         {ehMotoristaPrincipal && (
                           <Typography
                             component="span"
@@ -422,13 +445,13 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
                         )}
                         
                         {naoPodeRemover && (
-                          <Tooltip 
+                          <Tooltip
                             title={
-                              ehMotoristaPrincipal 
+                              ehMotoristaPrincipal
                                 ? "Motorista principal não pode ser removido"
-                                : temPercursos 
-                                  ? "Este motorista possui percursos cadastrados e não pode ser removido"
-                                  : ""
+                                : temPercursos
+                                ? "Este motorista possui percursos cadastrados e não pode ser removido"
+                                : ""
                             }
                           >
                             <Warning
@@ -436,13 +459,13 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
                                 ml: 1,
                                 fontSize: 16,
                                 color: "warning.main",
-                                verticalAlign: "middle"
+                                verticalAlign: "middle",
                               }}
                             />
                           </Tooltip>
                         )}
                       </Typography>
-                      
+
                       <Tooltip
                         title={
                           naoPodeRemover
@@ -473,9 +496,7 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
 
         <Divider sx={{ my: 2 }} />
 
-        <Box
-          sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}
-        >
+        <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 2 }}>
           <Button variant="outlined" onClick={onClose} disabled={loading}>
             Cancelar
           </Button>

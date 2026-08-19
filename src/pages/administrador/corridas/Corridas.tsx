@@ -128,10 +128,38 @@ export default function ListaCorrida() {
     (c) => c.situacao === "CANCELADA",
   ).length;
 
+  const normalizarTexto = (texto: any): string => {
+    if (!texto) return "";
+    return String(texto)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+  };
+
   const dadosFiltrados = corridas.filter((corrida) => {
-    const matchesSearch = Object.values(corrida).some((valor) =>
-      String(valor).toLowerCase().includes(busca.toLowerCase()),
+    const termoBusca = normalizarTexto(busca);
+
+    const matchesCamposDiretos = Object.entries(corrida).some(([key, valor]) => {
+      if (key === "motoristas" || typeof valor === "object" || valor === null || valor === undefined) {
+        return false;
+      }
+      return normalizarTexto(valor).includes(termoBusca);
+    });
+
+    const matchesMotoristaPrincipal = normalizarTexto(
+      corrida.nomeMotoristaPrincipal
+    ).includes(termoBusca);
+
+    const matchesMotoristasLista = corrida.motoristas?.some((m) =>
+      normalizarTexto(m.nome).includes(termoBusca)
     );
+
+    const matchesSearch =
+      !termoBusca ||
+      matchesCamposDiretos ||
+      matchesMotoristaPrincipal ||
+      matchesMotoristasLista;
 
     const matchesSituacao = 
       filtroSituacao === "TODOS" || 

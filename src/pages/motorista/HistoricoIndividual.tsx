@@ -7,9 +7,10 @@ import {
   Typography,
   useTheme,
   Tooltip,
+  CircularProgress,
 } from "@mui/material";
 import { DataGrid, GridColDef, ptBR } from "@mui/x-data-grid";
-import { Visibility } from "@mui/icons-material";
+import { Visibility, Download } from "@mui/icons-material";
 import { CorridaFrontend, getCorridas } from "../../services/CorridaService";
 import {
   buscarPercursosDaCorrida,
@@ -25,8 +26,8 @@ import { decodeToken } from "../../utils/jwtDecodeHelper";
 import { useAuth } from "../../context/AuthContext";
 import AppLayout from "../../components/Layout";
 import BemVindo from "../BemVindo";
-import { ExportarHistoricoMotoristaPDF } from "./RelatorioCorridasMotorista";
-import { BotaoExportarCorridaIndividual } from "./RelatorioCorridaIndividual";
+import { gerarRelatorioHistoricoMotoristaPDF } from "./RelatorioCorridasMotorista";
+import { gerarRelatorioCorridaIndividual } from "./RelatorioCorridaIndividual";
 
 const situacaoMap = {
   AGENDADA: "info",
@@ -54,6 +55,9 @@ export default function HistoricoIndividual() {
   const [modalLoading, setModalLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [exportandoId, setExportandoId] = useState<number | null>(null);
+  const [exportandoHistoricoGeral, setExportandoHistoricoGeral] = useState(false);
 
   const [openDetails, setOpenDetails] = useState(false);
   const [selectedCorrida, setSelectedCorrida] =
@@ -104,6 +108,38 @@ export default function HistoricoIndividual() {
     setSelectedCorrida(null);
   };
 
+  const handleExportIndividual = async (
+    e: React.MouseEvent,
+    corrida: CorridaFrontend
+  ) => {
+    e.stopPropagation();
+    if (exportandoId !== null) return;
+
+    setExportandoId(corrida.idCorrida);
+    try {
+      await gerarRelatorioCorridaIndividual(corrida);
+    } catch (err) {
+      console.error("Erro ao gerar PDF:", err);
+      alert("Ocorreu um erro ao gerar o PDF da corrida.");
+    } finally {
+      setExportandoId(null);
+    }
+  };
+
+  const handleExportHistoricoGeral = async () => {
+    if (exportandoHistoricoGeral) return;
+
+    setExportandoHistoricoGeral(true);
+    try {
+      await gerarRelatorioHistoricoMotoristaPDF(dadosFiltrados);
+    } catch (err) {
+      console.error("Erro ao gerar PDF do histórico:", err);
+      alert("Erro ao gerar o histórico em PDF.");
+    } finally {
+      setExportandoHistoricoGeral(false);
+    }
+  };
+
   const columns: GridColDef<CorridaFrontend>[] = [
     {
       field: "placaVeiculo",
@@ -149,36 +185,66 @@ export default function HistoricoIndividual() {
       width: 150,
       sortable: false,
       filterable: false,
-      renderCell: (params) => (
-        <Box sx={{ display: "flex", gap: 1 }}>
-          <Tooltip title="Ver detalhes">
-            <span>
-              <Button
-                variant="contained"
-                color="primary"
-                size="small"
-                onClick={() => handleOpenDetails(params.row)}
-                startIcon={<Visibility />}
-                sx={{
-                  width: 42,
-                  height: 42,
-                  minWidth: 42,
-                  padding: 0,
-                  borderRadius: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  "& .MuiButton-startIcon": {
-                    margin: 0,
-                  },
-                }}
-              />
-            </span>
-          </Tooltip>
+      renderCell: (params) => {
+        const isExporting = exportandoId === params.row.idCorrida;
 
-          <BotaoExportarCorridaIndividual corrida={params.row} />
-        </Box>
-      ),
+        return (
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Tooltip title="Ver detalhes">
+              <span>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="small"
+                  onClick={() => handleOpenDetails(params.row)}
+                  startIcon={<Visibility />}
+                  sx={{
+                    width: 42,
+                    height: 42,
+                    minWidth: 42,
+                    padding: 0,
+                    borderRadius: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    "& .MuiButton-startIcon": {
+                      margin: 0,
+                    },
+                  }}
+                />
+              </span>
+            </Tooltip>
+
+            <Tooltip title="Exportar Relatório">
+              <span>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  size="small"
+                  onClick={(e) => handleExportIndividual(e, params.row)}
+                  disabled={isExporting}
+                  sx={{
+                    width: 42,
+                    height: 42,
+                    minWidth: 42,
+                    padding: 0,
+                    borderRadius: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {isExporting ? (
+                    <CircularProgress size={20} color="inherit" />
+                  ) : (
+                    <Download sx={{ fontSize: 20 }} />
+                  )}
+                </Button>
+              </span>
+            </Tooltip>
+          </Box>
+        );
+      },
     },
   ];
 
@@ -216,10 +282,27 @@ export default function HistoricoIndividual() {
           Histórico de Corridas
         </Typography>
 
-        <ExportarHistoricoMotoristaPDF
-          corridas={dadosFiltrados}
-          disabled={loading}
-        />
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleExportHistoricoGeral}
+          disabled={exportandoHistoricoGeral || loading || dadosFiltrados.length === 0}
+          startIcon={
+            exportandoHistoricoGeral ? (
+              <CircularProgress size={18} color="inherit" />
+            ) : (
+              <Download />
+            )
+          }
+          sx={{
+            textTransform: "none",
+            fontWeight: 600,
+            boxShadow: theme.shadows[2],
+            height: "38px",
+          }}
+        >
+          {exportandoHistoricoGeral ? "Gerando Relatório..." : "Exportar Histórico"}
+        </Button>
       </Box>
 
       <Box

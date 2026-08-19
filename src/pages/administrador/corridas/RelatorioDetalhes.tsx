@@ -5,6 +5,7 @@ import { useTheme } from '@mui/material/styles';
 import { Download } from '@mui/icons-material';
 import { formatDate, formatDateOnly } from '../../../utils/formatDate';
 import { CorridaVistoriaService } from '../../../services/CorridaVistoriaService';
+import { OcorrenciaService } from '../../../services/OcorrenciaService';
 import axiosConnect from '../../../services/axios/axiosConnect';
 
 // Estilos para o PDF
@@ -180,10 +181,30 @@ const formatCurrency = (value: any): string => {
 };
 
 // Componente para exibir fotos da vistoria
-const VistoriaFotos = ({ fotos, tipo }: { fotos: string[]; tipo: string }) => {
+const VistoriaFotos = ({ fotos}: { fotos: string[] }) => {
   if (!fotos || fotos.length === 0) {
     return (
       <Text style={styles.noPhotoText}>Nenhuma foto registrada para esta vistoria</Text>
+    );
+  }
+
+  return (
+    <View style={styles.photoGrid}>
+      {fotos.map((fotoBase64, index) => (
+        <View key={index} style={styles.photoItem}>
+          <Image src={fotoBase64} style={styles.photoImage} />
+        </View>
+      ))}
+    </View>
+  );
+};
+
+const OcorrenciaFotos = ({ fotos }: { fotos: string[] }) => {
+  if (!fotos || fotos.length === 0) {
+    return (
+      <Text style={styles.noPhotoText}>
+        Nenhuma foto registrada para esta ocorrência
+      </Text>
     );
   }
 
@@ -234,7 +255,7 @@ const VistoriaSection = ({ vistoria, titulo }: { vistoria: any; titulo: string }
           <Text style={{ fontSize: 9, fontWeight: 'bold', marginTop: 5, marginBottom: 5 }}>
             Fotos das avarias:
           </Text>
-          <VistoriaFotos fotos={vistoria.fotos} tipo={vistoria.tipo} />
+          <VistoriaFotos fotos={vistoria.fotos} />
         </>
       )}
     </View>
@@ -377,32 +398,69 @@ const RelatorioCorridaPDF = ({
           </View>
         )}
 
-        {/* Ocorrências - COM MOTORISTA RESPONSÁVEL */}
+        {/* Ocorrências com Cards e Fotos */}
         {ocorrencias && ocorrencias.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
               Ocorrências ({ocorrencias.length})
             </Text>
-            <View style={styles.table}>
-              <View style={[styles.tableRow, styles.tableHeader]}>
-                <Text style={styles.tableCell}>Motorista Responsável</Text>
-                <Text style={styles.tableCell}>Descrição</Text>
-                <Text style={styles.lastTableCell}>Data</Text>
-              </View>
-              {ocorrencias.map((ocorrencia, index) => (
-                <View key={index} style={styles.tableRow}>
-                  <Text style={styles.tableCell}>
-                    {ocorrencia.nomeMotorista || 'N/A'}
+
+            {ocorrencias.map((item: any, idx: number) => (
+              <View key={idx} style={styles.card}>
+                <Text style={styles.cardTitle}>
+                  Ocorrência {idx + 1}
+                </Text>
+
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>
+                    Motorista Responsável:
                   </Text>
-                  <Text style={styles.tableCell}>
-                    {ocorrencia.descricao || 'N/A'}
-                  </Text>
-                  <Text style={styles.lastTableCell}>
-                    {formatDateOnly(ocorrencia.dataOcorrencia)}
+                  <Text style={styles.infoValue}>
+                    {item.nomeMotorista || "N/A"}
                   </Text>
                 </View>
-              ))}
-            </View>
+
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>
+                    Data:
+                  </Text>
+                  <Text style={styles.infoValue}>
+                    {item.dataOcorrencia
+                      ? formatDateOnly(item.dataOcorrencia)
+                      : "N/A"}
+                  </Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>
+                    Descrição:
+                  </Text>
+                  <Text style={styles.infoValue}>
+                    {item.descricao || "N/A"}
+                  </Text>
+                </View>
+
+                {/* Fotos da ocorrência */}
+                {item.fotos && item.fotos.length > 0 ? (
+                  <View style={{ marginTop: 8 }}>
+                    <Text
+                      style={{
+                        fontSize: 9,
+                        fontWeight: "bold",
+                        marginBottom: 5,
+                      }}
+                    >
+                      Fotos da ocorrência:
+                    </Text>
+                    <OcorrenciaFotos fotos={item.fotos} />
+                  </View>
+                ) : (
+                  <Text style={styles.noPhotoText}>
+                    Nenhuma foto registrada para esta ocorrência
+                  </Text>
+                )}
+              </View>
+            ))}
           </View>
         )}
 
@@ -604,6 +662,32 @@ const ExportarCorridaPDF = ({
         return;
       }
 
+      let ocorrenciasComFotos = [...(ocorrencias || [])];
+
+      for (const oc of ocorrenciasComFotos) {
+        if (oc.idOcorrencia) {
+          try {
+            const anexos = await OcorrenciaService.buscarArquivosOcorrencia(
+              oc.idOcorrencia
+            );
+            if (anexos && anexos.length > 0) {
+              const fotosBase64 = await Promise.all(
+                anexos.map(async (anexo: any) => {
+                  const relativePath = anexo.urlArquivo.replace(/^https?:\/\/[^/]+/, '');
+                  const { data } = await axiosConnect.get('/anexo/converter-png', {
+                    params: { path: relativePath }
+                  });
+                  return data.url;
+                })
+              );
+              (oc as any).fotos = fotosBase64;
+            }
+          } catch (error) {
+            console.error('Erro ao carregar anexos da ocorrência:', error);
+          }
+        }
+      }
+
       // Buscar fotos das vistorias se necessário
       let vistoriasComFotos = vistorias || [];
       
@@ -644,7 +728,7 @@ const ExportarCorridaPDF = ({
       const blob = await pdf(
         <RelatorioCorridaPDF
           corrida={corrida}
-          ocorrencias={ocorrencias || []}
+          ocorrencias={ocorrenciasComFotos}
           abastecimentos={abastecimentos || []}
           percursos={percursos || []}
           vistorias={vistoriasComFotos}
@@ -661,7 +745,7 @@ const ExportarCorridaPDF = ({
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro detalhado ao gerar PDF:', error);
       alert(`Erro ao gerar PDF: ${error.message || 'Erro desconhecido'}. Verifique o console para mais detalhes.`);
     } finally {

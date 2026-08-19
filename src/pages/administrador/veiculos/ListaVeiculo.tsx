@@ -1,9 +1,10 @@
-import { Add, Cancel, CheckCircle } from "@mui/icons-material";
+import { Add, Cancel, CheckCircle, Download } from "@mui/icons-material";
 import {
   Alert,
   Box,
   Button,
   Chip,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -21,6 +22,7 @@ import { useLocation } from "react-router-dom";
 import ModalCadastroEdicaoVeiculo from "./ModalCadastroEdicaoVeiculo";
 import { CarroDto, CarroService } from "../../../services/CarroService";
 import AppLayout from "../../../components/Layout";
+import axiosConnect from "../../../services/axios/axiosConnect";
 
 export default function ListaVeiculos() {
   const theme = useTheme();
@@ -38,6 +40,9 @@ export default function ListaVeiculos() {
   const [qtdViagem, setQtdViagem] = useState<number>(0);
   const [qtdManutencao, setQtdManutencao] = useState<number>(0);
   const [mensagemSucesso, setMensagemSucesso] = useState("");
+
+  // Estado para controlar qual carro está em processo de download
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
   // Estados para o modal de confirmação (Ativar/Inativar)
   const [showModalAtivacao, setShowModalAtivacao] = useState(false);
@@ -85,6 +90,42 @@ export default function ListaVeiculos() {
     alert("Erro ao salvar veículo: " + (error?.message || "Erro desconhecido"));
   };
 
+  // Função para download/visualização do CRLV
+  const handleDownloadCrlv = async (carro: CarroDto) => {
+    if (!carro.urlCrlv || !carro.idCarro) return;
+
+    setDownloadingId(carro.idCarro);
+
+    try {
+      // Pega apenas o nome do arquivo (ex: "28566_crlv_11279695.jpeg")
+      const fileName = carro.urlCrlv.split("/").pop();
+      if (!fileName) throw new Error("Nome do arquivo não encontrado");
+
+      // Chama o endpoint @Get('download/:fileName') existente
+      const response = await axiosConnect.get(`/anexo/download/${fileName}`, {
+        responseType: "blob",
+      });
+
+      const extensao = fileName.split(".").pop() || "pdf";
+      const nomeDownload = `CRLV_${carro.placa || carro.idCarro}.${extensao}`;
+
+      const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.setAttribute("download", nomeDownload);
+      document.body.appendChild(link);
+      link.click();
+
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error("Erro ao baixar CRLV:", error);
+      alert("Erro ao baixar o documento CRLV.");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
   // Função para carregar carros
   const carregarCarros = async () => {
     try {
@@ -114,7 +155,7 @@ export default function ListaVeiculos() {
     carregarCarros();
   }, [carroCadastrado]);
 
-  // Função de filtro (mantida)
+  // Função de filtro
   const filteredCarros = carros.filter((carro) => {
     const matchesSearchTerm = Object.values(carro).some((valor) =>
       String(valor).toLowerCase().includes(busca.toLowerCase()),
@@ -187,7 +228,7 @@ export default function ListaVeiculos() {
               color={"error"}
               size="small"
               variant="outlined"
-            ></Chip>
+            />
           );
         }
 
@@ -226,9 +267,50 @@ export default function ListaVeiculos() {
     {
       field: "acoes",
       headerName: "Ações",
-      width: 120,
+      width: 170,
       renderCell: (params) => (
         <Box display="flex" gap={1}>
+          {/* DOWNLOAD CRLV */}
+          <Tooltip
+            title={
+              params.row.urlCrlv
+                ? "Baixar CRLV"
+                : "Nenhum documento CRLV anexado"
+            }
+          >
+            <span>
+              <Button
+                variant="contained"
+                color="info"
+                size="small"
+                disabled={
+                  !params.row.urlCrlv || downloadingId === params.row.idCarro
+                }
+                onClick={() => handleDownloadCrlv(params.row)}
+                startIcon={
+                  downloadingId === params.row.idCarro ? undefined : <Download />
+                }
+                sx={{
+                  width: 42,
+                  height: 42,
+                  minWidth: 42,
+                  padding: 0,
+                  borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  "& .MuiButton-startIcon": {
+                    margin: 0,
+                  },
+                }}
+              >
+                {downloadingId === params.row.idCarro && (
+                  <CircularProgress size={20} color="inherit" />
+                )}
+              </Button>
+            </span>
+          </Tooltip>
+
           {/* EDITAR */}
           <Tooltip title="Editar veículo">
             <Button
@@ -250,7 +332,7 @@ export default function ListaVeiculos() {
                   margin: 0,
                 },
               }}
-            ></Button>
+            />
           </Tooltip>
 
           {/* INATIVAR/ATIVAR */}
