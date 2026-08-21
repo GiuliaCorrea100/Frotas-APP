@@ -81,47 +81,48 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
 
   useEffect(() => {
     const carregarDadosIniciais = async () => {
-      if (!open) return;
+      if (!open || !corrida) return;
 
       try {
-        if (corrida.motoristas && corrida.motoristas.length > 0) {
-          const motoristasMap = new Map<number, any>();
+        setLoadingMotorista(true);
+        const motoristasMap = new Map<number, any>();
 
-          corrida.motoristas.forEach((m) => {
-            const id = m.idMotorista;
+        if (corrida.motoristas && corrida.motoristas.length > 0) {
+          corrida.motoristas.forEach((m: any) => {
+            const id = m.idMotorista || m.idUsuario;
             if (id && !motoristasMap.has(id)) {
               motoristasMap.set(id, {
                 idUsuario: id,
                 idMotorista: id,
                 nome: m.nome,
+                cpf: m.cpf || "",
               });
             }
           });
 
-          setMotoristasSelecionados(Array.from(motoristasMap.values()));
-          setIdMotoristaPrincipal(corrida.idMotoristaPrincipal);
         } else if (corrida.idMotoristaPrincipal) {
           if (authMode === "MOCK") {
             const motoristasTeste = [
               { idUsuario: 1, idPessoaSigaa: 999998, nome: "ADMINISTRADOR FROTAS", cpf: "11111111111" },
               { idUsuario: 2, idPessoaSigaa: 999999, nome: "MOTORISTA FROTAS", cpf: "22222222222" },
             ];
-            const motorista = motoristasTeste.find(
-              (m) => m.idUsuario === corrida.idMotoristaPrincipal,
-            );
-            if (motorista) {
-              setMotoristasSelecionados([motorista]);
+            const principal = motoristasTeste.find((m) => m.idUsuario === corrida.idMotoristaPrincipal);
+            if (principal) {
+              motoristasMap.set(principal.idUsuario, principal);
             }
           } else {
             const response = await axiosConnect.get(
-              `/usuario/buscar-usuario/${corrida.idMotoristaPrincipal}`,
+              `/usuario/buscar-usuario/${corrida.idMotoristaPrincipal}`
             );
             if (response.data) {
-              setMotoristasSelecionados([response.data]);
+              const id = response.data.idUsuario || response.data.idMotorista;
+              motoristasMap.set(id, response.data);
             }
           }
-          setIdMotoristaPrincipal(corrida.idMotoristaPrincipal);
         }
+
+        setMotoristasSelecionados(Array.from(motoristasMap.values()));
+        setIdMotoristaPrincipal(corrida.idMotoristaPrincipal);
       } catch (error) {
         console.error("Erro ao carregar dados iniciais:", error);
       } finally {
@@ -145,18 +146,19 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
           { idUsuario: 1, idPessoaSigaa: 999998, nome: "ADMINISTRADOR FROTAS", cpf: "11111111111" },
           { idUsuario: 2, idPessoaSigaa: 999999, nome: "MOTORISTA FROTAS", cpf: "22222222222" },
         ];
-        const filteredMotoristas = motoristasTeste.filter((motorista) =>
-          motorista.nome.toLowerCase().includes(nome.toLowerCase()),
+        const filtered = motoristasTeste.filter((m) =>
+          m.nome.toLowerCase().includes(nome.toLowerCase())
         );
-        setMotoristasDisponiveis(filteredMotoristas);
+        setMotoristasDisponiveis(filtered);
       } else {
         const response = await axiosConnect.get(`/usuarioSigaa?nome=${nome}`);
-        const usuariosRetornados = response.data;
-        const uniqueUsuariosMap = new Map<number, any>();
+        const usuariosRetornados = response.data || [];
+        const uniqueMap = new Map<any, any>();
         usuariosRetornados.forEach((user: any) => {
-          uniqueUsuariosMap.set(user.idPessoaSigaa, user);
+          const key = user.idPessoaSigaa || user.cpf || user.idUsuario;
+          if (key) uniqueMap.set(key, user);
         });
-        setMotoristasDisponiveis(Array.from(uniqueUsuariosMap.values()));
+        setMotoristasDisponiveis(Array.from(uniqueMap.values()));
       }
     } catch (error) {
       console.error("Erro ao buscar usuários:", error);
@@ -166,9 +168,20 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
     }
   };
 
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-    return Object.keys(newErrors).length === 0;
+  const isMesmoMotorista = (m1: any, m2: any): boolean => {
+    if (!m1 || !m2) return false;
+    const id1 = m1.idUsuario || m1.idMotorista;
+    const id2 = m2.idUsuario || m2.idMotorista;
+    if (id1 && id2 && id1 === id2) return true;
+
+    if (m1.idPessoaSigaa && m2.idPessoaSigaa && m1.idPessoaSigaa === m2.idPessoaSigaa) return true;
+    if (m1.cpf && m2.cpf && m1.cpf === m2.cpf) return true;
+
+    if (m1.nome && m2.nome && m1.nome.trim().toUpperCase() === m2.nome.trim().toUpperCase()) {
+      return true;
+    }
+
+    return false;
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -177,9 +190,7 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
     if (!corrida?.idCorrida) return;
 
     if (motoristasSelecionados.length === 0) {
-      setErrorMessage(
-        "A corrida precisa estar associada a pelo menos um motorista.",
-      );
+      setErrorMessage("A corrida precisa estar associada a pelo menos um motorista.");
       return;
     }
 
@@ -187,24 +198,23 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
     setLoading(true);
 
     try {
-      const converterId = async (motorista: any): Promise<number> => {
+      const converterId = async (motorista: any): Promise<number | null> => {
         if (authMode === "MOCK" || motorista.idUsuario || motorista.idMotorista) {
           return motorista.idUsuario || motorista.idMotorista;
         }
-        const response = await axiosConnect.get(
-          `/usuario/consultaCadastro/${motorista.idPessoaSigaa}`,
-          {
-            params: { nome: motorista.nome },
-          },
-        );
-        return response.data.idUsuario;
+        if (motorista.idPessoaSigaa) {
+          const response = await axiosConnect.get(
+            `/usuario/consultaCadastro/${motorista.idPessoaSigaa}`,
+            { params: { nome: motorista.nome } }
+          );
+          return response.data.idUsuario;
+        }
+        return null;
       };
 
-      const motoristasIdsBrutos = await Promise.all(
-        motoristasSelecionados.map(converterId),
-      );
+      const idsBrutos = await Promise.all(motoristasSelecionados.map(converterId));
 
-      const motoristasIds = Array.from(new Set(motoristasIdsBrutos.filter(Boolean)));
+      const motoristasIds = Array.from(new Set(idsBrutos.filter((id): id is number => Number.isInteger(id))));
 
       const dadosAtualizados = {
         idMotoristaPrincipal: idMotoristaPrincipal || motoristasIds[0],
@@ -213,23 +223,18 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
 
       await axiosConnect.patch(`/corrida/salvar-edicao-adm/${corrida.idCorrida}`, dadosAtualizados);
 
-      const mensagem = "Motoristas editados com sucesso!";
-      setSuccessMessage(mensagem);
-
+      setSuccessMessage("Motoristas editados com sucesso!");
       setTimeout(() => {
-        onSuccess(mensagem);
+        onSuccess("Motoristas editados com sucesso!");
         onClose();
       }, 1500);
 
     } catch (error: any) {
-      console.error("Erro ao editar informações dos motoristas", error);
-
+      console.error("Erro ao editar informações dos motoristas:", error);
       if (error.response?.status === 401) {
         onError("Sessão expirada. Faça login novamente.");
       } else {
-        setErrorMessage(
-          error.response?.data?.message || "Erro ao editar informações dos motoristas",
-        );
+        setErrorMessage(error.response?.data?.message || "Erro ao editar informações dos motoristas.");
       }
     } finally {
       setLoading(false);
@@ -237,12 +242,10 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
   };
 
   const handleRemoverMotorista = (motorista: any) => {
-    const idMotorista = motorista.idUsuario || motorista.idMotorista || motorista.idPessoaSigaa;
+    const idMotorista = motorista.idUsuario || motorista.idMotorista;
 
-    if (motoristaTemPercursos(idMotorista)) {
-      setErrorMessage(
-        `Não é possível remover ${motorista.nome} pois possui percursos cadastrados.`,
-      );
+    if (idMotorista && motoristaTemPercursos(idMotorista)) {
+      setErrorMessage(`Não é possível remover ${motorista.nome} pois possui percursos cadastrados.`);
       return;
     }
 
@@ -251,44 +254,22 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
       motorista.idUsuario === idMotoristaPrincipal ||
       motorista.idMotorista === idMotoristaPrincipal
     ) {
-      setErrorMessage(
-        `Não é possível remover ${motorista.nome} pois é o motorista principal da corrida.`,
-      );
+      setErrorMessage(`Não é possível remover ${motorista.nome} pois é o motorista principal da corrida.`);
       return;
     }
 
-    setMotoristasSelecionados((prev) => {
-      return prev.filter((m) => {
-        const mId = m.idUsuario || m.idMotorista || m.idPessoaSigaa;
-        if (mId && idMotorista && mId === idMotorista) return false;
-        if (m.cpf && motorista.cpf && m.cpf === motorista.cpf) return false;
-        return true;
-      });
-    });
-
+    setMotoristasSelecionados((prev) => prev.filter((m) => !isMesmoMotorista(m, motorista)));
     setErrorMessage("");
   };
 
   return (
     <Modal open={open} onClose={onClose}>
       <Box sx={modalStyle}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 2,
-          }}
-        >
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
           <Typography
             variant="h6"
             color="text.primary"
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              fontWeight: "bold",
-              pt: 1,
-            }}
+            sx={{ display: "flex", alignItems: "center", fontWeight: "bold", pt: 1 }}
           >
             <PersonAdd color="primary" sx={{ fontSize: 24, mr: 1 }} />
             Editar Motoristas
@@ -312,56 +293,32 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 3 }}>
           <Autocomplete
-            options={motoristasDisponiveis.filter((option) => {
-              return !motoristasSelecionados.some((sel) => {
-                const selId = sel.idUsuario || sel.idMotorista || sel.idPessoaSigaa;
-                const optId = option.idUsuario || option.idMotorista || option.idPessoaSigaa;
-
-                if (selId && optId && selId === optId) return true;
-                if (sel.cpf && option.cpf && sel.cpf === option.cpf) return true;
-                return false;
-              });
-            })}
+            options={motoristasDisponiveis.filter(
+              (option) => !motoristasSelecionados.some((sel) => isMesmoMotorista(sel, option))
+            )}
             getOptionLabel={(option) => {
-              if (option.nome && option.cpf) {
-                return `${option.nome} (${option.cpf})`;
-              }
+              if (option.nome && option.cpf) return `${option.nome} (${option.cpf})`;
               return option.nome || "";
             }}
             value={null}
             inputValue={motoristaInput}
             onInputChange={(_, value, reason) => {
               setMotoristaInput(value);
-              if (reason === "input") {
-                buscarUsuario(value);
-              }
+              if (reason === "input") buscarUsuario(value);
             }}
             onChange={(_, value) => {
               if (value) {
-                const jaExiste = motoristasSelecionados.some((sel) => {
-                  const selId = sel.idUsuario || sel.idMotorista || sel.idPessoaSigaa;
-                  const valId = value.idUsuario || value.idMotorista || value.idPessoaSigaa;
-                  return (
-                    (selId && valId && selId === valId) ||
-                    (sel.cpf && value.cpf && sel.cpf === value.cpf)
-                  );
-                });
-
+                const jaExiste = motoristasSelecionados.some((sel) => isMesmoMotorista(sel, value));
                 if (!jaExiste) {
                   setMotoristasSelecionados((prev) => [...prev, value]);
                   setErrorMessage("");
                 } else {
-                  setErrorMessage("Este motorista já foi adicionado à corrida.");
+                  setErrorMessage("Este motorista já está associado a esta corrida.");
                 }
               }
               setMotoristaInput("");
             }}
-            isOptionEqualToValue={(option, value) => {
-              if (option.cpf && value.cpf) return option.cpf === value.cpf;
-              const optId = option.idUsuario || option.idPessoaSigaa;
-              const valId = value.idUsuario || value.idPessoaSigaa;
-              return optId === valId;
-            }}
+            isOptionEqualToValue={(option, value) => isMesmoMotorista(option, value)}
             noOptionsText="Digite pelo menos 3 caracteres para buscar"
             loading={loadingMotorista}
             disabled={!!successMessage || loading}
@@ -370,7 +327,7 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
                 {...params}
                 label="Motorista"
                 placeholder={loadingMotorista ? "Carregando..." : "Digite para buscar"}
-                helperText={"Selecione o motorista a ser adicionado à corrida"}
+                helperText="Selecione o motorista a ser adicionado à corrida"
                 InputProps={{
                   ...params.InputProps,
                   endAdornment: (
@@ -385,6 +342,7 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
             )}
             fullWidth
           />
+
           {motoristasSelecionados.length > 0 && (
             <Box
               sx={{
@@ -396,19 +354,14 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
                 backgroundColor: "action.hover",
               }}
             >
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ display: "block", fontWeight: "bold", mb: 1 }}
-              >
+              <Typography variant="caption" color="text.secondary" sx={{ display: "block", fontWeight: "bold", mb: 1 }}>
                 Motoristas Selecionados:
               </Typography>
 
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                 {motoristasSelecionados.map((motorista, index) => {
-                  const idMotorista =
-                    motorista.idUsuario || motorista.idMotorista || motorista.idPessoaSigaa;
-                  const temPercursos = motoristaTemPercursos(idMotorista);
+                  const idMotorista = motorista.idUsuario || motorista.idMotorista;
+                  const temPercursos = idMotorista ? motoristaTemPercursos(idMotorista) : false;
                   const ehMotoristaPrincipal =
                     idMotorista === idMotoristaPrincipal ||
                     motorista.idUsuario === idMotoristaPrincipal ||
@@ -417,7 +370,7 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
 
                   return (
                     <Box
-                      key={idMotorista || motorista.cpf || index}
+                      key={idMotorista || motorista.idPessoaSigaa || motorista.cpf || index}
                       sx={{
                         display: "flex",
                         alignItems: "center",
@@ -434,12 +387,7 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
                         {motorista.nome} {motorista.cpf ? `(${motorista.cpf})` : ""}
 
                         {ehMotoristaPrincipal && (
-                          <Typography
-                            component="span"
-                            variant="caption"
-                            color="primary"
-                            sx={{ ml: 1, fontWeight: "bold" }}
-                          >
+                          <Typography component="span" variant="caption" color="primary" sx={{ ml: 1, fontWeight: "bold" }}>
                             (Principal)
                           </Typography>
                         )}
@@ -454,14 +402,7 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
                                 : ""
                             }
                           >
-                            <Warning
-                              sx={{
-                                ml: 1,
-                                fontSize: 16,
-                                color: "warning.main",
-                                verticalAlign: "middle",
-                              }}
-                            />
+                            <Warning sx={{ ml: 1, fontSize: 16, color: "warning.main", verticalAlign: "middle" }} />
                           </Tooltip>
                         )}
                       </Typography>
@@ -500,11 +441,7 @@ const AdicionarMotorista: React.FC<AdicionarMotoristaProps> = ({
           <Button variant="outlined" onClick={onClose} disabled={loading}>
             Cancelar
           </Button>
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            disabled={loading || !!successMessage}
-          >
+          <Button onClick={handleSubmit} variant="contained" disabled={loading || !!successMessage}>
             {loading ? <CircularProgress size={24} /> : "Confirmar"}
           </Button>
         </Box>
